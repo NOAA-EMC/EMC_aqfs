@@ -1,0 +1,132 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_cmaq_post.sh
+# Script description:  Run CMAQ post processing 
+#
+# Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
+#
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2003-07-15    Julia Zhu, modified for production
+# 2004-03-31    Pius Lee, notcdf and upgrades 
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+export XLFRTEOPTS="unit_vars=yes"
+
+#########################################################
+# Part I: Convert Machine binary format to Grib format
+#	  input file is "ACONC.r6a.bin"
+#########################################################
+
+ ic=1
+  while [ $ic -lt 1000 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.aconc.bin ]
+    then
+     ln -sf $COMIN/aqm.${cycle}.aconc.bin $DATA/aqm.${cycle}.aconc.bin
+      break
+    else
+      let "ic=ic+1"
+      sleep 10
+    fi
+
+    if [ $ic -ge 180 ]
+    then
+        err_exit "COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc.bin"
+    fi
+  done
+
+export pgm=aqm_post_5xwrf
+. prep_step
+export XLFUNIT_10="$PARMaqm/aqm_cmaq_post1_5x.ctl"
+export XLFUNIT_21="$FIXaqm/aqm_wgt_148_148"
+export XLFUNIT_41="$PARMnam/nam_kwbx.tbl"
+export XLFUNIT_42="$PARMnam/nam_time.tbl"
+export XLFUNIT_43="$PARMnam/nam_parm.tbl"
+export XLFUNIT_44="$PARMnam/nam_grid.tbl"
+export XLFUNIT_45="$PARMnam/nam_levl.tbl"
+
+case $cyc in
+ 00) export n_durhr=6;;
+ 06) export n_durhr=48;;
+ 12) export n_durhr=48;;
+ 18) export n_durhr=6;;
+esac
+
+export mysdate=-99
+export mystime=-99
+export mynsteps=-99
+export spc=N    ##T,F,Y, or N
+export display=N
+export tol=0.
+export info=N
+export spc_list="O3"
+export notcdf=Y
+export NOTCDF_FATAL=F
+export RESEARCH=N
+export file1="BIN:aqm.${cycle}.aconc.bin"
+
+cat >input.prd <<EOF5
+EGDAQM.tm00
+EOF5
+startmsg
+$EXECaqm/aqm_post_5xwrf < input.prd >> $pgmout 2>errfile
+export err=$?;err_chk
+
+export fhr=01
+typeset -Z2 fhr
+
+case $cyc in
+ 00) endfhr=06;;
+ 06) endfhr=48;;
+ 12) endfhr=48;;
+ 18) endfhr=06;;
+esac
+
+while [ $fhr -le $endfhr ]
+do
+  for field in ozcat ozcon
+  do
+    export SENDCOM=YES
+
+    if [ "$SENDCOM" = 'YES' ]
+    then
+      cp $DATA/${field}_${fhr} $COMOUT/aqm.${cycle}.awp${field}${fhr}
+    fi
+  done
+
+  #
+  # Create GRIB file to convert to grid 227 then to GRIB2 for NDFD
+  #
+  cat $COMOUT/aqm.${cycle}.awpozcon${fhr} >> tmpfile
+
+  let "fhr=fhr+1"
+  typeset -Z2 fhr
+done
+
+if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
+   ##################
+   # Convert ozone Concentration to grid 227 in GRIB2 format
+   ##################
+   $utilexec/copygb -g 227 -x -i"1 1" tmpfile tmpfile2
+   $utilexec/cnvgrib -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5x.227
+   export COMIN=$DATA
+   export GRID=227_5X
+   $utilscript/mkawpgrb.sh "00"
+fi
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################
+
+exit
