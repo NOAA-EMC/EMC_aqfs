@@ -1,0 +1,16 @@
+#Name       CAS        SaroaR K FactorV M E A  NTI Units            Inventory data description               CAS description
+VMT                            N     1 N     Y   0 miles/yr         Vehicle miles travelled                  n/a
+CO                     42101   Y     1 N     N   0 tons/yr          Carbon Monoxide                          n/a
+NOX                    42603   Y     1 N     N   0 tons/yr          Nitrogen oxides                          n/a
+ROG                            N     1 N     N   0 tons/yr          Reactive Organic Gases                   n/a
+THC                            N     1 N     N   0 tons/yr          Total hydrocarbons                       n/a
+TVC                    43101   N     1 N     N   0 tons/yr          Total volatile compounds                 n/a
+VOC                    43104   Y     1 N     N   0 tons/yr          Volatile organic compounds               n/a
+TOG                            N     1 N     N   0 tons/yr          Total organic compounds                  n/a
+NH3                            Y     1 N     N   0 tons/yr          Ammonia                                  n/a
+SO2                    42401   Y     1 N     N   0 tons/yr          Sulfur Dioxide                           n/a
+SO4                            Y     1 N     N   0 tons/yr          Sulfate                                  n/a
+SOX                            N     1 N     N   0 tons/yr          Sulfur oxides                            n/a
+PM10                   81102   Y     1 N     N   0 tons/yr          Particulate matter, 10 microns and less  n/a
+PM2_5                  88101   Y     1 N     N   0 tons/yr          Particulate matter, 2.5 microns and less n/a
+PMC                    88102   Y     1 N     N   0 tons/yr          Particulate matter, coarse               n/a
