@@ -1,0 +1,110 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_nam_prep.sh
+# Script description:  Run nam product generator for CMAQ
+#
+# Abstract: This script runs 0-48 h NAM PRDGEN for CMAQ
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2004-03-31    Pius Lee, netcdf independent and append gfs ozone
+# 2004-04-01    Luc, modified for production
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+echo "Start of WRF_prdgen Job"
+
+case $cyc in
+ 18) export endfhr=12
+     export target=t00z
+     export nmm_dir=$COMNMM
+     export out_dir=$COMOUTP1;;
+ 00) export endfhr=54
+     export target=t06z
+     export nmm_dir=$COMNMM
+     export out_dir=$COMOUT;;
+ 06) export endfhr=54
+     export target=t12z
+     export nmm_dir=$COMNMM
+     export out_dir=$COMOUT;;
+ 12) export endfhr=12
+     export target=t18z
+     export nmm_dir=$COMNMM
+     export out_dir=$COMOUT;;
+esac
+
+export fhr=06
+export ftg=00
+#========pwet -Z2 fhr
+typeset -Z2 fhr ftg endfhr
+
+cp $PARMaqm/aqm_60hyb_prss.ctl master3.ctl
+while [ $fhr -le $endfhr ]
+do
+  ic=1
+  while [ $ic -lt 1000 ]
+  do
+    if [ -s $nmm_dir/nam.${cycle}.egrd3d$fhr.tm00 ]
+    then
+        ln -s -f $nmm_dir/nam.${cycle}.egrd3d$fhr.tm00 nam.${cycle}.egrd3d$fhr.tm00
+   break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 180 ]
+      then
+      err_exit "COULD NOT LOCATE:$nmm_dir/nam.${cycle}.egrd3d$fhr.tm00"
+      fi
+    done
+
+  export pgm=aqm_nmm_prep
+  . prep_step
+  export XLFRTEOPTS="unit_vars=yes"
+##export HR_CENTERED=Y
+  export XLFUNIT_10="master3.ctl"
+  export XLFUNIT_21="$FIXaqm/aqm_wgt_96_147_aqf"
+  export XLFUNIT_41="$PARMnam/nam_kwbx.tbl"
+  export XLFUNIT_42="$PARMnam/nam_time.tbl"
+  export XLFUNIT_43="$PARMnam/nam_parm.tbl"
+  export XLFUNIT_44="$PARMnam/nam_grid.tbl"
+  export XLFUNIT_45="$PARMnam/nam_levl.tbl"
+
+  cat <<EOF5 >input${fhr}.prd
+nam.${cycle}.egrd3d${fhr}.tm00
+EOF5
+
+  echo 'about to cat input'
+  cat input${fhr}.prd
+
+  startmsg
+  $EXECaqm/aqm_post_5xwrf < input${fhr}.prd >> $pgmout 2>errfile
+  export err=$?;err_chk
+
+  if [ "$SENDCOM" = 'YES' ]
+  then
+  cp $DATA/meso.PRSS${fhr} ${out_dir}/aqm.${target}.prss${ftg}
+  fi
+
+  let "fhr=fhr+3"
+  let "ftg=ftg+3"
+  typeset -Z2 fhr ftg
+done
+
+echo EXITING $0
+
+########################################################
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################
+
+exit
