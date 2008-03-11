@@ -1,0 +1,11 @@
+FILES = ( /com/aqm/prod/aqm._PDY_/
+          /com/aqm/prod/aqm._PDYm1_/ 
+          /com/aqm/para/aqm._PDY_/
+          /com/aqm/para/aqm._PDYm1_/
+          /com/aqm/prod/emission/
+          /com/aqm/para/emission/ )
+
+com:
+${FILES} -> ${HOSTS}
+        except_pat ( jlogfile ) ;
+        install;
