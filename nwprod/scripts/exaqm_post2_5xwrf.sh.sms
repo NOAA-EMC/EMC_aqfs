@@ -1,0 +1,108 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_cmaq_post.sh
+# Script description:  Run CMAQ post processing 
+#
+# Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
+#
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2003-07-15    Julia Zhu, modified for production
+# 2004-03-31    Pius Lee, notcdf and upgrades 
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+export XLFRTEOPTS="unit_vars=yes"
+
+#########################################################
+# Part I: Convert Machine binary format to Grib format
+#	  input file is "ACONC.r6a.bin"
+#########################################################
+
+ ic=1
+  while [ $ic -lt 1000 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.aconc.bin ]
+    then
+     ln -sf $COMIN/aqm.${cycle}.aconc.bin $DATA/aqm.${cycle}.aconc.bin
+      break
+    else
+      let "ic=ic+1"
+      sleep 10
+    fi
+
+    if [ $ic -ge 180 ]
+    then
+        err_exit "COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc.bin"
+    fi
+  done
+
+export pgm=aqm_post_5xwrf
+. prep_step
+export XLFUNIT_10="$PARMaqm/aqm_cmaq_post2_5x.ctl"
+export XLFUNIT_21="$FIXaqm/aqm_wgt_148_148"
+export XLFUNIT_41="$PARMnam/nam_kwbx.tbl"
+export XLFUNIT_42="$PARMnam/nam_time.tbl"
+export XLFUNIT_43="$PARMnam/nam_parm.tbl"
+export XLFUNIT_44="$PARMnam/nam_grid.tbl"
+export XLFUNIT_45="$PARMnam/nam_levl.tbl"
+
+case $cyc in
+ 00) export n_durhr=6;;
+ 06) export n_durhr=48;;
+ 12) export n_durhr=48;;
+ 18) export n_durhr=6;;
+esac
+
+export mysdate=-99
+export mystime=-99
+export mynsteps=-99
+export spc=N    ##T,F,Y, or N
+export display=N
+export tol=0.
+export info=N
+export spc_list="O3 NO2 NO NO3 N2O5 HNO3 HONO PNA CO FORM ALD2 PAN NTR PAR, TOL, XYL, ETH, OLE, H2O2, ISOP, NH3"
+export notcdf=Y
+export NOTCDF_FATAL=F
+export RESEARCH=Y
+export file1="BIN:aqm.${cycle}.aconc.bin"
+
+cat >input.prd <<EOF5
+EGDAQM.tm00
+EOF5
+startmsg
+$EXECaqm/aqm_post_5xwrf < input.prd >> $pgmout 2>errfile
+export err=$?;err_chk
+
+    if [ "$SENDCOM" = 'YES' ]
+    then
+       export fhr=01
+       export endfhr=${n_durhr}
+       typeset -Z2 fhr
+       while [ $fhr -le $endfhr ]
+       do
+         cp $DATA/inhouse_${fhr} $COMOUT/aqm.${cycle}.sigma${fhr}
+         let "fhr=fhr+1"
+         typeset -Z2 fhr
+         export fhr
+       done
+    fi
+
+export err=$?;err_chk
+
+########################################################
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################
+
+exit
