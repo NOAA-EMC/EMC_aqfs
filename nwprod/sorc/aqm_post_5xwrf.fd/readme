@@ -1,0 +1,30 @@
+From aqm_post.fd on Nov 12, 2003
+Before modifying for GFS O3 handling,
+this PRDGEN version can handle hour-centered
+Kh from ETA_POST by looping through meso.AQFETA(n)
+and meso.AQFETA(n+1)
+On March 2nd 2004 handle machine-binary ACONC files
+   (1) swap in nameval.c; readdata_module.f; getinfo_module.f
+   (2) get getstart_module.f and modifies it from 
+        -- nfsuser/g01/wx20dw/mytools/diff
+derived and condensed, can see private note "aqmpost_v_diff"
+
+
+From /nfsuser/g01/wx20pl/WRF/nwpara/sorc/aqm_post_wrf.fd
+on Jan 24th, 2006.
+Plan on adding output for aerosol species over most
+vertical layers at designated times
+
+From aqm_post.fd on Nov 12, 2003
+
+Before modifying for GFS O3 handling,
+this PRDGEN version can handle hour-centered
+Kh from ETA_POST by looping through meso.AQFETA(n)
+and meso.AQFETA(n+1)
+On March 2nd 2004 handle machine-binary ACONC files
+   (1) swap in nameval.c; readdata_module.f; getinfo_module.f
+   (2) get getstart_module.f and modifies it from 
+        -- nfsuser/g01/wx20dw/mytools/diff
+derived and condensed, can see private note "aqmpost_v_diff"
+
+
