@@ -1,0 +1,184 @@
+
+C RCS file, release, date & time of last delta, author, state, [and locker]
+C $Header: /project/work/rep/include/ICL/src/mech/cb4_aq/RXCM.EXT,v 1.6 2001/04/10 18:07:24 yoj Exp $ 
+
+C what(1) key, module and SID; SCCS file; date and time of last delta:
+C %W% %P% %G% %U%
+
+C -------- Mechanism Reactions, Rates, etc. COMMON INCLUDE File --------
+C  /tmp/work/RXCM.EXT
+C for Mechanism Name: CB4_AQ          
+
+C The following are reserved symbols declared in this INCLUDE file:
+C    MECHNAME  = Mechanism name
+C    NRXNS     = Number of mechanism reactions
+C    KUNITS    = Units of mechanism reactions
+C    KTYPE     = Reaction type
+C    IRXBITS   = Bit test mask vector for selected reactions
+C    IORDER    = Order of the reaction
+C    KTN1      = Number of type 1 reactions
+C    KRX1      = Reactions list pointer to type 1 reactions
+C    KTN2      = Number of type 2 reactions
+C    KRX2      = Reactions list pointer to type 2 reactions
+C    KTN3      = Number of type 3 reactions
+C    KRX3      = Reactions list pointer to type 3 reactions
+C    KTN4      = Number of type 4 reactions
+C    KRX4      = Reactions list pointer to type 4 reactions
+C    KTN5      = Number of type 5 reactions
+C    KRX5      = Reactions list pointer to type 5 reactions
+C    KTN6      = Number of type 6 reactions
+C    KRX6      = Reactions list pointer to type 6 reactions
+C    KTN7      = Number of type 7 reactions
+C    KRX7      = Reactions list pointer to type 7 reactions conversion reactions
+C    NWM       = Number of air 3-body reactions
+C    NRXWM     = Reactions list pointer to air 3-body reactions
+C    NWW       = Number of H2O 3-body reactions
+C    NRXWW     = Reactions list pointer to H2O 3-body reactions
+C    NWO2      = Number of reactions with O2
+C    NRXWO2    = Reactions list pointer to O2 reactions
+C    NWN2      = Number of N2 3-body reactions
+C    NRXWN2    = Reactions list pointer to N2 3-body reactions
+C    NWCH4     = Number of reactions with CH4
+C    NRXWCH4   = Reactions list pointer to CH4 reactions
+C    NWH2      = Number of reactions with H2
+C    NRXWH2    = Reactions list pointer to H2 reactions
+C    MXPRD     = Maximum number of mechanism reaction products
+C    IRR       = Reactions list pointer to reactants and products
+C    RTDAT     = Kinetic reaction rates expressions components
+C    NFALLOFFF = Number of falloff reactions
+C    IRRFALL   = Reactions list pointer to falloff reactions
+C    RFDAT     = Falloff reaction rates expressions components
+C    SC        = Stoichiometric coefficients
+C    NREACT    = Number of reactants in each mechanism reaction
+C    NPRDCT    = Number of products in each mechanism reaction
+C    RXLABEL   = Character label list for mechanism reactions
+C    NMPHOT    = Number of mechanism photolytic reactions
+C    NPHOTAB   = Number of photolytic reactions tables
+C    IPH       = Reactions list pointer to photolytic reactions and tables 
+
+      CHARACTER*16 MECHNAME
+      PARAMETER  ( MECHNAME = 'CB4_AQ          ' )
+
+      INTEGER      NRXNS
+      PARAMETER  ( NRXNS =  93 )
+
+      INTEGER      KUNITS
+
+      INTEGER      KTYPE( NRXNS )
+
+      INTEGER      IRXBITS( NRXNS )
+
+      INTEGER      IORDER( NRXNS )
+
+      INTEGER      KTN1
+      PARAMETER  ( KTN1 =  30 )
+      INTEGER      KRX1( KTN1 )
+
+      INTEGER      KTN2
+      PARAMETER  ( KTN2 =   0 )
+      INTEGER      KRX2( 1 )
+
+      INTEGER      KTN3
+      PARAMETER  ( KTN3 =  39 )
+      INTEGER      KRX3( KTN3 )
+
+      INTEGER      KTN4
+      PARAMETER  ( KTN4 =   0 )
+      INTEGER      KRX4( 1 )
+
+      INTEGER      KTN5
+      PARAMETER  ( KTN5 =   2 )
+      INTEGER      KRX5( KTN5 )
+
+      INTEGER      KTN6
+      PARAMETER  ( KTN6 =   0 )
+      INTEGER      KRX6( 1 )
+
+      INTEGER      KTN7
+      PARAMETER  ( KTN7 =   1 )
+      INTEGER      KRX7( KTN7 )
+
+      INTEGER      NWM
+      PARAMETER  ( NWM =   0 )
+      INTEGER      NRXWM( 1 )
+
+      INTEGER      NWW
+      PARAMETER  ( NWW =   4 )
+      INTEGER      NRXWW( NWW )
+
+      INTEGER      NWO2
+      PARAMETER  ( NWO2 =   3 )
+      INTEGER      NRXWO2( NWO2 )
+
+      INTEGER      NWN2
+      PARAMETER  ( NWN2 =   1 )
+      INTEGER      NRXWN2( NWN2 )
+
+      INTEGER      NWCH4
+      PARAMETER  ( NWCH4 =   1 )
+      INTEGER      NRXWCH4( NWCH4 )
+
+      INTEGER      NWH2
+      PARAMETER  ( NWH2 =   0 )
+      INTEGER      NRXWH2( 1 )
+
+      INTEGER      MXPRD
+      PARAMETER  ( MXPRD =   9 )
+      INTEGER      IRR( NRXNS,MXPRD+3 )
+
+      INTEGER      NFALLOFF
+      PARAMETER  ( NFALLOFF =   9 )
+      INTEGER      IRRFALL( NFALLOFF )
+
+      REAL         SC( NRXNS,MXPRD )
+
+      INTEGER      NREACT( NRXNS )
+      INTEGER      NPRDCT( NRXNS )
+
+      INTEGER      NMPHOT
+      PARAMETER  ( NMPHOT =  12 )
+      INTEGER      IPH( NMPHOT,3 )
+
+      COMMON     / MECHRX1 /
+     &             KUNITS,
+     &             KTYPE,
+     &             IRXBITS,
+     &             IORDER,
+     &             KRX1,
+     &             KRX2,
+     &             KRX3,
+     &             KRX4,
+     &             KRX7,
+     &             KRX5,
+     &             KRX6,
+     &             NRXWM,
+     &             NRXWW,
+     &             NRXWO2,
+     &             NRXWN2,
+     &             NRXWCH4,
+     &             NRXWH2,
+     &             IRR,
+     &             IRRFALL,
+     &             SC,
+     &             NREACT,
+     &             NPRDCT,
+     &             IPH
+
+      REAL*8       RTDAT( 3,NRXNS )
+      REAL*8       RFDAT( 5,NFALLOFF )
+
+      COMMON     / MECHRX2 /
+     &             RTDAT,
+     &             RFDAT
+
+      INTEGER      NPHOTAB
+      PARAMETER  ( NPHOTAB =   6 )
+      CHARACTER*16 PHOTAB( NPHOTAB )
+
+      CHARACTER*16 RXLABEL( NRXNS )
+
+      COMMON     / MECHRX3 /
+     &             PHOTAB,
+     &             RXLABEL
+
+C End of Mechanism Reactions, Rates, etc. COMMON INCLUDE File ----------
