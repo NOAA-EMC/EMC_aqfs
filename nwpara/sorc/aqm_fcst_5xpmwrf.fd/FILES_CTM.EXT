@@ -1,0 +1,149 @@
+
+C RCS file, release, date & time of last delta, author, state, [and locker]
+C $Header: /project/air5/sjr/CMAS4.5/rel/models/include/ICL/src/fixed/filenames/FILES_CTM.EXT,v 1.1.1.1 2005/09/09 19:03:10 sjr Exp $ 
+
+C what(1) key, module and SID; SCCS file; date and time of last delta:
+C @(#)FILES_CTM.EXT     2.2 /project/mod3/ICL/src/fixed/filenames/SCCS/s.FILES_CTM.EXT 25 Jul 1997 13:38:00
+
+C.......................................................................
+C Include File  FILES3_CTM.EXT
+C
+C Contains:  Standard logical name variables set in the model executing
+C            shell environment
+ 
+C Dependent Upon:  none
+ 
+C Revision History:
+C   Prototype 5/93 by CJC
+C   Feb, Mar 96, May 97 by Jeff
+C   24 July 97, Jeff, change PARAMETER to DATA
+C   16 May 2005, P.Bhave, added OCEAN input and SSEMIS output files
+C.......................................................................
+
+      INTEGER     N_FILES
+      PARAMETER ( N_FILES = 39 )
+
+      CHARACTER*16    LGCL_NAME( N_FILES ) 
+      LOGICAL         IN_MODE( N_FILES )
+
+      CHARACTER*16    GRID_DOT_2D
+      CHARACTER*16    GRID_CRO_2D
+      CHARACTER*16    GRID_BDY_2D
+      CHARACTER*16    EMIS_1
+      CHARACTER*16    OCEAN_1
+      CHARACTER*16    MEPSE_1
+      CHARACTER*16    MET_BDY_2D
+      CHARACTER*16    MET_BDY_3D
+      CHARACTER*16    MET_DOT_3D
+      CHARACTER*16    MET_CRO_2D
+      CHARACTER*16    MET_CRO_3D
+      CHARACTER*16    CTM_CONC_1
+      CHARACTER*16    CTM_DRY_DEP_1
+      CHARACTER*16    CTM_WET_DEP_1
+      CHARACTER*16    CTM_WET_DEP_2
+      CHARACTER*16    CTM_SSEMIS_1
+      CHARACTER*16    CTM_VIS_1
+      CHARACTER*16    CTM_DIAM_1
+      CHARACTER*16    CTM_PING_0
+      CHARACTER*16    CTM_PING_1
+      CHARACTER*16    CTM_PING_DIAM_1
+      CHARACTER*16    CTM_PING_DDEP_1
+      CHARACTER*16    CTM_IPR_1
+      CHARACTER*16    CTM_IPR_2
+      CHARACTER*16    CTM_IPR_3
+      CHARACTER*16    CTM_IRR_1
+      CHARACTER*16    CTM_IRR_2
+      CHARACTER*16    CTM_IRR_3
+      CHARACTER*16    INIT_GASC_1
+      CHARACTER*16    BNDY_GASC_1
+      CHARACTER*16    INIT_AERO_1
+      CHARACTER*16    BNDY_AERO_1
+      CHARACTER*16    INIT_NONR_1
+      CHARACTER*16    BNDY_NONR_1
+      CHARACTER*16    INIT_TRAC_1
+      CHARACTER*16    BNDY_TRAC_1
+      CHARACTER*16    DEPV_TRAC_1
+      CHARACTER*16    EMIS_TRAC_1
+      CHARACTER*16    PDM_PING_1
+
+      DATA GRID_DOT_2D      / 'GRID_DOT_2D     ' /
+      DATA GRID_CRO_2D      / 'GRID_CRO_2D     ' /
+      DATA GRID_BDY_2D      / 'GRID_BDY_2D     ' /
+      DATA EMIS_1           / 'EMIS_1          ' /
+      DATA OCEAN_1          / 'OCEAN_1         ' /
+      DATA MEPSE_1          / 'MEPSE_1         ' /
+      DATA MET_BDY_2D       / 'MET_BDY_2D      ' /
+      DATA MET_BDY_3D       / 'MET_BDY_3D      ' /
+      DATA MET_DOT_3D       / 'MET_DOT_3D      ' /
+      DATA MET_CRO_2D       / 'MET_CRO_2D      ' /
+      DATA MET_CRO_3D       / 'MET_CRO_3D      ' /
+      DATA CTM_CONC_1       / 'CTM_CONC_1      ' /
+      DATA CTM_DRY_DEP_1    / 'CTM_DRY_DEP_1   ' /
+      DATA CTM_WET_DEP_1    / 'CTM_WET_DEP_1   ' /
+      DATA CTM_WET_DEP_2    / 'CTM_WET_DEP_2   ' /
+      DATA CTM_SSEMIS_1     / 'CTM_SSEMIS_1    ' /
+      DATA CTM_VIS_1        / 'CTM_VIS_1       ' /
+      DATA CTM_DIAM_1       / 'CTM_DIAM_1      ' /
+      DATA CTM_PING_0       / 'CTM_PING_0      ' /
+      DATA CTM_PING_1       / 'CTM_PING_1      ' /
+      DATA CTM_PING_DIAM_1  / 'CTM_PING_DIAM_1 ' /
+      DATA CTM_PING_DDEP_1  / 'CTM_PING_DDEP_1 ' /
+      DATA CTM_IPR_1        / 'CTM_IPR_1       ' /
+      DATA CTM_IPR_2        / 'CTM_IPR_2       ' /
+      DATA CTM_IPR_3        / 'CTM_IPR_3       ' /
+      DATA CTM_IRR_1        / 'CTM_IRR_1       ' /
+      DATA CTM_IRR_2        / 'CTM_IRR_2       ' /
+      DATA CTM_IRR_3        / 'CTM_IRR_3       ' /
+      DATA INIT_GASC_1      / 'INIT_GASC_1     ' /
+      DATA BNDY_GASC_1      / 'BNDY_GASC_1     ' /
+      DATA INIT_AERO_1      / 'INIT_AERO_1     ' /
+      DATA BNDY_AERO_1      / 'BNDY_AERO_1     ' /
+      DATA INIT_NONR_1      / 'INIT_NONR_1     ' /
+      DATA BNDY_NONR_1      / 'BNDY_NONR_1     ' /
+      DATA INIT_TRAC_1      / 'INIT_TRAC_1     ' /
+      DATA BNDY_TRAC_1      / 'BNDY_TRAC_1     ' /
+      DATA DEPV_TRAC_1      / 'DEPV_TRAC_1     ' /
+      DATA EMIS_TRAC_1      / 'EMIS_TRAC_1     ' /
+      DATA PDM_PING_1       / 'PDM_PING_1      ' /
+
+      DATA LGCL_NAME(  1 ), IN_MODE(  1 )    / 'GRID_DOT_2D     ', .TRUE. /
+      DATA LGCL_NAME(  2 ), IN_MODE(  2 )    / 'GRID_CRO_2D     ', .TRUE. /
+      DATA LGCL_NAME(  3 ), IN_MODE(  3 )    / 'GRID_BDY_2D     ', .TRUE. /
+      DATA LGCL_NAME(  4 ), IN_MODE(  4 )    / 'EMIS_1          ', .TRUE. /
+      DATA LGCL_NAME(  5 ), IN_MODE(  5 )    / 'OCEAN_1         ', .TRUE.  /
+      DATA LGCL_NAME(  6 ), IN_MODE(  6 )    / 'MEPSE_1         ', .TRUE. /
+      DATA LGCL_NAME(  7 ), IN_MODE(  7 )    / 'MET_BDY_2D      ', .TRUE. /
+      DATA LGCL_NAME(  8 ), IN_MODE(  8 )    / 'MET_BDY_3D      ', .TRUE. /
+      DATA LGCL_NAME(  9 ), IN_MODE(  9 )    / 'MET_DOT_3D      ', .TRUE. /
+      DATA LGCL_NAME( 10 ), IN_MODE( 10 )    / 'MET_CRO_2D      ', .TRUE. /
+      DATA LGCL_NAME( 11 ), IN_MODE( 11 )    / 'MET_CRO_3D      ', .TRUE. /
+      DATA LGCL_NAME( 12 ), IN_MODE( 12 )    / 'CTM_CONC_1      ', .FALSE. /
+      DATA LGCL_NAME( 13 ), IN_MODE( 13 )    / 'CTM_DRY_DEP_1   ', .FALSE. /
+      DATA LGCL_NAME( 14 ), IN_MODE( 14 )    / 'CTM_WET_DEP_1   ', .FALSE. /
+      DATA LGCL_NAME( 15 ), IN_MODE( 15 )    / 'CTM_WET_DEP_2   ', .FALSE. /
+      DATA LGCL_NAME( 16 ), IN_MODE( 16 )    / 'CTM_SSEMIS_1    ', .FALSE. /
+      DATA LGCL_NAME( 17 ), IN_MODE( 17 )    / 'CTM_VIS_1       ', .FALSE. /
+      DATA LGCL_NAME( 18 ), IN_MODE( 18 )    / 'CTM_DIAM_1      ', .FALSE. /
+      DATA LGCL_NAME( 19 ), IN_MODE( 19 )    / 'CTM_PING_0      ', .FALSE. /
+      DATA LGCL_NAME( 20 ), IN_MODE( 20 )    / 'CTM_PING_1      ', .FALSE. /
+      DATA LGCL_NAME( 21 ), IN_MODE( 21 )    / 'CTM_PING_DIAM_1 ', .FALSE. /
+      DATA LGCL_NAME( 22 ), IN_MODE( 22 )    / 'CTM_PING_DDEP_1 ', .FALSE. /
+      DATA LGCL_NAME( 23 ), IN_MODE( 23 )    / 'CTM_IPR_1       ', .FALSE. /
+      DATA LGCL_NAME( 24 ), IN_MODE( 24 )    / 'CTM_IPR_2       ', .FALSE. /
+      DATA LGCL_NAME( 25 ), IN_MODE( 25 )    / 'CTM_IPR_3       ', .FALSE. /
+      DATA LGCL_NAME( 26 ), IN_MODE( 26 )    / 'CTM_IRR_1       ', .FALSE. /
+      DATA LGCL_NAME( 27 ), IN_MODE( 27 )    / 'CTM_IRR_2       ', .FALSE. /
+      DATA LGCL_NAME( 28 ), IN_MODE( 28 )    / 'CTM_IRR_3       ', .FALSE. /
+      DATA LGCL_NAME( 29 ), IN_MODE( 29 )    / 'INIT_GASC_1     ', .FALSE. /
+      DATA LGCL_NAME( 30 ), IN_MODE( 30 )    / 'BNDY_GASC_1     ', .FALSE. /
+      DATA LGCL_NAME( 31 ), IN_MODE( 31 )    / 'INIT_AERO_1     ', .FALSE. /
+      DATA LGCL_NAME( 32 ), IN_MODE( 32 )    / 'BNDY_AERO_1     ', .FALSE. /
+      DATA LGCL_NAME( 33 ), IN_MODE( 33 )    / 'INIT_NONR_1     ', .FALSE. /
+      DATA LGCL_NAME( 34 ), IN_MODE( 34 )    / 'BNDY_NONR_1     ', .FALSE. /
+      DATA LGCL_NAME( 35 ), IN_MODE( 35 )    / 'INIT_TRAC_1     ', .FALSE. /
+      DATA LGCL_NAME( 36 ), IN_MODE( 36 )    / 'BNDY_TRAC_1     ', .FALSE. /
+      DATA LGCL_NAME( 37 ), IN_MODE( 37 )    / 'DEPV_TRAC_1     ', .FALSE. /
+      DATA LGCL_NAME( 38 ), IN_MODE( 38 )    / 'EMIS_TRAC_1     ', .FALSE. /
+      DATA LGCL_NAME( 39 ), IN_MODE( 39 )    / 'PDM_PING_1      ', .FALSE. /
+
+C................   end   FILES3_CTM.EXT   .............................

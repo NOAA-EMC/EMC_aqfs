@@ -1,0 +1,252 @@
+#MODEL   = X.u5a
+ MODEL   = X.dbg
+# STENEX = /meso/save/wx20dw/tools/se-rc4n
+#LSTENEX = -L$(STENEX) -lsef90
+  STENEX = /meso/save/wx20jy/lib/stenex
+ LSTENEX = -L$(STENEX) -lse_snl
+ LSTENEX = -L$(STENEX) -lse_snl.debug
+  PARIO  = /meso/save/wx20dw/tools/pario-n
+ LPARIO  = -L$(PARIO) -lpario
+
+  IOAPI  = /meso/save/wx20dw/tools/ioapi_3
+ LIOAPI  = -L$(IOAPI)/AIX -lioapi
+
+ NETCDF  = /usrx/local/netcdf.3.5.0/lib
+ NOTCDF  = $(IOAPI)/AIX
+#LNTCDF  = -L$(NETCDF) -lnetcdf
+ LNTCDF  = -L$(NOTCDF) -lnotcdf
+
+ MPI     = /usr/lpp/ppe.poe/include/thread
+ FC      = /usr/bin/mpxlf90_r
+#CC      = mpcc
+ CC      = /usr/bin/cc
+
+ FSTD    = -d -qfixed=132 -qspillsize=4096 -qarch=auto -qmaxmem=8192
+
+# on by default at ncep:
+#   -O (-O2), -g, -qarch=auto, -q64, -qstrict
+# -qstrict applies to -O3 and higher,
+# -g does NOT imply no optimization. -O0 ("oh zero") is no optimization
+
+ HPM_DIR = /usr/local/bin/hpm
+ HPM_INC = -I$(HPM_DIR)/include
+ HPM_LIB = -L$(HPM_DIR)/lib -lhpm_r -lpmapi -lm
+#HPM_LIB = -L$(HPM_DIR)/lib -lhpm   -lpmapi -lm
+
+#-qflttrap=zerodivide:overflow:underflow:invalid:imprecise:enable -qsigtrap
+#FLT = -qflttrap=zero:und:ov:inv:en -qsigtrap
+ FLT = -qflttrap=zero:ov:inv:en -qsigtrap
+#FLT = 
+# Adding "imprecise" lessens the overhead considerably, but tells you only the
+# subroutine in which the signal is trapped. Leaving it out gives you the line
+# of code, but is very costly timewise.
+
+#DBG = -qcheck -qfloat=nans -qinit=f90ptr -qinitauto=00 -qextchk
+ DBG = -C -qfloat=nans -qinit=f90ptr -qinitauto=FF911299 -qextchk $(FLT)
+#DBG = -C -qfloat=nans -qinit=f90ptr -qinitauto=FF911299 $(FLT)
+# -qfloat=nans Detects operations involving signaling NaN values
+# -qinitauto=FF911299 Initializes storage for automatic variables to signal Nan
+# -C same as -qcheck
+
+# Compiler Flags
+ F_FLAGS = $(FSTD) -Q -O3 -qstrict -I$(STENEX) -I .
+ F_FLAGS = $(FSTD) -g -O0 $(DBG)   -I$(STENEX) -I .
+
+ C_FLAGS = -O3
+ LINK_FLAGS = -bmaxstack:0x10000000 -bmaxdata:0x80000000
+#LINK_FLAGS = -bmaxstack:0x10000000 -bmaxdata:0x80000000 -bnoquiet
+
+CPP_FLAGS = \
+ -WF,-Dparallel \
+ -WF,-DINTERPB=PINTERPB \
+ -WF,-DSUBST_MODULES=SE_MODULES \
+ -WF,-DSUBST_BARRIER=SE_BARRIER \
+ -WF,-DSUBST_GLOBAL_MAX=SE_GLOBAL_MAX \
+ -WF,-DSUBST_GLOBAL_SUM=SE_GLOBAL_SUM \
+ -WF,-DSUBST_GLOBAL_MIN_DATA=SE_GLOBAL_MIN_DATA \
+ -WF,-DSUBST_LOOP_INDEX=SE_LOOP_INDEX \
+ -WF,-DSUBST_SUBGRID_INDEX=SE_SUBGRID_INDEX \
+ -WF,-DSUBST_HI_LO_BND_PE=SE_HI_LO_BND_PE \
+ -WF,-DSUBST_SUM_CHK=SE_SUM_CHK \
+ -WF,-DSUBST_COMM=SE_COMM \
+ -WF,-DSUBST_DATA_COPY=SE_DATA_COPY
+
+LIBRARIES = \
+ $(LSTENEX) \
+ $(LIOAPI) \
+ $(LNTCDF) \
+ $(LPARIO)
+
+ INCL1 = /meso/save/wx20jy/cctm/BLD_u5a
+ INCL2 = $(INCL1)
+ INCL3 = $(INCL1)
+ INCL4 = $(INCL1)
+
+INCLUDES = \
+ -WF,-DSUBST_PE_COMM=\"$(INCL1)/PE_COMM.EXT\" \
+ -WF,-DSUBST_FILES_ID=\"$(INCL1)/FILES_CTM.EXT\" \
+ -WF,-DSUBST_IOPARMS=\"$(IOAPI)/ioapi/fixed_src/PARMS3.EXT\" \
+ -WF,-DSUBST_IOFDESC=\"$(IOAPI)/ioapi/fixed_src/FDESC3.EXT\" \
+ -WF,-DSUBST_IODECL=\"$(IOAPI)/ioapi/fixed_src/IODECL3.EXT\" \
+ -WF,-DSUBST_CONST=\"$(INCL1)/CONST.EXT\" \
+ -WF,-DSUBST_EMPR_VD=\"$(INCL1)/EMISPRM.vdif.EXT\" \
+ -WF,-DSUBST_EMPR_CH=\"$(INCL1)/EMISPRM.chem.EXT\" \
+ -WF,-DSUBST_RXCMMN=\"$(INCL2)/RXCM.EXT\" \
+ -WF,-DSUBST_RXDATA=\"$(INCL2)/RXDT.EXT\" \
+ -WF,-DSUBST_GC_SPC=\"$(INCL2)/GC_SPC.EXT\" \
+ -WF,-DSUBST_GC_EMIS=\"$(INCL2)/GC_EMIS.EXT\" \
+ -WF,-DSUBST_GC_ICBC=\"$(INCL2)/GC_ICBC.EXT\" \
+ -WF,-DSUBST_GC_DIFF=\"$(INCL2)/GC_DIFF.EXT\" \
+ -WF,-DSUBST_GC_DDEP=\"$(INCL2)/GC_DDEP.EXT\" \
+ -WF,-DSUBST_GC_DEPV=\"$(INCL2)/GC_DEPV.EXT\" \
+ -WF,-DSUBST_GC_ADV=\"$(INCL2)/GC_ADV.EXT\" \
+ -WF,-DSUBST_GC_CONC=\"$(INCL2)/GC_CONC.EXT\" \
+ -WF,-DSUBST_GC_G2AE=\"$(INCL2)/GC_G2AE.EXT\" \
+ -WF,-DSUBST_GC_G2AQ=\"$(INCL2)/GC_G2AQ.EXT\" \
+ -WF,-DSUBST_GC_SCAV=\"$(INCL2)/GC_SCAV.EXT\" \
+ -WF,-DSUBST_GC_WDEP=\"$(INCL2)/GC_WDEP.EXT\" \
+ -WF,-DSUBST_AE_SPC=\"$(INCL2)/AE_SPC.EXT\" \
+ -WF,-DSUBST_AE_EMIS=\"$(INCL2)/AE_EMIS.EXT\" \
+ -WF,-DSUBST_AE_ICBC=\"$(INCL2)/AE_ICBC.EXT\" \
+ -WF,-DSUBST_AE_DIFF=\"$(INCL2)/AE_DIFF.EXT\" \
+ -WF,-DSUBST_AE_DDEP=\"$(INCL2)/AE_DDEP.EXT\" \
+ -WF,-DSUBST_AE_DEPV=\"$(INCL2)/AE_DEPV.EXT\" \
+ -WF,-DSUBST_AE_ADV=\"$(INCL2)/AE_ADV.EXT\" \
+ -WF,-DSUBST_AE_CONC=\"$(INCL2)/AE_CONC.EXT\" \
+ -WF,-DSUBST_AE_A2AQ=\"$(INCL2)/AE_A2AQ.EXT\" \
+ -WF,-DSUBST_AE_SCAV=\"$(INCL2)/AE_SCAV.EXT\" \
+ -WF,-DSUBST_AE_WDEP=\"$(INCL2)/AE_WDEP.EXT\" \
+ -WF,-DSUBST_NR_SPC=\"$(INCL2)/NR_SPC.EXT\" \
+ -WF,-DSUBST_NR_EMIS=\"$(INCL2)/NR_EMIS.EXT\" \
+ -WF,-DSUBST_NR_ICBC=\"$(INCL2)/NR_ICBC.EXT\" \
+ -WF,-DSUBST_NR_DIFF=\"$(INCL2)/NR_DIFF.EXT\" \
+ -WF,-DSUBST_NR_DDEP=\"$(INCL2)/NR_DDEP.EXT\" \
+ -WF,-DSUBST_NR_DEPV=\"$(INCL2)/NR_DEPV.EXT\" \
+ -WF,-DSUBST_NR_ADV=\"$(INCL2)/NR_ADV.EXT\" \
+ -WF,-DSUBST_NR_N2AE=\"$(INCL2)/NR_N2AE.EXT\" \
+ -WF,-DSUBST_NR_N2AQ=\"$(INCL2)/NR_N2AQ.EXT\" \
+ -WF,-DSUBST_NR_SCAV=\"$(INCL2)/NR_SCAV.EXT\" \
+ -WF,-DSUBST_NR_WDEP=\"$(INCL2)/NR_WDEP.EXT\" \
+ -WF,-DSUBST_TR_SPC=\"$(INCL3)/TR_SPC.EXT\" \
+ -WF,-DSUBST_TR_EMIS=\"$(INCL3)/TR_EMIS.EXT\" \
+ -WF,-DSUBST_TR_ICBC=\"$(INCL3)/TR_ICBC.EXT\" \
+ -WF,-DSUBST_TR_DIFF=\"$(INCL3)/TR_DIFF.EXT\" \
+ -WF,-DSUBST_TR_DDEP=\"$(INCL3)/TR_DDEP.EXT\" \
+ -WF,-DSUBST_TR_DEPV=\"$(INCL3)/TR_DEPV.EXT\" \
+ -WF,-DSUBST_TR_ADV=\"$(INCL3)/TR_ADV.EXT\" \
+ -WF,-DSUBST_TR_T2AQ=\"$(INCL3)/TR_T2AQ.EXT\" \
+ -WF,-DSUBST_TR_SCAV=\"$(INCL3)/TR_SCAV.EXT\" \
+ -WF,-DSUBST_TR_WDEP=\"$(INCL3)/TR_WDEP.EXT\" \
+ -WF,-DSUBST_PACTL_ID=\"$(INCL4)/PA_CTL.EXT\" \
+ -WF,-DSUBST_PACMN_ID=\"$(INCL4)/PA_CMN.EXT\" \
+ -WF,-DSUBST_PADAT_ID=\"$(INCL4)/PA_DAT.EXT\" \
+ -WF,-DSUBST_MPICH=\"$(MPI)/mpif.h\"
+
+OBJECTS = \
+ VGRD_DEFN.o \
+ CGRID_SPCS.o \
+ HGRD_DEFN.o \
+ GRID_CONF.o \
+ cgrid_defn.o \
+ ddep_defn.o \
+ wdep_defn.o \
+ aconc_defn.o \
+ vis_defn.o \
+ wvel_defn.o \
+ mpim.o \
+ AERO_EMIS.o \
+ AERO_INFO_AE3.o \
+ SOA_NEWT.o \
+ cksummer.o \
+ driver.o \
+ ctk.o \
+ collect.o \
+ assemble.o \
+ initscen.o \
+ load_cgrid.o \
+ opconc_yamo.o \
+ opaconc.o \
+ sciproc_yamo.o \
+ advstep.o \
+ couple.o \
+ rdbcon.o \
+ advbc_map.o \
+ zfdbc.o \
+ hcontvel.o \
+ hadvyppm.o \
+ hppm_swap.o \
+ x_ppm_swap.o \
+ x_yamo_swap.o \
+ y_ppm_swap.o \
+ y_yamo_swap.o \
+ zadvyamo.o \
+ hdiff.o \
+ rho_j.o \
+ hcdiff3d.o \
+ deform.o \
+ vdiffacm2.o \
+ eddyx.o \
+ eddyread.o \
+ matrix.o \
+ tri.o \
+ opddep.o \
+ opemis.o \
+ opssemis.o \
+ opmet.o \
+ rddepv.o \
+ rdemis.o \
+ ssemis.o \
+ rdmet.o \
+ tridiag.o \
+ vdiff_map.o \
+ conv_cgrid.o \
+ aero_depv.o \
+ cldproc_acm.o \
+ convcld_acm.o \
+ acmcld.o \
+ set_aeconcmin.o \
+ rescld.o \
+ aq_map.o \
+ aqchem.o \
+ getalpha.o \
+ hlconst.o \
+ indexn.o \
+ scavwdep.o \
+ opwdep.o \
+ hrdata_mod.o \
+ hrdriver.o \
+ hrinit.o \
+ hrsolver.o \
+ hrprodloss.o \
+ hrrates.o \
+ hrcalcks.o \
+ hrg1.o \
+ hrg2.o \
+ hrg3.o \
+ hrg4.o \
+ phot_radatt.o \
+ aero_driver.o \
+ aero_subs.o \
+ isocom.o \
+ isofwd.o \
+ isorev.o \
+ opvis.o \
+ get_envlist.o \
+ subhfile.o \
+ findex.o \
+ lstepf.o \
+ setup_logdev.o
+
+.SUFFIXES: .F .f .c
+
+$(MODEL) : $(OBJECTS)
+	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -o $@
+
+.c.o:
+	$(CC) $(C_FLAGS) -c $<
+
+.F.o:
+	$(FC) -c $(F_FLAGS) $(CPP_FLAGS) $(INCLUDES) $<
+
+.f.o:
+	$(FC) -c $(F_FLAGS) $(CPP_FLAGS) $(INCLUDES) $<

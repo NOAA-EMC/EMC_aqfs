@@ -1,0 +1,296 @@
+diff for /gpfs/d/meso/save/wx20jy/cctm/BLD_u5a and /meso/save/wx20jy/cctm/BLD_u2a
+ 
+>>>>>>>>>>>>>>>>>>>>>>>>>> AERO_EMIS.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> CGRID_SPCS.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> GRID_CONF.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> HGRD_DEFN.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> VGRD_DEFN.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> aconc_defn.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> advbc_map.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> advstep.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> aero_depv.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> aero_driver.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> aq_map.F
+136a137
+>       SAVE          CGRID2AQ
+>>>>>>>>>>>>>>>>>>>>>>>>>> aqchem.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> assemble.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> cgrid_defn.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> cksummer.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> cldproc_acm.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> collect.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> conv_cgrid.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> convcld_acm.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> couple.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> ctk.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> ddep_defn.F
+107,108c107,108
+<             ALLOCATE ( DDEP( N_SPC_DEPV,MY_NCOLS,MY_NROWS ), STAT = ALLOCSTAT )
+< !           ALLOCATE ( DDEP( MY_NCOLS,MY_NROWS,N_SPC_DEPV ), STAT = ALLOCSTAT )
+---
+> !           ALLOCATE ( DDEP( N_SPC_DEPV,MY_NCOLS,MY_NROWS ), STAT = ALLOCSTAT )
+>             ALLOCATE ( DDEP( MY_NCOLS,MY_NROWS,N_SPC_DEPV ), STAT = ALLOCSTAT )
+>>>>>>>>>>>>>>>>>>>>>>>>>> deform.F
+112a113
+>       INTEGER, EXTERNAL :: SETUP_LOGDEV
+>>>>>>>>>>>>>>>>>>>>>>>>>> driver.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> eddyread.F
+27,28c27
+< !     SUBROUTINE EDDYREAD ( EDDYV, DT, JDATE, JTIME, TSTEP )
+<       SUBROUTINE EDDYREAD ( JDATE, JTIME, TSTEP, EDDYV )
+---
+>       SUBROUTINE EDDYREAD ( EDDYV, DT, JDATE, JTIME, TSTEP )
+45,46d43
+< C       6 Feb 07  YOJ   DT is calculated in vdiffacm2 - eddyread not backwara
+< C                       compatible with vdiffim.
+66c63,65
+< !     REAL         DT    ( NCOLS,NROWS )       ! computed diffusion time step
+---
+>       REAL         EDDYV ( NCOLS,NROWS,NLAYS ) ! eddy diffusivity (m**2/s)
+>       REAL         DT    ( NCOLS,NROWS )       ! computed diffusion time step
+> !     REAL      :: EDDYV ( :,:,: )     ! eddy diffusivity (m**2/s)
+71,72d69
+< !     REAL      :: EDDYV ( :,:,: )     ! eddy diffusivity (m**2/s)
+<       REAL         EDDYV ( NCOLS,NROWS,NLAYS ) ! eddy diffusivity (m**2/s)
+84,85c81,82
+< !     REAL         ZH    ( NCOLS,NROWS,NLAYS )    ! mid-layer elevation
+< !     REAL         ZF    ( NCOLS,NROWS,0:NLAYS )  ! full layer elevation
+---
+>       REAL         ZH    ( NCOLS,NROWS,NLAYS )    ! mid-layer elevation
+>       REAL         ZF    ( NCOLS,NROWS,0:NLAYS )  ! full layer elevation
+99c96
+< !     REAL         DTSEC
+---
+>       REAL         DTSEC
+136c133
+< !     DTSEC = FLOAT( STEP )
+---
+>       DTSEC = FLOAT( STEP )
+138,144c135,141
+< !     VNAME = 'ZF'
+< !     IF ( .NOT. INTERPX( MET_CRO_3D, VNAME, PNAME,
+< !    &                    STRTCOLMC3,ENDCOLMC3, STRTROWMC3,ENDROWMC3, 1,NLAYS,
+< !    &                    MDATE, MTIME, ZF ) ) THEN
+< !        XMSG = MSG1 // VNAME // ' from ' // MET_CRO_3D
+< !        CALL M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
+< !        END IF
+---
+>       VNAME = 'ZF'
+>       IF ( .NOT. INTERPX( MET_CRO_3D, VNAME, PNAME,
+>      &                    STRTCOLMC3,ENDCOLMC3, STRTROWMC3,ENDROWMC3, 1,NLAYS,
+>      &                    MDATE, MTIME, ZF ) ) THEN
+>          XMSG = MSG1 // VNAME // ' from ' // MET_CRO_3D
+>          CALL M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
+>          END IF
+149,155c146,152
+< !     DO L = NLAYS, 1, -1
+< !        DO R = 1, MY_NROWS
+< !           DO C = 1, MY_NCOLS
+< !              ZF( C,R,L ) = ZF( C,R,L-1 )
+< !              END DO
+< !           END DO
+< !        END DO
+---
+>       DO L = NLAYS, 1, -1
+>          DO R = 1, MY_NROWS
+>             DO C = 1, MY_NCOLS
+>                ZF( C,R,L ) = ZF( C,R,L-1 )
+>                END DO
+>             END DO
+>          END DO
+157,162c154,159
+< !     DO R = 1, MY_NROWS
+< !        DO C = 1, MY_NCOLS
+< !           ZF( C,R,0 ) = 0.0
+< !           DT( C,R   ) = DTSEC
+< !           END DO
+< !        END DO
+---
+>       DO R = 1, MY_NROWS
+>          DO C = 1, MY_NCOLS
+>             ZF( C,R,0 ) = 0.0
+>             DT( C,R   ) = DTSEC
+>             END DO
+>          END DO
+164,170c161,167
+< !     VNAME = 'ZH'
+< !     IF ( .NOT. INTERPX( MET_CRO_3D, VNAME, PNAME,
+< !    &                    STRTCOLMC3,ENDCOLMC3, STRTROWMC3,ENDROWMC3, 1,NLAYS,
+< !    &                    MDATE, MTIME, ZH ) ) THEN
+< !        XMSG = MSG1 // VNAME // ' from ' // MET_CRO_3D
+< !        CALL M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
+< !        END IF
+---
+>       VNAME = 'ZH'
+>       IF ( .NOT. INTERPX( MET_CRO_3D, VNAME, PNAME,
+>      &                    STRTCOLMC3,ENDCOLMC3, STRTROWMC3,ENDROWMC3, 1,NLAYS,
+>      &                    MDATE, MTIME, ZH ) ) THEN
+>          XMSG = MSG1 // VNAME // ' from ' // MET_CRO_3D
+>          CALL M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
+>          END IF
+180,182c177,179
+< !     DO L = 1, NLAYS-1
+< !       DO R = 1, MY_NROWS
+< !          DO C = 1, MY_NCOLS
+---
+>       DO L = 1, NLAYS-1
+>         DO R = 1, MY_NROWS
+>            DO C = 1, MY_NCOLS
+184,187c181,184
+< !            DT( C,R ) = MIN( DT( C,R ),
+< !    &                        0.75 * ( ZF( C,R,L )   - ZF( C,R,L-1 ) )
+< !    &                             * ( ZH( C,R,L+1 ) - ZH( C,R,L ) )
+< !    &                             / EDDYV( C,R,L ) )
+---
+>              DT( C,R ) = MIN( DT( C,R ),
+>      &                        0.75 * ( ZF( C,R,L )   - ZF( C,R,L-1 ) )
+>      &                             * ( ZH( C,R,L+1 ) - ZH( C,R,L ) )
+>      &                             / EDDYV( C,R,L ) )
+189,191c186,188
+< !            END DO
+< !          END DO
+< !        END DO
+---
+>              END DO
+>            END DO
+>          END DO
+>>>>>>>>>>>>>>>>>>>>>>>>>> eddyx.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/eddyx.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> edyintb.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hadvyppm.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hcdiff3d.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hcontvel.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hdiff.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hlconst.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hppm_swap.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/hppm_swap.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrcalcks.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrdata_mod.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrdriver.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrg1.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrg2.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrg3.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrg4.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrinit.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrprodloss.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrrates.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> hrsolver.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> initscen.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> load_cgrid.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> lstepf.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> matrix.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/matrix.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> opaconc.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opconc.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opconc_yamo.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opddep.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opdiam.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opemis.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opmet.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opssemis.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opvis.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> opwdep.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> phot.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> phot_radatt.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rdbcon.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rddepv.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rdemis.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rdmet.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rescld.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> rho_j.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> scavwdep.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> sciproc_yamo.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> set_aeconcmin.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> setup_logdev.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> ssemis.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> subhfile.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> tri.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/tri.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> tridiag.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> vdiff_map.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> vdiffacm2.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/vdiffacm2.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> vis_defn.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> wdep_defn.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> wvel_defn.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> x_ppm_swap.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/x_ppm_swap.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> x_yamo_swap.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/x_yamo_swap.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> y_ppm_swap.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/y_ppm_swap.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> y_yamo_swap.F
+diff: /meso/save/wx20jy/cctm/BLD_u2a/y_yamo_swap.F: A file or directory in the path name does not exist.
+>>>>>>>>>>>>>>>>>>>>>>>>>> zadvyamo.F
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_A2AQ.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_ADV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_CONC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_DDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_DEPV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_DIFF.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_EMIS.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_ICBC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_SCAV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_SPC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AE_WDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AQ_PARAMS.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> CONST.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> EMISPRM.chem.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> EMISPRM.vdif.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> FILES_CTM.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_ADV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_CONC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_DDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_DEPV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_DIFF.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_EMIS.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_G2AE.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_G2AQ.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_ICBC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_SCAV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_SPC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> GC_WDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_ADV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_CONC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_DDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_DEPV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_DIFF.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_EMIS.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_ICBC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_N2AE.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_N2AQ.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_SCAV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_SPC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> NR_WDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> PA_CMN.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> PA_CTL.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> PA_DAT.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> PE_COMM.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> RXCM.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> RXDT.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TAG.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_ADV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_CONC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_DDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_DEPV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_DIFF.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_EMIS.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_ICBC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_SCAV.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_SPC.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_T2AE.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_T2AQ.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> TR_WDEP.EXT
+>>>>>>>>>>>>>>>>>>>>>>>>>> AERO_INFO_AE3.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> findex.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> zfdbc.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> SOA_NEWT.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> get_envlist.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> aero_subs.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> isocom.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> isofwd.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> isorev.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> indexn.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> acmcld.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> getalpha.f
+>>>>>>>>>>>>>>>>>>>>>>>>>> mpim.f
