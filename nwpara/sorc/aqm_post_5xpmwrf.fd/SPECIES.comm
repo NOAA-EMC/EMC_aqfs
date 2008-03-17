@@ -1,0 +1,6 @@
+       INTEGER MQI,MQJ,MQK,MQL
+       PARAMETER (MQI=442,MQJ=265,MQK=22,MQL=83)
+                            C O M M O N /SPECIES/
+     & species(MQI,MQJ,MQK,MQL),ozone(MQI,MQJ,MQL),
+     & ozout(MQI,MQJ),wrkoz(MQI,MQJ)
+       REAL :: species,ozone,ozout,wrkoz
