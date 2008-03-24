@@ -60,7 +60,7 @@ do
   export XLFRTEOPTS="unit_vars=yes"
 ##export HR_CENTERED=Y
   export XLFUNIT_10="master3.ctl"
-  export XLFUNIT_21="$FIXaqm/aqm_wgt_96_138"
+  export XLFUNIT_21="$FIXaqm/aqm_wgt_99k12_138"
   export XLFUNIT_41="$PARMnam/nam_kwbx.tbl"
   export XLFUNIT_42="$PARMnam/nam_time.tbl"
   export XLFUNIT_43="$PARMnam/nam_parm.tbl"
