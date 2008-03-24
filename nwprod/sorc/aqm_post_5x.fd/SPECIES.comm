@@ -1,0 +1,4 @@
+                            C O M M O N /SPECIES/
+     & species(442,265,22,45),ozone(442,265,48),
+     & ozout(442,265),wrkoz(442,265)
+       REAL :: species,ozone,ozout,wrkoz
