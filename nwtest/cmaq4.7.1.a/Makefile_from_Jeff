@@ -1,0 +1,285 @@
+ MODEL = CCTM_N3a 
+
+ BASE = /vortex/home/yoj/src/novrel/delic/BLD_N3a
+#> see ~wdx/lib/scom ...
+ lib_basedir = /home/wdx/lib
+ myFC = ifort
+ myCC = /usr/bin/cc
+ system = ia64
+ compiler = ifc
+ LIOAPI = Linux2_ia64ifort
+ FFLAGS = -fixed -extend_source -O3 -fno-alias -mp1
+#FFLAGS = -fixed -extend_source -g -fno-alias -check bounds -fpe0 -d-lines -ftrapuv -traceback
+#FFLAGS = -fixed -extend_source -g -fno-alias -check bounds -ftrapuv -traceback
+
+ FC    = $(myFC)
+ CC    = $(myCC)
+ FPP   = $FC
+
+ lib_path   = $(lib_basedir)/${system}/${compiler}
+
+ F_FLAGS    = $(FFLAGS) -I $(lib_path)/se_snl -I .
+ C_FLAGS    = -v -O3
+ LINK_FLAGS = -i-static 
+
+ CPP_FLAGS  = \
+ -Dparallel \
+ -DINTERPB=PINTERPB \
+ -DM3ERR=PM3ERR \
+ -DM3EXIT=PM3EXIT \
+ -DM3WARN=PM3WARN \
+ -DSHUT3=PSHUT3 \
+ -DWRITE3=PWRITE3 \
+ -DSUBST_MODULES=SE_MODULES \
+ -DSUBST_BARRIER=SE_BARRIER \
+ -DSUBST_GLOBAL_MAX=SE_GLOBAL_MAX \
+ -DSUBST_GLOBAL_MIN=SE_GLOBAL_MIN \
+ -DSUBST_GLOBAL_MIN_DATA=SE_GLOBAL_MIN_DATA \
+ -DSUBST_GLOBAL_TO_LOCAL_COORD=SE_GLOBAL_TO_LOCAL_COORD \
+ -DSUBST_GLOBAL_SUM=SE_GLOBAL_SUM \
+ -DSUBST_GLOBAL_LOGICAL=SE_GLOBAL_LOGICAL \
+ -DSUBST_LOOP_INDEX=SE_LOOP_INDEX \
+ -DSUBST_SUBGRID_INDEX=SE_SUBGRID_INDEX \
+ -DSUBST_HI_LO_BND_PE=SE_HI_LO_BND_PE \
+ -DSUBST_SUM_CHK=SE_SUM_CHK \
+ -DSUBST_INIT_ARRAY=SE_INIT_ARRAY \
+ -DSUBST_COMM=SE_COMM \
+ -DSUBST_MY_REGION=SE_MY_REGION \
+ -DSUBST_SLICE=SE_SLICE \
+ -DSUBST_GATHER=SE_GATHER \
+ -DSUBST_DATA_COPY=SE_DATA_COPY \
+ -DSUBST_IN_SYN=SE_IN_SYN 
+
+ LIBRARIES = \
+ -L$(lib_path)/pario -lpario \
+ -L$(lib_path)/ioapi_3/$(LIOAPI) -lioapi \
+ -L$(lib_path)/se_snl -lse_snl \
+ -L$(lib_path)/mpich/lib -lmpich \
+ -L$(lib_path)/netcdf/lib -lnetcdf
+
+ BASE_INC = $(BASE)
+ IOAPI_INC = $(lib_path)/ioapi_3/ioapi/fixed_src
+ MECH_INC = $(BASE)
+ TRAC_INC = $(BASE)
+ MPI_INC = $(lib_path)/mpich/include
+
+ INCLUDES = \
+ -DSUBST_GRID_ID= \
+ -DSUBST_PE_COMM=\"$(BASE_INC)/PE_COMM.EXT\" \
+ -DSUBST_CONST=\"$(BASE_INC)/CONST.EXT\" \
+ -DSUBST_FILES_ID=\"$(BASE_INC)/FILES_CTM.EXT\" \
+ -DSUBST_EMPR_VD=\"$(BASE_INC)/EMISPRM.vdif.EXT\" \
+ -DSUBST_EMPR_CH=\"$(BASE_INC)/EMISPRM.chem.EXT\" \
+ -DSUBST_IOPARMS=\"$(IOAPI_INC)/PARMS3.EXT\" \
+ -DSUBST_IOFDESC=\"$(IOAPI_INC)/FDESC3.EXT\" \
+ -DSUBST_IODECL=\"$(IOAPI_INC)/IODECL3.EXT\" \
+ -DSUBST_RXCMMN=\"$(BASE_INC)/RXCM.EXT\" \
+ -DSUBST_RXDATA=\"$(BASE_INC)/RXDT.EXT\" \
+ -DSUBST_GC_SPC=\"$(BASE_INC)/GC_SPC.EXT\" \
+ -DSUBST_GC_EMIS=\"$(BASE_INC)/GC_EMIS.EXT\" \
+ -DSUBST_GC_ICBC=\"$(BASE_INC)/GC_ICBC.EXT\" \
+ -DSUBST_GC_DIFF=\"$(BASE_INC)/GC_DIFF.EXT\" \
+ -DSUBST_GC_DDEP=\"$(BASE_INC)/GC_DDEP.EXT\" \
+ -DSUBST_GC_DEPV=\"$(BASE_INC)/GC_DEPV.EXT\" \
+ -DSUBST_GC_ADV=\"$(BASE_INC)/GC_ADV.EXT\" \
+ -DSUBST_GC_CONC=\"$(BASE_INC)/GC_CONC.EXT\" \
+ -DSUBST_GC_G2AE=\"$(BASE_INC)/GC_G2AE.EXT\" \
+ -DSUBST_GC_G2AQ=\"$(BASE_INC)/GC_G2AQ.EXT\" \
+ -DSUBST_GC_SCAV=\"$(BASE_INC)/GC_SCAV.EXT\" \
+ -DSUBST_GC_WDEP=\"$(BASE_INC)/GC_WDEP.EXT\" \
+ -DSUBST_AE_SPC=\"$(BASE_INC)/AE_SPC.EXT\" \
+ -DSUBST_AE_EMIS=\"$(BASE_INC)/AE_EMIS.EXT\" \
+ -DSUBST_AE_ICBC=\"$(BASE_INC)/AE_ICBC.EXT\" \
+ -DSUBST_AE_DIFF=\"$(BASE_INC)/AE_DIFF.EXT\" \
+ -DSUBST_AE_DDEP=\"$(BASE_INC)/AE_DDEP.EXT\" \
+ -DSUBST_AE_DEPV=\"$(BASE_INC)/AE_DEPV.EXT\" \
+ -DSUBST_AE_ADV=\"$(BASE_INC)/AE_ADV.EXT\" \
+ -DSUBST_AE_CONC=\"$(BASE_INC)/AE_CONC.EXT\" \
+ -DSUBST_AE_A2AQ=\"$(BASE_INC)/AE_A2AQ.EXT\" \
+ -DSUBST_AE_SCAV=\"$(BASE_INC)/AE_SCAV.EXT\" \
+ -DSUBST_AE_WDEP=\"$(BASE_INC)/AE_WDEP.EXT\" \
+ -DSUBST_NR_SPC=\"$(BASE_INC)/NR_SPC.EXT\" \
+ -DSUBST_NR_EMIS=\"$(BASE_INC)/NR_EMIS.EXT\" \
+ -DSUBST_NR_ICBC=\"$(BASE_INC)/NR_ICBC.EXT\" \
+ -DSUBST_NR_DIFF=\"$(BASE_INC)/NR_DIFF.EXT\" \
+ -DSUBST_NR_DDEP=\"$(BASE_INC)/NR_DDEP.EXT\" \
+ -DSUBST_NR_DEPV=\"$(BASE_INC)/NR_DEPV.EXT\" \
+ -DSUBST_NR_ADV=\"$(BASE_INC)/NR_ADV.EXT\" \
+ -DSUBST_NR_N2AE=\"$(BASE_INC)/NR_N2AE.EXT\" \
+ -DSUBST_NR_CONC=\"$(BASE_INC)/NR_CONC.EXT\" \
+ -DSUBST_NR_N2AQ=\"$(BASE_INC)/NR_N2AQ.EXT\" \
+ -DSUBST_NR_SCAV=\"$(BASE_INC)/NR_SCAV.EXT\" \
+ -DSUBST_NR_WDEP=\"$(BASE_INC)/NR_WDEP.EXT\" \
+ -DSUBST_TR_SPC=\"$(BASE_INC)/TR_SPC.EXT\" \
+ -DSUBST_TR_EMIS=\"$(BASE_INC)/TR_EMIS.EXT\" \
+ -DSUBST_TR_ICBC=\"$(BASE_INC)/TR_ICBC.EXT\" \
+ -DSUBST_TR_DIFF=\"$(BASE_INC)/TR_DIFF.EXT\" \
+ -DSUBST_TR_DDEP=\"$(BASE_INC)/TR_DDEP.EXT\" \
+ -DSUBST_TR_DEPV=\"$(BASE_INC)/TR_DEPV.EXT\" \
+ -DSUBST_TR_ADV=\"$(BASE_INC)/TR_ADV.EXT\" \
+ -DSUBST_TR_T2AQ=\"$(BASE_INC)/TR_T2AQ.EXT\" \
+ -DSUBST_TR_SCAV=\"$(BASE_INC)/TR_SCAV.EXT\" \
+ -DSUBST_TR_WDEP=\"$(BASE_INC)/TR_WDEP.EXT\" \
+ -DSUBST_PACTL_ID=\"$(BASE_INC)/PA_CTL.EXT\" \
+ -DSUBST_PACMN_ID=\"$(BASE_INC)/PA_CMN.EXT\" \
+ -DSUBST_PADAT_ID=\"$(BASE_INC)/PA_DAT.EXT\" \
+ -DSUBST_MPICH=\"$(MPI_INC)/mpif.h\"
+
+ OBJECTS =\
+ VGRD_DEFN.o \
+ CGRID_SPCS.o \
+ HGRD_DEFN.o \
+ GRID_CONF.o \
+ PCGRID_DEFN.o \
+ STD_CONC.o \
+ AVG_CONC.o \
+ WVEL_DEFN.o \
+ PMEM_DEFN.o \
+ BIOG_EMIS.o \
+ BEIS_DEFN.o \
+ DEPVVARS.o \
+ DEPV_DEFN.o \
+ UDTYPES.o \
+ STK_EMIS.o \
+ STK_PRMS.o \
+ PTMAP.o \
+ PTBILIN.o \
+ PTMET.o \
+ PT3D_DEFN.o \
+ AERO_EMIS.o \
+ EMIS_DEFN.o \
+ VDIFF_MAP.o \
+ hrdata_mod.o \
+ AERO_INFO.o \
+ SOA_NEWT.o \
+ PAGRD_DEFN.o \
+ advstep.o \
+ driver.o \
+ hcontvel.o \
+ sciproc.o \
+ wr_aconc.o \
+ wr_cgrid.o \
+ wr_conc.o \
+ par_init.o \
+ par_term.o \
+ diffmsg.o \
+ flcheck.o \
+ grdcheck.o \
+ initscen.o \
+ load_cgrid.o \
+ opconc.o \
+ setup_logdev.o \
+ couple.o \
+ ppmv_msmr.o \
+ advbc_map.o \
+ hadvyppm.o \
+ hppm.o \
+ rdbcon.o \
+ x_ppm.o \
+ x_yamo.o \
+ y_ppm.o \
+ y_yamo.o \
+ zfdbc.o \
+ vppm.o \
+ zadvyppm.o \
+ deform.o \
+ hcdiff3d.o \
+ hdiff.o \
+ rho_j.o \
+ beis3.o \
+ cgrid_depv.o \
+ checkmem.o \
+ chkgrid.o \
+ conv_cgrid.o \
+ czangle.o \
+ delta_zs.o \
+ eddyx.o \
+ fire_plmris.o \
+ gas_depv_map.o \
+ getfline.o \
+ getparb.o \
+ hrno.o \
+ m3dry.o \
+ matrix.o \
+ opddep.o \
+ opdepv_diag.o \
+ opemis.o \
+ openlayout.o \
+ opmet.o \
+ oppt3d_diag.o \
+ opssemis.o \
+ parsline.o \
+ plmris.o \
+ plsprd.o \
+ preplm.o \
+ rddepv.o \
+ rdemis.o \
+ rdmet.o \
+ ssemis.o \
+ tmpbeis.o \
+ tri.o \
+ ungridb2.o \
+ vdiffacm2.o \
+ wrdaymsg.o \
+ write3_distr.o \
+ phot.o \
+ hrcalcks.o \
+ hrdriver.o \
+ hrg1.o \
+ hrg2.o \
+ hrg3.o \
+ hrg4.o \
+ hrinit.o \
+ hrprodloss.o \
+ hrrates.o \
+ hrsolver.o \
+ aero_driver.o \
+ aero_subs.o \
+ hetchem.o \
+ isocom.o \
+ isofwd.o \
+ isorev.o \
+ opdiam.o \
+ opvis.o \
+ orgaer5.o \
+ aero_depv.o \
+ acmcld.o \
+ aq_map.o \
+ aqchem.o \
+ cldproc_acm.o \
+ convcld_acm.o \
+ getalpha.o \
+ hlconst.o \
+ indexn.o \
+ rescld.o \
+ scavwdep.o \
+ set_aeconcmin.o \
+ pa_init.o \
+ pa_irr.o \
+ pa_irr_ctl.o \
+ pa_mkhdr.o \
+ pa_output.o \
+ pa_update.o \
+ cksummer.o \
+ findex.o \
+ get_envlist.o \
+ lstepf.o \
+ subhdomain.o \
+ subhfile.o 
+
+.SUFFIXES: .F .f .c
+
+$(MODEL): $(OBJECTS)
+	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -o $@
+
+.F.o:
+	$(FC) -c $(F_FLAGS) $(CPP_FLAGS) $(INCLUDES) $<
+
+.f.o:
+	$(FC) $(F_FLAGS) -c $<
+
+.c.o:
+	$(CC) $(C_FLAGS) -c $<
+
+clean:
+	rm -f $(OBJECTS) $(MODEL)
