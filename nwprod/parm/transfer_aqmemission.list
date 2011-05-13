@@ -1,7 +1,0 @@
-FILES = ( /com/aqm/para/emission/
-          /com/aqm/para/aqm._PDY_/ )
-
-com:
-${FILES} -> ${HOSTS}
-        except_pat ( jlogfile ) ;
-        install;

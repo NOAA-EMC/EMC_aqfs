@@ -1,7 +1,0 @@
-FILES = ( /com/aqm/para/aqm._PDY_/aqm_gfs12*
-          /com/aqm/para/aqm._PDY_/aqm.t12z* )
-
-com:
-${FILES} -> ${HOSTS}
-        except_pat ( jlogfile ) ;
-        install;
