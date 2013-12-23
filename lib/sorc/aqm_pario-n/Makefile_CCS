@@ -1,0 +1,47 @@
+# RCS file, release, date & time of last delta, author, state, [and locker]
+# $Header: /project/work/rep/STENEX/src/se/Makefile,v 1.7 2000/04/26 19:08:41 yoj Exp $
+
+SHELL=/bin/sh
+
+ LIBNAME = libaqm_pario.a
+#LIBNAME = libpario.debug.a
+
+ IOAPI =  /nwprod/lib/sorc/pario-n
+ FC = ncepmpxlf90
+ FSTD = -qsave -qfixed=132 -qarch=auto -qtune=auto
+ FFLAGS = $(FSTD) -I $(IOAPI) -O3 -qstrict -Q
+#FFLAGS = $(FSTD) -I $(IOAPI) -g -qfloat=nans
+
+ OBJS= \
+ pinterpb_mod.o \
+ piomaps_mod.o \
+ alloc_data_mod.o \
+ boundary.o \
+ get_write_map.o \
+ growbuf.o \
+ gtndxhdv.o \
+ initm3io.o \
+ interpol.o \
+ pinterpb.o \
+ pio_init.o \
+ pio_end.o \
+ pm3err.o \
+ pm3exit.o \
+ pm3warn.o \
+ pshut3.o \
+ pwrite3.o \
+ pwrgrdd.o \
+ readbndy.o \
+ subdmap.o \
+ wrsubmap.o
+
+.SUFFIXES: .F .f .c
+
+$(LIBNAME) : $(OBJS)
+	$(FC) $(FFLAGS) -c $<
+	ar -rv -X64 $@ $?
+	chmod 644 $@
+
+# mv *.o *.a $M3TOOLS/pario
+# $(FC) $(FFLAGS) -c $(?:.o=.f)
+# $(FC) $(FFLAGS) -c $(?:.o=.f)

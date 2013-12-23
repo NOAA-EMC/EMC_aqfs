@@ -1,0 +1,21 @@
+# @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.IRIX64i8,v 1.1 2000/11/28 21:54:47 smith_w Exp $
+AR = ar
+CC = cc  -64
+FC = f77 -64
+M4 = m4
+
+PVM_ROOT = /env/proj/ppar/pvm3
+PVM_ARCH = SGI64
+
+M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+OMPFLAGS  = -mp -mpio
+OMPLIBS   = -lmp
+COPTFLAGS = -O3
+FOPTFLAGS = -O3 -OPT:Olimit=0
+FPPFLAGS  = -cpp -macro_expand
+FSFLAGS   = -static
+ARCHFLAGS = -64 -align64 -i8 -r12000 -TARG:platform=ip27,processor=r12000
+PARFLAGS  =
+ARCHLIB   = 
+PVMLIBS   = -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3
+

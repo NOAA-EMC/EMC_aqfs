@@ -1,0 +1,13 @@
+
+ 15-17 Dec 03
+
+ Dave's debugging iobin3.c  ...
+    (Line references in fixed code.)
+
+    typedef mod for INT4 line 153
+    
+    correct for layers > 1  line 398 (set_fstate())
+    
+    minor correction for error reporting line 1344 (WRBVARS())
+    
+    seg fault line 1597 (CLOSEBIN3()) - not fixed, just commented out

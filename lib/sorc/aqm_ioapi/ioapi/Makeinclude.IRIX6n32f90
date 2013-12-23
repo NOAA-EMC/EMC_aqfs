@@ -1,0 +1,21 @@
+# @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.IRIX6n32dbg,v 1.1 2000/11/28 21:54:49 smith_w Exp $
+AR = ar
+CC = cc
+FC = f90
+M4 = m4
+LINK = cc -mips4
+
+PVM_ROOT  = /env/proj/ppar/pvm3
+PVM_ARCH  = SGI6
+M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+OMPFLAGS  = -mp -mpio -MP:old_mp=OFF
+OMPLIBS   = -lmp
+COPTFLAGS = -O2
+FOPTFLAGS = -O2 -OPT:Olimit=0 -C
+FPPFLAGS  = -DF90=1 -cpp -macro_expand
+FSFLAGS   = -static
+ARCHFLAGS = -n32 -align64 -r12000 -TARG:platform=ip27,processor=r12000 \
+-DAUTO_ARRAYS=1 -DF90=1 -DSTAR=101
+PARFLAGS  =
+ARCHLIB   = 
+PVMLIBS   = -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3
