@@ -1,0 +1,309 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_fcst.sh
+# Script description:  Run CMAQ model:Community Multiscale Air Quality
+#		       chemical transport model.
+#
+#  #Input Environment Variables:
+#    NPCOL_NPROW      	# domain decompositon (#division_Col;Row)
+#    nprocs	      	# number of processors
+#    GRIDDESC		# horizontal grid definitions
+#    GRID_NAME		# grid name
+#    AVG_CONC_SPCS	# Species for integral average conc
+#    ACONC_BLEV_ELEV	# layer range for integral average conc
+#    IOAPI_LOG_WRITE=F	# excessive WEITE3 logging
+#			  default to F (off)
+#    CTM_SYMPROC=N	# symmetric processing [ T | Y | F | N ]
+#    CTM_CKSUM=Y	# cksum report [ T | Y | F | N ]
+#    CTM_MAXSYNC	# max sync time step (sec) [300]
+#    MPI_SM_POOL	# shared memory pool
+#			  increase for many MPI_SEND headers
+#    MP_EAGER_LIMIT	# MPI message passing buffer
+#    MP_SINGLE_THREAD  	# tell mpi threading is not done [yes]
+#    MP_STDOUTMODE	# order stnd out msgs [ordered]
+#    MP_LABELIO		# MP Lable I/O [yes]
+#    MP_SHARED_MEMORY=yes  # Share Memory
+#    MP_ADAPTER_USE=shared # Share Adapter
+#    MP_CPU_USE=multiple   # Multi Processors
+#####################################################################
+
+export NPCOL_NPROW="14 9"
+export nprocs=127
+export GRIDDESC=$PARMaqm/aqm_griddesc05
+export GRID_NAME=AQF_CONUS_5x
+export AVG_CONC_SPCS="O3, NO2, NO, NO3, N2O5, HNO3, HONO, PNA, CO, FORM, ALD2, PAN, NTR, XO2N, SO2 ASO4I ASO4J ANH4I ANH4J ANO3I ANO3J AORGAI AORGAJ AORGPAI AORGPAJ AORGBI AORGBJ AECI AECJ A25I A25J NUMATKN NUMACC SRFATKN SRFACC AH2OI AH2OJ ACLI ACLJ ANAI ANAJ"
+export ACONC_BLEV_ELEV="1 1"
+export IOAPI_LOG_WRITE=F
+export CTM_MINSYNC=60
+export CTM_SYMPROC=N
+export CTM_CKSUM=Y
+export CTM_CLD_DIAG=N
+
+export PBL_RICH=Y
+#-----------------------------------------------------------------
+# OCEAN FILE FOR THE Aerosol run : Aero4
+#-----------------------------------------------------------------
+
+export OCEAN_1=$FIXaqm/SSMASK_US12_442X265_igbp2010.ncf
+
+export FILE_EDDY=N
+export READEDDY=N
+export NOTCDF_FATAL=F
+
+#export MPI_SM_POOL=16000
+#export MP_EAGER_LIMIT=65536
+#export MP_SINGLE_THREAD=yes
+#export MP_STDOUTMODE=ordered
+#export MP_LABELIO=yes
+#export MP_SHARED_MEMORY=yes
+#export MP_ADAPTER_USE=shared
+#export MP_CPU_USE=multiple
+
+#------------------------------------------------------
+# now using notCDF v3.4
+#------------------------------------------------------
+export NETCDF_FFIOSPEC='cachea:75:3'
+
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+APPL=r6b
+CFG=r6b
+RST=rst
+SEQ=0   
+LAPPL=${APPL}_${SEQ}
+
+case $cyc in
+ 00) restart_file1=$COMINm1/aqm.t18z.conc.ncf
+     restart_log1=$COMINm1/aqm.t18z.log
+     restart_file2=$COMINm1/aqm.t12z.conc.ncf
+     restart_log2=$COMINm1/aqm.t12z.log
+     restart_file3=$COMINm1/aqm.t06z.conc.ncf
+     restart_log3=$COMINm1/aqm.t06z.log
+     restart_file4=$COMINm2/aqm.t12z.conc.ncf
+     restart_log4=$COMINm2/aqm.t12z.log
+     restart_file5=$COMINm2/aqm.t06z.conc.ncf
+     restart_log5=$COMINm2/aqm.t06z.log
+     NSTEPS=060000;;
+ 06) restart_file1=$COMIN/aqm.t00z.conc.ncf
+     restart_log1=$COMIN/aqm.t00z.log
+     restart_file2=$COMINm1/aqm.t12z.conc.ncf
+     restart_log2=$COMINm1/aqm.t12z.log
+     restart_file3=$COMINm1/aqm.t06z.conc.ncf
+     restart_log3=$COMINm1/aqm.t06z.log
+     restart_file4=$COMINm2/aqm.t12z.conc.ncf
+     restart_log4=$COMINm2/aqm.t12z.log
+     restart_file5=$COMINm2/aqm.t06z.conc.ncf
+     restart_log5=$COMINm2/aqm.t06z.log
+     NSTEPS=480000;;
+ 12) restart_file1=$COMIN/aqm.t06z.conc.ncf
+     restart_log1=$COMIN/aqm.t06z.log
+     restart_file2=$COMINm1/aqm.t12z.conc.ncf
+     restart_log2=$COMINm1/aqm.t12z.log
+     restart_file3=$COMINm1/aqm.t06z.conc.ncf
+     restart_log3=$COMINm1/aqm.t06z.log
+     restart_file4=$COMINm2/aqm.t12z.conc.ncf
+     restart_log4=$COMINm2/aqm.t12z.log
+     restart_file5=$COMINm2/aqm.t12z.conc.ncf
+     restart_log5=$COMINm2/aqm.t12z.log
+     NSTEPS=480000;;
+ 18) restart_file1=$COMIN/aqm.t12z.conc.ncf
+     restart_log1=$COMIN/aqm.t12z.log
+     restart_file2=$COMIN/aqm.t06z.conc.ncf
+     restart_log2=$COMIN/aqm.t06z.log
+     restart_file3=$COMINm1/aqm.t12z.conc.ncf
+     restart_log3=$COMINm1/aqm.t12z.log
+     restart_file4=$COMINm1/aqm.t06z.conc.ncf
+     restart_log4=$COMINm1/aqm.t06z.log
+     restart_file5=$COMINm1/aqm.t06z.conc.ncf
+     restart_log5=$COMINm1/aqm.t06z.log
+     NSTEPS=060000;;
+esac
+
+if [ -s $restart_file1 ]
+then
+  restart_file=$restart_file1
+  restart_log=$restart_log1
+elif [ -s $restart_file2 ]
+then
+  restart_file=$restart_file2
+  restart_log=$restart_log2
+elif [ -s $restart_file3 ]
+then
+  restart_file=$restart_file3
+  restart_log=$restart_log3
+elif [ -s $restart_file4 ]
+then
+  restart_file=$restart_file4
+  restart_log=$restart_log4
+elif [ -s $restart_file5 ]
+then
+  restart_file=$restart_file5
+  restart_log=$restart_log5
+fi
+
+if [ -s $restart_file ]
+then
+  export START=WARM
+  export INITIAL_RUN=N
+else
+  export START=COLD
+  export INITIAL_RUN=Y
+fi
+#turn on the derived vert. vel. component to conc file
+ export CTM_WVEL=Y
+
+#------------------------------------------------------
+# Convert PDY to day of year
+#-----------------------------------------------------
+SYYYY=`echo $PDY |cut -c1-4`
+SMM=`echo $PDY |cut -c5-6`
+SDD=`echo $PDY |cut -c7-8`
+DAYOFYEAR=`$UTILaqm/date2jday.sh $SYYYY$SMM$SDD `
+typeset -Z3 DAYOFYEAR
+echo $DAYOFYEAR
+
+
+STDATE=$SYYYY$DAYOFYEAR
+STTIME=${cyc}0000
+
+NS=`echo $NSTEPS |cut -c1-2`
+TSTEP=010000
+
+ ic=1
+  while [ $ic -lt 1081 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+    then
+        ln -sf $COMIN/aqm.${cycle}.metcro3d.ncf $DATA/METCRO3D
+    break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 1080 ]
+      then
+      err_exit "COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+      fi
+   done
+
+ln -sf $COMIN/aqm.${cycle}.grdcro2d.ncf $DATA/GRIDCRO2D
+ln -sf $COMIN/aqm.${cycle}.grddot2d.ncf $DATA/GRIDDOT2D
+ln -sf $COMIN/aqm.${cycle}.metbdy3d.ncf $DATA/METBDY3D
+ln -sf $COMIN/aqm.${cycle}.metcro2d.ncf $DATA/METCRO2D
+ln -sf $COMIN/aqm.${cycle}.metdot3d.ncf $DATA/METDOT3D
+#ln -sf $COMIN/aqm.${cycle}.chembdy3d.ncf $DATA/CHEMBDY3D
+ln -sf $COMIN/aqm.${cycle}.emission.ncf $DATA/emission.${PDY}.ncf
+
+$utilexec/fsync_file $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+$utilexec/fsync_file $COMIN/aqm.${cycle}.grddot2d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metbdy3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro2d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metdot3d.ncf
+#$utilexec/fsync_file $COMIN/aqm.${cycle}.chembdy3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.emission.ncf
+
+if [ $INITIAL_RUN = N ]
+then
+    ln -sf $restart_file   $DATA/CONC.${RST}.ncf
+fi
+
+#------------------------------------------------------
+# input files
+#------------------------------------------------------
+
+export EMIS_1=$DATA/emission.$PDY.ncf
+
+if [[ $INITIAL_RUN = "N" ]]; then
+   export INIT_GASC_1=$DATA/CONC.${RST}.ncf
+else    
+   export INIT_GASC_1=$FIXaqm/aqm_icon_cmaq46_cb05_conus12.ncf
+fi
+
+export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
+
+export INIT_AERO_1=$INIT_GASC_1
+export BNDY_AERO_1=$BNDY_GASC_1
+export INIT_NONR_1=$INIT_GASC_1
+export BNDY_NONR_1=$BNDY_GASC_1
+export INIT_TRAC_1=$INIT_GASC_1
+export BNDY_TRAC_1=$BNDY_GASC_1
+
+export GRID_CRO_2D=$DATA/GRIDCRO2D
+export GRID_DOT_2D=$DATA/GRIDDOT2D
+export  MET_CRO_3D=$DATA/METCRO3D
+export LAYER_FILE=$MET_CRO_3D
+export  MET_CRO_2D=$DATA/METCRO2D
+export  MET_DOT_3D=$DATA/METDOT3D
+export  MET_BDY_3D=$DATA/METBDY3D
+export  DEPV_TRAC_1=$DATA/METCRO2D
+
+export XJ_DATA=$INPEMIDIR/cb05_Jtable/aqm_jtable_${STDATE}
+
+if [ ! -s $XJ_DATA ]
+then
+   err_exit "Missing the JTABLE file"
+fi
+
+#------------------------------------------------------
+# output files
+#------------------------------------------------------
+export    CTM_CONC_1=$DATA/CONC.${APPL}
+export      A_CONC_1=$DATA/ACONC.${APPL}
+export CTM_DRY_DEP_1=$DATA/DRYDEP.${APPL}
+export CTM_WET_DEP_1=$DATA/WETDEP.${APPL}
+export     CTM_VIS_1=$DATA/VIS.${APPL}
+
+
+#------------------------------------------------------
+# for the run control 
+#------------------------------------------------------
+export   CTM_STDATE=$STDATE
+export   CTM_STTIME=$STTIME
+export   CTM_RUNLEN=$NSTEPS
+export    CTM_TSTEP=$TSTEP
+export CTM_PROGNAME=X.$CFG
+export  APPLICATION=$LAPPL
+
+msg="Starting CMAQ Forecast at F00 out to F$NS"
+postmsg "$jlogfile" "$msg"
+
+startmsg
+echo "EXECUTE X.u2c"
+export MEMORY_AFFINITY=MCM
+mpirun.lsf $EXECaqm/aqm_fcst_nmmb_v46 >> $pgmout 2>errfile
+export err=$?
+
+#------------------------------------------------------
+# copy output to /com
+#------------------------------------------------------
+if [ "$SENDCOM" = 'YES' ]
+then
+   mv $DATA/CONC.${APPL} $COMOUT/aqm.${cycle}.conc.ncf
+   mv $DATA/ACONC.${APPL} $COMOUT/aqm.${cycle}.aconc.ncf
+   mv $DATA/DRYDEP.${APPL} $COMOUT/aqm.${cycle}.drydep.ncf
+   mv $DATA/WETDEP.${APPL} $COMOUT/aqm.${cycle}.wetdep.ncf
+   mv $DATA/VIS.${APPL} $COMOUT/aqm.${cycle}.vis.ncf
+#jp   cp /com/output/${envir}/today/aqm_forecast*hi*${cyc}.* $COMOUT/.  
+fi
+
+if [ $err -ne 0 ]
+then
+   err_chk
+else
+   msg="$pgm completed normally"
+   echo "$PDY" "done" >$COMOUT/aqm.${cycle}.log
+   sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+#   rm -f $COMINm4/*.conc.ncf $COMINm4/*.aconc.ncf $COMINm4/*dep* $COMINm4/*vis* $COMINm4/*.conc.ncf $COMINm4/*.aconc.ncf $COMINm4/*dep* $COMINm4/*vis* 
+fi
+
+echo Exiting $0
+
+exit

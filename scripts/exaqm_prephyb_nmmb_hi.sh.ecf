@@ -1,0 +1,103 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_5xwrf_prephyb0.sh.sms
+# Script description:  Run nam product generator for CMAQ
+#
+# Author:      Marina Tsidulko     Org: NP22       Date: 2003-07-03
+#
+# Abstract: This script runs 0-48 h NAM PRDGEN for CMAQ
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2004-03-31    Pius Lee, netcdf independent and append gfs ozone
+# 2004-04-01    Luc, modified for production
+# 2013-05-03    Jianping Huang, modified for transition to WCOSS 
+#                use mpmd instead four J jobs
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+WGRIB=/nwprod/util/exec/wgrib
+
+cd $DATA
+
+echo "Start of NMMB_prdgen Job"
+
+cp $PARMaqm/aqm_255_w60_bgrd12_139.109tables.ctl master3.ctl
+
+if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
+  hr_max=6
+ else
+  hr_max=48
+ fi
+
+#fhr9=0
+#fhr=$fhr
+fhr=0
+
+while [ $fhr -le $hr_max ]
+do
+ typeset -Z2 fhr
+  ic=0
+  while [ $ic -lt 300 ]
+  do
+    if [ -s $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    then
+#     $WGRIB -s  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 | \
+#     egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
+#     $WGRIB -i -grib $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 -o nam.${cycle}.bgrd3d$fhr.tm00
+      echo  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      break
+    else
+      let "ic=ic+1"
+      sleep 10
+    fi
+
+    if [ $ic -ge 180 ]
+    then
+      err_exit "COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
+    fi
+  done
+ let "fhr=fhr+1"
+done
+
+ let NPOE=1
+ while [ $NPOE  -le 4 ] 
+ do  
+ rm -f poescript.$NPOE
+  echo "$USHaqm/aqm_prephyb_nmmb_hi_split.sh  \"$NPOE\" " >>poescript
+  let NPOE=${NPOE}+1
+ done
+  
+chmod 775 $DATA/poescript
+export MP_CMDFILE=$DATA/poescript
+export MP_PGMMODEL=mpmd
+export MP_LABELIO=YES
+
+ mpirun.lsf
+
+export err=$?; ./err_chk
+
+ if [ "$SENDCOM" = 'YES' ]
+ then
+  fhr=0
+  while [ $fhr  -le $hr_max ]
+  do
+   typeset -Z2 fhr
+   mv  $DATA/meso.AQFNMM${fhr} $COMOUT/aqm.${cycle}.nmm$fhr.tm00
+   let "fhr=fhr+1"
+  done
+ fi
+
+echo EXITING $0
+exit
+
+########################################################
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################

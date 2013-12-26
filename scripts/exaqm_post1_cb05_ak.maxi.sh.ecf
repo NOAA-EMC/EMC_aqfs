@@ -1,0 +1,100 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_cmaq_maxi.sh
+# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
+#
+# Author:  Youhua Tang  Org: NP22  Date: 2009-06-30
+#
+######################################################################
+set -xa
+
+export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+
+cd $DATA
+
+while [ ! -s ${COMIN}/aqm.${cycle}.aconc.ncf ]; do
+ sleep 120    # wait until the CMAQ output is ready
+done
+
+export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc.ncf
+export CMAQFILE2=${COMIN}/aqm.t00z.aconc.ncf
+if [ $cyc -eq 12 ]; then
+ export CMAQFILE3=${COMIN}/aqm.t06z.aconc.ncf
+fi
+
+cat >cmaq-maxi2grib.ini <<EOF5
+&control
+markutc=04
+outfile='aqm-maxi.140.grib'
+varlist='o3_1hr','o3_8hr'
+id_gribdomain=140
+/
+EOF5
+
+startmsg
+$EXECaqm/aqm_post_maxi_CHA
+export err=$?;err_chk
+
+# interpolate to grid 198
+
+$utilexec/copygb -g 198 -x -i"1 1" aqm-maxi.140.grib aqm-maxi.198.grib
+
+$utilexec/wgrib -s aqm-maxi.198.grib | grep "OZMAX1" | $utilexec/wgrib -i aqm-maxi.198.grib -grib -o aqm-1hro3-maxi.198.grib
+$utilexec/wgrib -s aqm-maxi.198.grib | grep "OZMAX8" | $utilexec/wgrib -i aqm-maxi.198.grib -grib -o aqm-8hro3-maxi.198.grib
+
+for hr in 1 8
+do
+
+$utilexec/cnvgrib -g12 -m -p32  aqm-${hr}hro3-maxi.198.grib aqm-${hr}hro3-maxi.198.grib2
+
+echo 0 > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm-${hr}hro3-maxi.198.grib2
+export FORT12="filesize"
+export FORT31=
+export FORT51=aqm-${hr}hro3-maxi.198.grib2.temp
+$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.198
+
+echo `ls -l  aqm-${hr}hro3-maxi.198.grib2.temp | awk '{print $5} '` > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm-${hr}hro3-maxi.198.grib2.temp
+export FORT12="filesize"
+export FORT31=
+export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198
+$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.198
+
+rm filesize
+
+       ##############################
+       # Post Files to PCOM
+       ##############################
+
+       if test "$SENDCOM" = 'YES'
+       then
+           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198  $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+
+          ##############################
+          # Distribute Data
+          ##############################
+
+          if [ "$SENDDBN" = 'YES' ] ; then
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+          else
+             msg="File $output_grb.$job not posted to db_net."
+             postmsg "$jlogfile" "$msg"
+          fi
+       fi
+
+done
+
+if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
+ cp grib2.${envir}.${cycle}.aqm-1hro3-max.198 $COMOUT/
+ cp grib2.${envir}.${cycle}.aqm-8hro3-max.198 $COMOUT/
+ cp aqm-maxi.140.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.140
+ if [ "$SENDDBN" = 'YES' ] ; then
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.198
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.198
+ fi
+fi

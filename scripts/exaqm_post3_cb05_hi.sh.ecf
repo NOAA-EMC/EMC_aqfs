@@ -1,0 +1,149 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+# Script name:         exaqm_post3.sh
+# Script description:  Run CMAQ Mie extinction post processing 
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2010-02-01    Jianping Huang 
+######################################################################
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+set +x
+set -xa
+cd $DATA
+
+export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+export XLFRTEOPTS="unit_vars=yes"
+
+#########################################################
+# Part I: Convert Machine binary format to Grib format
+#         and then extract Mie and height
+#########################################################
+##  HI domain size
+export imx=80
+export jmx=52
+
+export CHEM3D=${COMIN}/aqm.${cycle}.vis.ncf
+export METCRO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
+export METCRO2D=${COMIN}/aqm.${cycle}.metcro2d.ncf
+
+case $cyc in
+ 00) export n_durhr=6;;
+ 06) export n_durhr=48;;
+ 12) export n_durhr=48;;
+ 18) export n_durhr=6;;
+esac
+
+#export mysdate=-99
+#export mystime=-99
+#export mynsteps=-99
+#export spc=N    ##T,F,Y, or N
+#export display=N
+#export tol=0.
+#export info=N
+#export notcdf=Y
+#export NOTCDF_FATAL=F
+#export RESEARCH=N
+
+# convert to grib and extract Mie 
+cat >cmaq2grib.ini <<EOF5
+&control
+varlist='EXT_Mie'
+metlist='    '
+outfile='$DATA/aqm.${cycle}.MIE'
+nlayers=22
+id_gribdomain=139
+ave1hr=.true.
+/
+EOF5
+
+${EXECaqm}/aqm_cmaq2grib
+
+# convert to grib and extract full layer height above ground 
+cat >cmaq2grib.ini <<EOF5
+&control
+varlist='    '
+metlist='ZF'
+outfile='$DATA/aqm.${cycle}.ZF'
+nlayers=22
+id_gribdomain=139
+ave1hr=.true.
+/
+EOF5
+
+${EXECaqm}/aqm_cmaq2grib
+
+#########################################################
+# Part II: Concatenate EXT_MIE to INHOUSE grib files
+#	   and cp the resultant file to $DATA
+#########################################################
+
+    if [ "$SENDCOM" = 'YES' ]
+    then
+       export fhr=01
+       typeset -Z2 fhr 
+       while [ $fhr -le $n_durhr ]
+       do
+         cat ${DATA}/aqm.${cycle}.MIE${fhr} ${DATA}/aqm.${cycle}.ZF${fhr} > aqm.${cycle}.mie$fhr
+         let "fhr=fhr+1"
+         typeset -Z2 fhr 
+         export fhr
+       done
+    fi
+
+    cp  aqm.${cycle}.mie*  $COMOUT/
+
+export err=$?;err_chk
+
+########################################################################
+###### below is used to calcuate aot(d) ######
+## Added by jphuang /02/04/2010 based on aqmpost2cB_aer.sh.sms_HI  ##### 
+
+DATE=$(echo $PDY | cut  -c 1-8)
+yyyy=$(echo $PDY | cut  -c 1-4)
+mm=$(echo $PDY   | cut  -c 5-6)
+dd=$(echo $PDY   | cut  -c 7-8)
+
+export DATE yyyy mm dd
+
+if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]
+then
+   export endfhr=06
+elif [  ${cycle} = 't06z' ]
+then
+   export endfhr=48
+else
+   export endfhr=48
+fi
+
+export fhr=01
+typeset -Z2 fhr endfhr
+
+while [ $fhr -le $endfhr ]
+do
+
+ export pgm=aqm_gfs_aot
+ . prep_step
+ cat <<EOF5 >input${fhr}.prd
+ aqm.${cycle}.mie${fhr}
+EOF5
+
+ startmsg
+  $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile
+  export err=$?;err_chk
+ cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/
+
+ let "fhr=fhr+1"
+ typeset -Z2 fhr
+done
+
+echo EXITING $0
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+exit
+

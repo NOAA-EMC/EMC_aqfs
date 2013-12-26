@@ -1,0 +1,91 @@
+#!/bin/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date -u
+
+############################################
+# Set up environment for AIR QUALITY FCST
+############################################
+export NET=aqm
+export RUN=HI
+############################################
+export PARAFLAG=${PARAFLAG:-NO}
+export usrdir=${usrdir:-}
+export usr_tmp=${usr_tmp:-}
+export COM_OUT=${COM_OUT:-}
+export HOMEaqm=${HOMEaqm:-/nwprod/${model}.${model_ver}}
+#####################################
+export pid=$$
+export job=aqm_post1_hi
+export DATA=$usr_tmp/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=${usr_tmp}/com/logs/jlogfile
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z
+export MP_HOLDTIME=1000
+export MP_LABELIO=YES
+
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=YES
+
+export HOMEaqm=${usrdir}/nw${envir}/cmaq.${model_ver}
+export EXECaqm=$HOMEaqm/exec
+export FIXaqm=$HOMEaqm/fix
+export PARMaqm=$HOMEaqm/parm
+export USHaqm=$HOMEaqm/ush
+export PARMutil=$HOMEaqm/util/parm
+
+###################################
+# Set up the UTILITIES
+###################################
+export utilscript=/nwprod/util/ush
+export utilexec=/nwprod/util/exec
+
+# Run setup to initialize working directory and utility scripts
+sh $utilscript/setup.sh
+
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+# Run setpdy and initialize PDY variables
+$utilscript/setpdy.sh
+. PDY
+
+export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+export pcom=${COM_OUT}/pcom/${NET}
+
+mkdir -p $COMOUT $pcom
+env
+
+###################################################
+# Execute Script aqm_post
+###################################################
+$HOMEaqm/scripts/exaqm_post1_cb05_hi.sh.ecf
+if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
+  $HOMEaqm/scripts/exaqm_post1_cb05_hi.maxi.sh.ecf
+fi
+
+cat $pgmout
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+date
+
+# cd /tmpnwprd
+# rm -rf $DATA
+
+date

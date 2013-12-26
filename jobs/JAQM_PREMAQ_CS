@@ -1,0 +1,112 @@
+#!/bin/ksh
+#
+############################################
+# Set up environment for AIR QUALITY PREMAQ 
+############################################
+set -xa
+export PS4='$SECONDS + '
+date 
+
+############################################
+export NET=aqm
+export RUN=aqm
+############################################
+############################################
+export PARAFLAG=${PARAFLAG:-NO}
+export usrdir=${usrdir:-}
+export usr_tmp=${usr_tmp:-}
+export COM_OUT=${COM_OUT:-}
+#####################################
+# obtain unique process id (pid) and make temp directories
+#####################################
+export pid=$$
+export job=aqm_premaq_cs
+export DATA=${usr_tmp}/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=${usr_tmp}/com/logs/jlogfiles/jlogfile.$$
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z
+export MP_HOLDTIME=1000
+export MP_LABELIO=YES
+
+export SENDCOM=YES
+export SENDDBN=YES
+export SENDECF=YES
+
+export HOMEaqm=${usrdir}/nw${envir}/cmaq.${model_ver}
+export EXECaqm=$HOMEaqm/exec
+export FIXaqm=$HOMEaqm/fix
+export PARMaqm=${HOMEaqm}/parm
+
+###################################
+# Set up the UTILITIES
+###################################
+export utilscript=/nwprod/util/ush
+export utilexec=/nwprod/util/exec
+export PARMutil=/nwprod/util/parm
+
+# Run setup to initialize working directory and utility scripts
+sh $utilscript/setup.sh
+
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+if [ $PARAFLAG = "YES" ]
+then
+export SENDDBN=NO
+fi
+
+# Run setpdy and initialize PDY variables
+$utilscript/setpdy.sh
+. PDY
+
+ export COM=/com/${NET}/${envir}
+ export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMINm1=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm1}
+ export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+# export COMNAM=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMNAM=/com/${NET}/prod/${RUN}.${PDY}
+ export COMNAMm1=/com/${NET}/prod/${RUN}.${PDYm1}
+
+###############################################
+# Set up the daily emission files directory
+# Those are fix files but use huge disk space.
+###############################################
+if [ $PARAFLAG = "YES" ]
+then
+#export INPEMIDIR=/meso/noscrub/${USER}/com/${NET}/para/emission
+export INPEMIDIR=/naqfc/noscrub/${USER}/com/${NET}/para/emission
+else
+export INPEMIDIR=/com/${NET}/prod/emission
+fi
+
+mkdir -p $COMOUT
+ 
+env
+
+###################################################
+# Execute the Script
+###################################################
+$HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
+err=$?
+##################################################
+cat $pgmout
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+#cd  /tmpnwprd
+#rm -rf $DATA
+
+date
+

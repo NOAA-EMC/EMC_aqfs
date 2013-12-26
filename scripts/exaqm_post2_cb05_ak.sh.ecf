@@ -1,0 +1,85 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         ex_aqmpostconc_aer.sh
+# Script description:  Run CMAQ Mie extinction post processing 
+#
+# Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2006-01-31
+#
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2004-03-31    Pius Lee, notcdf and upgrades 
+# 2010-02-01    Jianping Huang , using cmaq2grib 
+# 2013-07-01    Jianping Huang , change bin to ncf for WCOSS transition 
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+export XLFRTEOPTS="unit_vars=yes"
+
+#########################################################
+# Part I: Convert Machine binary format to Grib format
+#########################################################
+
+export CHEM3D=${COMIN}/aqm.${cycle}.conc.ncf
+export METCRO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
+export METCRO2D=${COMIN}/aqm.${cycle}.metcro2d.ncf
+
+
+case $cyc in
+ 00) export n_durhr=6;;
+ 06) export n_durhr=49;;
+ 12) export n_durhr=49;;
+ 18) export n_durhr=6;;
+esac
+
+. prep_step
+
+  ic=1
+  while [ $ic -lt 1000 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.conc.ncf ]
+    then
+     ln -sf $COMIN/aqm.${cycle}.conc.ncf $DATA/aqm.${cycle}.conc.ncf
+    break
+    else
+        let "ic=ic+1"
+        sleep 10
+    fi
+    if [ $ic -ge 180 ]
+    then
+    err_exit "COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc.ncf"
+    fi
+  done
+
+cat >cmaq2grib.ini <<EOF5
+&control
+varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN','NTR',
+'XO2N','SO2','ASO4I','ASO4J','ANH4I','ANH4J','ANO3I','ANO3J','AORGAI','AORGAJ','AORGPAI',
+'AORGPAJ','AORGBI','AORGBJ','AECI','AECJ','A25I','A25J','NUMATKN','NUMACC','SRFATKN',
+'SRFACC','AH2OI','AH2OJ'
+metlist='    '
+outfile='$COMOUT/aqm.${cycle}.pm'
+nlayers=22
+id_gribdomain=140
+ave1hr=.true.
+/
+EOF5
+
+$EXECaqm/aqm_cmaq2grib 
+export err=$?;err_chk
+
+########################################################
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################
+
+exit
+

@@ -1,0 +1,105 @@
+#!/bin/ksh
+#
+############################################
+# Set up environment for AQM PREGEN 
+############################################
+set -xa
+export PS4='$SECONDS + '
+date -u
+
+############################################
+export NET=aqm
+export RUN=HI
+############################################
+export PARAFLAG=${PARAFLAG:-NO}
+export usrdir=${usrdir:-}
+export usr_tmp=${usr_tmp:-}
+export COM_OUT=${COM_OUT:-}
+############################################
+# obtain unique process id (pid) and make temp directories
+#####################################
+export pid=$$
+export job=aqm_prephy_hi
+export DATA=${usr_tmp}/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA 
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=${usr_tmp}/com/logs/jlogfiles/jlogfile.$$
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export cycle=t${cyc}z
+export MP_HOLDTIME=1000
+export MP_LABELIO=YES
+
+export SENDCOM=YES
+export SENDDBN=YES
+export SENDECF=YES
+
+export HOMEaqm=${usrdir}/nw${envir}/cmaq.${model_ver}
+export EXECaqm=$HOMEaqm/exec
+export FIXaqm=$HOMEaqm/fix
+export USHaqm=$HOMEaqm/ush
+export PARMaqm=$HOMEaqm/parm
+
+###################################
+# Set up the UTILITIES
+###################################
+export utilscript=/nwprod/util/ush
+export utilexec=/nwprod/util/exec
+
+# Run setup to initialize working directory and utility scripts
+sh $utilscript/setup.sh
+
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+if [ $PARAFLAG = "YES" ] 
+then
+export SENDDBN=NO
+fi
+
+$utilscript/setpdy.sh
+. PDY
+
+export COM=/com/${NET}/${envir}
+export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+#export COMNMM=/com/nam/${envir}/nam.${PDY}
+export COMNMM=/com/nam/prod/nam.${PDY}
+#export COMNMMm1=/com/nam/${envir}/nam.${PDYm1}
+export COMNMMm1=/com/nam/prod/nam.${PDYm1}
+
+mkdir -p $COMOUT
+
+env
+
+###################################################
+# Execute the Script
+###################################################
+${HOMEaqm}/scripts/exaqm_prephyb_nmmb_hi.sh.ecf
+err=$?
+##################################################
+if [ "$err" != '0' ]
+then
+  echo ' '
+  echo '*************************************'
+  echo '*** FATAL ERROR IN CMAQ PREGEN HI JOB ***'
+  echo '*************************************'
+  echo ' '
+  postmsg "ERROR IN HI PROGEN JOB1"
+else
+  msg="JOB $job HAS COMPLETED NORMALLY."
+  postmsg "$jlogfile" "$msg"
+#  cd /tmpnwprd
+#  rm -rf $DATA
+fi
+
+date -u
+

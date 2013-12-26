@@ -1,0 +1,148 @@
+
+x   VGRD_DEFN.F
+x   CGRID_SPCS.F
+x   HGRD_DEFN.F
+x   GRID_CONF.F
+x   cgrid_defn.F
+x   ddep_defn.F
+x   wdep_defn.F
+x   aconc_defn.F
+x   vis_defn.F
+x   wvel_defn.F
+x   mpim.f
+x   AERO_EMIS.F
+x   AERO_INFO_AE3.f
+x   SOA_NEWT.f
+x   cksummer.F
+x   driver.F
+x   ctk.F
+x   collect.F
+x   assemble.F
+x   initscen.F
+x   load_cgrid.F
+x   opconc_yamo.F
+x   opaconc.F
+x   sciproc_yamo.F
+x   advstep.F
+x   couple.F
+x   rdbcon.F
+x   advbc_map.F
+x   zfdbc.f
+x   hcontvel.F
+x   hadvyppm.F
+x   hppm.F
+x   x_ppm.F
+x   x_yamo.F
+x   y_ppm.F
+x   y_yamo.F
+x   zadvyamo.F
+x   hdiff.F
+x   rho_j.F
+x   hcdiff3d.F
+x   deform.F
+x   vdiffim.F
+x   edyintb.F
+x   eddyread.F
+x   opddep.F
+x   opemis.F
+x   opssemis.F
+x   opmet.F
+x   rddepv.F
+x   rdemis.F
+x   ssemis.F
+x   rdmet.F
+x   tridiag.F
+x   vdiff_map.F
+x   conv_cgrid.F
+x   aero_depv.F
+x   cldproc_acm.F
+x   convcld_acm.F
+x   acmcld.f
+x   set_aeconcmin.F
+x   rescld.F
+x   aq_map.F
+x   aqchem.F
+x   getalpha.f
+x   hlconst.F
+x   indexn.f
+x   scavwdep.F
+x   opwdep.F
+x   hrdata_mod.F
+x   hrdriver.F
+x   hrinit.F
+x   hrsolver.F
+x   hrprodloss.F
+x   hrrates.F
+x   hrcalcks.F
+x   hrg1.F
+x   hrg2.F
+x   hrg3.F
+x   hrg4.F
+x   phot.F
+x   aero_driver.F
+x   aero_subs.f
+x   isocom.f
+x   isofwd.f
+x   isorev.f
+x   opvis.F
+x   get_envlist.f
+x   subhfile.F
+x   findex.f
+x   lstepf.F
+x   setup_logdev.F
+
+New code as of Oct 05:
+   12620 Oct 29 10:05 subhfile.F
+    5467 Oct 29 10:03 opvis.F
+   53754 Oct 29 09:58 aero_driver.F
+   28008 Oct 29 09:50 phot.F
+   14056 Oct 29 09:48 hrdriver.F
+   15518 Oct 29 09:34 scavwdep.F
+   11986 Oct 29 09:19 getalpha.f
+   51431 Oct 29 09:05 aqchem.F
+   27283 Oct 29 08:46 rescld.F
+   65205 Oct 29 08:38 convcld_acm.F
+   30018 Oct 29 08:24 cldproc_acm.F
+   72644 Oct 29 08:20 aero_depv.F
+   12524 Oct 29 08:19 conv_cgrid.F
+    4912 Oct 29 08:14 tridiag.F
+    8669 Oct 29 08:12 rdmet.F
+    8363 Oct 29 08:05 rdemis.F
+   20962 Oct 29 08:03 rddepv.F
+    4897 Oct 29 07:59 opssemis.F
+    9305 Oct 29 07:56 opemis.F
+    6332 Oct 29 07:52 opddep.F
+    7575 Oct 29 07:47 eddyread.F
+   36681 Oct 29 07:45 edyintb.F
+    1313 Oct 28 14:05 change
+   39921 Oct 28 14:05 vdiffim.F
+   20547 Oct 28 11:07 deform.F
+   11656 Oct 28 11:05 hcdiff3d.F
+   12038 Oct 28 11:02 rho_j.F
+   16815 Oct 28 10:57 hdiff.F
+   15870 Oct 28 10:51 zadvyamo.F
+   12443 Oct 28 10:35 y_yamo.F
+   12997 Oct 28 10:34 x_yamo.F
+    9921 Oct 28 10:25 hadvyppm.F
+   10479 Oct 28 10:24 y_ppm.F
+   10553 Oct 28 10:24 x_ppm.F
+   23420 Oct 28 09:09 hppm.F
+   15312 Oct 28 08:21 hcontvel.F
+   20465 Oct 28 08:08 couple.F
+   22997 Oct 28 08:03 advstep.F
+    6959 Oct 28 07:53 sciproc_yamo.F
+   11102 Oct 27 14:29 opaconc.F
+   13268 Oct 27 14:24 ctk.F
+   11538 Oct 27 14:23 opconc_yamo.F
+   19571 Oct 27 14:22 load_cgrid.F
+    7199 Oct 27 14:20 assemble.F
+   27314 Oct 27 14:18 collect.F
+   12953 Oct 27 14:16 cksummer.F
+   12694 Oct 27 14:15 driver.F
+   62903 Oct 27 13:29 AERO_EMIS.F
+    5419 Oct 27 13:26 vis_defn.F
+   12302 Oct 27 13:25 aconc_defn.F
+    4073 Oct 27 13:21 cgrid_defn.F
+    3394 Oct 27 13:08 CGRID_SPCS.F
+  122361 Oct 14 10:29 AERO_INFO_AE3.f
+   27192 Oct 13 10:29 aq_map.F

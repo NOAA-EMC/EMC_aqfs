@@ -1,0 +1,109 @@
+#!/bin/sh
+
+############################################
+# Set up environment for AIR QUALITY CMAQ(FCST)
+############################################
+set -xa
+export MP_IOAGENT_CNT=all
+export MP_IO_BUFFER_SIZE=8M
+export PS4='$SECONDS + '
+date -u
+
+############################################
+export NET=aqm
+export RUN=aqm
+############################################
+############################################
+export PARAFLAG=${PARAFLAG:-NO}
+export usrdir=${usrdir:-}
+export usr_tmp=${usr_tmp:-}
+export COM_OUT=${COM_OUT:-}
+#####################################
+# obtain unique process id (pid) and make temp directories
+#####################################
+export pid=$$
+export job=aqm_fcst_cs
+export DATA=${usr_tmp}/tmpnwprd/${job}.${pid}
+mkdir -p $DATA
+cd $DATA 
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=${usr_tmp}/com/logs/jlogfiles/jlogfile.$$
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+#export MP_HOLDTIME=1000
+export MP_LABELIO=YES
+
+export cycle=t${cyc}z
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=YES
+
+
+export EXECaqm=$HOMEaqm/exec
+export FIXaqm=$HOMEaqm/fix
+export PARMaqm=$HOMEaqm/parm
+export UTILaqm=$HOMEaqm/util
+
+###################################
+# Set up the UTILITIES
+###################################
+export utilscript=/nwprod/util/ush
+export utilexec=/nwprod/util/exec
+
+
+# Run setup to initialize working directory and utility scripts
+sh $utilscript/setup.sh
+
+msg="JOB $job HAS BEGUN"
+sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+
+# Run setpdy and initialize PDY variables
+$utilscript/setpdy.sh
+. PDY
+
+if [ "${PARAFLAG}" = "YES" ]
+then
+ echo "Testing with /com_p6 data"
+ export INPEMIDIR=/naqfc/noscrub/${USER}/com/${NET}/para/emission
+ export COM=${COM_OUT}/com/${NET}/${envir}
+ export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMINm1=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm1}
+ export COMINm2=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm2}
+ export COMINm3=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm3}
+else
+ export COM=/com/${NET}/${envir}
+ export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMINm1=/com/${NET}/${envir}/${RUN}.${PDYm1}
+ export COMINm2=/com/${NET}/${envir}/${RUN}.${PDYm2}
+ export COMINm3=/com/${NET}/${envir}/${RUN}.${PDYm3}
+fi
+mkdir -p $COMOUT
+ 
+env
+
+###################################################
+# Execute the Script
+###################################################
+${HOMEaqm}/scripts/exaqm_cmaqv46_cs.sh.ecf
+err=$?
+##################################################
+cat $pgmout
+
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+#cd /tmpnwprd
+#rm -rf $DATA
+
+date
+

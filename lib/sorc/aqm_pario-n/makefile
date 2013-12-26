@@ -2,7 +2,7 @@
 # $Header: /project/work/rep/STENEX/src/se/Makefile,v 1.7 2000/04/26 19:08:41 yoj Exp $
 
 mydir=/naqfc/save/${USER}
-envir=para
+envir=prod
 model_ver=v4.6.2
 
 SHELL=/bin/sh
