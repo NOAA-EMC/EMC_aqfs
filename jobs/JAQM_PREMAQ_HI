@@ -71,11 +71,11 @@ fi
 $utilscript/setpdy.sh
 . PDY
 
- export COM=/com/${NET}/${envir}
- export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COM=/com/${NET}/prod
+ export COMIN=/com/${NET}/prod/${RUN}.${PDY}
  export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
- export COMINm1=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm1}
- export COMNAM=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
+ export COMINm1=/com/${NET}/prod/${RUN}.${PDYm1}
+ export COMNAM=/com/${NET}/prod/${RUN}.${PDY}
 
 ###############################################
 # Set up the daily emission files directory
@@ -83,7 +83,7 @@ $utilscript/setpdy.sh
 ###############################################
 if [ $PARAFLAG = "YES" ]
 then
-export INPEMIDIR=/meso/noscrub/${USER}/com/${NET}/prod/emission
+export INPEMIDIR=/naqfc/noscrub/${USER}/com/${NET}/prod/emission
 else
 export INPEMIDIR=/com/${NET}/prod/emission
 fi

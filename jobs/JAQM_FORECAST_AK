@@ -71,9 +71,8 @@ $utilscript/setpdy.sh
 
 if [ "${PARAFLAG}" = "YES" ]
 then
- echo "Testing with /com_p6 data"
- export INPEMIDIR=/com_p6/${NET}/para/emission
- export COM=/com_p6/${NET}/${envir}
+ export INPEMIDIR=/naqfc/noscrub/${USER}/com/aqm/prod/emission/
+ export COM=/com/${NET}/${envir}
  export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
  export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
  export COMINm1=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm1}

@@ -3,7 +3,7 @@
 set -ax 
 #if [ ${USER} = 'Jianping.Huang' ] ; then
  mydir=/naqfc/save/${USER}
- envir=prod
+ envir=para
  model_ver=v4.6.2
 #else
 # mydir=

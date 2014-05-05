@@ -34,7 +34,8 @@ id_gribdomain=148
 EOF5
 
 startmsg
-$EXECaqm/aqm_post_maxi_CHA
+#$EXECaqm/aqm_cmaq_maxi2grib_CHA
+$EXECaqm/aqm_post_maxi_CHA 
 export err=$?;err_chk
 
 # interpolate to grid 227
@@ -47,8 +48,6 @@ $utilexec/wgrib -s aqm-maxi.227.grib | grep "OZMAX8" | $utilexec/wgrib -i aqm-ma
 for hr in 1 8
 do
 
-#typeset -Z2 hr
-
 $utilexec/cnvgrib -g12 -m -p32  aqm-${hr}hro3-maxi.227.grib aqm-${hr}hro3-maxi.227.grib2
 
 echo 0 > filesize
@@ -57,7 +56,7 @@ export FORT11=aqm-${hr}hro3-maxi.227.grib2
 export FORT12="filesize"
 export FORT31=
 export FORT51=aqm-${hr}hro3-maxi.227.grib2.temp
-$utilexec/tocgrib2super < $PARMutil/grib2_para_cmaq-${hr}hro3-maxi.${cycle}.227
+$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
 echo `ls -l  aqm-${hr}hro3-maxi.227.grib2.temp | awk '{print $5} '` > filesize
 export XLFRTEOPTS="unit_vars=yes"
@@ -65,7 +64,7 @@ export FORT11=aqm-${hr}hro3-maxi.227.grib2.temp
 export FORT12="filesize"
 export FORT31=
 export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227
-$utilexec/tocgrib2super < $PARMutil/grib2_para_cmaq-${hr}hro3-maxi.${cycle}.227
+$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
 rm filesize
 
@@ -95,6 +94,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/
  cp aqm-maxi.148.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.148
+ $utilexec/copygb -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
+ $utilexec/cnvgrib -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.grib2_daily_max.227
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.227
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.227

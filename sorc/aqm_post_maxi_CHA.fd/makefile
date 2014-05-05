@@ -1,13 +1,13 @@
-#envir    =prod
-#model_ver=v4.6.0
+envir    =prod
+model_ver=v4.6.0
 #EMC
 #usrdir   =/naqfc/save/${USER}
 
 # NCO
-#usrdir=
+usrdir=
 
 DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
-#CMD      = aqm_cmaq_maxi2grib
+#CMD      = aqm_cmaq_maxi2grib_CHA 
 CMD      = aqm_post_maxi_CHA
 SRCS     = cmaq-maxi2grib.f90 
 
