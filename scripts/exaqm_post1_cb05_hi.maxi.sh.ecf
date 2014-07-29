@@ -94,7 +94,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.196 $COMOUT/
  cp aqm-maxi.139.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.139
  if [ "$SENDDBN" = 'YES' ] ; then
-  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.196
-  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.196
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_HI_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.196
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_HI_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.196
  fi
 fi

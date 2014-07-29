@@ -1,30 +1,31 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION  OPNKF( EQNAME, FID, FSTATUS, PGNAME, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  86
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  87
 C
-C  FUNCTION:  open pre-existing KF-Cloud file with logical name FLIST3( FID ),
-C             with readonly/readwrite status FSTATUS.  If opened for
-C             write, copy scenario description from I/O STATE3.EXT to
-C             file's history, and name PGNAME of caller to file's
-C             updater-name.  Returns TRUE if the file is already open.
+C  FUNCTION:
+C       open pre-existing KF-Cloud file with logical name FLIST3( FID ),
+C       with readonly/readwrite status FSTATUS.  If opened for
+C       write, copy scenario description from I/O STATE3.EXT to
+C       file's history, and name PGNAME of caller to file's
+C       updater-name.  Returns TRUE if the file is already open.
+C       Return gridded event-counts array in BUFFER
 C
-C  RETURN VALUE:  TRUE iff it succeeds in opening the file, reading its
-C                 attributes, and storing the relevant ones in STATE3.EXT
+C  RETURN VALUE:
+C       TRUE iff it succeeds in opening the file, reading its
+C       attributes, and storing the relevant ones in STATE3.EXT
 C
 C  PRECONDITIONS REQUIRED:  File FLIST3( FID ) already exists.
 C
-C  SUBROUTINES AND FUNCTIONS CALLED:  TRIMLEN
+C  SUBROUTINES AND FUNCTIONS CALLED:
 C
 C  REVISION  HISTORY:
 C       prototype 9/94 by CJC to go with new version of OPEN3()
@@ -40,6 +41,11 @@ C       Modified 5/2003 by CJC: bugfix by by David Wong, US EPA;
 C       set NF_SHARE for volatile files.
 C
 C       revised   6/2002 by CJC:  Don't set NF_SHARE for Cray
+C
+C       Modified 10/2009 by CJC:  flags-change for netCDF4  from 
+C       Martin Otte, US EPA -- remove NF_NOCLOBBER
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -53,17 +59,11 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   EQNAME  !  physical name of file to be opened
-        INTEGER         FID     !  index into STATE3 tables
-        INTEGER         FSTATUS !  read-only/read-write status for NCOPN()
-        CHARACTER*16    PGNAME  !  name of calling program
-        REAL            BUFFER( * )
-
-
-C...........   EXTERNAL FUNCTIONS and their descriptions:
-
-        INTEGER         TRIMLEN !  string length (except trailing blanks)
-        EXTERNAL        TRIMLEN
+        CHARACTER*(*), INTENT(IN   ) :: EQNAME  !  physical name of file to be opened
+        INTEGER      , INTENT(IN   ) :: FID     !  index into STATE3 tables
+        INTEGER      , INTENT(IN   ) :: FSTATUS !  read-only/read-write status for NCOPN()
+        CHARACTER*(*), INTENT(IN   ) :: PGNAME  !  name of calling program
+        REAL         , INTENT(  OUT) :: BUFFER( * )
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -88,10 +88,10 @@ C   begin body of subroutine  OPNKF
             FMODE = FSTATUS
         ELSE
 #if _CRAY
-            FMODE = IOR( NF_NOCLOBBER , NF_WRITE )
+            FMODE = NF_WRITE
 #endif
 #if ! ( _CRAY )
-           FMODE = IOR( IOR( NF_SHARE, NF_NOCLOBBER ), NF_WRITE )
+           FMODE = IOR( NF_SHARE, NF_WRITE )
 #endif
         END IF
 #if ! ( _CRAY )
@@ -318,7 +318,37 @@ C.......   (in map units; see FDESC3.EXT for description)
             EFLAG = .TRUE.
             GO TO  999        !  return
         END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGTYP:  vertical coordinate type
            
+        CALL NCAGT( FNUM, NCGLOBAL, 'VGTYP', VGTYP3( FID ), IERR )
+        IF ( IERR .NE. 0 ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGTYP.' )
+            CALL M3MSG2( MESG )
+            GO TO 999
+        END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGTOP:  vertical  coordinate sigma-top
+
+        CALL NCAGT( FNUM, NCGLOBAL, 'VGTOP', VGTOP3( FID ), IERR )
+        IF ( IERR .NE. 0 ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGTOP.' )
+            CALL M3MSG2( MESG )
+            GO TO 999
+        END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGLVS:  vertical coordinate values
+
+        CALL NCAGT( FNUM, NCGLOBAL, 'VGLVLS', VGLVS3( 1,FID ), IERR )
+        IF ( IERR .NE. 0 ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGLVS.' )
+            CALL M3MSG2( MESG )
+            GO TO 999
+        END IF          !  ierr nonzero:  NCAGT() failed
+
 C.......   GDNAM:  grid name
 
         CALL NCAGTC( FNUM, NCGLOBAL, 'GDNAM',
@@ -418,7 +448,7 @@ C.......   Variables-list for the file:
             END IF              !  ierr nonzero:  NCAGTC() failed
         END IF              !  if nvars > 0
 
-        DO 100  VAR = 1 , NVARS3( FID )
+        DO  VAR = 1 , NVARS3( FID )
 
             VINDX3( VAR,FID ) = NCVID( FNUM, VLIST3( VAR,FID ), IERR )
             IF ( IERR .NE. 0 ) THEN
@@ -439,7 +469,16 @@ C.......   Variables-list for the file:
                 GO TO  999        !  return
             END IF              !  ierr nonzero:  NCVID() failed
 
-100     CONTINUE
+            CALL NCAGTC( FNUM, VINDX3( VAR,FID ), 'units',
+     &                   UNITS3( VAR,FID ), NAMLEN3, IERR )
+            IF ( IERR .NE. 0 ) THEN
+                MESG = 'Error reading units for netCDF variable '
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, MESG )
+                EFLAG = .TRUE.
+                GO TO  999        !  return
+            END IF              !  ierr nonzero:  NCVID() failed
+
+        END DO          !  end loop on variables
 
 
 C.......   If opened for WRITE:  put attribute HISTORY:  update description
@@ -505,5 +544,5 @@ C.......   If opened for WRITE:  put attribute HISTORY:  update description
         OPNKF = ( .NOT. EFLAG )
 
         RETURN
-        END
+        END FUNCTION  OPNKF
 

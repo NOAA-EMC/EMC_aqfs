@@ -1,28 +1,26 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
-       LOGICAL FUNCTION KFINDX( FNAME, COL, ROW, 
+       LOGICAL FUNCTION KFINDX( FNAME, COL, ROW,
      &                          ECOUNT, SDATES, STIMES, KFLENS, EVENTS )
 
 C***********************************************************************
-C  function body starts at line  83
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  80
 C
 C  FUNCTION:  reads the event descriptions for the indicated cell
-C 	from the KF-Cloud-Event file with logical name FNAME. 
+C 	from the KF-Cloud-Event file with logical name FNAME.
 C
 C  RETURN VALUE:  TRUE iff the operation succeeds (and the data is available)
 C
 C  PRECONDITIONS REQUIRED:  FNAME is a  KF-Cloud-Event file already
 C       opened by kfindx()
 C
-C  REVISION  HISTORY:  
+C  REVISION  HISTORY:
 C       Adapted  4/1996 by CJC from READ3().
 C
 C       Modified  5/1998 by CJC for OpenMP thread-safety
@@ -31,6 +29,8 @@ C       Modified  1/2002 by CJC:  check TRIMLEN() of FNAME
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -44,23 +44,20 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME      !  logical file name
-        INTEGER       COL        !  column number for this event
-        INTEGER       ROW        !  row    number for this event
-        INTEGER       ECOUNT     !  # of events for this col-row
-        INTEGER       SDATES(*)  !  starting date,  formatted YYYYDDD
-        INTEGER       STIMES(*)  !  starting time,  formatted HHMMSS
-        INTEGER       KFLENS(*)  !  event duration, formatted HHMMSS
-        INTEGER       EVENTS(*)  !  event numbers
+        CHARACTER*(*), INTENT(IN   ) :: FNAME      !  logical file name
+        INTEGER      , INTENT(IN   ) :: COL        !  column number for this event
+        INTEGER      , INTENT(IN   ) :: ROW        !  row    number for this event
+        INTEGER      , INTENT(  OUT) :: ECOUNT     !  # of events for this col-row
+        INTEGER      , INTENT(  OUT) :: SDATES(*)  !  starting date,  formatted YYYYDDD
+        INTEGER      , INTENT(  OUT) :: STIMES(*)  !  starting time,  formatted HHMMSS
+        INTEGER      , INTENT(  OUT) :: KFLENS(*)  !  event duration, formatted HHMMSS
+        INTEGER      , INTENT(  OUT) :: EVENTS(*)  !  event numbers
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INIT3      !  initialize I/O API
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         TRIMLEN
-
-        EXTERNAL        INIT3, INDEX1, TRIMLEN
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O API
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -79,7 +76,7 @@ C***********************************************************************
 C   begin body of function  KFINDX
 
 C.......   Check that Models-3 I/O has been initialized:
- 
+
         EFLAG = .FALSE.
 !$OMP   CRITICAL( S_INIT )
         IF ( .NOT. FINIT3 ) THEN
@@ -93,16 +90,16 @@ C.......   Check that Models-3 I/O has been initialized:
             RETURN
         END IF
 
-        IF ( TRIMLEN( FNAME ) .GT. 16 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. 16 ) THEN
             MESG = 'File "'// FNAME //'"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3WARN( 'KFINDX', 0,0, MESG )
             KFINDX = .FALSE.
             RETURN
         END IF          !  if len( fname ) > 16, or if len( vname ) > 16
-        
+
 
 C.......   Find netCDF index for the file, and check time step availability:
 
@@ -139,7 +136,7 @@ C.......   Find netCDF index for the file, and check time step availability:
 C.......   Read number of events for this cell:
 
         FNUM = CDFID3( FID )
-        
+
         IF      ( COL .LT. 1 .OR. COL .GT. NCOLS3( FID ) ) THEN
             WRITE( MESG,91010 )
      &              'Column requested:    ', COL,
@@ -272,5 +269,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91010   FORMAT ( 5 ( A , :, I5, :, 2X ) )
 
-        END
+        END FUNCTION KFINDX
 

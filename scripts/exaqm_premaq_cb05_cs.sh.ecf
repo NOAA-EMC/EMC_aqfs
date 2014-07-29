@@ -560,6 +560,17 @@ fi
 
 echo EXITING $0
 
+#cd $DATA
+
+#/nwprod/util/ush/setup.sh
+
+#export LOGFILE=$DATA/chkreads.log
+
+#$USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
+#export err=$?; err_chk
+
+#sh $HOMEaqm/scripts/exaqm_premaq_cb05_extend_cs.sh.ecf
+
 ########################################################
 
 msg='ENDED NORMALLY.'

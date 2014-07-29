@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION REALIST( ENAME, EDESC, NMAX, NCNT, LIST )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  function body starts at line  57
 C
 C  RETURNS:  TRUE for success, FALSE for failure
@@ -25,22 +25,22 @@ C  REVISION  HISTORY:
 C       prototype 04/15/1998 by Carlie J. Coats, Jr., NCSC
 C       Revised   02/09/1999 by CJC:  NCNT <= 0:  failure
 C       Revised   02/11/2002 by CJC:  Deal with values "LIST:<list>"
+C       Modified  03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   ENAME   !  in:  environment variable for the list
-        CHARACTER*(*)   EDESC   !  in:  environment variable description
-        INTEGER         NMAX    !  in:  dimension for list
-        INTEGER         NCNT    ! out:  actual number of entries in list
-        REAL            LIST( NMAX )    ! out:  array of values found    
+        CHARACTER*(*), INTENT(IN   ) :: ENAME   !  environment variable for the list
+        CHARACTER*(*), INTENT(IN   ) :: EDESC   !  environment variable description
+        INTEGER      , INTENT(IN   ) :: NMAX    !  dimension for list
+        INTEGER      , INTENT(  OUT) :: NCNT    !  actual number of entries in list
+        REAL         , INTENT(  OUT) :: LIST( NMAX )    ! array of values found    
 
 C...........   EXTERNAL FUNCTION:
 
-        REAL            STR2REAL
-        EXTERNAL        STR2REAL
+        REAL, EXTERNAL :: STR2REAL
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -96,4 +96,4 @@ C   begin body of function  dummy
 99      CONTINUE        !  exit from loop
         REALIST = ( NCNT .GT. 0 )
         RETURN
-        END
+        END FUNCTION REALIST

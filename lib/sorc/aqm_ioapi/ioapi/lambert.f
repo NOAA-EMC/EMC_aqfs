@@ -1,12 +1,4 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC and
-C (C) 2003 Baron Advanced Meteorological Systems.
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION LAMBERT( CNAME, A, B, C, X, Y )
 
         IMPLICIT NONE
@@ -14,10 +6,12 @@ C.........................................................................
         LOGICAL          POLSTE
         LOGICAL          TRMERC
         LOGICAL          EQMERC
+        LOGICAL          ALBERS
         LOGICAL          SETLAM
         LOGICAL          SETPOL
         LOGICAL          SETTRM
         LOGICAL          SETEQM
+        LOGICAL          SETALB
         LOGICAL          LL2LAM
         LOGICAL          LAM2LL
         LOGICAL          UTM2LAM
@@ -46,44 +40,57 @@ C.........................................................................
         LOGICAL          TRM2EQM
         LOGICAL          EQM2POL
         LOGICAL          POL2EQM
+        LOGICAL          ALB2LL
+        LOGICAL          LL2ALB
 
 C***********************************************************************
-C  subroutine LAMBERT body starts at line  307
-C  entry      POLSTE       starts at line  390
-C  entry      TRMERC       starts at line  509
-C  entry      EQMERC       starts at line  631
-C  entry      SETLAM       starts at line  754
-C  entry      SETPOL       starts at line  826
-C  entry      SETTRM       starts at line  898
-C  entry      SETEQM       starts at line  960
-C  entry      LAM2LL       starts at line 1024
-C  entry      LL2LAM       starts at line 1081
-C  entry      LAM2UTM      starts at line 1143
-C  entry      UTM2LAM      starts at line 1202
-C  entry      LAM2POL      starts at line 1265
-C  entry      POL2LAM      starts at line 1339
-C  entry      POL2LL       starts at line 1417
-C  entry      LL2POL       starts at line 1472
-C  entry      POL2UTM      starts at line 1534
-C  entry      UTM2POL      starts at line 1591
-C  entry      TRM2LL       starts at line 1655
-C  entry      LL2TRM       starts at line 1712
-C  entry      LAM2TRM      starts at line 1773
-C  entry      TRM2LAM      starts at line 1847
-C  entry      TRM2UTM      starts at line 1925
-C  entry      UTM2TRM      starts at line 1984
-C  entry      TRM2POL      starts at line 2047
-C  entry      POL2TRM      starts at line 2126
-C  entry      EQM2LL       starts at line 2199
-C  entry      LL2EQM       starts at line 2256
-C  entry      LAM2EQM      starts at line 2317
-C  entry      EQM2LAM      starts at line 2391
-C  entry      EQM2UTM      starts at line 2469
-C  entry      UTM2EQM      starts at line 2528
-C  entry      EQM2POL      starts at line 2591
-C  entry      POL2EQM      starts at line 2670
-C  entry      EQM2TRM      starts at line 2742
-C  entry      TRM2EQM      starts at line 2820
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine LAMBERT body starts at line  314
+C  entry      POLSTE       starts at line  413
+C  entry      TRMERC       starts at line  521
+C  entry      EQMERC       starts at line  664
+C  entry      ALBERS       starts at line  792
+C  entry      SETLAM       starts at line  883
+C  entry      SETPOL       starts at line  955
+C  entry      SETTRM       starts at line 1027
+C  entry      SETEQM       starts at line 1089
+C  entry      SETALB       starts at line 1152
+C  entry      LAM2LL       starts at line 1226
+C  entry      LL2LAM       starts at line 1288
+C  entry      LAM2UTM      starts at line 1356
+C  entry      UTM2LAM      starts at line 1420
+C  entry      LAM2POL      starts at line 1488
+C  entry      POL2LAM      starts at line 1567
+C  entry      POL2LL       starts at line 1651
+C  entry      LL2POL       starts at line 1713
+C  entry      POL2UTM      starts at line 1780
+C  entry      UTM2POL      starts at line 1842
+C  entry      TRM2LL       starts at line 1911
+C  entry      LL2TRM       starts at line 1973
+C  entry      LAM2TRM      starts at line 2040
+C  entry      TRM2LAM      starts at line 2119
+C  entry      TRM2UTM      starts at line 2202
+C  entry      UTM2TRM      starts at line 2266
+C  entry      TRM2POL      starts at line 2334
+C  entry      POL2TRM      starts at line 2418
+C  entry      EQM2LL       starts at line 2496
+C  entry      LL2EQM       starts at line 2558
+C  entry      LAM2EQM      starts at line 2625
+C  entry      EQM2LAM      starts at line 2704
+C  entry      EQM2UTM      starts at line 2788
+C  entry      UTM2EQM      starts at line 2852
+C  entry      EQM2POL      starts at line 2920
+C  entry      POL2EQM      starts at line 3004
+C  entry      EQM2TRM      starts at line 3081
+C  entry      TRM2EQM      starts at line 3164
+C  entry      ALB2LL       starts at line 3244
+C  entry      LL2ALB       starts at line 3307
 C
 C  FUNCTION:
 C     LAMBERT:  set up  GTPZ0() for a particular named Lambert.
@@ -126,6 +133,8 @@ C     EQM2TRM:  Convert EQM     coordinates to TRM     coordinates
 C     TRM2EQM:  Convert TRM     coordinates to EQM     coordinates
 C     EQM2POL:  Convert EQM     coordinates to Polar   coordinates
 C     POL2EQM:  Convert Polar   coordinates to EQM     coordinates
+C     ALB2LL:   Convert Albers  coordinates to EQM     coordinates
+C     LL2ALB:   Convert LAT-LON coordinates to Albers  coordinates
 C
 C  PRECONDITIONS REQUIRED:
 C       For LAMBERT(), POLSTE(), etc., CNAME must be the name either of a
@@ -154,6 +163,10 @@ C                                 selection functionality
 C       Revised    3/2004 by D. Yin:
 C              change the sign for false easting and false northing;
 C              add CRDIN(1) and CRDIN(2) for POL2LL
+C       Revised    1/2006 by CJC: enforce zero-initialization of
+C       TPARIN, TPARIO for environments with default-initialization of NaN
+C       Revised    7/2008 by CJC: ALBERS, SETALB, ALB2LL, LL2ALB
+C       Modified 03/20010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
         INCLUDE 'PARMS3.EXT'
@@ -175,24 +188,16 @@ C...........   ARGUMENTS:
 
 C...........   PARAMETERS:
 
-      REAL*8      D60
-      REAL*8      PI
-      REAL*8      PI180
-      REAL*8      RPI180
-      PARAMETER ( D60    = 1.0D0 / 60.0D0,
-     &            PI     = 3.14159 26535 89793 23846 26433 83279D0 ,
-     &            PI180  = PI / 180.0D0 ,
-     &            RPI180 = 180.0D0 / PI )
+      REAL*8, PARAMETER :: D60 = 1.0D0 / 60.0D0
+      REAL*8, PARAMETER :: PI  = 3.14159 26535 89793 23846 26433 83279D0
+      REAL*8, PARAMETER :: PI180  = PI / 180.0D0
+      REAL*8, PARAMETER :: RPI180 = 180.0D0 / PI
 
 
 C...........   External Functions
 
-        LOGICAL         DSCOORD
-        LOGICAL         DSCGRID
-        INTEGER         INIT3           !  from M3IO
-        LOGICAL         INITSPHERES, SPHEREDAT
-
-        EXTERNAL    DSCOORD, DSCGRID, INIT3, INITSPHERES, SPHEREDAT
+        LOGICAL, EXTERNAL :: DSCOORD, DSCGRID, INITSPHERES, SPHEREDAT
+        INTEGER, EXTERNAL :: INIT3
 
 
 C.......   LOCAL VARIABLES:
@@ -222,20 +227,19 @@ C.......   Arguments for GTPZ0:
 
 C.......   Error codes for GTPZ0:
 
-      CHARACTER*64      GMESG( 9 )
-      DATA              GMESG /
-     &  'Illegal input system code INSYS',
-     &  'Illegal output system code IOSYS',
-     &  'Illegal input unit code INUNIT',
-     &  'Illegal output unit code IOUNIT',
-     &  'Inconsistent unit and system codes for input',
-     &  'Inconsistent unit and system codes for output',
-     &  'Illegal input zone code INZONE',
-     &  'Illegal output zone code IOZONE',
-     &  'Projection-specific error' /
+      CHARACTER*64, SAVE :: GMESG( 9 ) = (/
+     &  'Illegal  input system code INSYS               ',
+     &  'Illegal output system code IOSYS               ',
+     &  'Illegal  input unit code INUNIT                ',
+     &  'Illegal output unit code IOUNIT                ',
+     &  'Inconsistent unit and system codes for  input  ',
+     &  'Inconsistent unit and system codes for output  ',
+     &  'Illegal  input zone code INZONE                ',
+     &  'Illegal output zone code IOZONE                ',
+     &  'Projection-specific error                      ' /)
 
 C.......   Arguments for DSCGRID() and DSCCORD():
-C.......   Lambert calls use *L; Polar calls use *P
+C.......   Lambert calls use *L; Polar calls use *P, etc.
 
         CHARACTER*16  ANAME
         INTEGER       CTYPE
@@ -252,36 +256,41 @@ C.......   Lambert calls use *L; Polar calls use *P
         INTEGER       NROWS     !  number of grid rows
         INTEGER       NTHIK     !  BOUNDARY:  perimeter thickness (cells)
 
-        REAL*8        P_ALPL     !  first, second, third map
-        REAL*8        P_BETL     !  projection descriptive
-        REAL*8        P_GAML     !  parameters
-        REAL*8        XCENTL     !  lon for coord-system X=0
-        REAL*8        YCENTL     !  lat for coord-system Y=0
+        REAL*8, SAVE :: P_ALPL     !  first, second, third map
+        REAL*8, SAVE :: P_BETL     !  projection descriptive
+        REAL*8, SAVE :: P_GAML     !  parameters
+        REAL*8, SAVE :: XCENTL     !  lon for coord-system X=0
+        REAL*8, SAVE :: YCENTL     !  lat for coord-system Y=0
 
-        REAL*8        P_ALPP     !  first, second, third map
-        REAL*8        P_BETP     !  projection descriptive
-        REAL*8        P_GAMP     !  parameters
-        REAL*8        XCENTP     !  lon for coord-system X=0
-        REAL*8        YCENTP     !  lat for coord-system Y=0
-
-
-        REAL*8        P_ALPT     !  first, second, third map
-        REAL*8        P_BETT     !  projection descriptive
-        REAL*8        P_GAMT     !  parameters
-        REAL*8        XCENTT     !  lon for coord-system X=0
-        REAL*8        YCENTT     !  lat for coord-system Y=0
+        REAL*8, SAVE :: P_ALPP     !  first, second, third map
+        REAL*8, SAVE :: P_BETP     !  projection descriptive
+        REAL*8, SAVE :: P_GAMP     !  parameters
+        REAL*8, SAVE :: XCENTP     !  lon for coord-system X=0
+        REAL*8, SAVE :: YCENTP     !  lat for coord-system Y=0
 
 
-        REAL*8        P_ALPE     !  first, second, third map
-        REAL*8        P_BETE     !  projection descriptive
-        REAL*8        P_GAME     !  parameters
-        REAL*8        XCENTE     !  lon for coord-system X=0
-        REAL*8        YCENTE     !  lat for coord-system Y=0
+        REAL*8, SAVE :: P_ALPT     !  first, second, third map
+        REAL*8, SAVE :: P_BETT     !  projection descriptive
+        REAL*8, SAVE :: P_GAMT     !  parameters
+        REAL*8, SAVE :: XCENTT     !  lon for coord-system X=0
+        REAL*8, SAVE :: YCENTT     !  lat for coord-system Y=0
+
+        REAL*8, SAVE :: P_ALPE     !  first, second, third map
+        REAL*8, SAVE :: P_BETE     !  projection descriptive
+        REAL*8, SAVE :: P_GAME     !  parameters
+        REAL*8, SAVE :: XCENTE     !  lon for coord-system X=0
+        REAL*8, SAVE :: YCENTE     !  lat for coord-system Y=0
+
+        REAL*8, SAVE :: P_ALPA     !  first, second, third map
+        REAL*8, SAVE :: P_BETA     !  projection descriptive
+        REAL*8, SAVE :: P_GAMA     !  parameters
+        REAL*8, SAVE :: XCENTA     !  lon for coord-system X=0
+        REAL*8, SAVE :: YCENTA     !  lat for coord-system Y=0
 
 C.......   Scratch variables:
 
         CHARACTER*256   MESG
-        INTEGER         DEG, MNT
+        INTEGER         DEG, MNT, I
 
 C.......   SAVED Local Variables:
 
@@ -289,16 +298,11 @@ C.......   SAVED Local Variables:
         !!  coordinate system of the indicated type increments the
         !!  corresponding ID by 4 = Number of types implemented
 
-        INTEGER         LZONE   !  Lambert
-        INTEGER         PZONE   !  Polar Stereographic
-        INTEGER         TZONE   !  Transverse Mercator
-        INTEGER         EZONE   !  Equatorial Mercator
-        DATA            LZONE, PZONE, TZONE, EZONE / 62, 63, 64, 65 /
-
-        SAVE    LZONE, P_ALPL, P_BETL, P_GAML, XCENTL, YCENTL,
-     &          PZONE, P_ALPP, P_BETP, P_GAMP, XCENTP, YCENTP,
-     &          TZONE, P_ALPT, P_BETT, P_GAMT, XCENTT, YCENTT,
-     &          EZONE, P_ALPE, P_BETE, P_GAME, XCENTE, YCENTE
+        INTEGER, SAVE :: LZONE = 61   !  Lambert
+        INTEGER, SAVE :: PZONE = 62   !  Polar Stereographic
+        INTEGER, SAVE :: TZONE = 63   !  Transverse Mercator
+        INTEGER, SAVE :: EZONE = 64   !  Equatorial Mercator
+        INTEGER, SAVE :: AZONE = 65   !  Equatorial Mercator
 
 
 C***********************************************************************
@@ -352,7 +356,7 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 111     CONTINUE
 
-        LZONE = LZONE + 4
+        LZONE = LZONE + 5
         XCENT = XCENT - P_GAM   !  convert from lon to offset from P_GAM
 
         DEG   = INT( P_ALP )                            !  int degrees
@@ -440,7 +444,7 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 122     CONTINUE
 
-        PZONE = PZONE + 4
+        PZONE = PZONE + 5
 
         P_ALPP= P_ALP
 
@@ -458,6 +462,11 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 C.......   Convert <XCENT,YCENT> to POL-Cartesian offsets
 C.......   Set up input arguments for GTPZ0():
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = XCENT
         CRDIN( 2 ) = YCENT
@@ -502,7 +511,7 @@ C.......   update PZONE for the new false-easting/false-northing offsets
         XCENTP = -SNGL( CRDIO( 1 ) )
         YCENTP = -SNGL( CRDIO( 2 ) )
 
-        PZONE = PZONE + 4
+        PZONE = PZONE + 5
 
         RETURN
 
@@ -559,7 +568,7 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 133     CONTINUE
 
-        TZONE   = TZONE + 4
+        TZONE   = TZONE + 5
 
         DEG   = INT( P_ALP )                            !  int degrees
         P_ALP = 60.0D0 * ( P_ALP - DBLE( DEG ) )        !  minutes
@@ -577,6 +586,11 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 C.......   Convert <XCENT,YCENT> to TRM-Cartesian offsets
 C.......   Set up input arguments for GTPZ0():
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = XCENT
         CRDIN( 2 ) = YCENT
@@ -624,7 +638,7 @@ C.......   update TZONE for the new false-easting/false-northing offsets
         XCENTT = CRDIO( 1 )
         YCENTT = CRDIO( 2 )
 
-        TZONE   = TZONE + 4
+        TZONE   = TZONE + 5
 
         RETURN
 
@@ -681,7 +695,7 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 144     CONTINUE
 
-        EZONE   = EZONE + 4
+        EZONE   = EZONE + 5
 
         DEG   = INT( P_ALP )                            !  int degrees
         P_ALP = 60.0D0 * ( P_ALP - DBLE( DEG ) )        !  minutes
@@ -699,6 +713,11 @@ C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
 
 C.......   Convert <XCENT,YCENT> to TRM-Cartesian offsets
 C.......   Set up input arguments for GTPZ0():
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = XCENT
         CRDIN( 2 ) = YCENT
@@ -747,9 +766,100 @@ C.......   update EZONE for the new false-easting/false-northing offsets
         XCENTE = CRDIO( 1 )
         YCENTE = CRDIO( 2 )
 
-        EZONE   = EZONE + 4
+        EZONE   = EZONE + 5
 
         RETURN
+
+C.....................................................................
+C.......   ALBERS():  Set up a particular named Albers conic Equal Area projection:
+
+       ENTRY ALBERS( CNAME, A, B, C, X, Y )
+
+C...........   Get coordinate system description, using DSCOORD or
+C...........   DSCGRID, as appropriate:
+
+        IF ( .NOT. INITSPHERES() ) THEN
+            MESG = 'Bad geodetic sphere info'
+            CALL M3WARN( 'LAMBERT/ALBERS', 0, 0, MESG )
+        END IF
+
+        IF ( .NOT. DSCOORD( CNAME, CTYPE,
+     &                      P_ALP, P_BET, P_GAM, XCENT, YCENT ) ) THEN
+
+            IF ( DSCGRID( CNAME, ANAME,
+     &              CTYPE, P_ALP, P_BET, P_GAM, XCENT, YCENT,
+     &              XORIG, YORIG, XCELL, YCELL, NCOLS, NROWS, NTHIK
+     &              ) ) THEN
+
+                CNAME = ANAME
+
+            ELSE        !  dscgrid and dscoord both failed
+
+                CALL M3WARN( 'ALBERS', 0, 0,
+     &                       'Projection not found in GRIDDESC' )
+                ALBERS = .FALSE.
+                RETURN
+
+            END IF      !  if dscgrid()) succeeded or failed
+
+        END IF          !  if dscoord failed
+
+        IF ( CTYPE .NE. ALBGRD3 ) THEN
+            WRITE( MESG,94010 ) 'Projection not Albers:  type ', CTYPE
+            CALL M3WARN( 'LAMBERT/ALBERS', 0, 0, MESG )
+            ALBERS = .FALSE.
+            RETURN
+        END IF
+
+C.......   Return the projection parameters as REAL   A,B,C,X,Y:
+
+        A = SNGL( P_ALP )
+        B = SNGL( P_BET )
+        C = SNGL( P_GAM )
+        X = SNGL( XCENT )
+        Y = SNGL( YCENT )
+        ALBERS = .TRUE.
+
+C.......   Convert from real degrees to GTPZ0() format  dddmmmsss.sssD0
+
+155     CONTINUE
+
+        AZONE = AZONE + 5
+        XCENT = XCENT - P_GAM   !  convert from lon to offset from P_GAM
+
+        DEG   = INT( P_ALP )                            !  int degrees
+        P_ALP = 60.0D0 * ( P_ALP - DBLE( DEG ) )        !  minutes
+        MNT   = INT( P_ALP )                            !  int minutes
+        P_ALP = 60.0D0 * ( P_ALP - DBLE( MNT ) )        !  seconds
+        P_ALPA= P_ALP + 1000.0D0 * ( MNT + 1000 * DEG ) !  dddmmmsss.sssD0
+
+        DEG   = INT( P_BET )                            !  int degrees
+        P_BET = 60.0D0 * ( P_BET - DBLE( DEG ) )        !  minutes
+        MNT   = INT( P_BET )                            !  int minutes
+        P_BET = 60.0D0 * ( P_BET - DBLE( MNT ) )        !  seconds
+        P_BETA= P_BET + 1000.0D0 * ( MNT + 1000 * DEG ) !  dddmmmsss.sssD0
+
+        DEG   = INT( P_GAM )                            !  int degrees
+        P_GAM = 60.0D0 * ( P_GAM - DBLE( DEG ) )        !  minutes
+        MNT   = INT( P_GAM )                            !  int minutes
+        P_GAM = 60.0D0 * ( P_GAM - DBLE( MNT ) )        !  seconds
+        P_GAMA= P_GAM + 1000.0D0 * ( MNT + 1000 * DEG ) !  dddmmmsss.sssD0
+
+        DEG   = INT( XCENT )                            !  int degrees
+        XCENT = 60.0D0 * ( XCENT - DBLE( DEG ) )        !  minutes
+        MNT   = INT( XCENT )                            !  int minutes
+        XCENT = 60.0D0 * ( XCENT - DBLE( MNT ) )        !  seconds
+        XCENTA= XCENT + 1000.0D0 * ( MNT + 1000 * DEG ) !  dddmmmsss.sssD0
+
+        DEG   = INT( YCENT )                            !  int degrees
+        YCENT = 60.0D0 * ( YCENT - DBLE( DEG ) )        !  minutes
+        MNT   = INT( YCENT )                            !  int minutes
+        YCENT = 60.0D0 * ( YCENT - DBLE( MNT ) )        !  seconds
+        YCENTA= YCENT + 1000.0D0 * ( MNT + 1000 * DEG ) !  dddmmmsss.sssD0
+
+
+        RETURN
+
 
 C.....................................................................
 C.......   Set up anonymous lambert from arguments:
@@ -1021,6 +1131,79 @@ C.......   P_ALPE, etc., are set by LAMBERT() code after 122.
 
 
 C.....................................................................
+C.......   Set up anonymous Equatorial Mercator from arguments:
+
+       ENTRY SETALB( A, B, C, X, Y )
+
+        IF ( .NOT. INITSPHERES() ) THEN
+            CALL M3WARN( 'LAMBERT/SETALB',0,0,'Bad geodetic sphere' )
+        END IF
+
+C.......   Check validity of input parameters:
+
+        IF ( A .LT. -90.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad first latitude A =', A
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( A .GT. B ) THEN
+            WRITE( MESG, 94020 ) 'Bad latitudes A ', A, 'B =', B
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( B .GE.   90.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad second latitude B =', B
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( C .LT. -180.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad central longitude C =', C
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( C .GT.  180.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad central longitude C =', C
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( X .LT. -180.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad origin longitude X =', X
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( X .GT.  180.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad origin longitude X =', X
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( Y .LT. -90.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad origin latitude Y =', Y
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        ELSE IF ( Y .GE.   90.0 ) THEN
+            WRITE( MESG, 94020 ) 'Bad origin latitude Y =', Y
+            CALL M3WARN( 'LAMBERT/SETALB', 0, 0, MESG )
+            SETALB = .FALSE.
+            RETURN
+        END IF
+
+C.......   Convert to double, then go to GTPZ0() format conversion
+C.......   Note that P_ALP, etc., are scratch variables;
+C.......   P_ALPE, etc., are set by LAMBERT() code after 122.
+
+
+        P_ALP  = DBLE( A )
+        P_BET  = DBLE( B )
+        P_GAM  = DBLE( C )
+        XCENT  = DBLE( X )
+        YCENT  = DBLE( Y )
+        SETALB = .TRUE.
+
+        GO TO  155      !  convert projection parms to dddmmmsss.sssD0 format
+
+
+C.....................................................................
 C.......   convert from Lambert to lat-lon
 C.......   Set up input arguments for GTPZ0()
 
@@ -1032,6 +1215,11 @@ C.......   Set up input arguments for GTPZ0()
             LAM2LL = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1094,6 +1282,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( LON )
         CRDIN( 2 ) = DBLE( LAT )
         INSYS  = 0       !  projection default (lat-lon)
@@ -1139,6 +1332,7 @@ C.......   Decode output arguments for GTPZ0()
         LL2LAM = .TRUE.
         RETURN
 
+
 C.....................................................................
 C.......   convert from Lambert to UTM
 C.......   Set up input arguments for GTPZ0()
@@ -1151,6 +1345,11 @@ C.......   Set up input arguments for GTPZ0()
             LAM2UTM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1214,6 +1413,11 @@ C.......   Check initialization:
         END IF
 
 C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
@@ -1280,6 +1484,11 @@ C.......   convert from Lambert to Polar Stereographic
             LAM2POL = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1359,6 +1568,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
         INSYS  = 6
@@ -1413,6 +1627,7 @@ C.......   Decode output arguments for GTPZ0()
         POL2LAM = .TRUE.
         RETURN
 
+
 C.....................................................................
 C.......   convert from Polar to lat-lon
 C.......   Set up input arguments for GTPZ0()
@@ -1425,6 +1640,11 @@ C.......   Set up input arguments for GTPZ0()
             POL2LL = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1487,6 +1707,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( LON )
         CRDIN( 2 ) = DBLE( LAT )
         INSYS  = 0       !  projection default (lat-lon)
@@ -1544,6 +1769,11 @@ C.......   Set up input arguments for GTPZ0()
             POL2UTM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         TPAIN( 1 ) = 0.0D0
         TPAIN( 2 ) = 0.0D0
@@ -1606,6 +1836,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
         INSYS  = 1
@@ -1665,6 +1900,11 @@ C.......   Set up input arguments for GTPZ0()
             TRM2LL = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1727,6 +1967,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( LON )
         CRDIN( 2 ) = DBLE( LAT )
         INSYS  = 0       !  projection default (lat-lon)
@@ -1772,6 +2017,7 @@ C.......   Decode output arguments for GTPZ0()
         LL2TRM = .TRUE.
         RETURN
 
+
 C.....................................................................
 C.......   convert from Lambert to Transverse Mercator
 
@@ -1790,6 +2036,11 @@ C.......   convert from Lambert to Transverse Mercator
             LAM2TRM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -1869,6 +2120,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
         INSYS  = 9
@@ -1936,6 +2192,11 @@ C.......   Set up input arguments for GTPZ0()
             RETURN
         END IF
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
         INSYS  = 9
@@ -1998,6 +2259,11 @@ C.......   Check initialization:
         END IF
 
 C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
@@ -2068,6 +2334,11 @@ C.......   Check initialization:
         END IF
 
 C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
@@ -2144,6 +2415,11 @@ C.......   Set up input arguments for GTPZ0()
             RETURN
         END IF
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         TPAIN( 1 ) = 0.0D0
         TPAIN( 2 ) = 0.0D0
         TPAIN( 3 ) = 0.0D0
@@ -2210,6 +2486,11 @@ C.......   Set up input arguments for GTPZ0()
             RETURN
         END IF
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
         INSYS  = 5
@@ -2271,6 +2552,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( LON )
         CRDIN( 2 ) = DBLE( LAT )
         INSYS  = 0       !  projection default (lat-lon)
@@ -2316,6 +2602,7 @@ C.......   Decode output arguments for GTPZ0()
         LL2EQM = .TRUE.
         RETURN
 
+
 C.....................................................................
 C.......   convert from Lambert to Equatorial Mercator
 
@@ -2334,6 +2621,11 @@ C.......   convert from Lambert to Equatorial Mercator
             LAM2EQM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -2413,6 +2705,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
         INSYS  = 5
@@ -2467,6 +2764,7 @@ C.......   Decode output arguments for GTPZ0()
         EQM2LAM = .TRUE.
         RETURN
 
+
 C.....................................................................
 C.......   convert from Equatorial Mercator to UTM
 C.......   Set up input arguments for GTPZ0()
@@ -2479,6 +2777,11 @@ C.......   Set up input arguments for GTPZ0()
             EQM2UTM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
@@ -2542,6 +2845,11 @@ C.......   Check initialization:
         END IF
 
 C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
@@ -2612,6 +2920,11 @@ C.......   Check initialization:
         END IF
 
 C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
@@ -2687,6 +3000,11 @@ C.......   Set up input arguments for GTPZ0()
             POL2EQM = .FALSE.
             RETURN
         END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
 
         TPAIN( 1 ) = 0.0D0
         TPAIN( 2 ) = 0.0D0
@@ -2764,6 +3082,11 @@ C.......   Check initialization:
 
 C.......   Set up input arguments for GTPZ0()
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( U )
         CRDIN( 2 ) = DBLE( V )
         INSYS  = 5
@@ -2838,6 +3161,11 @@ C.......   Set up input arguments for GTPZ0()
             RETURN
         END IF
 
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
         CRDIN( 1 ) = DBLE( X )
         CRDIN( 2 ) = DBLE( Y )
         INSYS  = 9
@@ -2894,6 +3222,140 @@ C.......   Decode output arguments for GTPZ0()
 
 
 C.....................................................................
+C.......   convert from Lambert to lat-lon
+C.......   Set up input arguments for GTPZ0()
+
+        ENTRY ALB2LL( X, Y, LON, LAT )
+
+        IF ( AZONE .LT. 64 ) THEN
+            CALL M3WARN( 'LAMBERT/ALB2LL', 0, 0,
+     &                   'Projection not initialized' )
+            ALB2LL = .FALSE.
+            RETURN
+        END IF
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
+        CRDIN( 1 ) = DBLE( X )
+        CRDIN( 2 ) = DBLE( Y )
+        TPAIN( 1 ) = 0.0D0
+        TPAIN( 2 ) = 0.0D0
+        TPAIN( 3 ) = P_ALPA
+        TPAIN( 4 ) = P_BETA
+        TPAIN( 5 ) = P_GAMA
+        TPAIN( 6 ) = YCENTA
+        TPAIN( 7 ) = 0.0D0
+        TPAIN( 8 ) = 0.0D0
+        INSYS  = 3       !  Albers Azimuthal Equal Area conic
+        INZONE = AZONE
+        INUNIT = 2       !  input units:  meters
+        INSPH  = 8       !  GRS 1980 spheroid
+        IPR    = 0       !  print error messages, if any
+        JPR    = 1       !  do NOT print projection parameters
+        LEMSG  = INIT3() !  unit number for log file
+        LPARM  = LEMSG   !  projection parameters file
+        IOSYS  = 0       !  geographic (lat-lon)
+        IOUNIT = 4       !  output units: degrees
+
+C.......   Call GTPZ0()
+
+        IF ( .NOT.SPHEREDAT( INSPH, TPAIN, TPARO ) ) THEN
+            MESG = 'Bad geodetic sphere info'
+            CALL M3WARN( 'LAMBERT/ALB2LL', 0, 0, MESG )
+        END IF
+
+        CALL GTPZ0( CRDIN, INSYS, INZONE, TPAIN, INUNIT, INSPH,
+     &              IPR, JPR, LEMSG, LPARM, CRDIO, IOSYS, IOZONE,
+     &              TPARO, IOUNIT, LN27, LN83, FN27, FN83, LENGTH,
+     &              IFLG )
+
+        IF ( IFLG .NE. 0 ) THEN
+            IFLG = MAX( MIN( 9, IFLG ), 1 )     !  trap between 1 and 9
+            CALL M3WARN( 'LAMBERT/ALB2LL', 0,0, GMESG( IFLG ) )
+        END IF
+
+C.......   Decode output arguments for GTPZ0()
+
+        LON    = SNGL( CRDIO( 1 ) )
+        LAT    = SNGL( CRDIO( 2 ) )
+        ALB2LL = .TRUE.
+        RETURN
+
+
+C.....................................................................
+C.......   Convert from Lat-Lon to Albers:
+
+        ENTRY  LL2ALB( LON, LAT, X, Y )
+
+C.......   Check initialization:
+
+        IF ( AZONE .LT. 64 ) THEN
+            MESG = 'Projection not initialized'
+            CALL M3WARN( 'LAMBERT/LL2ALB', 0, 0, MESG )
+            LL2ALB = .FALSE.
+            RETURN
+        END IF
+
+C.......   Set up input arguments for GTPZ0()
+
+        DO I = 1, 15
+             TPAIN( I ) = 0.0D0
+             TPARO( I ) = 0.0D0
+        END DO
+
+        CRDIN( 1 ) = DBLE( LON )
+        CRDIN( 2 ) = DBLE( LAT )
+        INSYS  = 0       !  projection default (lat-lon)
+        INUNIT = 4       !  input units:  degrees
+        INSPH  = 8       !  GRS 1980 spheroid
+        IPR    = 0       !  print error messages, if any
+        JPR    = 1       !  do NOT print projection parameters
+        LEMSG  = INIT3() !  unit number for log file
+        LPARM  = LEMSG   !  projection parameters file
+        IOSYS  = 3       !  Albers Azimuthal Equal Area conic
+        IOZONE = AZONE   !  LAM zone
+        IOUNIT = 2       !  output units: meters
+        TPARO( 1 ) = 0.0D0
+        TPARO( 2 ) = 0.0D0
+        TPARO( 3 ) = P_ALPA
+        TPARO( 4 ) = P_BETA
+        TPARO( 5 ) = P_GAMA
+        TPARO( 6 ) = YCENTA
+        TPARO( 7 ) = 0.0D0
+        TPARO( 8 ) = 0.0D0
+
+
+C.......   Call GTPZ0()
+
+        IF ( .NOT.SPHEREDAT( INSPH, TPAIN, TPARO ) ) THEN
+            MESG = 'Bad geodetic sphere info'
+            CALL M3WARN( 'LAMBERT/LL2ALB', 0, 0, MESG )
+        END IF
+
+        CALL GTPZ0( CRDIN, INSYS, INZONE, TPAIN, INUNIT, INSPH,
+     &              IPR, JPR, LEMSG, LPARM, CRDIO, IOSYS, IOZONE,
+     &              TPARO, IOUNIT, LN27, LN83, FN27, FN83, LENGTH,
+     &              IFLG )
+
+        IF ( IFLG .NE. 0 ) THEN
+            IFLG = MAX( MIN( 9, IFLG ), 1 )     !  between 1 and 9
+            CALL M3WARN( 'LAMBERT/LL2ALB', 0,0, GMESG( IFLG ) )
+        END IF
+
+C.......   Decode output arguments for GTPZ0()
+
+        X      = SNGL( CRDIO( 1 ) )
+        Y      = SNGL( CRDIO( 2 ) )
+        LL2ALB = .TRUE.
+        RETURN
+
+
+
+
+C.....................................................................
 C******************  FORMAT  STATEMENTS   ******************************
 
 C...........   Internal buffering formats............ 94xxx
@@ -2902,4 +3364,4 @@ C...........   Internal buffering formats............ 94xxx
 
 94020   FORMAT( A, 1PG14.5, :, 2X )
 
-        END
+        END FUNCTION LAMBERT

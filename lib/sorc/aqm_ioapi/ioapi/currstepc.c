@@ -4,7 +4,7 @@ VERSION "@(#)$Header$"
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -36,6 +36,9 @@ REVISION HISTORY
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications
 
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
+
 **************************************************************************/
 
 #include  "iodecl3.h"
@@ -45,21 +48,21 @@ REVISION HISTORY
 
 #define   CURRSTEP currstep_ 
 
-   extern FINT  CURRSTEP( FINT, FINT, FINT, FINT );
+   extern FINT  CURRSTEP( FINT*, FINT*, FINT*, FINT*, FINT*, FINT*, FINT* );
 
 #elif defined(__hpux) || defined(_AIX)
 
 #define CURRSTEP              currstep
 
-   extern FINT  CURRSTEP( FINT, FINT, FINT, FINT );
+   extern FINT  CURRSTEP( FINT*, FINT*, FINT*, FINT*, FINT*, FINT*, FINT* );
 
 #elif defined( _WIN32)
 
-   extern FINT __stdcall CURRSTEP( FINT, FINT, FINT, FINT );
+   extern FINT __stdcall CURRSTEP( FINT*, FINT*, FINT*, FINT*, FINT*, FINT*, FINT* );
 
-#elif  defined(_CRAY)
+#elif  defined(_CRAY) || defined(ABSFT)
 
-   extern FINT  CURRSTEP( FINT, FINT, FINT, FINT );
+   extern FINT  CURRSTEP( FINT*, FINT*, FINT*, FINT*, FINT*, FINT*, FINT* );
 
 #else
  
@@ -72,30 +75,23 @@ int currstepc( int  jdate , int  jtime ,
                int  sdate , int  stime , int  tstep ,
                int *cdate , int *ctime )
     {
-    int secs, step ;
+    FINT jd, jt, sd, st, ts, cd, ct ;
     
-    if ( tstep ) 
+    jd = jdate ;
+    jt = jtime ;
+    sd = sdate ;
+    st = stime ;
+    ts = tstep ;
+
+    if ( (int) CURRSTEP( &jd, &jt, &sd, &st, &ts, &cd, &ct ) )
         {
-        secs = (int) CURRSTEP( (FINT)sdate, (FINT)stime,
-                               (FINT)jdate, (FINT)jtime ) ;
-        if ( secs < 0 ) 
-            {
-            return  0 ;
-            }
-        else{
-            *cdate = sdate ;
-            *ctime = stime ;
-            step  = time2secc( abs( tstep ) ) ;
-            secs  = ( secs / step ) * step ;    /** use truncated step-# **/
-            nextimec( cdate, ctime, sec2timec( secs ) ) ;
-            return 1 ;
-            }
+        *cdate = cd ;
+        *ctime = ct ;
+        return( 1 ) ;
         }
-    else{		/** tstep == 0 case **/
-        *cdate = sdate ;
-        *ctime = stime ;
-        return 1 ;
-        }                                  
+    else{
+        return( 0 ) ;
+        }
 
     }       /*  end body of currstepc()  */
 

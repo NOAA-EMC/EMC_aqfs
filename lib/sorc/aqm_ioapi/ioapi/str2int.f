@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/str2int.f,v 1.2 2000/11/28 21:23:05 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION STR2INT( STRING )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  function body starts at line 57
 C
 C  RETURNS:
@@ -24,6 +24,7 @@ C
 C  REVISION  HISTORY:
 C       Prototype 6/95 by CJC for point source prototype
 C
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -35,13 +36,12 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   STRING
+        CHARACTER*(*), INTENT(IN   ) :: STRING
 
 
 C...........   PARAMETERS
             
-        CHARACTER*1     BLANK
-        PARAMETER     ( BLANK = ' ' )
+        CHARACTER*1, PARAMETER :: BLANK = ' '
         
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -97,5 +97,5 @@ C.......   If you get to here:  no number there
         END IF
         
         RETURN
-        END
+        END FUNCTION STR2INT
 

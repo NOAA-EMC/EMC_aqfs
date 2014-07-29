@@ -1,17 +1,15 @@
 
-C.........................................................................
+        REAL   FUNCTION GETREAL( LO , HI , DEFAULT , PROMPT )
+
+C********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        REAL   FUNCTION GETREAL ( LO , HI , DEFAULT , PROMPT )
-
-C********************************************************************
-C       function body starts at line  90
+C       function body starts at line  83
 C
 C   CALLS:  TRIMLEN  
 C
@@ -34,6 +32,7 @@ C                to ensure flush() of log messages
 C       Revised   6/2003 by CJC:  factor through M3MSG2, M3PROMPT, and
 C                 M3FLUSH to ensure flush() of PROMPT and of log-messages
 C                 for IRIX F90v7.4  
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C
 C  ARGUMENT LIST DESCRIPTION:
 C
@@ -54,16 +53,13 @@ C********************************************************************
 
 C.......   ARGUMENTS:
 
-        REAL            LO , HI
-        REAL     	DEFAULT
-        CHARACTER*(*)   PROMPT
+        REAL         , INTENT(IN   ) :: LO, HI, DEFAULT
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT
 
 
 C.......   EXTERNAL FUNCTION:  interpret I/O errors:
 
-        LOGICAL         ENVYN
-        INTEGER         TRIMLEN
-        EXTERNAL        ENVYN, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN
 
 
 C.......   LOCAL VARIABLES:
@@ -78,11 +74,8 @@ C.......   LOCAL VARIABLES:
         CHARACTER*16	FMTSTR
         CHARACTER*1	CH
 
-        LOGICAL         PROMPTON
-
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
-        SAVE            FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 C*********************************************************************
 C       begin GETREAL
@@ -95,7 +88,7 @@ C       begin GETREAL
  
         END IF
 
-        P  =  TRIMLEN( PROMPT )
+        P  =  LEN_TRIM( PROMPT )
 
         IF( .NOT. PROMPTON ) THEN
             GETREAL = DEFAULT
@@ -252,7 +245,5 @@ C................   end body of GETREAL  .......................................
 94030	FORMAT ( 'Using default response', 1PE12.5 , 2X, 
      &           'for query "', A, '"' )
 
-        END
-
-C................   end   GETREAL  ....................................
+        END FUNCTION GETREAL
 

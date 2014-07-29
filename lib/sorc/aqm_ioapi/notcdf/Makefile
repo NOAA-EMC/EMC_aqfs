@@ -12,8 +12,11 @@
 #
 .SUFFIXES: .m4 .c .F .f
 #
-# BASEDIR = /env/proj/coats/ioapi_3
-#BASEDIR = /nfsuser/g01/wx20dw/tools/ioapi_3
+#BASEDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1
+#INSTDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/Linux2_x86_64ifort
+BASEDIR    = /naqfc/save/${USER}/nwpara/cmaq.v4.6.3/lib/sorc/aqm_ioapi
+INSTDIR = $(BASEDIR)/$(BIN)
+
 SRCDIR  = $(BASEDIR)/notcdf
 IODIR   = $(BASEDIR)/ioapi
 OBJDIR  = $(BASEDIR)/$(BIN)
@@ -21,7 +24,9 @@ OBJDIR  = $(BASEDIR)/$(BIN)
 # Architecture dependent stuff
 # Assumes FC is an f90 (otherwise, "make f77").
 #
-include $(IODIR)/Makeinclude.$(BIN)
+#include /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/ioapi/Makeinclude.Linux2_x86_64ifort
+include $(BASEDIR)/ioapi/Makeinclude.Linux2_x86_64ifort
+#
 #
 #
 FFLAGS = -I$(IODIR) $(DEFINEFLAGS) $(FOPTFLAGS) $(ARCHFLAGS)
@@ -32,7 +37,7 @@ OBJ = $(fSRC:.f=.o)
 #
 LIB = libnotcdf.a
 #
-MESG1 = 'To use the "notCDF" interface, you must *MANUALLY* copy'
+MESG1 = 'To use the "notCDF" interface, you must > MANUALLY < copy'
 MESG2 = '"libnotcdf.a" to "libnetcdf.a" in directory '$(BASEDIR)/$(BIN)
 #
 #       -------------------     Targets:   -----------------------------
@@ -41,6 +46,9 @@ all: $(LIB)
 #
 clean:  $(OBJDIR)
 	cd $(SRCDIR); rm *.o *.a core* ; cd $(OBJDIR); rm $(OBJ) $(LIB)
+#
+install: $(INSTDIR)
+	echo "Installing notCDF in $(INSTDIR)" ; cd $(OBJDIR); cp $(LIB) $(INSTDIR)
 #
 .f.o:  $(IODIR)/Makeinclude.$(BIN)
 	cd $(OBJDIR); $(FC) -c $(FFLAGS) $(SRCDIR)/$<

@@ -1,40 +1,47 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/index1.f,v 1.2 2000/11/28 21:22:49 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       INTEGER FUNCTION INDEX1 (NAME, N, NLIST)
 
 C***********************************************************************
-C  subroutine body starts at line 46
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems, LLC.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  INDEX1    subroutine body starts at line 53
+C  INDEXINT1 subroutine body starts at line 99
 C
 C  FUNCTION:
 C
-C    Searches for NAME in list NLIST and returns the subscript
-C    (1...N) at which it is found, or returns 0 when NAME not
-C    found in NLIST
+C       Search for character-string or integer key NAME or IKEY in list NLIST
+C       and return the subscript (1...N) at which it is found, or return 0
+C       when not found in NLIST
 C
-C  PRECONDITIONS REQUIRED:  none
+C  PRECONDITIONS REQUIRED:
+C       none
 C
-C  SUBROUTINES AND FUNCTIONS CALLED:  none
+C  SUBROUTINES AND FUNCTIONS CALLED:
+C       none
 C
 C  REVISION HISTORY:
+C    INDEX1:
+C       5/1988   Modified for ROMNET
+C       9/1994   Modified for Models-3 by CJC
+C    INDEXINT1:
+C       Prototype 11/2004 by CJC:  MODULE M3UTILIO for I/O API v3
+C       Modified   3/2006 by CJC:  moved INDEXINT1() to file "index1.f"
 C
-C    5/88   Modified for ROMNET
-C    9/94   Modified for Models-3 by CJC
-C
+C       Modified  03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
- 
+
 C.......   Arguments and their descriptions:
 
-      CHARACTER*(*) NAME        !  Character string being searched for
-      INTEGER       N           !  Length of array to be searched
-      CHARACTER*(*) NLIST(*)    !  array to be searched
+      CHARACTER*(*), INTENT(IN   ) :: NAME        !  Character string being searched for
+      INTEGER      , INTENT(IN   ) :: N           !  Length of array to be searched
+      CHARACTER*(*), INTENT(IN   ) :: NLIST(*)    !  array to be searched
 
 C.......   Local variable:
 
@@ -43,17 +50,63 @@ C.......   Local variable:
 C.....................................................................
 C.......   begin body of INDEX1()
 
-      DO 100 I = 1, N
+        DO I = 1, N
+            IF ( NAME .EQ. NLIST( I ) ) THEN    ! Found NAME in NLIST
+                INDEX1 = I
+                RETURN
+            ENDIF
+        END DO
 
-          IF ( NAME .EQ. NLIST( I ) ) THEN    ! Found NAME in NLIST
-              INDEX1 = I
-              RETURN
-          ENDIF
+        INDEX1 = 0        !  not found
+        RETURN
 
-100   CONTINUE
+        END FUNCTION INDEX1
 
-      INDEX1 = 0        !  not found
-      RETURN
 
-      END
+        ! -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+        INTEGER FUNCTION INDEXINT1( IKEY, NLIST, KEYLIST )
+
+        !-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        !  Look up integer key IKEY in unsorted list <NLIST,KEYLIST>
+        !  of integer keys.  Return the subscript at which IKEY
+        !  occurs, or 0 in case of failure
+        !
+        !  PRECONDITIONS REQUIRED:
+        !      none
+        !
+        !  REVISION  HISTORY:
+        !      Prototype  11/2004 by CJC
+        !-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        IMPLICIT NONE
+
+
+        !!........  Arguments:
+
+        INTEGER, INTENT(IN   ) :: IKEY
+        INTEGER, INTENT(IN   ) :: NLIST
+        INTEGER, INTENT(IN   ) :: KEYLIST( NLIST )
+
+
+        !!........  Local Variables:
+
+        INTEGER I
+
+        !!........  begin body ........................................
+
+        DO  I = 1, NLIST
+            IF ( IKEY .EQ. KEYLIST( I ) ) THEN
+                INDEXINT1 = I
+                RETURN
+            END IF
+        END DO
+
+        INDEXINT1 = 0
+
+        RETURN
+        END FUNCTION INDEXINT1
+
+
 

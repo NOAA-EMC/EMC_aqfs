@@ -1,11 +1,12 @@
 
-!.........................................................................
-! Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/CONST3.EXT,v 1.7 2001/01/03 20:14:33 coats Exp $"
-! EDSS/Models-3 I/O API.  Portions copyright (C) 1992-1997 MCNC
-! See file "COPYRIGHT.txt" for conditions of use.
-!.........................................................................
-
 !....................................................................
+! Version "@(#)$Header$"
+!    EDSS/Models-3 I/O API.
+!    Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+!    2003-2009 by Baron Advanced Meteorological Systems.
+!    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+!    See file "LGPL.txt" for conditions of use.
+!.........................................................................
 !  INCLUDE FILE  CONST3.EXT
 !
 !  CONTAINS:  
@@ -21,9 +22,12 @@
 !
 !       Revised 9/1993 by John McHenry to include additional constants
 !       needed for FMEM clouds and aqueous chemistry
-
+!
 !       Modified  2/2002 by CJC for compatibility with both free and
 !       fixed Fortran 9x source forms
+!
+!       Modified 8/2009 by CJC:  avoid continuation to an empty line, 
+!       to make Sun compiler happy.
 !....................................................................
 
 !.......   Mathematical Constants
@@ -49,6 +53,7 @@
 !.......   Physical Constants
 
       REAL         REARTH ! radius of the earth (meters)
+                          ! NOTE:  WMO REARTH=6371.229D3 m or 6367.470D3 m
       REAL         DG2M   ! latitude degrees to meters
       REAL         DG2MSQ ! DG2M ** 2
       REAL         DG2KM  ! latitude degrees to kilometers
@@ -138,6 +143,6 @@
      &  MWH2SO4  =   98.07354 ,      MVOMA    =   MWWAT / MWAIR ,       &
      &  SO4TOAIR =   MWSO4 / MWAIR , NH3TOAIR =   MWNH3 / MWAIR ,       &
      &  NH4TOSO4 =   MWNH4 / MWSO4 , RHOSO4   =    1.8 ,                &
-     &  RHONH4   =    1.8 ,          RHOH2O   =    1.0 )                &
+     &  RHONH4   =    1.8 ,          RHOH2O   =    1.0 )
       
 !................   end   CONST3.EXT   ....................................

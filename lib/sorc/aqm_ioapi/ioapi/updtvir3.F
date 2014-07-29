@@ -1,15 +1,16 @@
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
 
 #ifdef IOAPICPL
         LOGICAL FUNCTION UPDTVIR3 ( FID )
 
 C***********************************************************************
-C  subroutine body starts at line 56
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line 63
 C
 C  FUNCTION:  Updates STATE3 common variables for a "VIRTUAL "file" FNAME 
 C  using info stored in the FDESC3 common.
@@ -24,6 +25,7 @@ C
 C  REVISION  HISTORY:
 C       prototype  7/94 by CJC
 C	REvised   10/96 by CJC:  new file type TSERIES3 for hydrology work.
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -38,15 +40,12 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  index into STATE3 arrays
+        INTEGER, INTENT(IN   ) :: FID             !  index into STATE3 arrays
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1  !  look up names in tables
-        INTEGER         TRIMLEN !  length after trimming trailing blanks.
-
-        EXTERNAL        INDEX1, TRIMLEN
+        INTEGER, EXTERNAL :: INDEX1  !  look up names in tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -139,6 +138,6 @@ C...........   Error and warning message formats..... 91xxx
      &            2 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION UPDTVIR3
 
 #endif

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/junit.F,v 1.3 2000/11/28 21:13:39 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       INTEGER FUNCTION  JUNIT()
 
 C***********************************************************************
-C  function body starts at line 66
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line 65
 C
 C  FUNCTION:
 C
@@ -39,7 +39,7 @@ C    8/96  Modified by CJC -- On counting-algorithm failure, performs
 C          INQUIREs to find available unit.
 C    2/97  conditional definition of EXIT under AIX
 C    9/99  by CJC:  modifications for portability
-C
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
 #ifdef   _AIX
@@ -50,9 +50,8 @@ C***********************************************************************
 
 C...........   PARAMETERS and their descriptions:
 
-      INTEGER      BOT          !  1 less than initial unit number
-      INTEGER      TOP          !  final unit number
-      PARAMETER  ( BOT = 10, TOP = 99 )
+      INTEGER, PARAMETER :: BOT = 10          !  1 less than initial unit number
+      INTEGER, PARAMETER :: TOP = 99          !  final unit number
 
 
 C...........   LOCAL VARIABLES and their descriptions:
@@ -89,4 +88,4 @@ C  Error and warning message formats     91xxx
      &          /, 5X, 'Last  POSIX-approved unit:', I4 ,
      &          //)
 
-      END
+      END FUNCTION  JUNIT

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       INTEGER FUNCTION JULIAN (YEAR, MNTH, MDAY)
 
 C***********************************************************************
-C  function body starts at line  50
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  68
 C
 C  FUNCTION:  returns the Julian day (1...365,366) corresponding to
 C      the date MNTH-MDAY-YEAR.
@@ -43,19 +43,21 @@ C
 C    8/1999   Version for global-climate IO_360, which uses 360-day "year"
 C       
 C       2/2002 Unification by CJC with global-climate JULIAN
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-      INTEGER   YEAR            ! year YYYY
-      INTEGER   MNTH            ! month 1...12
-      INTEGER   MDAY            ! day-of-month 1...28,29,30,31
+        INTEGER, INTENT(IN   ) :: YEAR            ! year YYYY
+        INTEGER, INTENT(IN   ) :: MNTH            ! month 1...12
+        INTEGER, INTENT(IN   ) :: MDAY            ! day-of-month 1...28,29,30,31
 
 C...........   SCRATCH LOCAL VARIABLES:
 
-      INTEGER   M, N, L
+        INTEGER   M, N, L
 
 
 C***********************************************************************
@@ -63,30 +65,30 @@ C   begin body of function  JULIAN
 
 #ifdef IO_360
 
-      JULIAN = MDAY + 30 * ( MNTH - 1 )
+        JULIAN = MDAY + 30 * ( MNTH - 1 )
 
 #endif
 
 #ifndef IO_360
 
-      M = MOD ((MNTH + 9), 12)
-      N = (M * 153 + 2) / 5 + MDAY + 58
+        M = MOD ((MNTH + 9), 12)
+        N = (M * 153 + 2) / 5 + MDAY + 58
 
-      IF      ( MOD (YEAR,   4) .NE. 0 ) THEN
-          L = 365
-      ELSE IF ( MOD (YEAR, 100) .NE. 0 ) THEN
-          L = 366
-          N = 1 + N
-      ELSE IF ( MOD (YEAR, 400) .NE. 0 )  THEN
-          L = 365
-      ELSE 
-          L = 366
-          N = 1 + N
-      END IF
-      JULIAN = 1 + MOD (N, L)
+        IF      ( MOD (YEAR,   4) .NE. 0 ) THEN
+            L = 365
+        ELSE IF ( MOD (YEAR, 100) .NE. 0 ) THEN
+            L = 366
+            N = 1 + N
+        ELSE IF ( MOD (YEAR, 400) .NE. 0 )  THEN
+            L = 365
+        ELSE 
+            L = 366
+            N = 1 + N
+        END IF
+        JULIAN = 1 + MOD (N, L)
 
 #endif
 
       RETURN
-      END
+      END FUNCTION JULIAN
 

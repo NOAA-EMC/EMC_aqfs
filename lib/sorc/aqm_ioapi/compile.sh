@@ -4,7 +4,7 @@ set -ax
 #if [ ${USER} = 'Jianping.Huang' ] ; then
  mydir=/naqfc/save/${USER}
  envir=para
- model_ver=v4.6.2
+ model_ver=v4.6.3
 #else
 # mydir=
 #fi

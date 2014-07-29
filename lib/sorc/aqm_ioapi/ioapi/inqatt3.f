@@ -1,5 +1,8 @@
 
-C.........................................................................
+        LOGICAL FUNCTION INQATT3( FNAME, VNAME, MXATTS,
+     &                            NATTS, ANAMES, ATYPES, ASIZES )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
@@ -7,12 +10,7 @@ C (C) 2003 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION INQATT3( FNAME, VNAME, MXATTS, 
-     &                            NATTS, ANAMES, ATYPES, ASIZES )
-
-C***********************************************************************
-C  subroutine body starts at line  78
+C  subroutine body starts at line  75
 C
 C  FUNCTION:
 C       returns list of attributes, their types, and sizes for the
@@ -30,6 +28,8 @@ C       prototype 1/2002 by Carlie J. Coats, Jr., MCNC-EMC for I/O API v2.2
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -43,21 +43,18 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME             !  logical file name
-        CHARACTER*(*)   VNAME             !  vble name, or ALLVARS3
-        INTEGER         MXATTS            !  max number of attributes
-        INTEGER         NATTS             !  number of actual attributes
-        CHARACTER*(*)   ANAMES( MXATTS )  !  attribute names
-        INTEGER         ATYPES( MXATTS )  !  " types (M3REAL, M3INT, M3DBLE)
-        INTEGER         ASIZES( MXATTS )  !  " size/length
+        CHARACTER*(*), INTENT(IN   ) :: FNAME             !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME             !  vble name, or ALLVARS3
+        INTEGER      , INTENT(IN   ) :: MXATTS            !  max number of attributes
+        INTEGER      , INTENT(  OUT) :: NATTS             !  number of actual attributes
+        CHARACTER*(*), INTENT(  OUT) :: ANAMES( MXATTS )  !  attribute names
+        INTEGER      , INTENT(  OUT) :: ATYPES( MXATTS )  !  " types (M3REAL, M3INT, M3DBLE)
+        INTEGER      , INTENT(  OUT) :: ASIZES( MXATTS )  !  " size/length
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INIT3      !  Initialize I/O API
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         TRIMLEN    !  trimmed string length
-
-        EXTERNAL    INIT3, INDEX1, TRIMLEN
+        INTEGER, EXTERNAL ::INIT3      !  Initialize I/O API
+        INTEGER, EXTERNAL ::INDEX1     !  look up names in name tables
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -87,27 +84,27 @@ C.......   Check that Models-3 I/O has been initialized:
             INQATT3 = .FALSE.
             RETURN
         END IF
-        
+
         IF ( EFLAG ) RETURN
 
-        IF ( TRIMLEN( FNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME // '" Variable "'// VNAME // '"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A , I10 )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( fname ) > 16
 
-        IF ( TRIMLEN( VNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( VNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME // '"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
-     &          'Max vble name length 16; actual:', TRIMLEN( VNAME )
+     &          'Max vble name length 16; actual:', LEN_TRIM( VNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
-        
+
         IF ( EFLAG ) THEN
             MESG = 'Invalid variable or file name arguments'
             CALL M3WARN( 'INQATT3', 0, 0, MESG )
@@ -141,7 +138,7 @@ C.......   Check that Models-3 I/O has been initialized:
         END IF          !  if file not opened, or if readonly, or if volatile
 
 C...........   Get ID for variable(s) to be inquired.
-            
+
         IF ( VAR16 .EQ. ALLVAR3 ) THEN
 
             VID = NCGLOBAL
@@ -165,7 +162,7 @@ C...........   Inquire attributes for this file and variable:
 C...........   how many; names; sizes and types:
 C...........   Somewhat tortured logic-structure due to the fact that
 C...........   one can't execute a RETURN within a critical section.
-           
+
 !$OMP   CRITICAL( S_NC )
 
         IERR = NF_INQ_VARNATTS( FID, VID, NATTS )
@@ -179,16 +176,16 @@ C...........   one can't execute a RETURN within a critical section.
 
         ELSE IF ( NATTS .GT. MXATTS ) THEN
 
-            MESG = 'Too many attributes for file "' // FNAME // 
+            MESG = 'Too many attributes for file "' // FNAME //
      &             '" and vble "' // VNAME // '"'
             CALL M3WARN( 'INQATT3', 0, 0, MESG )
             EFLAG = .TRUE.
 
         ELSE
-        
+
             DO  I = 1, NATTS
 
-                IERR = NF_INQ_ATTNAME( FID, VID, ANAMES( I ), I )
+                IERR = NF_INQ_ATTNAME( FID, VID, I, ANAMES( I ) )
 
                 IF ( IERR .NE. NF_NOERR ) THEN
 
@@ -207,7 +204,7 @@ C...........   one can't execute a RETURN within a critical section.
 
                         EFLAG = .TRUE.
                         MESG = 'Error inquiring type&size: att "' //
-     &                          ANAMES( I ) // 
+     &                          ANAMES( I ) //
      &                          '" for file "' // FNAME //
      &                          '" and vble "' // VNAME // '"'
                         CALL M3MSG2( MESG )
@@ -218,7 +215,7 @@ C...........   one can't execute a RETURN within a critical section.
                 END IF
 
             END DO      !  end loop on attributes for this vble
-        
+
         END IF
 
 !$OMP   END CRITICAL( S_NC )
@@ -234,5 +231,5 @@ C...........   one can't execute a RETURN within a critical section.
 
         RETURN
 
-        END
+        END FUNCTION INQATT3
 

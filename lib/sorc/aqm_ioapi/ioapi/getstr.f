@@ -1,17 +1,18 @@
 
-C.........................................................................
+        SUBROUTINE GETSTR ( PROMPT, DEFAULT, RESPONSE )
+
+            CHARACTER*(*), INTENT(IN   ) :: PROMPT, DEFAULT
+            CHARACTER*(*), INTENT(  OUT) :: RESPONSE
+
+C******************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        SUBROUTINE GETSTR ( PROMPT, DEFAULT, RESPONSE )
-
-C******************************************************************
-C  function body begins at line 81
+C  function body begins at line 73
 C
 C  FUNCTION:
 C
@@ -30,6 +31,7 @@ C       Revised   5/2003 by CJC:  factor through M3MSG2 to ensure flush()
 C       of log-messages
 C       Revised 6/2003 by CJC:  factor through M3PROMPT to ensure flush()
 C       of PROMPT for IRIX F90v7.4  
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C
 C  ARGUMENT LIST DESCRIPTION:
 C
@@ -44,23 +46,15 @@ C         RESPONSE  return value
 C
 C**********************************************************************
 
-
-C.......   Arguments:
-
-        CHARACTER*(*)   PROMPT, DEFAULT, RESPONSE
-
-
 C.......   External functions:
 
-        LOGICAL         ENVYN
-        INTEGER         LBLANK, TRIMLEN
-        EXTERNAL        ENVYN, LBLANK, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN
+        INTEGER, EXTERNAL :: LBLANK
 
 
 C.......   Parameter:  maximum number of attempts allowed to the user
 
-        INTEGER         MAX
-        PARAMETER     ( MAX = 5 )
+        INTEGER, PARAMETER ::MAX = 5
 
 
 C.......   Local Variables:
@@ -70,10 +64,8 @@ C.......   Local Variables:
         INTEGER         COUNT , IOS
         CHARACTER*256   ANSWER, MESG
 
-        LOGICAL         PROMPTON
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
-        SAVE            FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 
 C*********************   begin  GETSTR   *******************************
@@ -88,8 +80,8 @@ C*********************   begin  GETSTR   *******************************
 
         P0    = LBLANK ( PROMPT  ) + 1	!  initial position (first nonblank)
         D0    = LBLANK ( DEFAULT ) + 1	!  initial position (first nonblank)
-        P1    = TRIMLEN( PROMPT  )	!  last nonblank
-        D1    = TRIMLEN( DEFAULT )	!  last nonblank
+        P1    = LEN_TRIM( PROMPT  )	!  last nonblank
+        D1    = LEN_TRIM( DEFAULT )	!  last nonblank
         R1    = LEN( RESPONSE )
 
         IF( .NOT. PROMPTON ) THEN
@@ -136,7 +128,7 @@ C*********************   begin  GETSTR   *******************************
                     MESG = 'Using default "'// DEFAULT( D0:D1 ) // '"'
                 END IF
             ELSE
-                A1 = TRIMLEN( ANSWER )
+                A1 = LEN_TRIM( ANSWER )
                 IF ( A1 - A0 + 1 .GT. R1 ) THEN
                     RESPONSE = ANSWER( A0:R1 + A0 - 1 )
                     MESG = 'Response "' // ANSWER( A0:A1 ) //
@@ -173,5 +165,5 @@ C...........   Informational (LOG) message formats... 92xxx
 
 92020   FORMAT ( /5X , A , /5X , A , I3 , /5X , A , I1 , A )
 
-        END
+        END SUBROUTINE GETSTR
 

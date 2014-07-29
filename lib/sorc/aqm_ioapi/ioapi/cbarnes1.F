@@ -1,17 +1,16 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/cbarnes1.F,v 1.3 2000/11/28 21:13:34 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Portions copyright (C) 1992-1997 MCNC
-C See file "COPYRIGHT.txt" for conditions of use.
-C.........................................................................
-
-
-
       SUBROUTINE CBARNES1( NG, LAT, LON,
      &                     N, YLAT, XLON, Z, WL50, GRID)
 
 C***********************************************************************
-C    subroutine body starts at line  142
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C    subroutine body starts at line  117
 C
 C  FUNCTION:
 C
@@ -51,8 +50,10 @@ C   CBARNES1():
 C   12/95   Modified by CJC to fit EDSS/Models-3 conventions from 
 C           the UAM BEIS CGRID1().  Uses "exact" spherical-geometry
 C           distance formula.
-C   08/2000 Bug-fix by CJC in SAVED-variables list
+C   08/2000 Bug-fix by CJC in SAVED-variables list.
+C   03/2004 Back to linar-approx distance formula
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
@@ -61,52 +62,37 @@ C***********************************************************************
 
 C.......   ARGUMENTS:
 
-        INTEGER    NG		!  Number of output values (=NCOLS*NROWS)
-        REAL       LAT( NG )	!  single-indexed output latitudes
-        REAL       LON( NG )	!  single-indexed output longitudes
-        INTEGER    N		!  number of input values
-        REAL       YLAT( N )	!  input latitudes
-        REAL       XLON( N )	!  input longitudes
-        REAL       Z   ( N )	!  input values
-        REAL       WL50		!  50 Percent filtered wavelength  (KM)
-        REAL       GRID( NG )	!  output values
-
-
-C...........   EXTERNAL FUNCTIONS:
-
-#ifdef _CRAY
-#define AUTO_ARRAYS 1
-#endif
-
-#if ! AUTO_ARRAYS
-        INTEGER         MALLOC
-#endif
-
+        INTEGER, INTENT(IN   ) :: NG		!  Number of output values (=NCOLS*NROWS)
+        REAL   , INTENT(IN   ) :: LAT( NG )	!  single-indexed output latitudes
+        REAL   , INTENT(IN   ) :: LON( NG )	!  single-indexed output longitudes
+        INTEGER, INTENT(IN   ) :: N		!  number of input values
+        REAL   , INTENT(IN   ) :: YLAT( N )	!  input latitudes
+        REAL   , INTENT(IN   ) :: XLON( N )	!  input longitudes
+        REAL   , INTENT(IN   ) :: Z   ( N )	!  input values
+        REAL   , INTENT(IN   ) :: WL50		!  50 Percent filtered wavelength  (KM)
+        REAL   , INTENT(  OUT) :: GRID( NG )	!  output values
 
 C...........   PARAMETERS:
 
-        REAL       G, GINV, R0LN50, ALOG10, R2DSQ, AC
-
-      PARAMETER   ( G      =  0.4          ,
-     &              GINV   =  2.5          ,
-     &              R0LN50 =  2.1058923    ,
-     &              ALOG10 =  2.3025850929 ,
-     &              R2DSQ =  RPI180 * RPI180 ,  !  radian**2 ~~> deg**2 
-     &              AC     =  30.0 * ALOG10 / D2KMSQ )
+        REAL, PARAMETER :: G      =  0.4
+        REAL, PARAMETER :: GINV   =  2.5
+        REAL, PARAMETER :: R0LN50 =  2.1058923
+        REAL, PARAMETER :: ALOG10 =  2.3025850929
+        REAL, PARAMETER :: R2DSQ  =  RPI180 * RPI180
+        REAL, PARAMETER :: AC     =  30.0 * ALOG10 / D2KMSQ
 
 
 C...........   LOCAL VARIABLES:
 
-        INTEGER    J , I         !  col, row counters
+        INTEGER    J             !  col, row counters
         INTEGER    MM , NN       !  station counters
 
         REAL       C             !  scaling-filter constant
         REAL       YG , XG       !  temporaries for lat, lon of current cell
-        REAL       CY , SY       !  temporaries for sin, cos of lat, lon
+        REAL       CY            !  temporaries for sin, cos of lat, lon
         REAL       W1, W2        !  weights for Gauss-weighted average
         REAL       WTOT1, WTOT2  !  sum of weights
         REAL       FTOT1, FTOT2  !  accumulators for values, corrections
-        REAL       DELX          !  lon difference
         REAL       DSQ           !  DELX**2  +  DELY**2
         REAL       XA, YA        !  LON, LAT of current station
         REAL       XB, YB        !  LON, LAT of current station
@@ -115,40 +101,17 @@ C...........   LOCAL VARIABLES:
 
 C...........   STATE VARIABLES:
 
-        REAL       WL501
-        DATA       WL501  /  -1.0  /  !  last value of WL50
-
-        REAL       C4K           !  Gauss constant for first pass
-        REAL       GC4K          !  Gauss constant for second pass
-        REAL       RMAXA         !  maximum scanning radii, for first
-        REAL       RMAXB         !  and second passes
-        REAL       ANUMA         !  numerator, beyond scanning radius,
-        REAL       ANUMB         !  for first and second passes
-
-        SAVE       WL501, C4K, RMAXA, ANUMA, GC4K, RMAXB, ANUMB
-
-#if ! AUTO_ARRAYS
-        INTEGER         LSIZE
-        POINTER         ( P, DZ )
- 
-        DATA            LSIZE  /  -1  /  !  last value of N
-        SAVE            P, LSIZE
-#endif
+        REAL, SAVE :: WL501 = -1.0  !  last value of WL50
+        REAL, SAVE :: C4K           !  Gauss constant for first pass
+        REAL, SAVE :: GC4K          !  Gauss constant for second pass
+        REAL, SAVE :: RMAXA         !  maximum scanning radii, for first
+        REAL, SAVE :: RMAXB         !  and second passes
+        REAL, SAVE :: ANUMA         !  numerator, beyond scanning radius,
+        REAL, SAVE :: ANUMB         !  for first and second passes
 
 
 C..................................................................
 C.......   begin body of  CBARNES1:
-
-#if ! AUTO_ARRAYS
-        IF ( N .GT. LSIZE ) THEN
-            IF ( LSIZE .GT. 0 )  CALL FREE( P )
-            P = MALLOC( 8 * N )
-            IF ( P .EQ. 0 )
-     &           CALL M3EXIT( 'TSHIFT', 0, 0,
-     &                        'Memory allocation error', 2 )
-            LSIZE = N
-        END IF
-#endif
 
 C...........   Calculate the scaling filter parameter
 
@@ -174,21 +137,17 @@ C.......   estimated error  DZ  at that point:
 
       DO  222  NN = 1 , N
 
-          XA    =  PI180 * XLON( NN )
-          YA    =  PI180 * YLAT( NN )
-          CY    =  COS( YA )
-          SY    =  SIN( YA )
+          XA    =  XLON( NN )
+          YA    =  YLAT( NN )
+          CY    =  COS( PI180 * YA )**2
           WTOT1 =  0.0
           FTOT1 =  0.0
 
           DO  111  MM = 1 , N
 
-              XB = PI180 * XLON( MM )
-              YB = PI180 * YLAT( MM )
-              DELX  =  XB  -  XA
-              DSQ   =  R2DSQ * 
-     &                 ACOS( COS( DELX ) * CY * COS( YB ) +
-     &                                     SY * SIN( YB ) )**2
+              XB = XLON( MM ) - XLON( NN )
+              YB = YLAT( MM ) - YLAT( NN )
+              DSQ   =  R2DSQ * ( YB**2 + CY * XB**2 )
 
               IF ( DSQ .LE. RMAXA )  THEN
                   W1     =  EXP ( DSQ * C4K )
@@ -216,10 +175,9 @@ C.......   set of weights
 
       DO  555  J = 1 , NG
 
-          YG   =  PI180 * LAT( J )    !  LAT of grid nodes at index J
-          XG   =  PI180 * LON( J )    !  LON of grid nodes at index J
-          CY   =  COS( YG )
-          SY   =  SIN( YG )
+          YG   =  LAT( J )    !  LAT of grid nodes at index J
+          XG   =  LON( J )    !  LON of grid nodes at index J
+          CY   =  COS( PI180 * YG )**2
            
 C.......   Scan each input data point
       
@@ -230,12 +188,9 @@ C.......   Scan each input data point
 
           DO  333  NN = 1, N
            
-              XA    =  PI180 * XLON( NN )
-              YA    =  PI180 * YLAT( NN )
-              DELX  =  XA  -  XG
-              DSQ   =  R2DSQ * 
-     &                 ACOS( COS( DELX ) * CY * COS( YA ) +
-     &                                     SY * SIN( YA ) )**2
+              XA    =  XLON( NN ) - XG
+              YA    =  YLAT( NN ) - YG
+              DSQ   =  R2DSQ * ( YA**2 + CY*XA**2 )
 
               IF ( DSQ .LE. RMAXB )  THEN
                   W1  =  EXP ( DSQ * C4K )
@@ -281,4 +236,4 @@ C.......   Internal buffering formats     94xxx
      &         'input count=', I9 )
 
 
-      END
+      END SUBROUTINE CBARNES1

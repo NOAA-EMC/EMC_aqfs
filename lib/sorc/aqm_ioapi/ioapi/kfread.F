@@ -1,20 +1,18 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
-      LOGICAL FUNCTION KFREAD( FNAME, VNAME, EVENT, 
+      LOGICAL FUNCTION KFREAD( FNAME, VNAME, EVENT,
      &                         COL, ROW, JDATE, JTIME, KFLEN, VBLE )
 
 C***********************************************************************
-C  function body starts at line  102
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  98
 C
-C  FUNCTION:  reads the indicated event from the KF-Cloud-Event file 
+C  FUNCTION:  reads the indicated event from the KF-Cloud-Event file
 C 	with logical name FNAME for variable with name VNAME.
 C       If VNAME = ALLVAR3 = 'ALL', reads all variables.
 C
@@ -23,7 +21,7 @@ C
 C  PRECONDITIONS REQUIRED:  FNAME is a  KF-Cloud-Event file already
 C       opened by KFOPEN()
 C
-C  REVISION  HISTORY:  
+C  REVISION  HISTORY:
 C       Adapted   4/1996 by CJC from READ3().
 C
 C       Modified  5/1998 by CJC for OpenMP thread-safety
@@ -32,6 +30,8 @@ C       Modified  1/2002 by CJC:  check TRIMLEN() of FNAME
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -45,35 +45,31 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME      !  logical file name
-        CHARACTER*(*) VNAME      !  variable name, or 'ALL'
-        INTEGER       EVENT      !  KF-cloud event number
-        INTEGER       COL        !  column number for this event
-        INTEGER       ROW        !  row    number for this event
-        INTEGER       JDATE      !  starting date, formatted YYYYDDD
-        INTEGER       JTIME      !  starting time, formatted HHMMSS
-        INTEGER       KFLEN      !  event duration, formatted HHMMSS
-        REAL          VBLE(*)    !  array of returned values for VNAME
+        CHARACTER*(*), INTENT(IN   ) :: FNAME      !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME      !  variable name, or 'ALL'
+        INTEGER      , INTENT(IN   ) :: EVENT      !  KF-cloud event number
+        INTEGER      , INTENT(  OUT) :: COL        !  column number for this event
+        INTEGER      , INTENT(  OUT) :: ROW        !  row    number for this event
+        INTEGER      , INTENT(  OUT) :: JDATE      !  starting date, formatted YYYYDDD
+        INTEGER      , INTENT(  OUT) :: JTIME      !  starting time, formatted HHMMSS
+        INTEGER      , INTENT(  OUT) :: KFLEN      !  event duration, formatted HHMMSS
+        REAL         , INTENT(  OUT) :: VBLE(*)    !  array of returned values for VNAME
 
 
 C...........   MACHINE DEPENDENCY !!
 
-        INTEGER         TYPSIZE( 6 )    !  sizeof( variable ) / sizeof( real )
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INIT3      !  initialize I/O API
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         TRIMLEN    !  trimmed string length
-
-        EXTERNAL        INIT3, INDEX1, TRIMLEN
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O API
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -86,7 +82,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         IERR            !  netCDF error status return
         INTEGER         DIMT( 5 )       !  corner   for NCVGT()
         INTEGER         DELT( 5 )       !  diagonal for NCVGT()
-        INTEGER         FLAGS( 5 )      !  event COL-ROW-DATE-TIME-DURATION 
+        INTEGER         FLAGS( 5 )      !  event COL-ROW-DATE-TIME-DURATION
         CHARACTER*16    FIL16           !  scratch file-name buffer
         CHARACTER*16    VAR16           !  scratch vble-name buffer
         CHARACTER*256   MESG
@@ -112,31 +108,31 @@ C.......   Check that Models-3 I/O has been initialized:
             RETURN
         END IF
 
-        IF ( TRIMLEN( FNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME//'"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A , I10 )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( fname ) > 16
 
-        IF ( TRIMLEN( VNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( VNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME//'"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
-     &          'Max vble name length 16; actual:', TRIMLEN( VNAME )
+     &          'Max vble name length 16; actual:', LEN_TRIM( VNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
-        
+
         IF ( EFLAG ) THEN
             MESG = 'Invalid variable or file name arguments'
             CALL M3WARN( 'KFREAD', 0, 0, MESG )
             KFREAD = .FALSE.
             RETURN
         END IF          !  if len( fname ) > 16, or if len( vname ) > 16
-        
+
 
 C.......   Find netCDF index for the file, and check time step availability:
 
@@ -152,8 +148,8 @@ C.......   Find netCDF index for the file, and check time step availability:
             KFREAD = .FALSE.
             GO TO  999        !  return from kfread()
 
-        ELSE IF ( VOLAT3( FID ) ) THEN     
-        
+        ELSE IF ( VOLAT3( FID ) ) THEN
+
             !!  volatile file:  synch with disk,
             !!  Since such files may also be used as active channels
             !!  of communication between coupled models, we must also
@@ -177,15 +173,15 @@ C.......   Find netCDF index for the file, and check time step availability:
                 WRITE( MESG,91010 )
      &              'netCDF error number', IERR
                 CALL M3MSG2( MESG )
-                MESG = 
+                MESG =
      &          'Error reading netCDF time-dimension ID for file '
      &              // FLIST3( FID )
                 CALL M3WARN( 'KFREAD', 0, 0, MESG )
                 KFREAD = .FALSE.
                 GO TO  999        !  return
             END IF              !  ierr nonzero:  NCVDEF() failed
-           
-            CALL NCDINQ( CDFID3( FID ), TDIM, TNAME, 
+
+            CALL NCDINQ( CDFID3( FID ), TDIM, TNAME,
      &                   MXREC3( FID ), IERR )
             IF ( IERR .NE. 0 ) THEN
                 WRITE( LOGDEV,91010 )
@@ -195,7 +191,7 @@ C.......   Find netCDF index for the file, and check time step availability:
                 WRITE( MESG,91010 )
      &              'netCDF error number', IERR
                 CALL M3MSG2( MESG )
-                MESG = 
+                MESG =
      &          'Error reading maximum timestep record number ' //
      &              'for file ' // FLIST3( FID )
                 CALL M3WARN( 'KFREAD', 0, 0, MESG )
@@ -218,7 +214,7 @@ C.......   Check availability of requested  layer, variable:
             KFREAD = .FALSE.
             GO TO  999        !  return from kfread()
 
-        ELSE IF ( EVENT .GT. MXREC3( FID ) .OR. 
+        ELSE IF ( EVENT .GT. MXREC3( FID ) .OR.
      &            EVENT .LE. 0 ) THEN
 
             WRITE( MESG,91010 )
@@ -228,13 +224,13 @@ C.......   Check availability of requested  layer, variable:
             GO TO  999        !  return from kfread()
 
         ELSE IF ( VAR16 .EQ. ALLVAR3 ) THEN
-            
+
             VID = ALLAYS3
-        
-        ELSE 
-            
+
+        ELSE
+
             VID = INDEX1 ( VAR16, NVARS3( FID ), VLIST3( 1,FID ) )
-            
+
             IF ( VID .EQ. 0 ) THEN
                 WRITE( MESG,91010 )
      &              'Requested variable ' //  VAR16 //
@@ -259,13 +255,13 @@ C.......   Read contents of the variable(s):
 
         IF ( VID .GT. 0 ) THEN  !  reading just one variable
 
-            CALL NCVGT( FNUM, VINDX3( VID,FID ), 
+            CALL NCVGT( FNUM, VINDX3( VID,FID ),
      &                  DIMT, DELT, VBLE, IERR )
             IF ( IERR .NE. 0 ) THEN     !  variable not yet written
 
                 WRITE( MESG,91010 )
      &          'netCDF error number', IERR,
-     &          'Error reading ' // VLIST3( VID,FID ) // 
+     &          'Error reading ' // VLIST3( VID,FID ) //
      &          ' from ' // FIL16
                 CALL M3WARN( 'KFREAD', 0, 0, MESG )
                 KFREAD = .FALSE.
@@ -274,18 +270,18 @@ C.......   Read contents of the variable(s):
             END IF          !  if ierr bad or if variable bad
 
         ELSE            !  reading all variables
-        
+
             INDX = 1
-            
+
             DO  11  VAR = 1, NVARS3( FID )
 
-                CALL NCVGT( FNUM, VINDX3( VAR,FID ), 
+                CALL NCVGT( FNUM, VINDX3( VAR,FID ),
      &                      DIMT, DELT, VBLE( INDX ), IERR )
                 IF ( IERR .NE. 0 ) THEN     !  variable not yet written
 
                     WRITE( MESG,91010 )
      &                  'netCDF error number', IERR,
-     &                  'Error reading ' // VLIST3( VAR,FID ) // 
+     &                  'Error reading ' // VLIST3( VAR,FID ) //
      &                  ' from ' // FIL16
                     CALL M3WARN( 'KFREAD', 0, 0, MESG )
                     KFREAD = .FALSE.
@@ -296,11 +292,11 @@ C.......   Read contents of the variable(s):
                 INDX = INDX + NLAYS3( FID )*TYPSIZE( VTYPE3( VAR,FID ) )
 
 11          CONTINUE
-        
-        END IF
-        
 
-C.......   Read record header:            
+        END IF
+
+
+C.......   Read record header:
 
         DIMT( 1 ) = 1
         DELT( 1 ) = 5
@@ -308,7 +304,7 @@ C.......   Read record header:
         DIMT( 2 ) = EVENT
         DELT( 2 ) = 1
 
-        CALL NCVGT( FNUM, TINDX3( FID ), 
+        CALL NCVGT( FNUM, TINDX3( FID ),
      &              DIMT, DELT, FLAGS, IERR )
         IF ( IERR .NE. 0 ) THEN     !  record header not yet written
 
@@ -343,5 +339,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91010   FORMAT ( 3 ( A , :, I5, :, 2X ) )
 
-        END
+        END FUNCTION KFREAD
 

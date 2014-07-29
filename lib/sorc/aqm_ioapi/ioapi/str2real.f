@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/str2real.f,v 1.2 2000/11/28 21:23:06 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         REAL FUNCTION STR2REAL( STRING )
 
 C***********************************************************************
-C  function body starts at line  62
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  57
 C
 C  RETURNS:
 C       REAL value decoded from STRING, or BADVAL3 for "missing",
@@ -24,6 +24,7 @@ C
 C  REVISION  HISTORY:
 C       Prototype 6/95 by CJC for point source prototype
 C
+C       Modified 03/20010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -33,20 +34,14 @@ C...........   INCLUDES:
         INCLUDE 'PARMS3.EXT'
 
 
-C...........   EXTERNAL functions
-        INTEGER         TRIMLEN
-        EXTERNAL        TRIMLEN
-
-
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   STRING
+        CHARACTER*(*), INTENT(IN   ) :: STRING
 
 
 C...........   PARAMETERS
             
-        CHARACTER*1     BLANK
-        PARAMETER     ( BLANK = ' ' )
+        CHARACTER*1, PARAMETER :: BLANK = ' '
         
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -59,7 +54,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 C***********************************************************************
 C   begin body of function  STR2REAL
 
-        L = TRIMLEN( STRING )
+        L = LEN_TRIM( STRING )
             
         DO  11  I = 1, L        !  skip leading whitespace
             IF ( STRING( I:I ) .GT. BLANK ) GO TO 12
@@ -97,5 +92,5 @@ C.......   If you get to here:  no number there
 
 94020   FORMAT( 3A, I7 )
 
-        END
+        END FUNCTION STR2REAL
 

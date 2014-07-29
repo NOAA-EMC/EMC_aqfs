@@ -5,7 +5,7 @@ VERSION:
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -24,8 +24,7 @@ REVISION HISTORY:
 #include <string.h>
 #include <sys/time.h> 
 #include "pvm3.h"
-#include "parms3.h"
-#include "fdesc3.h"
+#include "iodecl3.h"
 
 
 #define MAXERRMSG 256
@@ -511,8 +510,14 @@ int open3net(char *fname,
    we check the header: if start day/time are older than requested date/time, 
    return error, else block until the new record becomes and return the data
 */
-int read3net(char *fname, char *vname, int skip, 
-	     int jdate, int jtime, void *buffer, int n, int buftype)
+int read3net(char *fname,
+	     char *vname,
+	     int skip, 
+	     int jdate,
+	     int jtime,
+	     void *buffer,
+	     int n,
+	     int buftype)
 {
 
   int i;
@@ -873,19 +878,19 @@ int iocpl_barrier(int msg_wait)
 	    bufid, "iocpl_barrier" );
     }
   for (rp=rp_head; rp != NULL; rp = rp->next) {
-    old_context=pvm_setcontext(rp->context);
+    old_context = pvm_setcontext(rp->context);
     if (!checkIfOwnerAlive(rp->tid)) continue;
-    cc=pvm_send(rp->tid, msg_wait);
+    cc = pvm_send(rp->tid, msg_wait);
     if (cc < 0) {
       ERROR("INTERNAL IOCPL ERROR: pvm_send (%s), in %s",
 	    cc, "iocpl_barrier" );
     }
-    context=pvm_setcontext(old_context);
+    context = pvm_setcontext(old_context);
   }
 
   for (wp=wp_head; wp != NULL; wp = wp->next) {
 
-    cc=pvm_getmboxinfo(wp->file, &nclass, &mboxinfo);
+    cc = pvm_getmboxinfo(wp->file, &nclass, &mboxinfo);
     if (cc < 0) {
       ERROR( "INTERNAL IOCPL ERROR: pvm_getmboxinfo (%s) in %s",
 	     cc,"iocpl_barrier");
@@ -1228,7 +1233,7 @@ void delete_writelist(WriterList **headp)
       wp->file = NULL;
     }
 
-    cc=pvm_freecontext(wp->context);
+    cc = pvm_freecontext(wp->context);
 
     wpnext = wp->next;
     wpp = &wpnext;

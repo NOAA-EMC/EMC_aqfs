@@ -3,7 +3,7 @@
 
 mydir=/naqfc/save/${USER}
 envir=para
-model_ver=v4.6.2
+model_ver=v4.6.3
 
 SHELL=/bin/sh
 
@@ -12,22 +12,11 @@ LIBNAME = libaqm_pario.a
 LIOAPI = /naqfc/save/${USER}/nw${envir}/cmaq.${model_ver}/lib/libaqm_ioapi.a
 
 FC = mpfort
-#FC = mpiifort
-#FC = mpfort -compiler ifort
-
-#CCS FSTD = -qsave -qfixed=132 -qarch=auto -qtune=auto
-#Pius FSTD =  -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise 
-#CCS FFLAGS = $(FSTD) -I $(IOAPI) -O3 -qstrict -Q
-#Pius FLAGS = $(FSTD) -I $(IOAPI)
-#FSTD = -fixed -132 -O2 -override-limits -fno-alias -mp1 -fp-model precise 
 FSTD = -fixed -132 -O2  -fp-model precise 
 
 DEBUG = -g -traceback
 
 #FFLAGS = -132 -O3 -fp-model precise $(DEBUG)
-#jp FFLAGS = -132 -O3 -fp-model precise  -assume byterecl -convert big_endian $(DEBUG)
-#FFLAGS = $(FSTD)  -assume byterecl -convert big_endian $(DEBUG) -I $(IOAPI) $(DEBUG)
-#FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI) $(DEBUG)
 FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI) . 
 
  OBJS= \
@@ -57,8 +46,8 @@ FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI) .
 
 $(LIBNAME) : $(OBJS)
 	$(FC) $(FFLAGS) $(LIOAPI) -c $<
-	ar -rv  -o $@ $?
-	chmod 644 $@
+	ar -rv  -o ../../$@ $?
+	chmod 644 ../../$@
 clean:
 	/bin/rm -f *.a *.o *.mod
 

@@ -1,17 +1,18 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/readsmet.f,v 1.2 2000/11/28 21:23:04 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION READSMET (  FDEV  , JDATE , JTIME ,
      &                               NBORD , SBORD , EBORD , WBORD ,
      &                               MAXMET, NMET  , IMET  , RMET )
 
 C***********************************************************************
-C    function body starts at line 127
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C    function body starts at line 120
+C
 C  FUNCTION:
 C
 C    This routine reads one hour's data from a SURMET-type file
@@ -30,22 +31,23 @@ C    Set environment variable SURMET_INT_IDS to TRUE iff station IDs are
 C    WBAN integers (instead of character-string IDs)
 C
 C  REVISION HISTORY:
-C    Adapted 12/95 by CJC from ROM-descended UAM-BEIS2 RDSMET() 
-C    for EDSS/Models-3 date and time conventions
+C       Adapted 12/95 by CJC from ROM-descended UAM-BEIS2 RDSMET() 
+C       for EDSS/Models-3 date and time conventions
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
 
 C...........   ARGUMENTS:
 
-        INTEGER         FDEV                  !  unit number for input file
-        INTEGER         JDATE , JTIME
-        REAL            NBORD , SBORD , EBORD , WBORD
-        INTEGER         MAXMET                !  max number of stations allowed
-        INTEGER         NMET                  !  number of stations found
-        INTEGER         IMET ( MAXMET )       !  array of station ID's
-        REAL            RMET ( 16 , MAXMET )  !  station data
+        INTEGER, INTENT(IN   ) :: FDEV                  !  unit number for input file
+        INTEGER, INTENT(INOUT) :: JDATE , JTIME
+        REAL   , INTENT(IN   ) :: NBORD , SBORD , EBORD , WBORD
+        INTEGER, INTENT(IN   ) :: MAXMET                !  max number of stations allowed
+        INTEGER, INTENT(  OUT) :: NMET                  !  number of stations found
+        INTEGER, INTENT(  OUT) :: IMET ( MAXMET )       !  array of station ID's
+        REAL   , INTENT(  OUT) :: RMET ( 16 , MAXMET )  !  station data
 
 C.......   Station data: has the following structure for SURMET1,
 C.......   similar structures for other SURMET files
@@ -69,17 +71,14 @@ C                   RMET ( 16, * )  --  station pressure
 
 C...........   EXTERNAL FUNCTIONS
 
-        LOGICAL         ENVYN           !  evaluates environment variable
-        INTEGER         INDEX1          !  search for name in a list
-        INTEGER         JULIAN          !  Julian day for Gregorian
-
-        EXTERNAL        ENVYN, INDEX1, JULIAN
+        LOGICAL, EXTERNAL :: ENVYN           !  evaluates environment variable
+        INTEGER, EXTERNAL :: INDEX1          !  search for name in a list
+        INTEGER, EXTERNAL :: JULIAN          !  Julian day for Gregorian
 
 
 C...........   PARAMETERS:
         
-        INTEGER         IMAX
-        PARAMETER     ( IMAX = 100 )
+        INTEGER, PARAMETER :: IMAX = 100
 
 
 C...........   LOCAL VARIABLES:
@@ -110,22 +109,16 @@ C...........   STATE VARIABLES:
 
 C.......   End-times, record counts for the files:
 
-        LOGICAL         FIRSTIME
-        LOGICAL         IFLAG                 !  true iff integer ID's
-        INTEGER         ETIME ( IMAX )
-        INTEGER         RECCNT( IMAX )
-        
-        DATA	FIRSTIME	/ .FALSE. /
-        DATA    ETIME		/ IMAX * 99999999 /
-        DATA    RECCNT		/ IMAX * 0 /
-
-        SAVE            FIRSTIME, IFLAG, ETIME, RECCNT
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
+        LOGICAL, SAVE :: IFLAG                 !  true iff integer ID's
+        INTEGER, SAVE :: ETIME ( IMAX ) = 99999999
+        INTEGER, SAVE :: RECCNT( IMAX ) =        0
 
 C..........................................................................
 C.......   Begin body of routine READSMET:
 
         IF ( FIRSTIME ) THEN
-            FIRSTIME = .TRUE.
+            FIRSTIME = .FALSE.
             IFLAG    = ENVYN( 'SURMET_INT_IDS', 
      &                        'SURMETs use INT WBAN IDs, not CHAR',
      &                        .TRUE., ISTAT )
@@ -395,5 +388,5 @@ C...........   Internal buffering formats............ 94xxx
 
 94031   FORMAT( A, 2X, A, 2X, A, F7.2, ':', F7.2, 2X, A, I5 )
 
-      END
+      END FUNCTION READSMET
      

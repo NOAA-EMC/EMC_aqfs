@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/find3.f,v 1.2 2000/11/28 21:22:42 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION FIND3( K1, K2, K3, N, LIST1, LIST2, LIST3 )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  function body starts at line 55
 C
 C  RETURNS:
@@ -25,7 +25,7 @@ C  SUBROUTINES AND FUNCTIONS CALLED:  none
 C
 C  REVISION  HISTORY:
 C       prototype 3/1/95 by CJC
-C
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -33,13 +33,13 @@ C***********************************************************************
 
 C...........   ARGUMENTS and their descriptions:
         
-        INTEGER  K1             !  first  key
-        INTEGER  K2             !  second key
-        INTEGER  K3             !  third  key
-        INTEGER  N              !  table size
-        INTEGER  LIST1( N )     !  table to search for K1
-        INTEGER  LIST2( N )     !  table to search for K2
-        INTEGER  LIST3( N )     !  table to search for K3
+        INTEGER, INTENT(IN   ) :: K1             !  first  key
+        INTEGER, INTENT(IN   ) :: K2             !  second key
+        INTEGER, INTENT(IN   ) :: K3             !  third  key
+        INTEGER, INTENT(IN   ) :: N              !  table size
+        INTEGER, INTENT(IN   ) :: LIST1( N )     !  table to search for K1
+        INTEGER, INTENT(IN   ) :: LIST2( N )     !  table to search for K2
+        INTEGER, INTENT(IN   ) :: LIST3( N )     !  table to search for K3
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -88,5 +88,5 @@ C   begin body of function  FIND3
         
         FIND3 = M
         RETURN
-        END
+        END FUNCTION FIND3
 

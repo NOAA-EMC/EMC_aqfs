@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         CHARACTER*14 FUNCTION  MMDDYY ( JDATE )
 
 C***********************************************************************
-C  function body starts at line  102
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  106
 C
 C  FUNCTION:  format and return the date as a character string
 C             "M+ D+, YYYY"
@@ -31,13 +31,16 @@ C
 C       Unification 2/2002 by CJC with global-climate MMDDYY, which
 C       uses a 360-day "year"
 C
+C       Version 1/2007 by CJC:  handle negative JDATEs correctly
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER  	JDATE	!  Julian date, coded YYYYDDD
+        INTEGER, INTENT(IN   ) :: JDATE	!  Julian date, coded YYYYDDD
 
 
 C...........   SAVED LOCAL VARIABLES and their descriptions:
@@ -91,23 +94,28 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER  	YEAR
         INTEGER  	IDAY
+        INTEGER  	BIAS
         INTEGER  	MNTH
-        INTEGER  	J , K, L
+        INTEGER  	J , K
         CHARACTER*14	CHRBUF
 
 
 C***********************************************************************
 C   begin body of function  YYMMDD
 
-        IF ( JDATE .GT. 9999999  .OR.  JDATE .LT. 0 ) THEN
+        IF ( JDATE .GT. 9999999  .OR.  JDATE .LT. -999999 ) THEN
             MMDDYY = '<DATE ERROR>'
             RETURN
+        ELSE IF ( JDATE .LT. 0 ) THEN   !  add 2800-year leapyear/weekday cycle
+            J    = JDATE + 2800000
+            YEAR =       J / 1000 - 2800
+            IDAY = MOD ( J , 1000 )
+        ELSE
+            YEAR = JDATE / 1000
+            IDAY = MOD ( JDATE , 1000 )
         END IF
 
         CHRBUF = '              '
-
-        YEAR = JDATE / 1000
-        IDAY = MOD ( JDATE , 1000 )
 
 #ifdef IO_360
         DO  MNTH = 1 , 12
@@ -170,23 +178,44 @@ C.......   If you get to here:  error in formatting of date.
         CHRBUF( J:J+1 ) = ', '
         J = J + 2
 
-        K = YEAR / 1000
-        CHRBUF( J:J ) = DIGITS( K )
-        J = J + 1
+        IF ( YEAR .GT. 0 ) THEN
 
-        K = MOD( YEAR/100, 10 )
-        CHRBUF( J:J ) = DIGITS( K )
-        J = J + 1
+            K = YEAR / 1000
+            CHRBUF( J:J ) = DIGITS( K )
+            J = J + 1
 
-        K = MOD( YEAR / 10, 10 )
-        CHRBUF( J:J ) = DIGITS( K )
-        J = J + 1
+            K = MOD( YEAR/100, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+            J = J + 1
 
-        K = MOD( YEAR, 10 )
-        CHRBUF( J:J ) = DIGITS( K )
+            K = MOD( YEAR / 10, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+            J = J + 1
+
+            K = MOD( YEAR, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+
+        ELSE
+
+            YEAR = -YEAR
+            CHRBUF( J:J ) = '-'
+            J = J + 1
+
+            K = MOD( YEAR/100, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+            J = J + 1
+
+            K = MOD( YEAR / 10, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+            J = J + 1
+
+            K = MOD( YEAR, 10 )
+            CHRBUF( J:J ) = DIGITS( K )
+
+        END IF
 
         MMDDYY = CHRBUF
 
         RETURN
-        END
+        END FUNCTION  MMDDYY
 

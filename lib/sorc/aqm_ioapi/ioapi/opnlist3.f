@@ -1,15 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION OPNLIST3( FID, PGNAME )
+
+C***********************************************************************
 C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  OPNLIST3( FID, PGNAME )
-
-C***********************************************************************
-C  function body starts at line  92
+C  function body starts at line  94
 C
 C  FUNCTION:
 C       Open a FILE-LIST multi-file data set for status FSREAD3
@@ -37,20 +37,17 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID     !  index into STATE3 tables
-        CHARACTER*(*)   PGNAME  !  name of calling program
+        INTEGER      , INTENT(IN   ) :: FID     !  index into STATE3 tables
+        CHARACTER*(*), INTENT(IN   ) :: PGNAME  !  name of calling program
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1   !  look up names in tables
-        INTEGER         JSTEP3   !  timestep record-number
-        LOGICAL         OPNFIL3  !  does work of opening "old" files
-        INTEGER         SECSDIFF !  date&time difference (seconds)
-        LOGICAL         STRLIST  !  parse comma-delimited lists of strings
-        INTEGER         TRIMLEN  !  non-blank portion of name
-
-        EXTERNAL  INDEX1, JSTEP3, OPNFIL3, SECSDIFF, STRLIST, TRIMLEN
+        INTEGER, EXTERNAL :: INDEX1   !  look up names in tables
+        INTEGER, EXTERNAL :: JSTEP3   !  timestep record-number
+        LOGICAL, EXTERNAL :: OPNFIL3  !  does work of opening "old" files
+        INTEGER, EXTERNAL :: SECSDIFF !  date&time difference (seconds)
+        LOGICAL, EXTERNAL :: STRLIST  !  parse comma-delimited lists of strings
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -74,14 +71,8 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
 C...........   STATEMENT FUNCTION:  REAL, REAL*8 "definitely unequal"
         
-        LOGICAL         FLTERR
-        REAL            PP, QQ
-
         LOGICAL         DBLERR
         REAL*8          P, Q
-
-        FLTERR( PP, QQ ) = 
-     &      ( (PP - QQ)**2  .GT.  1.0E-10*( PP*PP + QQ*QQ + 1.0E-5 ) )
 
         DBLERR( P, Q ) = 
      &      ( (P - Q)**2  .GT.  1.0E-10*( P*P + Q*Q + 1.0E-5 ) )
@@ -92,7 +83,7 @@ C   begin body of subroutine  OPNFIL3
          IF ( .NOT. STRLIST( FLIST3( FID ), 'Logical name list', 
      &                       MXFILE3, LISTCNT, LISTNAME ) ) THEN
 
-             MESG = FIL16 // ':'//EQNAME( 1:TRIMLEN( EQNAME ) )
+             MESG = FIL16 // ':'//TRIM( EQNAME )
             CALL M3MSG2( MESG )
             CALL M3WARN( 'OPEN3', 0, 0, 'Bad FILE_LIST.' )
             FLIST3( FID ) = CMISS3
@@ -332,7 +323,7 @@ C   begin body of subroutine  OPNFIL3
             ELSE                !  i > 0 but not aflag:
 
                 EFLAG = .TRUE.
-                MESG  = FIL16//':'//EQNAME( 1:TRIMLEN(EQNAME) )
+                MESG  = FIL16//':'//TRIM(EQNAME)
                 CALL M3MSG2( MESG )
                 CALL M3WARN( 'OPNLIST3', 0, 0, 'File not available.' )
                 FLIST3( I ) = CMISS3
@@ -379,4 +370,4 @@ C   begin body of subroutine  OPNFIL3
         END IF                  !  if error, or not
 
         RETURN
-        END
+        END FUNCTION OPNLIST3

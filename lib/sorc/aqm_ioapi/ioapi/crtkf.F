@@ -1,17 +1,18 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION CRTKF ( EQNAME, FID, PGNAME, BUFFER )
 
 C***********************************************************************
-C  subroutine body starts at line 82
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2011 Baron Advanced Meteorological Systems, and
+C (C) 2011 David Wong
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line 88
 C
-C  FUNCTION:  Create netCDF KF-Cloud Event file FNAME using info stored 
+C  FUNCTION:  Create netCDF KF-Cloud Event file FNAME using info stored
 C      in the FDESC3 common.  Record history, Leave file open for update.
 C
 C  PRECONDITIONS REQUIRED:  File definition already put into FDESC3 common
@@ -24,6 +25,11 @@ C       revised   9/1999 by CJC:  Unification of KFOPEN() with OPEN3()
 C       revised   2/2002 by CJC:  for volatile, call ncsync() before return
 C       Revised   3/2002 by CJC:  OpenMP thread-safety;
 C                                 turn off NF_SHARED for Crays
+C       Modified 10/2009 by CJC:  flags-change for netCDF4  from
+C       Martin Otte, US EPA -- remove NF_WRITE.
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
+C       Revised 4/2011 by David Wong, US EPA, and by CJC, to add state for
+C       full buffered-file file descriptions.
 C***********************************************************************
 
       IMPLICIT NONE
@@ -38,28 +44,24 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   EQNAME  !  physical name of file to be created
-        INTEGER         FID     !  index into STATE3 arrays
-        CHARACTER*16    PGNAME  !  name of calling program
-        REAL            BUFFER( * )
+        CHARACTER*(*), INTENT(IN   ) :: EQNAME  !  physical name of file to be created
+        INTEGER      , INTENT(IN   ) :: FID     !  index into STATE3 arrays
+        CHARACTER*(*), INTENT(IN   ) :: PGNAME  !  name of calling program
+        REAL         , INTENT(  OUT) :: BUFFER( * )
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         CRDICT3 !  create variables for dictionary files
-        INTEGER         INDEX1  !  look up names in tables
-        INTEGER         TRIMLEN !  length after trimming trailing blanks.
-
-        EXTERNAL        CRDICT3, INDEX1, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN   !  yes-or-no environment variable value
+        INTEGER, EXTERNAL :: INDEX1  !  look up names in tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER         ISCR
-        INTEGER         FMODE           !  netCDF file-opening mode
         INTEGER         FNUM            !  netCDF file ID from NCCRE()
         INTEGER         IERR            !  netCDF error status return
-        INTEGER         VAR             !  loop counter for file variables
+        INTEGER         VAR, LVL        !  loop counters for file variables
         INTEGER         TSIZE           !  time-step mode
         INTEGER         CDIM            !  col/level     dim #
         INTEGER         RDIM            !  row/site      dim #
@@ -72,21 +74,51 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         DIMS( 5 )       !  array of dims for NCVDEF()
         INTEGER         DELS( 5 )       !  array of dims for NCVPUT()
         LOGICAL         EFLAG
+        CHARACTER*8     BNAME           !  for "BUFFERED", etc.
         CHARACTER*80    DSCBUF          !  scratch buffer for descriptions
 
+        INTEGER, SAVE :: FMODE           !  netCDF file-opening mode
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
+        LOGICAL, SAVE :: OFFSET64 = .FALSE.
 
 C.............................................................................
 C   begin body of subroutine  CRTKF
 C...........  Create the netCDF file, and put it into definition mode.
 
-#if _CRAY
-        FMODE = IOR( NF_NOCLOBBER , NF_WRITE )
-#endif
-#if ! ( _CRAY )
-        FMODE = IOR( IOR( NF_SHARE, NF_NOCLOBBER ), NF_WRITE )
-#endif
+        BNAME = EQNAME( 1:8 )   ! normalize case for "BUFFERED" files
+        CALL UPCASE( BNAME )
+        IF ( BNAME .EQ. 'BUFFERED' ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
+     &                    'Path not a real file:' )
+            CALL M3MSG2( EQNAME )
+            CRTKF = .FALSE.
+            RETURN
+        END IF
 
         EFLAG = .FALSE.
+
+!$OMP   CRITICAL( WRITE3_INIT )
+        IF ( FIRSTIME ) THEN
+
+            OFFSET64 = ENVYN( 'IOAPI_OFFSET_64',
+     &                        'Use NF_64BIT_OFFSET or not',
+     &                        .FALSE.,
+     &                         IERR )
+            IF ( IERR .GT. 0 ) THEN
+                EFLAG = .TRUE.
+                CALL M3MSG2( 'Bad environment vble "IOAPI_LOG_WRITE"' )
+            END IF
+
+            FMODE = IOR( NF_NOCLOBBER, NF_SHARE )
+            IF ( OFFSET64 ) THEN
+                FMODE = IOR( FMODE, NF_64BIT_OFFSET )
+            END IF
+
+            FIRSTIME = .FALSE.
+
+        END IF		!  firstime
+!$OMP   END CRITICAL( WRITE3_INIT )
+
 
 !$OMP CRITICAL( S_NC )
 
@@ -105,11 +137,10 @@ C...........  Create the netCDF file, and put it into definition mode.
 C...........   Set attributes valid for all file types:
 C.......   IOAPI_VERSION:  I/O API version and date
 
-        DSCBUF = '2.2 2002080 (March 21, 2002)'
         CALL NCAPTC( FNUM, NCGLOBAL, 'IOAPI_VERSION', NCCHAR,
-     &               TRIMLEN( DSCBUF ), DSCBUF, IERR )
+     &               LEN_TRIM( DSCBUF ), VERSN3, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute IOAPI_VERSION' )
             EFLAG = .TRUE.
             GO TO 999
@@ -208,7 +239,7 @@ C.......   STIME:  starting time:
         END IF          !  ierr nonzero:  NCAPT() failed
 
 C.......   MXREC:  maximum existing time step number
-        
+
         MXREC3( FID ) = 0
 
 C.......   NTHIK:  mapped onto cellwise max number of events
@@ -401,8 +432,9 @@ C.......   VGTYP:  vertical coordinate type (VGSIGP3, ... ) or IMISS3
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
+        VGTYP3( FID ) = VGTYP3D
 
-C.......   VGTOP:  
+C.......   VGTOP:
 
         CALL NCAPT( FNUM, NCGLOBAL, 'VGTOP', NCFLOAT,
      &              1, VGTOP3D, IERR )
@@ -412,6 +444,7 @@ C.......   VGTOP:
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
+        VGTOP3( FID ) = VGTOP3D
 
 C.......   VGLVS( 1, ..., NLAYS3D+1 ):  vertical coordinate values
 C.......   (trapped against MXLAYS3 to prevent possible array overflow)
@@ -423,7 +456,10 @@ C.......   (trapped against MXLAYS3 to prevent possible array overflow)
      &      'Error creating netCDF file attribute VGLVLS' )
             EFLAG = .TRUE.
             GO TO 999
-        END IF          !  ierr nonzero:  NCAPT() failed
+        END IF          !  ierr nonzero:  NCAPT() failed         !  ierr nonzero:  NCAPT() failed
+        DO LVL = 1, MIN( NLAYS3D+1, MXLAYS3 )
+           VGLVS3( LVL,FID ) = VGLVS3D( LVL )
+        END DO
 
 C.......   GDNAM:  grid name
 
@@ -490,7 +526,7 @@ C...........   First:  time-step (event) and layer-number dimensions
 C...........   (valid for all file types)
 
         TSIZE = NCUNLIM
-                                    
+
         TDIM = NCDDEF( FNUM, 'TSTEP', TSIZE, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -530,7 +566,7 @@ C...........   (valid for all file types)
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCDDEF() failed
-               
+
 
 C...........   Now, other dimensions
 
@@ -541,7 +577,7 @@ C...........   Now, other dimensions
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCDDEF() failed
-           
+
         CDIM = NCDDEF( FNUM, 'COL', NCOLS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -564,14 +600,14 @@ C...........   Create KFCOUNT event-count variable
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCVDEF() failed
-           
+
 C...........   Create event-description variable:
 
         DIMS( 1 ) = DDIM        !  date-time-length-col-row field
         DIMS( 2 ) = TDIM        !  time step dimension
         NDIMS = 2
 
-        TINDX3( FID ) = NCVDEF( FNUM, 'TFLAG', 
+        TINDX3( FID ) = NCVDEF( FNUM, 'TFLAG',
      &                          NCLONG, NDIMS, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -602,7 +638,7 @@ C...........   Create event-description variable:
 
         DSCBUF = 'Event-valid flags:  ' //
      &          'start YYYYDDD,HHMMSS; COL,ROW; duration H*MMSS>'
-        CALL NCAPTC( FNUM, TINDX3( FID ), 'var_desc', NCCHAR, 
+        CALL NCAPTC( FNUM, TINDX3( FID ), 'var_desc', NCCHAR,
      &               MXDLEN3, DSCBUF, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -616,7 +652,7 @@ C...........   Create event-description variable:
         DIMS( 2 ) = CDIM
         DIMS( 3 ) = RDIM
         NDIMS = 3
-           
+
         SINDX3( FID ) = NCVDEF( FNUM, 'KFEVENT', NCLONG, 3, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -624,7 +660,7 @@ C...........   Create event-description variable:
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCVDEF() failed
-           
+
         LINDX3( FID ) = NCVDEF( FNUM, 'KFSDATE', NCLONG, 3, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -632,7 +668,7 @@ C...........   Create event-description variable:
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCVDEF() failed
-           
+
         XINDX3( FID ) = NCVDEF( FNUM, 'KFSTIME', NCLONG, 3, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -640,7 +676,7 @@ C...........   Create event-description variable:
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCVDEF() failed
-           
+
         YINDX3( FID ) = NCVDEF( FNUM, 'KFLNGTH', NCLONG, 3, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -648,7 +684,7 @@ C...........   Create event-description variable:
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCVDEF() failed
-     
+
 
 C.......   Define rest of the variables for this file:
 
@@ -673,10 +709,11 @@ C.......   Define rest of the variables for this file:
             END IF
 
             VLIST3( VAR,FID ) = VNAME3D( VAR )
+            UNITS3( VAR,FID ) = UNITS3D( VAR )
             VTYPE3( VAR,FID ) = ISCR
-            VINDX3( VAR,FID ) = NCVDEF( FNUM, 
+            VINDX3( VAR,FID ) = NCVDEF( FNUM,
      &                                  VNAME3D( VAR ),
-     &                                  VTYPE3D( VAR ), 
+     &                                  VTYPE3D( VAR ),
      &                                  NDIMS, DIMS, IERR )
 
             IF ( IERR .NE. 0 ) THEN
@@ -736,12 +773,12 @@ C...........   now defined.
 
 C.......   File creation now complete (control only falls through
 C.......   to here in case of success).  Need to initialize KFCOUNT:
-        
+
         DO  122  VAR = 1, NCOLS3D * NROWS3D
             BUFFER( VAR ) = 0
 122     CONTINUE
-        
-        
+
+
         DIMS( 1 ) = 1
         DIMS( 2 ) = 1
         DELS( 1 ) = NCOLS3D
@@ -763,7 +800,7 @@ C.......   to here in case of success).  Need to initialize KFCOUNT:
                 GO TO 999
             END IF              !  if synch failed
         END IF          !  if file is volatile
-           
+
 
 C.......   File creation now complete, or else we have a failure-exit
 C.......   from this critical section.
@@ -784,7 +821,7 @@ C...........   Error and warning message formats..... 91xxx
      &            2 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION CRTKF
 
 
 

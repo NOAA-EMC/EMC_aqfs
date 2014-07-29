@@ -1,16 +1,15 @@
 
-C.........................................................................
+        LOGICAL   FUNCTION CHECK3( FNAME, VNAME, JDATE, JTIME )
+
+C***********************************************************************
+C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C (C) 2003 by Baron Advanced Meteorological Systems.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL   FUNCTION  CHECK3 ( FNAME, VNAME, JDATE, JTIME )
-
-C***********************************************************************
-C  function body starts at line  104
+C  function body starts at line  107
 C
 C  FUNCTION:  returns TRUE iff time step for (JDATE,JTIME) and variable
 C       VNAME is available in file with logical name FNAME.  If FNAME 
@@ -44,6 +43,13 @@ C       associated with INIT3()
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C
+C       Modified 9/2004 by CJC for virtual INTERP bug-fix: change to
+C       READ3V interface
+C
+C       Modified 11/2004 by CJC:  new "verbose-flag" argument to RDTFLAG
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -60,29 +66,26 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME   !  file name for query
-        CHARACTER*(*)   VNAME   !  vble name for query
-        INTEGER         JDATE   !  date (YYYYDDD) for query
-        INTEGER         JTIME   !  time (HHMMSS) for query
+        CHARACTER*(*), INTENT(IN   ) ::   FNAME   !  file name for query
+        CHARACTER*(*), INTENT(IN   ) ::   VNAME   !  vble name for query
+        INTEGER      , INTENT(IN   ) ::   JDATE   !  date (YYYYDDD) for query
+        INTEGER      , INTENT(IN   ) ::   JTIME   !  time (HHMMSS) for query
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         INIT3      !  initialize I/O system files.
-        INTEGER         NAME2FID   !  fname~~> fid lookup
-        LOGICAL         RDTFLAG    !  check time step record availability
-        INTEGER         TRIMLEN    !  trimmed string length
-
-        EXTERNAL        INDEX1, INIT3, NAME2FID, RDTFLAG, TRIMLEN
-        EXTERNAL        INITBLK3   !  block data: initialize I/O state
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O system files.
+        INTEGER, EXTERNAL :: NAME2FID   !  fname~~> fid lookup
+        LOGICAL, EXTERNAL :: RDTFLAG    !  check time step record availability
+        
+        EXTERNAL :: INITBLK3   !  block data: initialize I/O state
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER         FID             !  subscript for STATE3 arrays
         INTEGER         STEP            !  time step record number
-        INTEGER         IERR            !  netCDF error status return
         INTEGER         VID             !  subscript for vble in state arrays
         INTEGER         VLEN            !  name lengths for file, vble
         LOGICAL         EFLAG
@@ -104,19 +107,18 @@ C   begin body of function  CHECK3
         FID   = NAME2FID( FNAME )
         EFLAG = ( FID .LE. 0 )
 
-        VLEN  = TRIMLEN( VNAME )
+        VLEN  = LEN_TRIM( VNAME )
 
         IF ( VLEN .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
-            MESG  = 'File "'// FNAME // '" Variable "'// VNAME //'"'
-            CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
      &          'Max vble name length 16; actual: ', VLEN
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
         
         IF ( EFLAG ) THEN
-            MESG = 'Invalid variable or file name arguments'
+            MESG  = 'Invalid file "'// FNAME // 
+     &             '" or variable "'// VNAME //'"'
             CALL M3WARN( 'CHECK3', JDATE, JTIME, MESG )
 	    CHECK3 = .FALSE.
             RETURN
@@ -163,16 +165,14 @@ C.......   Find netCDF index for the file, and check time step availability:
             IF ( VID .EQ. ALLAYS3 ) THEN
                 EFLAG = .TRUE.
                 DO VID = 1, NVARS3(FID)
-                    TYPE  = VTYPE3(VID,FID)
-                    VFLAG = READ3V( PLIST3(FID), VLIST3(VID,FID),
-     $                              SKIP, F1, F2, BUFFER, COUNT, TYPE )
+                    VFLAG = READ3V( FID, VID, SKIP, COUNT,
+     &                              F1, F2, BUFFER )
                     EFLAG = ( EFLAG .AND. VFLAG )
                 END DO
                 CHECK3 = EFLAG
             ELSE
-                TYPE   = VTYPE3(VID,FID)
-                CHECK3 = READ3V( PLIST3(FID), VNAME, SKIP,
-     $                           F1, F2, BUFFER, COUNT, TYPE )
+                CHECK3 = READ3V( FID, VID, SKIP, COUNT,
+     $                           F1, F2, BUFFER )
             END IF
 #endif
 #ifndef IOAPICPL
@@ -183,11 +183,11 @@ C.......   Find netCDF index for the file, and check time step availability:
 
         ELSE
 
-            CHECK3 = RDTFLAG( FID, VID, JDATE, JTIME, STEP )
+            CHECK3 = RDTFLAG( FID, VID, JDATE, JTIME, STEP, .FALSE. )
 
         END IF  
 
         RETURN
 
-        END
+        END FUNCTION CHECK3
 

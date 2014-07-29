@@ -1,34 +1,38 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRPATCH( FID, VID, TSTAMP, STEP2, 
      &                            SIZE_MAP, GRID_MAP, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  68
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  84
 C
-C  FUNCTION:  writes data from Models-3 GRIDDED data file with STATE3
-C             index FID, for all variables and layers, for the time step
-C             record STEP.
+C  FUNCTION:
+C       writes tile of data defined by data  SIZE_MAP, GRID_MAP
+C       from netCDFF-mode Models-3 GRIDDED data file with STATE3
+C       index FID, for all variables and layers, for the time step
+C       record STEP2.
 C
-C  RETURN VALUE:  TRUE iff the operation succeeds
+C  RETURN VALUE:
+C       TRUE iff the operation succeeds
 C
-C  PRECONDITIONS REQUIRED:  Should only be called by WRITE3(), after it
-C             has checked that file and time step are available, and that
-C             file type is GRDDED3.
+C  PRECONDITIONS REQUIRED:
+C       Should only be called by WRITE3(), after it has checked that
+C       file and time step are available, and that file type is GRDDED3.
 C
-C  SUBROUTINES AND FUNCTIONS CALLED:  WRPATCH
+C  SUBROUTINES AND FUNCTIONS CALLED:
+C       netCDF
 C
 C  REVISION  HISTORY:  
 C       Version 8/2001 WRGRDDED_P adapted from WRGRDDED by David Wong,
 C       Lockheed Martin
 C
-C       Prototype 2/2002 by Carlie J. Coats, Jr, MCNC-EMC:
+C       Version 2/2002 by Carlie J. Coats, Jr, MCNC-EMC:
 C       Adapted from WRGRDDED_P and WRPATCH and modified to ensure
 C       correctness of time-stamp handling (which must be performed
 C       by a separate WRTFLAG call subsequent to completion of all
@@ -46,18 +50,14 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  vble index within the STATE3 commons
-        INTEGER         TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER         STEP2           !  file record number (maybe mod 2)
-        INTEGER         GRID_MAP(2)     !  starting corners for grid-patch
-        INTEGER         SIZE_MAP(3)     !  diagonals for grid-patch
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  vble index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  file record number (maybe mod 2)
+        INTEGER, INTENT(IN   ) :: GRID_MAP(2)     !  starting corners for grid-patch
+        INTEGER, INTENT(IN   ) :: SIZE_MAP(3)     !  diagonals for grid-patch
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  buffer array for input
 
-C...........   EXTERNAL FUNCTIONs:
-
-        INTEGER         WRBPATCH
-        EXTERNAL        WRBPATCH
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -70,63 +70,16 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         INDX            !  subscript location in BUFFER(*)
         LOGICAL         AFLAG
 
-        INTEGER         TYPSIZE( 6 )    !  sizeof( variable ) / sizeof( real )
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
 
 C***********************************************************************
-C   begin body of function  WRGRDDED
-
-        IF ( CDFID3( FID )  .EQ. BINFIL3 ) THEN    ! native-binary file
-
-!$OMP CRITICAL( S_LOGOUT )
-
-            AFLAG = .FALSE.
-            DELTA = SIZE_MAP(1) * SIZE_MAP(2) * SIZE_MAP(3)
-
-            IF (VID .GT. 0) THEN
-               IERR = WRBPATCH( FID, VID, GRID_MAP, SIZE_MAP, STEP2, 
-     &                          BUFFER )
-            ELSE
-               INDX  = 1           !  starting subscript for BUFFER(*)
-               DO  VAR = 1 , NVARS3( FID )
-                   IERR = WRBPATCH( FID, VAR, GRID_MAP, SIZE_MAP, STEP2, 
-     &                              BUFFER (INDX) )
-                   IF ( 0 .EQ. IERR ) THEN     !  error
-                       AFLAG = .TRUE.
-                       GOTO 99
-                   END IF
-                   INDX = INDX  +  DELTA * TYPSIZE( VTYPE3( VAR,FID ) )
-               END DO
-            END IF
-
- 99         CONTINUE
-
-!$OMP END CRITICAL( S_LOGOUT )
-
-            IF ( AFLAG ) THEN
-!$OMP CRITICAL( S_LOGOUT )
-                WRITE( LOGDEV, '( 5X, 5 A )' )
-     &                  'Error patch writing variable ', 
-     &                  VLIST3( VID,FID ), 
-     &                  'to BINIO file ', FLIST3( FID )
-                WRITE( LOGDEV,* ) 'IOAPI file ID ', FID
-                WRITE( LOGDEV,* ) 'variable      ', VINDX3( VID,FID )
-                WRITE( LOGDEV,* )
-                WRPATCH = .FALSE.
-!$OMP END CRITICAL( S_LOGOUT )
-            ELSE
-                WRPATCH = .TRUE.
-            END IF
-
-            RETURN
-
-        END IF                          !  if native-binary file
+C   begin body of function  WRPATCH
 
         DIMS( 1 ) = GRID_MAP(1) 
         DELS( 1 ) = SIZE_MAP(1)
@@ -213,5 +166,5 @@ C...........   Perform the writes, according to VID
         WRPATCH = .TRUE.        ! (if you get to here)
         RETURN
 
-        END
+        END FUNCTION WRPATCH
 

@@ -1,15 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/chkfil3.f,v 1.2 2000/11/28 21:22:32 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+        LOGICAL FUNCTION CHKFIL3( FID )
+
+C***********************************************************************
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  CHKFIL3 ( FID )
-
-C***********************************************************************
-C  function body starts at line  83
+C  function body starts at line  95
 C
 C  FUNCTION:  Check consistency between file description in FDESC3
 C             structures and STATE3 tables for new version of OPEN3()
@@ -30,6 +29,13 @@ C       revised  8/2000 by CJC:  format-bug at lines 431-432
 C       revised 10/2000 by CJC:  weakened the SDATE:STIME checking --
 C               SDATE3D:STIME3D must be consistent with the timestep
 C               sequence of the file.
+C       Modified  2/2004 by CJC for I/O API version 3:  support for
+C       native-binary BINFIL3 file type.
+C       Modified  8/2007 by CJC:  support same-set/different-order
+C       variables-lists.
+C       Modified 11/2007 by CJC:  Revert from 8/2007:  same-set/different-order
+C       is bogus
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -44,16 +50,14 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  subscript for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: FID             !  subscript for STATE3 arrays
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL		CKNAME
-        INTEGER         JSTEP3  !  record number within a timestep sequence.
-        INTEGER         TRIMLEN !  length after trimming trailing blanks.
-
-        EXTERNAL        CKNAME, JSTEP3, TRIMLEN
+        LOGICAL, EXTERNAL :: CKNAME
+        INTEGER, EXTERNAL :: INDEX1  !  name-table lookup
+        INTEGER, EXTERNAL :: JSTEP3  !  record number within a timestep sequence.
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -61,7 +65,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         LOGICAL		OKFLAG
         INTEGER         IREC              !  timestep record number
         INTEGER         IERR              !  netCDF error status return
-        INTEGER         VAR, LVL          !  loop counters
+        INTEGER         VAR, LVL, V, I    !  loop counters
         INTEGER         VGTYP             !  vertical coordinate type
         REAL            VGTOP             !  model-top (sigma only)
         REAL            VGLVLS( MXLAYS3 ) !  vertical level values
@@ -316,7 +320,8 @@ C...........   (Not stored for BUFFERED or VIRTUAL files)
 C...........   VG attributes may not be present for old-version files.
 
         IF ( CDFID3( FID ) .NE. BUFFIL3  .AND.
-     &       CDFID3( FID ) .NE. VIRFIL3 ) THEN
+     &       CDFID3( FID ) .NE. VIRFIL3  .AND.
+     &       CDFID3( FID ) .NE. BINFIL3 ) THEN
 
             IF ( NLAYS3D .GT. 1 ) THEN
             
@@ -387,29 +392,27 @@ C.......   GDNAM:  grid name
            
 C.......   Variables-list for the file:
       
-        DO 200  VAR = 1 , NVARS3( FID )
+        DO 200  V = 1 , NVARS3( FID )
 
-          IF ( .NOT. CKNAME( VNAME3D( VAR ) ) ) THEN
-              WRITE( LOGDEV,91010 )
-     &          'Illegal variable name "' // VNAME3D( VAR ) // 
+            IF ( .NOT. CKNAME( VNAME3D( V ) ) ) THEN
+                OKFLAG = .FALSE.
+                WRITE( LOGDEV,91010 )
+     &          'Illegal variable name "' // VNAME3D( V ) // 
      &          '" in file ' // FLIST3( FID )
-              OKFLAG = .FALSE.
-          ELSE IF ( VLIST3( VAR,FID ) .NE. VNAME3D( VAR ) ) THEN
-              WRITE( LOGDEV,91010 )
-     &          'Inconsistent variable list for file '// FLIST3( FID ),
-     &          'Value from file:  '// VLIST3( VAR,FID ),
-     &          'Value from caller:'// VNAME3D( VAR )
-              OKFLAG = .FALSE.
-          END IF
-
-          IF ( VTYPE3( VAR,FID ) .NE. VTYPE3D( VAR ) ) THEN
-              WRITE( LOGDEV,91020 )
-     &          'Inconsistent type for variable ' // VLIST3( VAR,FID )
-     &          // ' from file ' // FLIST3( FID ),
-     &          'Value from file:  ', VTYPE3( VAR,FID ),
-     &          'Value from caller:', VTYPE3D( VAR )
-              OKFLAG = .FALSE.
-          END IF
+            ELSE IF ( VNAME3D(V) .NE. VLIST3(V,FID) ) THEN
+                OKFLAG = .FALSE.
+                WRITE( LOGDEV,91010 )
+     &              'Inconsistent variable list for file '//FLIST3(FID),
+     &              'Value from file:   '// VLIST3(V,FID),
+     &              'Value from caller: '// VNAME3D( V )
+            ELSE IF ( VTYPE3( V,FID ) .NE. VTYPE3D( V ) ) THEN
+                OKFLAG = .FALSE.
+                WRITE( LOGDEV,91020 )
+     &              'Inconsistent type for variable ' // VNAME3D( V )
+     &              // ' from file ' // FLIST3( FID ),
+     &              'Value from file:  ', VTYPE3( V,FID ),
+     &              'Value from caller:', VTYPE3D( V )
+            END IF
 
 200     CONTINUE
            
@@ -447,6 +450,6 @@ C...........   Error and warning message formats..... 91xxx
      &        2 ( /5X , A , 1PE12.5 , : ),
      &            /5X , A , I9 )
 
-        END
+        END FUNCTION CHKFIL3
 
  

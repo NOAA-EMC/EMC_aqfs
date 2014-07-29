@@ -1,17 +1,15 @@
-        
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
 
         CHARACTER*2 FUNCTION CRLF()
 
 C***********************************************************************
-C  subroutine body starts at line  39
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line  36
 C
 C  FUNCTION:  Return character string of character return and line feed
 C
@@ -30,9 +28,7 @@ C****************************************************************************
         CHARACTER*2 VALUE
         SAVE        VALUE
 
-        LOGICAL     FIRSTIME
-        DATA        FIRSTIME / .TRUE. /
-        SAVE        FIRSTIME
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 C***********************************************************************
 C   begin body of subroutine CRLF
@@ -53,4 +49,4 @@ C   begin body of subroutine CRLF
 
         RETURN
 
-        END
+        END FUNCTION CRLF

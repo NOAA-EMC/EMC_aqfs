@@ -1,12 +1,30 @@
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
 
 #ifdef IOAPICPL
       LOGICAL FUNCTION DDTVAR3V( FID, VID, JDATE, JTIME, BUFFER )
+
+C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line  77
+C
+C  FUNCTION:
+C       Wrapper for coupling-mode DDTVAR3()
+C
+C  RETURN VALUE:
+C       TRUE iff operation succeeds
+C
+C  PRECONDITIONS REQUIRED:
+C
+C  REVISION  HISTORY:
+C       Prototype  5/1999 by Atanas L Trayanov, MCNC
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
+C***********************************************************************
 
       IMPLICIT NONE
 
@@ -18,11 +36,21 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-      INTEGER       FID         !  file subscript for STATE3 arrays
-      INTEGER       VID         !  variable subscript for STATE3 arrays
-      INTEGER       JDATE       !  date, formatted YYYYDDD
-      INTEGER       JTIME       !  time, formatted HHMMSS
-      REAL          BUFFER(*)   !  interpolation-output buffer array
+      INTEGER, INTENT(IN   ) :: FID         !  file subscript for STATE3 arrays
+      INTEGER, INTENT(IN   ) :: VID         !  variable subscript for STATE3 arrays
+      INTEGER, INTENT(IN   ) :: JDATE       !  date, formatted YYYYDDD
+      INTEGER, INTENT(IN   ) :: JTIME       !  time, formatted HHMMSS
+      REAL   , INTENT(  OUT) :: BUFFER(*)   !  interpolation-output buffer array
+
+
+C...........   EXTERNAL FUNCTIONS and their descriptions:
+
+      INTEGER, EXTERNAL :: BUFVGT3     !  alloc/interp from circ. bufs. (C)
+      INTEGER, EXTERNAL :: BUFDDT3     !  alloc/ddt from circ. bufs. (C)
+      LOGICAL, EXTERNAL :: CURRSTEP    !  finds start of timestep
+      INTEGER, EXTERNAL :: SECSDIFF    !  computes date&time differences
+      INTEGER, EXTERNAL :: TIME2SEC    !  converts time to seconds
+      LOGICAL, EXTERNAL :: VIR2BUF
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -38,24 +66,13 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
       INTEGER PDATE, PTIME, FDATE, FTIME
 
-
-C...........   EXTERNAL FUNCTIONS and their descriptions:
-
-      INTEGER       BUFVGT3     !  alloc/interp from circ. bufs. (C)
-      INTEGER       BUFDDT3     !  alloc/ddt from circ. bufs. (C)
-      LOGICAL       CURRSTEP    !  finds start of timestep
-      INTEGER       SECSDIFF    !  computes date&time differences
-      INTEGER       TIME2SEC    !  converts time to seconds
-      EXTERNAL      BUFVGT3, BUFDDT3, CURRSTEP,
-     $     SECSDIFF, TIME2SEC
-
-
       INTEGER       COUNT
       INTEGER       I
       LOGICAL       PL, PN, FL, FN
 
-      LOGICAL       VIR2BUF
-      EXTERNAL      VIR2BUF
+
+C***********************************************************************
+C   begin body of subroutine  DDTVAR3V()
 
       TSTEP = TSTEP3( FID )
       COUNT = BSIZE3(FID)*NLAYS3(FID)
@@ -109,24 +126,24 @@ C.....we use the next call only to allocate memory for circular buffer
          IF(PL) THEN
             IP=0
             IF (.NOT. FN) THEN
-               DDTVAR3V = VIR2BUF( FID, VID, 1, FDATE, FTIME, BUFFER)
+               DDTVAR3V = VIR2BUF( FID, VID, 1, FDATE, FTIME )
             ENDIF
          ELSE IF(PN) THEN
             IP=1
             IF (.NOT. FL) THEN
-               DDTVAR3V = VIR2BUF( FID, VID, 0, FDATE, FTIME, BUFFER)
+               DDTVAR3V = VIR2BUF( FID, VID, 0, FDATE, FTIME )
             ENDIF
          ELSE IF(FL) THEN
             IP=1
-            DDTVAR3V = VIR2BUF( FID, VID, 1, PDATE, PTIME, BUFFER)
+            DDTVAR3V = VIR2BUF( FID, VID, 1, PDATE, PTIME )
          ELSE IF(FN) THEN
             IP=0
-            DDTVAR3V = VIR2BUF( FID, VID, 0, PDATE, PTIME, BUFFER)
+            DDTVAR3V = VIR2BUF( FID, VID, 0, PDATE, PTIME )
          ELSE
             IP=0
-            DDTVAR3V = VIR2BUF( FID, VID, 0, PDATE, PTIME, BUFFER)
+            DDTVAR3V = VIR2BUF( FID, VID, 0, PDATE, PTIME )
             DDTVAR3V = DDTVAR3V .AND.
-     $                 VIR2BUF( FID, VID, 1, FDATE, FTIME, BUFFER)
+     $                 VIR2BUF( FID, VID, 1, FDATE, FTIME )
          ENDIF
       ENDIF
 
@@ -149,6 +166,6 @@ C.....we use the next call only to allocate memory for circular buffer
       ENDIF
 
       RETURN
-      END
+      END FUNCTION DDTVAR3V
 
 #endif

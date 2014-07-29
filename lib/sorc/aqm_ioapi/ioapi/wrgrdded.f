@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/wrgrdded.f,v 1.2 2000/11/28 21:23:09 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRGRDDED( FID, VID, TSTAMP, STEP2, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  68
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  69
 C
 C  FUNCTION:  writes data from Models-3 GRIDDED data file with STATE3
 C             index FID, for all variables and layers, for the time step
@@ -29,6 +29,7 @@ C
 C       revised  10/94 by CJC:  allow write-by-variable; record 
 C       time-step number as time step flag; restart files.
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -42,11 +43,11 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  vble index within the STATE3 commons
-        INTEGER         TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER         STEP2           !  file record number (maybe mod 2)
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  vble index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  file record number (maybe mod 2)
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
@@ -86,5 +87,5 @@ C...........   Perform the writes, according to VID
 
         RETURN
 
-        END
+        END FUNCTION WRGRDDED
 

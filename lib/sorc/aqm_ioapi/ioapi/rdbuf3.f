@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       LOGICAL FUNCTION RDBUF3( FID, VID, LAYER, JDATE, JTIME, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  80
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  78
 C
 C  FUNCTION:  reads data from Models-3 BUFFEREd "file" with M3 file
 C       index FID for variable with name VNAME and layer LAYER, 
@@ -39,6 +37,8 @@ C       Modified 5/2002 to support types other than REAL
 C
 C       Modified 5/2003 by CJC: bugfix by David Wong, US EPA -- wrong
 C       arguments to the BUFGET*()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -50,20 +50,18 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  subscript for STATE3 arrays
-        INTEGER         VID             !  subscript for STATE3 arrays
-        INTEGER         LAYER           !  layer number, or 0
-        INTEGER         JDATE           !  date, formatted YYYYDDD
-        INTEGER         JTIME           !  time, formatted HHMMSS
-        REAL            BUFFER(*)       !  input buffer array
+        INTEGER, INTENT(IN   ) :: FID             !  subscript for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: VID             !  subscript for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: LAYER           !  layer number, or 0
+        INTEGER, INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        REAL   , INTENT(  OUT) :: BUFFER(*)       !  input buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         JSTEP3     !  compute time step record numbers
-        INTEGER         BUFGET3, BUFGET3D, BUFGET3I
-
-        EXTERNAL        JSTEP3, BUFGET3, BUFGET3D, BUFGET3I
+        INTEGER, EXTERNAL :: JSTEP3     !  compute time step record numbers
+        INTEGER, EXTERNAL :: BUFGET3, BUFGET3D, BUFGET3I
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -184,5 +182,5 @@ C   begin body of function  RDBUF3
         END IF                          !  read one vble, or read all vbles
         
         RETURN
-        END
+        END FUNCTION RDBUF3
 

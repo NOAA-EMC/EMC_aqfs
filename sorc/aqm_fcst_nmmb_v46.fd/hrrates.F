@@ -51,12 +51,31 @@ C.....PARAMETERS: NONE
 
 C.....EXTERNAL FUNCTIONS: NONE
 
+      LOGICAL, EXTERNAL :: ENVYN
+      INTEGER STATUS
+      CHARACTER (16) :: NTR_FAST = 'NTR_FAST'
+      LOGICAL, SAVE :: FIRSTIME = .TRUE.      
 
 C.....SAVED VARIABLES: NONE
       CHARACTER( 16 ), SAVE  ::  PNAME = 'HRRATES'   ! Program name
+      LOGICAL, SAVE   :: NTRCHECK          
+      CHARACTER( 120 ) :: XMSG = ' '
 
 
 C.....LOCAL VARIABLES: None
+
+      IF ( FIRSTIME ) THEN
+        FIRSTIME = .FALSE. 
+	
+        NTRCHECK = .FALSE.   !default	
+        NTRCHECK = ENVYN( NTR_FAST, 'NTR flag', NTRCHECK, STATUS )
+        IF ( STATUS .NE. 0 ) THEN
+        XMSG = ' Environment variabal improperly formatted '
+        CALL M3WARN ( PNAME, 0, 0, XMSG )
+        END IF 
+      
+C        PRINT*, "NTRCHECK=",NTRCHECK
+      END IF
 
 C***********************************************************************
 C..NOTE: RXRAT commented out are not referenced by any routine
@@ -120,7 +139,13 @@ C..NOTE: RXRAT commented out are not referenced by any routine
       RXRAT(  58 ) = RKI(  58 ) * YC( XO2     ) * YC( XO2     )
       RXRAT(  59 ) = RKI(  59 ) * YC( XO2N    ) * YC( XO2N    )
       RXRAT(  60 ) = RKI(  60 ) * YC( XO2     ) * YC( XO2N    )
-      RXRAT(  61 ) = RKI(  61 ) * YC( NTR     ) * YC( OH      )
+      IF(NTRCHECK) THEN
+       RXRAT(  61 ) = 10 * RKI(  61 ) * YC( NTR     ) * YC( OH      )
+C       PRINT*, "NTR removal speed up",RXRAT(61)
+      ELSE
+       RXRAT(  61 ) = RKI(  61 ) * YC( NTR     ) * YC( OH      )
+C       PRINT*, "NTR removal unchange", RXRAT(61)
+      END IF
       RXRAT(  62 ) = RKI(  62 ) * YC( NTR     )
       RXRAT(  63 ) = RKI(  63 ) * YC( ROOH    ) * YC( OH      )
       RXRAT(  64 ) = RKI(  64 ) * YC( ROOH    )

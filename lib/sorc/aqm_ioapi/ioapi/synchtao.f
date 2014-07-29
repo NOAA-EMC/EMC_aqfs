@@ -3,13 +3,13 @@
 
 C*************************************************************************
 C       Version "@(#)$Header$"
-C       EDSS/Models-3 I/O API.  Copyright (C) 2003 Baron Advanced
-C       Meteorological Systems
+C       EDSS/Models-3 I/O API.
+C       Copyright (C) 2003-2010 Baron Advanced Meteorological Systems, LLC
 C       Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C       See file "LGPL.txt" for conditions of use.
 C.........................................................................
-C  subroutine body   starts at line  103
-C  entry  INITSYNCH  starts at line  155
+C  subroutine body   starts at line  101
+C  entry  INITSYNCH  starts at line  153
 C
 C  DESCRIPTION:
 C       Package for virtual-mode synchronization.
@@ -46,6 +46,7 @@ C       (I/O API)
 C
 C  REVISION  HISTORY:
 C       Prototype 5/2003 by Carlie J. Coats, Jr., BAMS
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
@@ -59,34 +60,31 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   SYNCHFILE
-        CHARACTER*(*)   SYNCHVBLE
-        INTEGER         STATUS
-        INTEGER         JDATE
-        INTEGER         JTIME
+        CHARACTER*(*), INTENT(IN   ) :: SYNCHFILE
+        CHARACTER*(*), INTENT(IN   ) :: SYNCHVBLE
+        INTEGER      , INTENT(IN   ) :: STATUS
+        INTEGER      , INTENT(IN   ) :: JDATE
+        INTEGER      , INTENT(IN   ) :: JTIME
 
 C...........   PARAMETERS and their descriptions:
 
-        CHARACTER*16    BLANK
-        PARAMETER     ( BLANK = ' ' )
+        CHARACTER*16, PARAMETER :: BLANK = ' '
+
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER   ENVINT, INDEX1, SECSDIFF, SEC2TIME, TIME2SEC
-        EXTERNAL  ENVINT, INDEX1, SECSDIFF, SEC2TIME, TIME2SEC
+        INTEGER, EXTERNAL:: ENVINT, INDEX1, SECSDIFF, SEC2TIME, TIME2SEC
 
 
 C...........   SAVED LOCAL VARIABLES and their descriptions:
 C...........   NOTE:  the ANSI standard requires the use of SAVE statements
 C...........   for variables which must retain their values from call to call.
 
-        CHARACTER*16    FNAME, VNAME
-        DATA            FNAME, VNAME  / 2 * BLANK /
-        LOGICAL         SYNCHFLAG
-        INTEGER         SDATE, STIME, TSTEP, TSECS, ILAST
+        CHARACTER*16, SAVE :: FNAME = BLANK
+        CHARACTER*16, SAVE :: VNAME = BLANK
 
-        SAVE    FNAME, VNAME, SYNCHFLAG, SDATE, STIME,
-     &          TSTEP, TSECS, ILAST
+        LOGICAL, SAVE :: SYNCHFLAG
+        INTEGER, SAVE :: SDATE, STIME, TSTEP, TSECS, ILAST
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -213,4 +211,4 @@ C-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         RETURN          !!  from initsynch()
 
-        END     !!  end subroutine synchtao()
+        END SUBROUTINE SYNCHTAO

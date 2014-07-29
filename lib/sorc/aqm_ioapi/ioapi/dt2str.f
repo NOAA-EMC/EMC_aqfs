@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/dt2str.f,v 1.2 2000/11/28 21:22:40 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         CHARACTER*24 FUNCTION  DT2STR ( JDATE , JTIME )
 
 C***********************************************************************
-C  function body starts at line  62
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  60
 C
 C  FUNCTION:  format and return the date and time as a character string
 C             "HH:MM:SS  M+ D+, YYYY"
@@ -25,27 +25,25 @@ C  SUBROUTINES AND FUNCTIONS CALLED:  none
 C
 C
 C  REVISION  HISTORY:  
-C        prototype 10/90 by CJC
+C       prototype 10/90 by CJC
 C
-C        Version    2/93 by CJC for CRAY, etc.
+C       Version    2/93 by CJC for CRAY, etc.
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         JDATE   !  Julian date, coded YYYYDDD
-        INTEGER         JTIME   !  time, coded HHMMSS
+        INTEGER, INTENT(IN   ) :: JDATE   !  Julian date, coded YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME   !  time, coded HHMMSS
 
 
 C...........  EXTERNAL FUNCTIONS:
 
-        CHARACTER*10 HHMMSS
-        CHARACTER*14 MMDDYY
-
-        EXTERNAL     HHMMSS, MMDDYY
-
+        CHARACTER*10, EXTERNAL :: HHMMSS
+        CHARACTER*14, EXTERNAL :: MMDDYY
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -67,5 +65,5 @@ C   begin body of function  DT2STR
         DT2STR = TIMBUF // DATBUF
         RETURN
 
-        END
+        END FUNCTION  DT2STR
 

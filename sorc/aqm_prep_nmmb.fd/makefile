@@ -36,7 +36,7 @@ FFLAGS =         -O2  #  -qnosave  -C
 all:		$(CMD)
 
 $(CMD):		$(OBJS)
-	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(LIBS)
+	$(FC) $(LDFLAGS) -o ../../exec/$(@) $(OBJS) $(LIBS)
 
 # Make the profiled version of the command and call it prdgen.prof
 #
@@ -44,7 +44,7 @@ $(CMD).prof:	$(OBJS)
 	$(FC) $(LDFLAGS) -o $(@) $(OBJS) $(PROFLIB) $(LIBS)
 
 clean:
-	-rm -f $(OBJS)
+	-rm -f ../../exec/$(OBJS)
 
 clobber:	clean
 	-rm -f $(CMD) $(CMD).prof

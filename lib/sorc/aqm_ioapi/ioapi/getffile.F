@@ -1,27 +1,25 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
-      INTEGER FUNCTION GETFFILE( LNAME, RDONLY, FMTFLAG, RECLEN, 
+      INTEGER FUNCTION GETFFILE( LNAME, RDONLY, FMTFLAG, RECLEN,
      &                           CALLER )
 
 C***********************************************************************
-C  function body starts at line  83
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  76
 C
 C  DESCRIPTION:
-C    Gets value of logical name LNAME from the environment, checks for 
-C    existence of a file whose file name is that value, then opens the 
-C    file as a sequential file on unit IUNIT according to the flags RDONLY 
-C    (open for read-only iff TRUE, read/write if FALSE) and FMTFLAG 
-C    (formatted iff TRUE, else unformatted), and with the 
-C    indicated record length RECLEN.  
-C    Logs the file-opening, together with the CALLER version, and 
+C    Gets value of logical name LNAME from the environment, checks for
+C    existence of a file whose file name is that value, then opens the
+C    file as a sequential file on unit IUNIT according to the flags RDONLY
+C    (open for read-only iff TRUE, read/write if FALSE) and FMTFLAG
+C    (formatted iff TRUE, else unformatted), and with the
+C    indicated record length RECLEN.
+C    Logs the file-opening, together with the CALLER version, and
 C    returns the unit number (or -1 for failure)
 C
 C    RETURNS:   unit number, (or -1 for failure)
@@ -37,49 +35,44 @@ C       Adapted  10/2000 by CJC from GETFFILE.F
 C
 C       Modified 7/2003 by CJC:  thread safety -- critical section
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
        IMPLICIT NONE
 
 
 C...........   ARGUMENTS and their descriptions:
-                   
 
-       CHARACTER*(*) LNAME          !  logical file name
-       LOGICAL       RDONLY         !  TRUE iff file is input-only
-       LOGICAL       FMTFLAG        !  TRUE iff file should be formatted
-       INTEGER       RECLEN         !  record length
-       CHARACTER*(*) CALLER         !  caller-name for logging
+
+       CHARACTER*(*), INTENT(IN   ) :: LNAME          !  logical file name
+       LOGICAL      , INTENT(IN   ) :: RDONLY         !  TRUE iff file is input-only
+       LOGICAL      , INTENT(IN   ) :: FMTFLAG        !  TRUE iff file should be formatted
+       INTEGER      , INTENT(IN   ) :: RECLEN         !  record length
+       CHARACTER*(*), INTENT(IN   ) :: CALLER         !  caller-name for logging
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
-        
-        INTEGER         INIT3
-        INTEGER         JUNIT
-        INTEGER         TRIMLEN
-            
-        EXTERNAL        INIT3, JUNIT, TRIMLEN
+
+        INTEGER, EXTERNAL :: INIT3
+        INTEGER, EXTERNAL :: JUNIT
 
 
 C...........   LOCAL VARIABLES and their descriptions:
 
-           
         INTEGER         IUNIT
         INTEGER         LLEN, PLEN
         INTEGER		ISTAT, JSTAT
-        
-        LOGICAL         LCHECK
-        
-        INTEGER         LOGDEV          !  also a state variable !
-        DATA            LOGDEV / -1 /
-        SAVE            LOGDEV
 
         CHARACTER*256   PNAME
         CHARACTER*16    FMTSTRING
-        LOGICAL        EFLAG
+        LOGICAL         LCHECK
+        LOGICAL         EFLAG
+
+        INTEGER, SAVE :: LOGDEV = -1
 
 C***********************************************************************
 C   begin body of GETFFILE()
-                              
+
         EFLAG = .FALSE.
 !$OMP   CRITICAL( S_INIT )
         IF ( LOGDEV .LT. 0 ) THEN
@@ -91,9 +84,9 @@ C...........   Read filename from environment ---
 
       CALL NAMEVAL(  LNAME, PNAME )
 
-      LLEN = TRIMLEN( LNAME )
-      PLEN = TRIMLEN( PNAME )
-        
+      LLEN = LEN_TRIM( LNAME )
+      PLEN = LEN_TRIM( PNAME )
+
       IF ( FMTFLAG ) THEN
           FMTSTRING = 'FORMATTED'
       ELSE
@@ -107,18 +100,18 @@ C.......   Check for existence of files ---
       IF ( RDONLY ) THEN
 
           IF ( .NOT. LCHECK ) THEN
-              WRITE( LOGDEV, 9000, IOSTAT=JSTAT, ERR=9999 ) 
+              WRITE( LOGDEV, 9000, IOSTAT=JSTAT, ERR=9999 )
      &            'ERROR: input file not found: ',
      &            LNAME( 1:LLEN ),
      &            PNAME( 1:PLEN )
               GETFFILE = -1
               RETURN
           END IF
-          
+
           IUNIT = JUNIT()
 
 #if _CRAY || _AIX || F90
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          ACTION = 'READ',
@@ -126,7 +119,7 @@ C.......   Check for existence of files ---
      &          IOSTAT = ISTAT )
 #endif
 #if ( __alpha || sgi ) && ( !F90 )
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          STATUS = 'OLD',
@@ -135,7 +128,7 @@ C.......   Check for existence of files ---
      &          IOSTAT = ISTAT )
 #endif
 #if !( __alpha || sgi || _CRAY || _AIX || F90 )
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          STATUS = 'OLD',
@@ -145,16 +138,16 @@ C.......   Check for existence of files ---
 
           IF ( ISTAT .NE. 0 ) THEN
               CALL PERROR( 'ERROR: file not opened successfully')
-              WRITE( LOGDEV, 9100, IOSTAT=JSTAT, ERR=9999 ) 
-     &        LNAME( 1:LLEN ), 
+              WRITE( LOGDEV, 9100, IOSTAT=JSTAT, ERR=9999 )
+     &        LNAME( 1:LLEN ),
      &        PNAME( 1:PLEN ),
      &        'I/O status:  ', ISTAT
               GETFFILE = -1
               RETURN
           END IF
 
-          WRITE( LOGDEV, 9001, IOSTAT=JSTAT, ERR=9999 ) 
-     &        'File ', LNAME( 1:LLEN ), 
+          WRITE( LOGDEV, 9001, IOSTAT=JSTAT, ERR=9999 )
+     &        'File ', LNAME( 1:LLEN ),
      &        ' opened for input on unit:', IUNIT,
      &        PNAME(  1:PLEN  )
 
@@ -170,7 +163,7 @@ C.......   Check for existence of files ---
           IUNIT = JUNIT()
 
 #ifdef __alpha
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          STATUS = 'UNKNOWN',
@@ -178,7 +171,7 @@ C.......   Check for existence of files ---
      &          IOSTAT = ISTAT )
 #endif    /*  ifdef __alpha */
 #ifdef _WIN32
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          CONVERT= 'BIG_ENDIAN',
@@ -187,7 +180,7 @@ C.......   Check for existence of files ---
 #endif    /*  ifdef _WIN32 */
 #ifndef __alpha
 #ifndef _WIN32
-          OPEN( UNIT   = IUNIT, 
+          OPEN( UNIT   = IUNIT,
      &          FILE   = PNAME,
      &          FORM   = FMTSTRING,
      &          RECL   = RECLEN,
@@ -197,16 +190,16 @@ C.......   Check for existence of files ---
 
           IF ( ISTAT .NE. 0 ) THEN
               CALL PERROR( 'ERROR: file not opened successfully')
-              WRITE( LOGDEV, 9100, IOSTAT=JSTAT, ERR=9999 ) 
-     &        LNAME( 1:LLEN ), 
-     &        PNAME( 1:PLEN ), 
-     &        'I/O status:  ', ISTAT 
+              WRITE( LOGDEV, 9100, IOSTAT=JSTAT, ERR=9999 )
+     &        LNAME( 1:LLEN ),
+     &        PNAME( 1:PLEN ),
+     &        'I/O status:  ', ISTAT
               GETFFILE = -1
               RETURN
           END IF
 
-          WRITE( LOGDEV, 9001, IOSTAT=JSTAT, ERR=9999 ) 
-     &        'File "', LNAME( 1:LLEN ), 
+          WRITE( LOGDEV, 9001, IOSTAT=JSTAT, ERR=9999 )
+     &        'File "', LNAME( 1:LLEN ),
      &        '" opened for output on unit:', IUNIT,
      &        PNAME(  1:PLEN  )
 
@@ -222,7 +215,7 @@ C     handle messaging errors:
 
       IF ( JSTAT .NE. 0 ) THEN
            CALL PERROR( 'ERROR writing log message.')
-           WRITE( LOGDEV, 9200, IOSTAT=ISTAT ) 
+           WRITE( LOGDEV, 9200, IOSTAT=ISTAT )
      &         'I/O status:', JSTAT
            GETFFILE = -1
            RETURN
@@ -233,33 +226,10 @@ C    Format statements:
 
 8000   FORMAT( A )
 9000   FORMAT( /, 1X, 2A, /, :, 1X, A, / )
-9001   FORMAT( /, 5X, 3A, I4, 
+9001   FORMAT( /, 5X, 3A, I4,
      &         /, 5X,  A, /)
 9100   FORMAT( /, 1X,  A, ':', A,
      &         /, 1X,  A, I7 , / )
 9200   FORMAT( /, 1X,  A, I7 , / )
-      
-       END
 
-#ifndef sgi
-#ifndef __sun
-#ifndef __alpha
-#ifndef __hpux
-       SUBROUTINE PERROR( ERRMSG )
-       CHARACTER*(*)  ERRMSG
-       INTEGER  INIT3, LOGDEV
-       LOGDEV = INIT3()
-       WRITE( LOGDEV, '(/5X, A )' ) ERRMSG
-       RETURN
-       END
-#endif    /*  ndef __hpux */
-#endif    /*  ndef __alpha */
-#endif    /*  ndef __sun */
-#endif    /*  ndef sgi */
-
-#ifdef __hpux
-       INTEGER FUNCTION IARGC()
-       IARGC = IARGC_()
-       RETURN
-       END
-#endif    /*  ifdef __hpux */
+       END FUNCTION GETFFILE

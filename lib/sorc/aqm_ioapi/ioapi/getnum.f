@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION GETNUM ( LO , HI , DEFAULT , PROMPT )
 
 C********************************************************************
-C       function body starts at line  90
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C       function body starts at line  83
 C
 C       CALLS:      TRIMLEN, ENVYN, M3EXIT
 C
@@ -19,8 +17,8 @@ C  FUNCTION:
 C
 C       Display the  PROMPT  for an integer between  LO  and  HI,
 C       get the user's response and check that it is within range.
-C       Return DEFAULT if the user hits <RET>.  Reprompts on error
-C       for up to5 attempts.
+C       Return DEFAULT if the user hits <RET>.  Re-prompts on error
+C       for up to 5 attempts.
 C
 C  REVISION HISTORY:
 C
@@ -34,6 +32,7 @@ C       Revised 5/2003 by CJC:  factor through M3MSG2 to ensure flush()
 C       of log-messages
 C       Revised 6/2003 by CJC:  factor through M3PROMPT to ensure flush()
 C       of PROMPT for IRIX F90v7.4  
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C
 C  ARGUMENT LIST DESCRIPTION:
 C
@@ -54,22 +53,19 @@ C********************************************************************
 
 C.......   ARGUMENTS:
 
-        INTEGER         LO , HI
-        INTEGER         DEFAULT
-        CHARACTER*(*)   PROMPT
+        INTEGER      , INTENT(IN   ) :: LO , HI , DEFAULT
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT
 
 
 C.......   EXTERNAL FUNCTIONS:
 
-        LOGICAL         ENVYN
-        INTEGER         TRIMLEN
-        INTEGER         LBLANK          ! # of leading blanks
-        EXTERNAL        ENVYN, TRIMLEN , LBLANK
+        LOGICAL, EXTERNAL :: ENVYN
+        INTEGER, EXTERNAL :: LBLANK          ! # of leading blanks
 
 
 C.......   LOCAL VARIABLES:
 
-        INTEGER         J , M , N
+        INTEGER         J , M
         INTEGER         LLO , LHI , LDF
         INTEGER         ANSWER
         INTEGER         ERRCNT
@@ -78,11 +74,8 @@ C.......   LOCAL VARIABLES:
         CHARACTER*8     FMTSTR
         CHARACTER*256   MESG
 
-        LOGICAL         PROMPTON
-
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
-        SAVE            FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 C......................................................................
 C       begin GETNUM
@@ -95,7 +88,7 @@ C       begin GETNUM
  
         END IF
 
-        M  =  TRIMLEN( PROMPT )
+        M  =  LEN_TRIM( PROMPT )
 
         IF( .NOT. PROMPTON ) THEN
             GETNUM = DEFAULT
@@ -128,7 +121,7 @@ C       begin GETNUM
             WRITE( MESG, '( A, I10 )' ) 'Using default', LDF
         ELSE
 
-	    M = TRIMLEN( BUFFER )
+	    M = LEN_TRIM( BUFFER )
             WRITE( FMTSTR, 94010 ) M
             READ( BUFFER, FMTSTR, IOSTAT=IOS, ERR=400 )  ANSWER
 
@@ -194,7 +187,4 @@ C................   end body of GETNUM  .......................................
 
 94010   FORMAT ( '(I', I3, ')' )
 
-        END
-
-C................   end   GETNUM  ....................................
-
+        END FUNCTION GETNUM

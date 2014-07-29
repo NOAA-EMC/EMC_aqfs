@@ -1,18 +1,15 @@
 
-C.........................................................................
+        INTEGER FUNCTION INITLOG3 ( CALLER )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C 2003 by Baron Advanced Meteorological Systems.
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        INTEGER FUNCTION INITLOG3 ( CALLER )
-
-
-C***********************************************************************
-C  subroutine body starts at line  87
+C  subroutine body starts at line  85
 C
 C  FUNCTION:
 C       I/O API INTERNALS ONLY
@@ -30,6 +27,7 @@ C  REVISION  HISTORY:
 C       Adapted 12/2003 by CJC from section of INIT3().
 C       Hack "CALL INITBLK3" to deal with failure of SGI version 7.4
 C       compilers to follow industry standards.
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -43,7 +41,7 @@ C...........   INCLUDES:
 
 C...........   ARGUMENT and its description:
 
-        CHARACTER*(*)   CALLER
+        CHARACTER*(*), INTENT(IN   ) :: CALLER
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
@@ -52,8 +50,8 @@ C...........   EXTERNAL FUNCTIONS and their descriptions:
 #define  FLUSH flush_
 #endif
 
-        INTEGER         JUNIT, TRIMLEN
-        EXTERNAL        INITBLK3, JUNIT, TRIMLEN
+        INTEGER, EXTERNAL :: JUNIT
+        EXTERNAL          :: INITBLK3
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -61,14 +59,14 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         CHARACTER*512   EQNAME
         CHARACTER*256   MESG            !  message/warning buffer
 
-        INTEGER         L, IOST, IDEV
+        INTEGER         L, IOST
 
 C...........   SAVED LOCAL VARIABLES and their descriptions:
 C...........   NOTE:  the ANSI standard requires the use of SAVE statements
 C...........   for variables which must retain their values from call to call.
 
-        CHARACTER*16    LOGFILE
-        DATA            LOGFILE / 'LOGFILE         ' /
+        CHARACTER*16, PARAMETER :: LOGFILE = 'LOGFILE'
+
 
 C***********************************************************************
 C   begin body of subroutine  INITLOG
@@ -116,15 +114,14 @@ C   begin body of subroutine  INITLOG
             END IF
 
             IF ( IOST .NE. 0 ) THEN
-                MESG = CALLER( 1:TRIMLEN( CALLER ) ) // '/INITLOG3'
-                L    = TRIMLEN( MESG )
+                MESG =TRIM( CALLER ) // '/INITLOG3'
                 WRITE( *, '( /, 5X, 3 A )' )
-     &                    '***  ERROR in ', MESG( 1:L ), '  ***'
+     &                    '***  ERROR in ', TRIM( MESG ), '  ***'
                 WRITE( *, '( 5X, A, I10 )' )
      &                    'Error opening log file on unit', LOGDEV,
      &                    'I/O STATUS =', IOST
                 WRITE( *, '( 5X, 2 A, / )' )
-     &                    'File: ', EQNAME( 1:TRIMLEN( EQNAME ) )
+     &                    'File: ', TRIM( EQNAME )
                 CALL EXIT( 2 )
             END IF
 
@@ -134,4 +131,4 @@ C   begin body of subroutine  INITLOG
 
         RETURN
 
-        END
+        END FUNCTION INITLOG3

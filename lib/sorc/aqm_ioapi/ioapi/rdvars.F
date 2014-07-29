@@ -1,17 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION RDVARS( FID, VID, DIMS, DELS, DELTA, BUFFER )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION RDVARS( FID, VID, DIMS, DELTS, DELTA, BUFFER )
-
-C***********************************************************************
-C  function body starts at line  96
+C  function body starts at line  121
 C
 C  FUNCTION:
 C       reads "variables" part of time step records from Models-3 file
@@ -27,12 +25,12 @@ C
 C  RETURN VALUE:  TRUE iff the operation succeeds (and the data is available)
 C
 C  PRECONDITIONS REQUIRED:
-C       DIMS and DELTS must have the time dimension entries as the last
+C       DIMS and DELS must have the time dimension entries as the last
 C       nonzero entries, and must be padded with zeros beyond that point.
 C
 C       Should only be called by the above routines, after OPEN3() has
 C       checked for file and time step availability, and after the above
-C       routines have set up DIMS, DELTS, and DELTA.
+C       routines have set up DIMS, DELS, and DELTA.
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:  INDEX1
 C
@@ -45,6 +43,11 @@ C       Modified  5/1998 by CJC for OpenMP thread-safety
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C
+C       Modified  4/2004 by CJC for I/O API version 3:  fix bug in
+C       ALLAYS-ALVARS case; correct ALLVARS warning messages.
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -58,18 +61,17 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  variable index or -1 == ALL
-        INTEGER         DIMS ( 5 )      !  corner arg array for NCVGT()
-        INTEGER         DELTS( 5 )      !  corner arg array for NCVGT()
-        INTEGER         DELTA           !  d(INDX) / d(NCVGTcall)
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  variable index or -1 == ALL
+        INTEGER, INTENT(IN   ) :: DIMS( 5 )       !  corner arg array for NCVGT()
+        INTEGER, INTENT(IN   ) :: DELS( 5 )       !  corner arg array for NCVGT()
+        INTEGER, INTENT(IN   ) :: DELTA           !  d(INDX) / d(NCVGTcall)
+        REAL   , INTENT(  OUT) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONs:
 
-        INTEGER         RDBVARS
-        EXTERNAL        RDBVARS
+        INTEGER, EXTERNAL :: RDBVARS
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -77,18 +79,36 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         IERR            !  netCDF error status return
         INTEGER         VAR             !  loop counter for file variables
         INTEGER         INDX            !  subscript location in BUFFER(*)
-        INTEGER         I, STEP, LAYR   !  subscript location in BUFFER(*)
+        INTEGER         I               !  counter
+        INTEGER         STEP, NREC      !  time subscript location in BUFFER(*)
+        INTEGER         LAYR            !  layer subscript location in BUFFER(*)
+        INTEGER         RSIZE
+        LOGICAL         EFLAG
         CHARACTER*256   MESG
         
-        INTEGER		TYPSIZE( 6 )    !  sizeof( variable ) / sizeof( real )
+        INTEGER, PARAMETER :: STEPDEX( -2:9 ) =
+     &       (/
+     &        IMISS3,   !  out-of-range
+     &        3,        !  CUSTOM3
+     &        IMISS3,   !  DCTNRY3:  should not go through RDVARS()
+     &        4,        !  GRDDED3
+     &        3,        !  BNDARY3
+     &        3,        !  IDDATA3
+     &        4,        !  PROFIL3
+     &        4,        !  GRNEST3
+     &        2,        !  SMATRX3
+     &        4,        !  TSRIES3
+     &        4,        !  PTRFLY3
+     &        IMISS3    !  out-of-range
+     &        /)
+
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
-        INTEGER         SIZE
 
 C***********************************************************************
 C   begin body of function  RDVARS
@@ -97,63 +117,63 @@ C...........   Perform the reads, according to VID
 
         IF ( CDFID3( FID ) .EQ. BINFIL3 ) THEN    ! native-binary file
 
-            !!  the highest-subscripted nonzero entry of DELTS()
-            !!  determines STEP:
+            !!  the highest-subscripted nonzero entry of DELS()
+            !!  determines STEP:  this may be 1 or 2 (the latter
+            !!  for calls from INTERP3() or DDTVAR3())
 
-            IF      ( FTYPE3( FID ) .EQ. CUSTOM3 ) THEN
-                STEP = DIMS( 3 )
-                LAYR = DIMS( 2 )
-            ELSE IF ( FTYPE3( FID ) .EQ. GRDDED3 ) THEN
-                STEP = DIMS( 4 )
-                IF ((DIMS(3) .EQ. 1)
-     &              .AND. (DELTS(3) .EQ. NLAYS3(FID))) THEN
-                   LAYR = -1
-                ELSE
-                   LAYR = DIMS( 3 )
-                END IF
-                SIZE = DELTS(4)
-            ELSE IF ( FTYPE3( FID ) .EQ. BNDARY3 ) THEN
-                STEP = DIMS( 3 )
-                IF ((DIMS(2) .EQ. 1) 
-     &              .AND. (DELTS(2) .EQ. NLAYS3(FID))) THEN
-                   LAYR = -1
-                ELSE 
-                   LAYR = DIMS( 2 )
-                END IF
-                SIZE = DELTS(3)
-            ELSE IF ( FTYPE3( FID ) .EQ. IDDATA3 ) THEN
-                STEP = DIMS( 3 )
-                LAYR = DIMS( 2 )
-            ELSE IF ( FTYPE3( FID ) .EQ. PROFIL3 ) THEN
-                STEP = DIMS( 4 )
-                LAYR = DIMS( 3 )
-            ELSE IF ( FTYPE3( FID ) .EQ. GRNEST3 ) THEN
-                STEP = DIMS( 4 )
-                LAYR = 1
-            ELSE IF ( FTYPE3( FID ) .EQ. SMATRX3 ) THEN
-                STEP = DIMS( 2 )
-                LAYR = 1
-                SIZE = 1
-            ELSE
-                MESG = 'RDVARS:  bad file type for variable ' //
+            I = STEPDEX( MIN( 9, MAX( -2, FTYPE3( FID ) ) ) )
+
+            IF ( I .LT.0 ) THEN
+                IF ( VID .GT. 0 ) THEN
+                    MESG = 'RDVARS:  bad file type for variable ' //
      &                 VLIST3( VAR,FID )// 'from file ' // FLIST3( FID )
+                ELSE
+                    MESG = 'RDVARS:  bad file type for file ' // 
+     &                 FLIST3( FID )
+                END IF
                 CALL M3MSG2( MESG )
                 RDVARS = .FALSE.
                 RETURN
+            ELSE
+                STEP = DIMS( I )
+                NREC = DELS( I )
+                LAYR = DIMS( I-1 )
             END IF
 
-            !!  if you get to here:  bad setup for call    
+            IF ( LAYR .EQ. 1 .AND. DELS(I-1) .EQ. NLAYS3( FID ) ) THEN
+                LAYR = ALLAYS3
+            END IF
 
+            IF ( VID .GT. 0 ) THEN
+                RSIZE = DELTA*TYPSIZE( VTYPE3( VID,FID ) )
+            ELSE
+                RSIZE = 0
+                DO VAR = 1, MAX( 1, NVARS3( FID ) )
+                    RSIZE = RSIZE + DELTA*TYPSIZE( VTYPE3( VAR,FID ) )
+                END DO
+            END IF
 
-11          CONTINUE
+            EFLAG = .FALSE.
+            INDX  = 1
 
 !$OMP CRITICAL( S_NC )
-            IERR = RDBVARS( FID, VID, LAYR, STEP, SIZE, BUFFER )
+            DO  I = STEP, STEP+NREC-1
+                IF ( 0 .EQ. RDBVARS( FID, VID, LAYR, I, 
+     &                               BUFFER( INDX ) ) ) THEN
+                    EFLAG = .TRUE.
+                END IF
+                INDX = INDX + RSIZE
+            END DO
 !$OMP END CRITICAL( S_NC )
 
-            IF ( IERR .EQ. 0  ) THEN     !  error
-                MESG = 'Error reading variable ' // VLIST3( VAR,FID )
-     &                  // 'from file ' // FLIST3( FID )
+            IF ( EFLAG  ) THEN     !  error
+                IF ( VID .GT. 0 ) THEN
+                    MESG = 'Error reading variable ' //
+     &                VLIST3( VID,FID ) // 'from file ' // FLIST3( FID )
+                ELSE
+                    MESG = 'Error reading ALL VARIABLES from file ' //
+     &                FLIST3( FID )
+                END IF
                 CALL M3MSG2( MESG )
                 RDVARS = .FALSE.
             ELSE
@@ -172,7 +192,7 @@ C...........   Perform the reads, according to VID
 
 !$OMP           CRITICAL( S_NC )
                 CALL NCVGT( CDFID3( FID ), VINDX3( VAR,FID ),
-     &                      DIMS, DELTS, BUFFER( INDX ), IERR )
+     &                      DIMS, DELS, BUFFER( INDX ), IERR )
 !$OMP           END CRITICAL( S_NC )
 
                 IF ( IERR .NE. 0 ) THEN
@@ -193,7 +213,7 @@ C...........   Perform the reads, according to VID
 
 !$OMP       CRITICAL( S_NC )
             CALL NCVGT( CDFID3( FID ), VINDX3( VID,FID ),
-     &                  DIMS, DELTS, BUFFER, IERR )
+     &                  DIMS, DELS, BUFFER, IERR )
 !$OMP       END CRITICAL( S_NC )
 
             IF ( IERR .NE. 0 ) THEN
@@ -218,5 +238,5 @@ C...........   Error and warning message formats..... 91xxx
 91010   FORMAT ( 3 ( A , :, 2X ) , I5, // )
 
 
-        END
+        END FUNCTION RDVARS
 

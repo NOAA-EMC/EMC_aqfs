@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         REAL FUNCTION YR2DAY ( YEAR )
 
 C********************************************************************
-C       function body starts at line  46
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C       function body starts at line  48
 C
 C  FUNCTION:
 C
@@ -32,13 +32,14 @@ C
 C       Unification 2/2002 by CJC with global-climate DAYMON, which
 C       uses a 360-day "year"
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C****************************************************************************
 
         IMPLICIT NONE
 
 C.......   ARGUMENTS:
 
-        INTEGER         YEAR  ! 4 digit year YYYY
+        INTEGER, INTENT(IN   ) :: YEAR  ! 4 digit year YYYY
 
 C......................................................................
 C       begin YR2DAY
@@ -61,7 +62,5 @@ C       begin YR2DAY
 
         RETURN
 
-C................   end body of YR2DAY  .......................................
-
-        END
+        END FUNCTION YR2DAY
 

@@ -1,6 +1,9 @@
 /**  
-C    VERSION "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/NOTICE.h,v 1.5 2000/12/13 20:57:15 smith_w Exp $"
-C    EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+C    VERSION "@(#)$Header$"
+C    EDSS/Models-3 I/O API.
+C    Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C    copyright (C) 2002-2006 Baron Advanced Meteorological Systems, LLC.
+C
 C    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C    See file "LGPL.txt" for conditions of use.
 C
@@ -15,10 +18,10 @@ C        resulting modified INCLUDE-file.
 C
 C        By making any changes to the I/O API source code, the
 C        user explicitly agrees that in the case any assistance is 
-C        required of MCNC or of the I/O API author, CARLIE J. COATS, JR.
-C        HE AND/OR HIS PROJECT OR CONTRACT AGREES TO REIMBURSE MCNC
-C        AND/OR THE I/O API AUTHOR, CARLIE J. COATS, JR., AT A
-C        RATE TRIPLE THE NORMAL CONTRACT RATE FOR THE SERVICES
-C        REQUIRED.
+C        required of MCNC, BAMS, or of the I/O API author,
+C        CARLIE J. COATS, JR. HE AND/OR HIS PROJECT OR CONTRACT
+C        AGREES TO REIMBURSE MCNC AND/OR BAMS AND/OR THE I/O API
+C        AUTHOR, CARLIE J. COATS, JR., AT A RATE TRIPLE THE
+C        NORMAL CONTRACT RATE FOR THE SERVICES REQUIRED.
 C
 **/

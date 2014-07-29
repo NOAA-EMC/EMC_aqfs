@@ -1,31 +1,30 @@
 
-C.........................................................................
-C EDSS/Models-3 I/O API.kfopen.f
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C 2003 by Baron Advanced Meteorological Systems.
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION  KFOPEN( FNAME, FSTATUS, PGNAME, KFCOUNT )
 
 C***********************************************************************
-C  function body starts at line  85
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  82
 C
 C  FUNCTION:  open KF-cloud file with logical name FNAME, with
 C             file status FSTATUS = FSREAD3==1 for read-only,
 C             FSRDWR3==2 for read/write/update of existing files,
 C             FSNEW3==3 for read/write of new files, or FSUNKN3==4
 C             for read/write/update of unknown (new vs. old) files.
-C             If opened for write, copies scenario description from 
-C             I/O STATE3.EXT to file's history, and name PGNAME of 
-C             caller to file's updater-name.  Sets KFCOUNT 
+C             If opened for write, copies scenario description from
+C             I/O STATE3.EXT to file's history, and name PGNAME of
+C             caller to file's updater-name.  Sets KFCOUNT
 C             Returns TRUE if the file is already open.
 C
 C  RETURN VALUE:  TRUE iff it succeeds in opening the file, reading its
 C                 attributes, and storing the relevant ones in STATE3.EXT
 C
-C  PRECONDITIONS REQUIRED:  
+C  PRECONDITIONS REQUIRED:
 C       FSREAD3 or FSRDWR3:  File FNAME already exists.
 C       FSNEW3:  file must _not_ already exist.
 C       FSNEW3, FSUNKN3:  user must supply file description in FDESC3.EXT
@@ -38,6 +37,7 @@ C       Adapted   4/1996 by CJC from OPEN3()
 C       Modified  5/1996 by CJC to support new mode FSCREA3 for opening files.
 C       Modified  8/1999 by CJC:  OpenMP thread-safe; unified with OPEN3()
 C       Modified  5/2003 by CJC:  critical-section change (deadlock-removal)
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -51,24 +51,22 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME   !  logical name of file to be opened
-        INTEGER         FSTATUS !  read-only, read-write, new, or unknown
-        CHARACTER*(*)   PGNAME  !  name of calling program
-        INTEGER         KFCOUNT( * )  !  gridded event counts
+        CHARACTER*(*), INTENT(IN   ) :: FNAME   !  logical name of file to be opened
+        INTEGER      , INTENT(IN   ) :: FSTATUS !  read-only, read-write, new, or unknown
+        CHARACTER*(*), INTENT(IN   ) :: PGNAME  !  name of calling program
+        INTEGER      , INTENT(  OUT) :: KFCOUNT( * )  !  gridded event counts
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1  !  look up names in tables
-        INTEGER         INIT3   !  initialize I/O system files
-        LOGICAL         OPEN3
-
-        EXTERNAL        INDEX1, INIT3, OPEN3
+        INTEGER, EXTERNAL :: INDEX1  !  look up names in tables
+        INTEGER, EXTERNAL :: INIT3   !  initialize I/O system files
+        LOGICAL, EXTERNAL :: OPEN3
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
-        INTEGER         I 
+        INTEGER         I
         INTEGER         FID             !  subscript for STATE3 arrays
         INTEGER         FNUM            !  netCDF file ID
         INTEGER         IERR            !  netCDF error status return
@@ -116,13 +114,13 @@ C.......   to the file.
             DELS( 1 ) = NCOLS3( FID )
             DIMS( 2 ) = 1
             DELS( 2 ) = NROWS3( FID )
-            WRITE( MESG, '(A, I7, 2( 2X, A ) )' ) 
+            WRITE( MESG, '(A, I7, 2( 2X, A ) )' )
      &           'NetCDF ID=', FNUM, 'for file', FNAME
 
             IF ( AFLAG ) THEN
 
 C.......   Read KFCOUNT from FNAME:
-        
+
                 IF ( VOLAT3( FID ) ) THEN     !  volatile file:  synch with disk
                     CALL NCSNC( FNUM, IERR )
                     IF ( IERR .NE. 0 ) THEN
@@ -132,8 +130,8 @@ C.......   Read KFCOUNT from FNAME:
                         GO TO 999       !  to return
                     END IF              !  if synch failed
                 END IF          !  if file is volatile
-           
-                CALL NCVGT( FNUM, NINDX3( FID ), DIMS, DELS, 
+
+                CALL NCVGT( FNUM, NINDX3( FID ), DIMS, DELS,
      &                      KFCOUNT, IERR )
                 IF ( IERR .EQ. 0 ) THEN
                     KFOPEN = .TRUE.
@@ -146,11 +144,11 @@ C.......   Read KFCOUNT from FNAME:
             ELSE
 
 C.......   Initialize KFCOUNT and write it to FNAME:
-        
+
                 DO  I = 1, NCOLS3( FID ) * NROWS3( FID )
                     KFCOUNT( I ) = 0
                 END DO
-        
+
                 CALL NCVPT( FNUM, NINDX3( FID ), DIMS, DELS,
      &                      KFCOUNT, IERR )
                 IF ( IERR .EQ. 0 ) THEN
@@ -172,7 +170,7 @@ C.......   Initialize KFCOUNT and write it to FNAME:
                         KFOPEN = .FALSE.
                     END IF              !  if synch failed
                 END IF          !  if file is volatile
-           
+
             END IF
 
         ELSE
@@ -195,5 +193,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91010   FORMAT ( 3 ( A , :, 2X ) , I7 )
 
-        END
+        END FUNCTION  KFOPEN
 

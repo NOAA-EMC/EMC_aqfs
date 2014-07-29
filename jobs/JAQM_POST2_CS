@@ -1,9 +1,5 @@
 #!/bin/ksh
 
-
-############################################
-# Set up environment for AQM POST2
-############################################
 set -xa
 export PS4='$SECONDS + '
 date -u
@@ -15,19 +11,18 @@ export NET=aqm
 export RUN=aqm
 ############################################
 export PARAFLAG=${PARAFLAG:-NO}
-export usrdir=${usrdir:-}
-export usr_tmp=${usr_tmp:-}
-export COM_OUT=${COM_OUT:-}
-############################################
+#####################################
 export pid=$$
 export job=aqm_post2_cs
-export DATA=$usr_tmp/tmpnwprd/${job}.${pid}
+export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
 mkdir -p $DATA
 cd $DATA
+
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${usr_tmp}/com/logs/jlogfile
+export jlogfile=${jlogfile:-/com/logs/jlogfile}
+
 ####################################
 # Determine Job Output Name on System
 ####################################
@@ -43,18 +38,18 @@ export SENDCOM=YES
 export SENDDBN=NO
 export SENDECF=YES
 
-export HOMEaqm=${usrdir}/nw${envir}/cmaq.${model_ver}
+export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm
+export USHaqm=$HOMEaqm/ush
+export PARMutil=$HOMEaqm/util/parm
 
 ###################################
 # Set up the UTILITIES
 ###################################
 export utilscript=/nwprod/util/ush
 export utilexec=/nwprod/util/exec
-export PARMutil=/nwprod/util/parm
-
 
 # Run setup to initialize working directory and utility scripts
 sh $utilscript/setup.sh
@@ -62,19 +57,13 @@ sh $utilscript/setup.sh
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-if [ $PARAFLAG = "YES" ]
-then
-export SENDDBN=NO
-fi
-
 # Run setpdy and initialize PDY variables
 $utilscript/setpdy.sh
 . PDY
 
-export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
-export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
-export pcom=${COM_OUT}/pcom/${NET}
-export COM=${COM_OUT}/com/${NET}/${envir}
+export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export pcom=${pcom:-/pcom/${NET}}
 
 mkdir -p $COMOUT $pcom
 env
@@ -82,13 +71,15 @@ env
 ###################################################
 # Execute Script aqm_post
 ###################################################
-${HOMEaqm}/scripts/exaqm_post2_cb05_cs.sh.ecf
+$HOMEaqm/scripts/exaqm_post2_cb05_cs.sh.ecf
+err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
+date
 
-#cd /tmpnwprd
-#rm -rf $DATA
+# cd /tmpnwprd
+# rm -rf $DATA
 
 date

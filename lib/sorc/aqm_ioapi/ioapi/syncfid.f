@@ -1,16 +1,15 @@
-C.........................................................................
+
+        LOGICAL FUNCTION SYNCFID( FID )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C 2003 by Baron Advanced Meteorological Systems.
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  SYNCFID( FID )
-
-C***********************************************************************
-C  function  SYNCFID  starts at line  65
+C  function  SYNCFID  starts at line  62
 C
 C  FUNCTION:
 C       Flushes/syncs I/O API file with STATE3-index FID
@@ -26,6 +25,7 @@ C       netCDF; FLUSHBIN3
 C
 C  REVISION  HISTORY:  
 C       Prototype 10/2003 by CJC for I/O API version 3
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
@@ -39,14 +39,12 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  STATE3-index for the file
+        INTEGER, INTENT(IN   ) :: FID             !  STATE3-index for the file
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         FLUSHBIN3  !  sync for BINIO3 files
-        INTEGER         TRIMLEN
-        EXTERNAL        FLUSHBIN3, TRIMLEN
+        INTEGER, EXTERNAL :: FLUSHBIN3  !  sync for BINIO3 files
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -54,7 +52,6 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         IERR            !  netCDF error status return
         CHARACTER*80    MESG
         INTEGER         N, F            !  for list files
-        INTEGER         FLEN            !  trimmed name-length
         LOGICAL         EFLAG
         CHARACTER*16    FNAME
 
@@ -71,9 +68,8 @@ C   begin body of function  SYNCFID
 !$OMP       END CRITICAL( S_NC )
             IF ( IERR .NE. 0 ) THEN
                 FNAME = FLIST3( FID )
-                FLEN  = TRIMLEN( FNAME )
                 MESG  = 'Error flushing netCDF file "' //
-     &                    FNAME( 1:FLEN ) // '"'
+     &                    TRIM( FNAME ) // '"'
                 CALL M3MSG2( MESG )
                 WRITE( MESG, '( A, I9 )' ) 
      &                  'netCDF error number', IERR
@@ -87,10 +83,9 @@ C   begin body of function  SYNCFID
 
 !$OMP       CRITICAL( S_NC )
             IF ( 0 .EQ. FLUSHBIN3( FID ) ) THEN
-                FNAME = FLIST3( FID )
-                FLEN  = TRIMLEN( FNAME )                
+                FNAME = FLIST3( FID )             
                 MESG  = 'Error flushing BINIO3 file "' //
-     &                    FNAME( 1:FLEN ) // '"'
+     &                    TRIM( FNAME ) // '"'
                 CALL M3MSG2( MESG )
                 SYNCFID = .FALSE.
             ELSE
@@ -115,9 +110,8 @@ C   begin body of function  SYNCFID
 
             IF ( EFLAG ) THEN
                 FNAME = FLIST3( FID )
-                FLEN  = TRIMLEN( FNAME )
                 MESG  = 'Error flushing list file "' //
-     &                    FNAME( 1:FLEN ) // '"'
+     &                    TRIM( FNAME ) // '"'
                 CALL M3MSG2( MESG )
                 SYNCFID = .FALSE.
             END IF
@@ -130,5 +124,5 @@ C   begin body of function  SYNCFID
 
         RETURN
 
-        END
+        END FUNCTION SYNCFID
         

@@ -1,0 +1,24 @@
+# @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.Linux2_alpha,v 1.1 2000/11/28 21:54:49 smith_w Exp $
+#
+#       Linux for Alpha using the Digital/Cq/HP compiler suite
+#
+AR   = ar
+CC   = cc
+FC   = fort
+M4   = m4
+CPP  = cpp
+LINK = $(CC)
+
+OMPFLAGS  = 
+OMPLIBS   = -lcxml
+COPTFLAGS = -O2
+FOPTFLAGS = -O2 -automatic -assume no2underscores
+FPPFLAGS  = -DF90=1 
+FSFLAGS   = -static
+ARCHFLAGS = -DFLDMN=1 -DAUTO_ARRAYS=1  -DF90=1
+LIBDIR = $(SRCDIR)/../lib
+BINDIR = $(SRCDIR)/../bin
+ARCHLIB   = 
+
+M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+PVMLIBS   = -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3

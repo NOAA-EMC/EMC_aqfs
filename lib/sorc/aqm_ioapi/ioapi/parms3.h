@@ -5,7 +5,7 @@ C
 C    VERSION "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/parms3.h,v 1.5 2000/12/13 20:57:18 smith_w Exp $"
 C    EDSS/Models-3 I/O API Version 3.
 C       Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C       2003 Baron AAdvanced Meteorological Systems, LLC (BAMS)
+C       2003-2010 Baron AAdvanced Meteorological Systems, LLC (BAMS)
 C       Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C       See file "LGPL.txt" for conditions of use.
 C
@@ -104,7 +104,7 @@ extern "C" {
 #define   MXFILE3   (64)  
 
                           /*  max number of layers per file            */
-#define   MXVARS3  (120)  
+#define   MXVARS3  (2048)  
 
                           /*  max number of additional TSRIES3 atts    */
 #define   MXDESC3   (60)  
@@ -223,6 +223,10 @@ typedef char   M3Line[ MXDLEN3 ] ; /* ... "description-line" objects  */
 #define   EQMGRD3    (7)  
                           /*  grid type value:  transverse Mercator coords */
 #define   TRMGRD3    (8)  
+                          /*  grid type value:  Albers conic Equal Area */
+#define   ALBGRD3    (9)  
+                          /*  grid type value:  Lambert Azimuthal Equal Area */
+#define   LEQGRD3    (10)  
 
                           /*  vert coord type 1:  hydrostatic sigma-P  */
 #define   VGSGPH3    (1)  
@@ -258,6 +262,21 @@ typedef char   M3Line[ MXDLEN3 ] ; /* ... "description-line" objects  */
 
                           /* char string "bad" or "missing" */
 #define   CMISS3  "????????????????" 
+
+                          /* These match BSD-style "endian.h" values: */
+
+#ifndef   LITTLE_ENDIAN
+#define   LITTLE_ENDIAN	(1234)
+#endif
+
+#ifndef   BIG_ENDIAN
+#define   BIG_ENDIAN	(4321)
+#endif
+
+#ifndef   PDP_ENDIAN
+#define   PDP_ENDIAN	(3412)
+#endif
+
 
 #ifdef __cplusplus
 }    /** END 'extern "c"' **/

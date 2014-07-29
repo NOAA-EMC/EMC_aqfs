@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION RDGRDDED( FID, VID, LAYER, STEP, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  77
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  76
 C
 C  FUNCTION:  reads data from Models-3 GRDDED data file with state-variable
 C             index FID, for variable with name VID and layer LAYER, for the
@@ -34,6 +32,8 @@ C	Modified  9/1994 by CJC:  argument VID not VNAME
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -47,18 +47,17 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  variable index  or ALLAYS3
-        INTEGER         LAYER           !  layer number, or -1 = ALLAYS3
-        INTEGER         STEP            !  time step record number
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  variable index  or ALLAYS3
+        INTEGER, INTENT(IN   ) :: LAYER           !  layer number, or -1 = ALLAYS3
+        INTEGER, INTENT(IN   ) :: STEP            !  time step record number
+        REAL   , INTENT(  OUT) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         RDVARS     !  read "variables" part of timestep records
-        EXTERNAL        RDVARS
-        EXTERNAL        INITBLK3   !  block data: initialize I/O state
+        LOGICAL, EXTERNAL :: RDVARS     !  read "variables" part of timestep records
+        EXTERNAL          :: INITBLK3   !  block data: initialize I/O state
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -110,5 +109,5 @@ C...........   Perform the reads, according to VID
         RETURN
 
 
-        END
+        END FUNCTION RDGRDDED
 

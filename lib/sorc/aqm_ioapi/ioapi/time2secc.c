@@ -1,11 +1,14 @@
-/**  
-    Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/time2secc.c,v 1.2 2000/11/27 22:54:34 smith_w Exp $"
-    EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-    See file "LGPL.txt" for conditions of use.
-**/
 
 /**************************************************************************
+VERSION "@(#)$Header$"
+    EDSS/Models-3 I/O API.
+
+COPYRIGHT
+    (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
+    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+    See file "LGPL.txt" for conditions of use.
+
 PURPOSE
 	convert back and forth between Models-3 time conventions and 
 	seconds
@@ -17,7 +20,7 @@ CALLS
 	none
 
 REVISION HISTORY
-	prototype  3/95 byu CJC
+	prototype  3/95 by CJC
 
 **************************************************************************/
 

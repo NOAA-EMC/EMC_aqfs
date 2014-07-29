@@ -68,7 +68,6 @@ EOF5
 startmsg
 
 $EXECaqm/aqm_cmaq2grib >> $pgmout 2>errfile
-
 export err=$?;err_chk
 
 ###PM2.5

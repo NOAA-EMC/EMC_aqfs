@@ -1,32 +1,39 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/crtbuf3.f,v 1.2 2000/11/28 21:22:35 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION CRTBUF3 ( FID )
 
 C***********************************************************************
-C  subroutine body starts at line 66
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2011 Baron Advanced Meteorological Systems, and
+C (C) 2011 David Wong
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line 70
 C
 C  FUNCTION:  Create "BUFFERED "file" FNAME using info stored in the FDESC3
 C             common.
 C
 C  PRECONDITIONS REQUIRED:  File does not yet exist.  Should only be
-C                           called from OPEN3().  
+C                           called from OPEN3().
 C                           "File" must be one of types GRDDED3,
 C                           BNDARY3, or CUSTOM3.
 C
-C  SUBROUTINES AND FUNCTIONS CALLED:  
+C  SUBROUTINES AND FUNCTIONS CALLED:
 C
 C  REVISION  HISTORY:
-C       prototype  7/94 by CJC
+C       prototype 07/1994 by CJC
 C
-C	Revised   10/96 by CJC:  new file type TSERIES3 for hydrology work.
+C	Revised   10/1996 by CJC:  new file type TSERIES3 for hydrology work.
 C
-C       Modified  5/98 by CJC for OpenMP thread-safety
+C       Modified  05/1998 by CJC for OpenMP thread-safety
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
+C
+C       Revised 4/2011 by David Wong, US EPA, and by CJC, to add state for
+C       full buffered-file file descriptions.  Arg-list bugfix for call
+C       to BUFCRE3().
 C***********************************************************************
 
       IMPLICIT NONE
@@ -40,29 +47,26 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  index into STATE3 arrays
+        INTEGER, INTENT(IN   ) :: FID             !  index into STATE3 arrays
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1  !  look up names in tables
-        INTEGER         TRIMLEN !  length after trimming trailing blanks.
-        INTEGER         BUFCRE3 !  creates buffered file allocations
-
-        EXTERNAL        INDEX1, TRIMLEN, BUFCRE3
+        INTEGER, EXTERNAL :: INDEX1  !  look up names in tables
+        INTEGER, EXTERNAL :: BUFCRE3 !  creates buffered file allocations
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER         VSIZE           !  size for one variable
-        INTEGER         VAR     !  loop counter
+        INTEGER         VAR, LVL        !  loop counters
 
 C.............................................................................
 C   begin body of subroutine  CRTBUF3
 
 C.......   Compute size for a one-variable/one-layer buffer for supported
 C.......   "file" types, or error return:
-        
+
         IF ( FTYPE3D .EQ. CUSTOM3 ) THEN        !  other dimensions not known
             VSIZE = NCOLS3D
         ELSE IF ( FTYPE3D .EQ. GRDDED3 ) THEN
@@ -86,10 +90,10 @@ C.......   "file" types, or error return:
             RETURN
 
         END IF
-        
+
         BSIZE3( FID ) = VSIZE
         CDFID3( FID ) = BUFFIL3
-        
+
 C...........   Set attributes valid for all file types:
 C...........   FTYPE:  file type ID
 
@@ -102,7 +106,7 @@ C...........   FTYPE:  file type ID
         TINDX3( FID ) = IMISS3
 
 C...........   Set grid and coordinate system parameters
-        
+
         NTHIK3( FID ) = NTHIK3D
         NCOLS3( FID ) = NCOLS3D
         NROWS3( FID ) = NROWS3D
@@ -119,6 +123,13 @@ C...........   Set grid and coordinate system parameters
         XCELL3( FID ) = XCELL3D
         YCELL3( FID ) = YCELL3D
 
+        VGTYP3( FID ) = VGTYP3D
+        VGTOP3( FID ) = VGTOP3D
+
+        DO LVL = 1, MIN( NLAYS3D+1, MXLAYS3)
+            VGLVS3( LVL,FID ) = VGLVS3D( LVL )
+        END DO
+
 C.......   Define all the Models-3 variables for this file:
 
         DO 111  VAR = 1 , NVARS3D
@@ -130,20 +141,21 @@ C.......   Define all the Models-3 variables for this file:
             NDATE3( VAR,FID ) = IMISS3
             NTIME3( VAR,FID ) = IMISS3
             VLIST3( VAR,FID ) = VNAME3D( VAR )
+            UNITS3( VAR,FID ) = UNITS3D( VAR )
             IF ( VTYPE3D( VAR ) .EQ. M3DBLE ) THEN
                 CALL M3WARN( 'OPEN3/CRTBUF3', 0, 0,
-     &          'DOUBLE PRECISION BUFFERRED not supported for '//
-     &          VNAME3D( VAR ) )
+     &            'DOUBLE PRECISION BUFFERRED not supported for '//
+     &            VNAME3D( VAR ) )
                 CRTBUF3 = .FALSE.
                 RETURN
             END IF
 111     CONTINUE
 
-C.......   Call BUFCRE3() to allocate buffers for each variable 
+C.......   Call BUFCRE3() to allocate buffers for each variable
 C.......   in this "file"
-        
-        CRTBUF3 = ( 0 .NE. BUFCRE3( FID, NVARS3D, NLAYS3D, 
-     &                              VSIZE, TSTEP3D ) )
+
+        CRTBUF3 = ( 0 .NE. BUFCRE3( FID, NVARS3D, NLAYS3D,
+     &                              VSIZE, VTYPE3D, TSTEP3D ) )
 
         RETURN
 
@@ -155,5 +167,5 @@ C...........   Error and warning message formats..... 91xxx
      &            2 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION CRTBUF3
 

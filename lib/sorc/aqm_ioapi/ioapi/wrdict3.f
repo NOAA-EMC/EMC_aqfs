@@ -1,17 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION WRDICT3 ( FID, FNAME )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  WRDICT3 ( FID, FNAME )
-
-C***********************************************************************
-C  function body starts at line 92
+C  function body starts at line 88
 C
 C  FUNCTION:  write the file definition stored in the commons of the
 C             include-file FDESC3.EXT to logical record indexed by 
@@ -36,6 +34,8 @@ C
 C       revised  6/1999 by CJC:  OpenMP thread-safety for log-file
 C
 C       revised  2/2002 by CJC:  OpenMP thread-safety for netCDF
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -50,17 +50,15 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID     !  output-file subscript for STATE3 arrays
-        CHARACTER*(*)   FNAME   !  name of the data schema to be written
+        INTEGER      , INTENT(IN   ) :: FID     !  output-file subscript for STATE3 arrays
+        CHARACTER*(*), INTENT(IN   ) :: FNAME   !  name of the data schema to be written
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         INIT3      !  initialize I/O system files.
-
-        EXTERNAL        INDEX1, INIT3
-        EXTERNAL        INITBLK3   !  block data: initialize I/O state
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O system files.
+        EXTERNAL          :: INITBLK3        !!  BLOCK DATA to initialize STATE3 commons
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -77,17 +75,14 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
 C...........   STATE VARIABLE:  names table, file ID for last call
         
-        CHARACTER*16    FNAMES( MXVARS3 )
-        INTEGER         LID
-        DATA            LID / -1 /
-        SAVE            FNAMES, LID
+        CHARACTER*16, SAVE :: FNAMES( MXVARS3 )
+        INTEGER,      SAVE :: LID = -1
 
 C.............................................................................
 C   begin body of subroutine  WRDICT3
 
 C.......   Check whether file description FNAME already exists
 C.......   (if so, write warning message)
-
 C.......   Look up the "variable" requested from the FNAMES table:
 
         EFLAG = .FALSE.
@@ -538,5 +533,5 @@ C...........   Error and warning message formats..... 91xxx
 91030   FORMAT ( //5X , '>>> WARNING in subroutine WRDICT3 <<<',
      &            2 ( /5X, A ) , I5 ,// )
 
-        END
+        END FUNCTION WRDICT3
 

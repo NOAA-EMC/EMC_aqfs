@@ -1,14 +1,15 @@
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
 
         LOGICAL FUNCTION STRLIST( ENAME, EDESC, NMAX, NCNT, LIST )
 
 C***********************************************************************
-C  function body starts at line  59
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  60
 C
 C  RETURNS:  TRUE for success, FALSE for failure
 C            Success implies NCNT > 0 ("we actually found something")
@@ -24,22 +25,22 @@ C  REVISION  HISTORY:
 C       prototype 04/15/1998 by CJC
 C       Revised   02/09/1999 by CJC:  NCNT <= 0:  failure
 C       Revised   02/11/2002 by CJC:  Deal with values "LIST:<list>"
+C       Modified  03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   ENAME   !  in:  environment variable for the list
-        CHARACTER*(*)   EDESC   !  in:  environment variable description
-        INTEGER         NMAX    !  in:  dimension for list
-        INTEGER         NCNT    ! out:  actual number of entries in list
-        CHARACTER*(*)   LIST( NMAX )    ! out:  array of values found    
+        CHARACTER*(*), INTENT(IN   ) :: ENAME           ! environment variable for the list
+        CHARACTER*(*), INTENT(IN   ) :: EDESC           ! environment variable description
+        INTEGER      , INTENT(IN   ) :: NMAX            ! dimension for list
+        INTEGER      , INTENT(  OUT) :: NCNT            ! actual number of entries in list
+        CHARACTER*(*), INTENT(  OUT) :: LIST( NMAX )    ! array of values found    
 
 C...........   EXTERNAL FUNCTIONS:
 
-        INTEGER         LBLANK, TRIMLEN
-        EXTERNAL        LBLANK, TRIMLEN
+        INTEGER, EXTERNAL :: LBLANK
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -84,10 +85,10 @@ C   begin body of function  dummy
             END IF
             HI = INDEX( BUF( LO : 512 ), ',' )
             IF ( HI .EQ. 0 ) THEN          !  no more commas
-                L  = TRIMLEN( BUF( LO : 512 ) )
+                L  = LEN_TRIM( BUF( LO : 512 ) )
                 HI = 512
             ELSE        !  comma is BUF( LO+HI-1:LO+HI-1 )
-                L = TRIMLEN( BUF( LO : LO+HI-2 ) )
+                L = LEN_TRIM( BUF( LO : LO+HI-2 ) )
             END IF
             IF ( L .GT. 0  .AND. L .LE. LMAX ) THEN
                 LIST( K ) = BUF( LO : LO+L-1 )
@@ -109,4 +110,4 @@ C   begin body of function  dummy
 99      CONTINUE        !  exit from loop
         STRLIST = ( .NOT. EFLAG ) .AND. ( NCNT .GT. 0 )
         RETURN
-        END
+        END FUNCTION STRLIST

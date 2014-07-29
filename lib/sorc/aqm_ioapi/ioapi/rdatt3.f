@@ -1,21 +1,19 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION   RDATT3( FNAME, VNAME, ANAME, ATYPE, AMAX,
      &                             ASIZE, AVAL )
         IMPLICIT NONE
         LOGICAL            RDATTC
 
 C***********************************************************************
-C  subroutine body starts at line   88
-C   Entry  RDATTC  starts at line  105
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line   85
+C   Entry  RDATTC  starts at line  102
 C
 C  FUNCTION:
 C       Reads the attribute named ANAME for the variable VNAME in the
@@ -38,6 +36,8 @@ C       prototype 1/2002 by Carlie J. Coats, Jr., MCNC-EMC
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
 C...........   INCLUDES:
@@ -49,23 +49,20 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME         !  logical file name
-        CHARACTER*(*)   VNAME         !  variable name, or ALLVARS3
-        CHARACTER*(*)   ANAME         !  attribute name
-        INTEGER         ATYPE         !  attribute type (M3REAL, M3INT, M3DBLE)
-        INTEGER         AMAX          !  attribute dimensionality
-        INTEGER         ASIZE         !  attribute actual size
-        REAL            AVAL( AMAX )  !  attribute value (numeric)
-        CHARACTER*(*)   CVAL          !  attribute value (character-string)
+        CHARACTER*(*), INTENT(IN   ) :: FNAME         !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME         !  variable name, or ALLVARS3
+        CHARACTER*(*), INTENT(IN   ) :: ANAME         !  attribute name
+        INTEGER      , INTENT(IN   ) :: ATYPE         !  attribute type (M3REAL, M3INT, M3DBLE)
+        INTEGER      , INTENT(IN   ) :: AMAX          !  attribute dimensionality
+        INTEGER      , INTENT(  OUT) :: ASIZE         !  attribute actual size
+        REAL         , INTENT(  OUT) :: AVAL( AMAX )  !  attribute value (numeric)
+        CHARACTER*(*), INTENT(  OUT) :: CVAL          !  attribute value (character-string)
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INIT3      !  Initialize I/O API
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         TRIMLEN    !  trimmed string length
-
-        EXTERNAL  INIT3, INDEX1, TRIMLEN
+        INTEGER, EXTERNAL :: INIT3      !  Initialize I/O API
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -73,7 +70,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         F, V            !  subscripts for STATE3 arrays
         INTEGER         FID, VID        !  netCDF ID's
         INTEGER         IERR            !  netCDF error status return
-        INTEGER         ITYP, ILEN
+        INTEGER         ATYP, ITYP, ALEN
         LOGICAL         EFLAG
         CHARACTER*16    FIL16           !  scratch file-name buffer
         CHARACTER*16    VAR16           !  scratch vble-name buffer
@@ -123,21 +120,21 @@ C.......   Check that Models-3 I/O has been initialized:
             RETURN
         END IF
 
-        IF ( TRIMLEN( FNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME // '" Variable "'// VNAME // '"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A , I10 )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( fname ) > 16
 
-        IF ( TRIMLEN( VNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( VNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME // '"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
-     &          'Max vble name length 16; actual:', TRIMLEN( VNAME )
+     &          'Max vble name length 16; actual:', LEN_TRIM( VNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
         
@@ -202,7 +199,7 @@ C...........   one can't execute a RETURN within a critical section.
 
 !$OMP   CRITICAL( S_NC )
 
-        IERR = NF_INQ_ATT( FID, VID, ANAME, ITYP, ILEN )
+        IERR = NF_INQ_ATT( FID, VID, ANAME, ATYP, ALEN )
 
         IF ( IERR .NE. NF_NOERR ) THEN
 
@@ -212,7 +209,7 @@ C...........   one can't execute a RETURN within a critical section.
             CALL M3WARN( 'RDATT3', 0, 0, MESG )
             EFLAG = .TRUE.
 
-        ELSE IF ( ITYP .NE. ATYPE ) THEN
+        ELSE IF ( ITYP .NE. ATYP ) THEN
 
             MESG = 'Bad type for attribute "' //
      &             ANAME // '" for file "' // FNAME //
@@ -220,29 +217,47 @@ C...........   one can't execute a RETURN within a critical section.
             CALL M3WARN( 'RDATT3', 0, 0, MESG )
             EFLAG = .TRUE.
 
-        ELSE IF ( ( ATYPE .EQ. NF_CHAR .AND. ILEN .GT. LEN( CVAL ) )
-     &            .OR.
-     &            ( ATYPE .NE. NF_CHAR .AND. ILEN .GT. AMAX ) ) THEN
+        ELSE IF ( ITYP .EQ. NF_CHAR ) THEN
 
-            MESG = 'Bad size for attribute "' // ANAME // 
+            IF ( ALEN .GT. LEN( CVAL ) ) THEN
+
+                MESG = 'Bad size for CHAR attribute "' // ANAME // 
      &             '" for file "' // FNAME //
      &             '" and vble "' // VNAME // '"'
-            CALL M3WARN( 'RDATT3', 0, 0, MESG )
-            EFLAG = .TRUE.
+                CALL M3WARN( 'RDATT3', 0, 0, MESG )
+                EFLAG = .TRUE.
 
-        ELSE
+            ELSE 
 
-            IF ( ITYP .EQ. NF_CHAR ) THEN
                 IERR = NF_GET_ATT_TEXT( FID, VID, ANAME, CVAL )
-            ELSE IF ( ITYP .EQ. NF_INT ) THEN
-                IERR = NF_GET_ATT_INT( FID, VID, ANAME, AVAL )
-            ELSE IF ( ITYP .EQ. NF_FLOAT ) THEN
-                IERR = NF_GET_ATT_REAL( FID, VID, ANAME, AVAL )
-            ELSE IF ( ITYP .EQ. NF_DOUBLE  ) THEN
-                IERR = NF_GET_ATT_DOUBLE( FID, VID, ANAME, AVAL )
+
             END IF
 
-        END IF
+        ELSE    !  if ( ityp  .ne. nf_char ) then...
+
+            IF ( ALEN .GT. AMAX ) THEN
+
+                MESG = 'Bad size for nonCHAR attribute "' // ANAME // 
+     &             '" for file "' // FNAME //
+     &             '" and vble "' // VNAME // '"'
+                CALL M3WARN( 'RDATT3', 0, 0, MESG )
+                EFLAG = .TRUE.
+
+            ELSE IF ( ITYP .EQ. NF_INT ) THEN
+
+                IERR = NF_GET_ATT_INT( FID, VID, ANAME, AVAL )
+
+            ELSE IF ( ITYP .EQ. NF_FLOAT ) THEN
+
+                IERR = NF_GET_ATT_REAL( FID, VID, ANAME, AVAL )
+
+            ELSE IF ( ITYP .EQ. NF_DOUBLE  ) THEN
+
+                IERR = NF_GET_ATT_DOUBLE( FID, VID, ANAME, AVAL )
+
+            END IF
+
+        END IF  !  if ierr; else if type-mismatch; else char; else...
 
 !$OMP   END CRITICAL( S_NC )
 
@@ -256,7 +271,7 @@ C...........   one can't execute a RETURN within a critical section.
      &             '" and vble "' // VNAME // '"'
             CALL M3WARN( 'RDATT3', 0, 0, MESG )
         END IF          !  ierr nonzero:  NCAPTC) failed
-        IF ( ATYPE .EQ. NF_CHAR ) THEN
+        IF ( ITYP .EQ. NF_CHAR ) THEN
             RDATTC = ( .NOT. EFLAG )
         ELSE
             RDATT3 = ( .NOT. EFLAG )
@@ -264,5 +279,5 @@ C...........   one can't execute a RETURN within a critical section.
 
         RETURN
 
-        END
+        END FUNCTION   RDATT3
 

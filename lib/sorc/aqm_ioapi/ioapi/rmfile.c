@@ -6,7 +6,7 @@ VERSION:
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -26,6 +26,9 @@ REVISION HISTORY:
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications
 
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
+
 **************************************************************************/
 
 /*   (preprocessor DEFINES and INCLUDES here)  */
@@ -37,17 +40,20 @@ REVISION HISTORY:
 #include <string.h>
 #include <errno.h>
 #include "parms3.h"
+#include "iodecl3.h"
 
           
 #if                     FLDMN
 
 #define RMFILE rmfile_
 #include <unistd.h>
+#include <ctype.h>
 
 #elif                   defined(__hpux) || defined(_AIX)
 
 #define RMFILE rmfile
 #include <unistd.h>
+#include <ctype.h>
 
 #elif                   defined(_WIN32)
 
@@ -66,36 +72,10 @@ extern void m3warnc( const char   * caller ,
 	             const char   * errtxt ) ;
 
 
-#if  defined(RMFILE) || defined(_WIN32)
+#if  defined(RMFILE) || defined(_WIN32) || defined(ABSFT)
 
 /** Hack for Feldman-descended f77's follows: **/
 
-static void  name2cstr( const char * source, 
-                        char       * target,
-                        int          slen,
-                        int          tlen )
-    {
-    char  *bound ;
-    char   ch ;
-    int    length ;
-    
-    tlen-- ;
-
-    for ( length = ( slen < tlen ? slen : tlen ) ,
-          bound  = target + length ;
-              target < bound ;
-                  target++ , source++ )
-        {
-        ch = *source ;
-        if ( isspace( ch ) ) break ;
-        *target = ch ;
-
-        } /**  END FOR-LOOP COPYING  source TO  buffer[], ETC.  **/
-    
-    *target = '\0' ;
-    
-    }    /** END Feldmanish name2cstr() **/
-    
 
 FINT RMFILE( const char *path, FSTR_L length )
     {       /*  begin body of DUMMY() */
@@ -125,33 +105,6 @@ FINT RMFILE( const char *path, FSTR_L length )
 #elif  defined(_CRAY)
 
 #include <fortran.h>
-
-static void  name2cstr( const _fcd   source, 
-                        char       * target,
-                        int          tlen  )
-    {
-    char  *bound, *ptr ;
-    char   ch ;
-    int    slen, length ;
-    
-    slen = _fcdlen( source ) ;
-    tlen-- ;
-
-    length = ( slen < tlen ? slen : tlen ) ;
-    ptr    = _fcdtocp( source ) ;
-    bound  = ptr + length ;
-    
-    for ( ; ptr < bound ; target++ , ptr++ )
-        {
-        if ( isspace( ch = *ptr ) ) break ;
-        *target = ch ;
-
-        } /**  END FOR-LOOP COPYING  source TO  buffer[], ETC.  **/
-
-    *target = '\0' ;
-
-    }           /** END Cray name2cstr() **/
-    
 
 FINT RMFILE( const _fcd  path )
     {       /*  begin body of DUMMY() */

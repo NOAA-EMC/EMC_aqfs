@@ -11,21 +11,17 @@ export NET=aqm
 export RUN=AK
 ############################################
 export PARAFLAG=${PARAFLAG:-NO}
-export usrdir=${usrdir:-}
-export usr_tmp=${usr_tmp:-}
-export COM_OUT=${COM_OUT:-}
-export HOMEaqm=${HOMEaqm:-/nwprod/${model}.${model_ver}}
 #####################################
 export pid=$$
 export job=aqm_post1_ak
-export DATA=$usr_tmp/tmpnwprd/${job}.${pid}
+export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
 mkdir -p $DATA
 cd $DATA
 
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${usr_tmp}/com/logs/jlogfile
+export jlogfile=${jlogfile:-/com/logs/jlogfile}
 
 ####################################
 # Determine Job Output Name on System
@@ -42,7 +38,7 @@ export SENDCOM=YES
 export SENDDBN=NO
 export SENDECF=YES
 
-export HOMEaqm=${usrdir}/nw${envir}/cmaq.${model_ver}
+export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm
@@ -65,9 +61,9 @@ postmsg "$jlogfile" "$msg"
 $utilscript/setpdy.sh
 . PDY
 
-export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
-export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
-export pcom=${COM_OUT}/pcom/${NET}
+export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export pcom=${pcom:-/pcom/${NET}}
 
 mkdir -p $COMOUT $pcom
 env
@@ -76,8 +72,10 @@ env
 # Execute Script aqm_post
 ###################################################
 $HOMEaqm/scripts/exaqm_post1_cb05_ak.sh.ecf
+err=$?; err_chk
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
   $HOMEaqm/scripts/exaqm_post1_cb05_ak.maxi.sh.ecf
+  err=$?; err_chk
 fi
 
 cat $pgmout

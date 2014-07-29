@@ -1,20 +1,24 @@
-# @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.Linux2_x86,v 1.2 2000/11/28 21:56:44 smith_w Exp $
-AR = ar
-#CC = gcc
-CC   = cc
-#FC = g77
+# @(#)$Header$
+#
+#  Michael Bane (UManchester UK) reports that for ifort version 9,
+#  -stack_temps -safe_cray_ptr are not supported and that there are
+#  problems with  "-unroll" without an unroll-count (bug reported
+#  to Intel)
+
+AR   = ar
+CC   = icc
 FC   = ifort -auto -cm -w90 -w95 -warn notruncated_source -Bstatic
-M4 = m4
+M4   = m4
 LINK = $(CC)
 
-#M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+MFLAGS    = -mtune core2 -traceback
 
-OMPFLAGS  = # -mp
-OMPLIBS   = # -lmp
-COPTFLAGS = -O3 
-FOPTFLAGS = -O3 -no-fp-port -unroll -stack_temps -safe_cray_ptr ${MFLAGS} 
+OMPFLAGS  = #-openmp
+OMPLIBS   = #-openmp
+COPTFLAGS = -O3 #${MFLAGS}
+FOPTFLAGS = -O3 -no-fp-port -unroll -stack_temps -safe_cray_ptr ${MFLAGS}
 FPPFLAGS  = -DF90=1
-FSFLAGS   = -save 
+FSFLAGS   = -save
 ARCHFLAGS = \
  -DAUTO_ARRAYS=1 \
  -DF90=1 -DFLDMN=1 \
@@ -26,10 +30,3 @@ ARCHLIB   = -Vaxlib -Bstatic
 
 M4DEFFILE = #$(PVM_ROOT)/conf/$(PVM_ARCH).m4
 PVMLIBS   = #-lpvm3
-
-
-#ARCHFLAGS = -DFLDMN=1 -DAUTO_ARRAYS=1 -m486 -malign-double \
-#-funroll-loops -fschedule-insns
-#PARFLAGS  =
-#ARCHLIB   = -lc
-#PVMLIBS   = # -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3

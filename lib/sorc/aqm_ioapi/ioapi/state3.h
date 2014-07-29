@@ -1,46 +1,60 @@
 
 /********************************************************************
-C  INCLUDE FILE  state3.h
-C
-C  EDSS/Models-3 I/O API -- Version 3
-C
-C       Copyright (C) 2003 Baron Advanced Meteorological Systems, LLC (BAMS)
-C       Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C       See file "LGPL.txt" for conditions of use.
-C
-C  PRIVATE !!  I/O API INTERNAL USE ONLY !!
-C
-C  DO NOT EDIT !!
-C
-C       The EDSS/Models-3 I/O API depends in an essential manner
-C       upon the contents of this INCLUDE file.  ANY CHANGES are
-C       likely to result in very obscure, difficult-to-diagnose
-C       bugs caused by an inconsistency between standard "libioapi.a"
-C       object-libraries and whatever code is compiled with the
-C       resulting modified INCLUDE-file.
-C
-C       By making any changes to this INCLUDE file, the user
-C       explicitly agrees that in the case any assistance is 
-C       required of MCNC or of the I/O API author, CARLIE J. COATS, JR.
-C       HE AND/OR HIS PROJECT OR CONTRACT AGREES TO REIMBURSE BAMS
-C       AND/OR THE I/O API AUTHOR, CARLIE J. COATS, JR., AT A
-C       RATE TRIPLE THE NORMAL CONTRACT RATE FOR THE SERVICES
-C       REQUIRED.
-C
-C  CONTAINS:  
-C
-C       Data Structures and constants for the Fortran COMMONs from
-C       include file STATE3.EXT, for I/O API Version 3
-C
-C  DEPENDENT UPON:
-C
-C       Inlcude files "parms3.h", "iodecl3.h"
-C       consistency with FORTRAN include-files PARMS3.EXT, STATE3.EXT
-C
-C  REVISION HISTORY:
-C
-C       prototype 10/2003 by CJC
-C
+  INCLUDE FILE  state3.h
+
+COPYRIGHT
+    (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
+    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+    See file "LGPL.txt" for conditions of use.
+
+EDSS/Models-3 I/O API -- Version 3
+
+    Copyright (C) 2003-2005 Baron Advanced Meteorological Systems, LLC (BAMS)
+    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+    See file "LGPL.txt" for conditions of use.
+
+PRIVATE !!  I/O API INTERNAL USE ONLY !!
+
+DO NOT EDIT !!
+
+       The EDSS/Models-3 I/O API depends in an essential manner
+       upon the contents of this INCLUDE file.  ANY CHANGES are
+       likely to result in very obscure, difficult-to-diagnose
+       bugs caused by an inconsistency between standard "libioapi.a"
+       object-libraries and whatever code is compiled with the
+       resulting modified INCLUDE-file.
+
+       By making any changes to this INCLUDE file, the user
+       explicitly agrees that in the case any assistance is 
+       required of MCNC, BAMS, or of the I/O API author, CARLIE J. COATS, JR.
+       HE AND/OR HIS PROJECT OR CONTRACT AGREES TO REIMBURSE BAMS
+       AND/OR THE I/O API AUTHOR, CARLIE J. COATS, JR., AT A
+       RATE TRIPLE THE NORMAL CONTRACT RATE FOR THE SERVICES
+       REQUIRED.
+
+CONTAINS:  
+
+    Data Structures and constants for the Fortran COMMONs from
+    include file STATE3.EXT, for I/O API Version 3
+
+DEPENDENT UPON:
+
+    Include files "parms3.h", "iodecl3.h"
+    consistency with FORTRAN include-files PARMS3.EXT, STATE3.EXT
+
+REVISION HISTORY:
+
+    prototype 10/2003 by CJC
+
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
+
+    Modified 3/2006 by CJC:  change order of "versn" in IOAPI_CSTATE3
+    to match storage order in STATE3.EXT / CSTATE3 /
+
+    Revised 4/2011 by CJC  to add state for full buffered-file file descriptions.
+
 ************************************************************************/
 
         /* "parms3.h" defines FLDMN and Fortran-type typedefs */
@@ -54,11 +68,19 @@ C
 
 #define BSTATE3    bstate3_
 #define CSTATE3    cstate3_
+#define CSTATE3V   cstate3v_
 
 #elif defined(__hpux) || defined(_AIX)
 
 #define BSTATE3    bstate3
 #define CSTATE3    cstate3
+#define CSTATE3V   cstate3v
+
+#elif  defined(ABSFT)
+
+#define BSTATE3    _CBSTATE3
+#define CSTATE3    _CCSTATE3
+#define CSTATE3V   _CCSTATE3V
 
 #else
 
@@ -77,6 +99,9 @@ typedef struct{
               double yorig[ MXFILE3 ] ;
               double xcell[ MXFILE3 ] ;
               double ycell[ MXFILE3 ] ;
+              FINT   vgtyp[ MXFILE3 ] ;
+              FREAL  vgtop[ MXFILE3 ] ;
+              FREAL  vglvs[ MXFILE3 ][ MXLAYS3+1 ] ;
               FINT   finit ;
               FINT   count ;
               FINT   curdate ;
@@ -126,11 +151,12 @@ typedef struct{
 
 typedef struct{
               M3Line  execn ;
-              M3Line  versn ;
               M3Line  sdesc[ MXDESC3 ] ;
               M3Name  flist[ MXFILE3 ] ;
               M3Name  gdnam[ MXFILE3 ] ;
               M3Name  vlist[ MXFILE3 ][ MXVARS3 ] ;
+              M3Name  units[ MXFILE3 ][ MXVARS3 ] ;
+              M3Line  versn ;
               }  IOAPI_CSTATE3 ;                      /** for Fortran COMMON CSTATE3 **/
 
 

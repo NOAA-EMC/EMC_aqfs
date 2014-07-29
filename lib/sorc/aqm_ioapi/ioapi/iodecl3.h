@@ -1,41 +1,45 @@
 
 /************************************************************************
-C  INCLUDE FILE  iodecl3.h
-C
-C    Version "@(#)$Header$"
-C    EDSS/Models-3 I/O API.
-C    Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C    (C) 2003 Baron Advanced Meteorological Systems.
-C    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C    See file "LGPL.txt" for conditions of use.
-C
-C    DO NOT EDIT !!
-C
-C        The EDSS/Models-3 I/O API depends in an essential manner
-C        upon the contents of this INCLUDE file.  ANY CHANGES are
-C        likely to result in very obscure, difficult-to-diagnose
-C        bugs caused by an inconsistency between standard "libioapi.a"
-C        object-libraries and whatever code is compiled with the
-C        resulting modified INCLUDE-file.
-C
-C        By making any changes to this INCLUDE file, the user
-C        explicitly agrees that in the case any assistance is 
-C        required of MCNC or of the I/O API author, CARLIE J. COATS, JR.
-C        HE AND/OR HIS PROJECT OR CONTRACT AGREES TO REIMBURSE MCNC
-C        AND/OR THE I/O API AUTHOR, CARLIE J. COATS, JR., AT A
-C        RATE TRIPLE THE NORMAL CONTRACT RATE FOR THE SERVICES
-C        REQUIRED.
-C
-C  CONTAINS:  
-C       Typedefs and prototypes of C wrappers for I/O API
-C
-C  DEPENDENT UPON:  
-C       consistency with FORTRAN include-file IODECL3.EXT, FDESC3.EXT
-C
-C  REVISION HISTORY:  
-C       prototype 5/9/95 by CJC
-C	Modified  8/99 by CJC:  FLDMN, Win32 portability enhancements
-C
+INCLUDE FILE  iodecl3.h
+
+    Version "@(#)$Header$"
+    EDSS/Models-3 I/O API.
+    Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
+    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+    See file "LGPL.txt" for conditions of use.
+
+    DO NOT EDIT !!
+
+        The EDSS/Models-3 I/O API depends in an essential manner
+        upon the contents of this INCLUDE file.  ANY CHANGES are
+        likely to result in very obscure, difficult-to-diagnose
+        bugs caused by an inconsistency between standard "libioapi.a"
+        object-libraries and whatever code is compiled with the
+        resulting modified INCLUDE-file.
+
+        By making any changes to this INCLUDE file, the user
+        explicitly agrees that in the case any assistance is 
+        required of MCNC or of the I/O API author, CARLIE J. COATS, JR.
+        HE AND/OR HIS PROJECT OR CONTRACT AGREES TO REIMBURSE MCNC
+        AND/OR THE I/O API AUTHOR, CARLIE J. COATS, JR., AT A
+        RATE TRIPLE THE NORMAL CONTRACT RATE FOR THE SERVICES
+        REQUIRED.
+
+CONTAINS:  
+       Typedefs and prototypes of C wrappers for I/O API
+
+DEPENDENT UPON:  
+       consistency with FORTRAN include-file IODECL3.EXT, FDESC3.EXT
+
+REVISION HISTORY:  
+    prototype 5/9/95 by CJC
+
+    Modified  8/99 by CJC:  FLDMN, Win32 portability enhancements
+
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
+
 **************************************************************************/
 
 #ifndef    IODECL3_DEFINED
@@ -67,6 +71,7 @@ extern "C" {
 
 #define GCD              gcd_ 
 #define GETDTTIME        getdttime_
+#define IOPARMS3         ioparms3_ 
 #define JSTEP3           jstep3_ 
 #define POLY             poly_
 #define BDESC3           bdesc3_
@@ -76,10 +81,16 @@ extern "C" {
 
 #define GCD              gcd
 #define GETDTTIME        getdttime
+#define IOPARMS3         ioparms3
 #define JSTEP3           jstep3
 #define POLY             poly
 #define BDESC3           bdesc3
 #define CDESC3           cdesc3
+
+#elif  defined(ABSFT)
+
+#define BDESC3           _CBDESC3
+#define CDESC3           _CCDESC3
 
 #elif  defined(_CRAY)
 
@@ -290,6 +301,14 @@ void GETDTTIME( int * now_date,
 void   hhmmssc( int   jtime ,
                 char  buffer[ 11 ] ) ;  /** time to string "hh:mm"ss" **/       
 
+void IOPARMS3( int * mxdlen, 
+               int * namlen, 
+               int * mxfile, 
+               int * mxvars, 
+               int * mxdesc, 
+               int * mxlays, 
+               int * mxatts ) ;  /** return I/O API dimensioning parameters **/  
+
 int  JSTEP3( const int * jdate, 
              const int * jtime, 
              const int * sdate,     /** record number 1, ...  in timestep **/
@@ -363,6 +382,56 @@ int  secsdiffc( int  adate ,
 int  time2secc( int  atime ) ;   /** HHMMSS ~~> seconds **/
                
 int     wkdayc( int  jdate ) ;   /** day of week 1...7 for jdate **/
+
+
+#if FLDMN || defined(__hpux) || defined(_AIX) || defined(ABSFT)
+
+void  name2cstr( const char * source, 
+                 char       * target,
+                 FSTR_L       slen,
+                 FSTR_L       tlen ) ;
+
+void  fstr2cstr( const char * source, 
+                 char       * target, 
+                 FSTR_L       slen, 
+                 FSTR_L       tlen ) ;
+
+void  cstr2fstr( const char * source, 
+                 char *       target, 
+                 FSTR_L       tlen ) ;
+
+#elif  defined(_WIN32)
+
+void  name2cstr( const char * source, 
+                 char       * target,
+                 FSTR_L       slen,
+                 FSTR_L       tlen ) ;
+
+void  fstr2cstr( const char * source, 
+                 char       * target, 
+                 FSTR_L       slen, 
+                 FSTR_L       tlen ) ;
+
+void  cstr2fstr( const char * source, 
+                 char *       target, 
+                 FSTR_L       tlen ) 
+
+#elif  defined(_CRAY)
+
+#include <fortran.h>
+
+void  name2cstr( const _fcd   source, 
+                 char       * target,
+                 FSTR_L       tlen  ) ;
+
+void  fstr2cstr( const _fcd   source, 
+                 char       * target, 
+                 FSTR_L       tlen ) ;
+
+void  cstr2fstr( const char * source,
+                 _fcd         target ) ;
+
+#endif   /** IF FELDMAN-DESCENDED F77 TARGETED, OR IF WIN32, OR IF CRAY **/
 
 #ifdef __cplusplus
 }

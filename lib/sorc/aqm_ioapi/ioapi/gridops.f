@@ -1,17 +1,17 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/gridops.f,v 1.2 2000/11/28 21:22:49 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+        SUBROUTINE GRIDOPS( NCOL, NROW, NSPC, NLEV, A, B, C )
+
+C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        SUBROUTINE  GRIDOPS( NCOL, NROW, NSPC, NLEV, A, B, C )
-
-C***********************************************************************
-C  subroutine GRIDOPS body starts at line  138
-C  entry      PICKOPS body starts at line  353
-C  entry      NAMEDOP body starts at line  368
+C  subroutine GRIDOPS body starts at line  130
+C  entry      PICKOPS body starts at line  345
+C  entry      NAMEDOP body starts at line  360
 C
 C  PRECONDITIONS REQUIRED:  Call entry PICKOPS before calling GRIDOPS
 C                           Valid OPNAME for NAMEDOP
@@ -48,86 +48,79 @@ C  19:   value from grid B                                  B
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:  M3EXIT, GETMENU, INDEX1
 C
-C  REVISION  HISTORY:  prototype  9/92 by CJC
-C
+C  REVISION  HISTORY:
+C       prototype 09/1992 by CJC
+C       Modified  03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER       NCOL, NROW, NSPC, NLEV          !  dimensions
-        REAL          A( NCOL*NROW*NSPC*NLEV )        !  first  input grid
-        REAL          B( NCOL*NROW*NSPC*NLEV )        !  second input grid
-        REAL          C( NCOL*NROW*NSPC*NLEV )        !  output grid
-        CHARACTER*16  OPNAME                          !  for PICKOPS
+        INTEGER     , INTENT(IN   ) :: NCOL, NROW, NSPC, NLEV          !  dimensions
+        REAL        , INTENT(IN   ) :: A( NCOL*NROW*NSPC*NLEV )        !  first  input grid
+        REAL        , INTENT(IN   ) :: B( NCOL*NROW*NSPC*NLEV )        !  second input grid
+        REAL        , INTENT(  OUT) :: C( NCOL*NROW*NSPC*NLEV )        !  output grid
+        CHARACTER*16, INTENT(INOUT) :: OPNAME                          !  for PICKOPS
 
 
 C...........   Parameter:
 
-        INTEGER       OPCOUNT         !  dimension for OP(*); number of ops
-        REAL          MISSING         !  fill value for zero-divide cells
+        INTEGER, PARAMETER :: OPCOUNT = 19         !  dimension for OP(*); number of ops
+        REAL   , PARAMETER :: MISSING = 9.999E37   !  fill value for zero-divide cells
 
-        PARAMETER   ( OPCOUNT = 19,
-     &                MISSING = 9.999E37 )
+        CHARACTER*72, PARAMETER :: DIFMNU ( OPCOUNT ) = (/
+     &'(pointwise) difference                           A - B        ',        !  1
+     &'(pointwise) difference                           B - A        ',        !  2
+     &'(pointwise) ratio                                A / B        ',        !  3
+     &'(pointwise) ratio                                B / A        ',        !  4
+     &'(pointwise) absolute value of difference        |A - B|       ',        !  5
+     &'difference normalized by first grid             (A - B)/A     ',        !  6
+     &'difference normalized by second grid            (B - A)/B     ',        !  7
+     &'difference normalized by second grid            (A - B)/B     ',        !  8
+     &'absolute value of difference normalized by A    |A - B|/A     ',        !  9
+     &'absolute value of difference normalized by B    |A - B|/B     ',        ! 10
+     &'difference normalized by pointwise mean        2(A-B)/(A + B) ',        ! 11
+     &'difference normalized by pointwise mean        2(B-A)/(A + B) ',        ! 12
+     &'difference normalized by joint root mean square (A-B)/RMS(A&B)',        ! 13
+     &'difference normalized by joint root mean square (B-A)/RMS(A&B)',        ! 14
+     &'(pointwise) sum                                  A + B        ',        ! 15
+     &'(pointwise) maximum                              MAX( A,B )   ',        ! 16
+     &'(pointwise) minimum                              min( A,B )   ',        ! 17
+     &'value from grid A                                A            ',        ! 18
+     &'value from grid B                                B            '         ! 19
+     & /)
+
+        CHARACTER*16, PARAMETER :: OP ( OPCOUNT ) = (/
+     &          '(A - B)         ' ,         !  1
+     &          '(B - A)         ' ,         !  2
+     &          'A / B           ' ,         !  3
+     &          'B / A           ' ,         !  4
+     &          '|(A - B)|       ' ,         !  5
+     &          '(A - B)/A       ' ,         !  6
+     &          '(B - A)/B       ' ,         !  7
+     &          '(A - B)/B       ' ,         !  8
+     &          '|(A - B)/A|     ' ,         !  9
+     &          '|(B - A)/B|     ' ,         ! 10
+     &          '(A-B)/((A+B)/2) ' ,         ! 11
+     &          '(B-A)/((A+B)/2) ' ,         ! 12
+     &          '(A - B)/RMS     ' ,         ! 13
+     &          '(B - A)/RMS     ' ,         ! 14
+     &          '(A + B)         ' ,         ! 15
+     &          'MAX(A, B)       ' ,         ! 16
+     &          'min(a, B)       ' ,         ! 17
+     &          'Grid A          ' ,         ! 18
+     &          'Grid B          ' /)        ! 19
 
 
 C...........   EXTERNAL FUNCTION:  make a menu selection; table lookup
 
-        INTEGER       GETMENU, INDEX1
-        EXTERNAL      GETMENU, INDEX1
+        INTEGER, EXTERNAL :: GETMENU, INDEX1
 
 
 C...........   LOCAL VARIABLES:  menu choices and descriptions
 
-        INTEGER       DIFMODE           !  operation selected from DIFMNU
-        DATA          DIFMODE / 1 /
-
-        CHARACTER*72  DIFMNU ( OPCOUNT )
-        DATA          DIFMNU /
-     &'(pointwise) difference                           A - B' ,        !  1
-     &'(pointwise) difference                           B - A' ,        !  2
-     &'(pointwise) ratio                                A / B' ,        !  3
-     &'(pointwise) ratio                                B / A' ,        !  4
-     &'(pointwise) absolute value of difference        |A - B|' ,       !  5
-     &'difference normalized by first grid             (A - B)/A' ,     !  6
-     &'difference normalized by second grid            (B - A)/B' ,     !  7
-     &'difference normalized by second grid            (A - B)/B' ,     !  8
-     &'absolute value of difference normalized by A    |A - B|/A' ,     !  9
-     &'absolute value of difference normalized by B    |A - B|/B' ,     ! 10
-     &'difference normalized by pointwise mean        2(A-B)/(A + B)',  ! 11
-     &'difference normalized by pointwise mean        2(B-A)/(A + B)',  ! 12
-     &'difference normalized by joint root mean square (A-B)/RMS(A&B)', ! 13
-     &'difference normalized by joint root mean square (B-A)/RMS(A&B)', ! 14
-     &'(pointwise) sum                                  A + B' ,        ! 15
-     &'(pointwise) maximum                              MAX( A,B )' ,   ! 16
-     &'(pointwise) minimum                              min( A,B )' ,   ! 17
-     &'value from grid A                                A',             ! 18
-     &'value from grid B                                B' /            ! 19
-
-        CHARACTER*16    OP ( OPCOUNT )
-        DATA            OP /
-     &          '(A - B)'         ,         !  1
-     &          '(B - A)'         ,         !  2
-     &          'A / B'           ,         !  3
-     &          'B / A'           ,         !  4
-     &          '|(A - B)|'       ,         !  5
-     &          '(A - B)/A'       ,         !  6
-     &          '(B - A)/B'       ,         !  7
-     &          '(A - B)/B'       ,         !  8
-     &          '|(A - B)/A|'     ,         !  9
-     &          '|(B - A)/B|'     ,         ! 10
-     &          '(A-B)/((A+B)/2)' ,         ! 11
-     &          '(B-A)/((A+B)/2)' ,         ! 12
-     &          '(A - B)/RMS'     ,         ! 13
-     &          '(B - A)/RMS'     ,         ! 14
-     &          '(A + B)'         ,         ! 15
-     &          'MAX(A, B)'       ,         ! 16
-     &          'min(a, B)'       ,         ! 17
-     &          'Grid A'          ,         ! 18
-     &          'Grid B'          /         ! 19
-
-        SAVE  DIFMODE, DIFMNU, OP
+        INTEGER, SAVE :: DIFMODE = 1       !  operation selected from DIFMNU
 
         INTEGER       I, J, K         !  loop counters
         REAL          S, T, U, V      !  scratch variables
@@ -380,15 +373,8 @@ C............ go to the head of GRIDOPS.
      &                   'Unrecognized grid operation ' // OPNAME, 2 )
 
         END IF
+
         RETURN
 
-C******************  FORMAT  STATEMENTS   ******************************
-
-C...........   Error and warning message formats..... 91xxx
-
-91000   FORMAT ( //5X , '*** ERROR ABORT in subroutine GRIDOPS ***',
-     &            /5X , A , I5 // )        !  generic error message format
-
-
-        END
+        END SUBROUTINE GRIDOPS
 

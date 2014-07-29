@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/rddict3.f,v 1.2 2000/11/28 21:23:02 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION RDDICT3 ( FID, FNAME )
 
 C***********************************************************************
-C  function body starts at line  77
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  74
 C
 C  FUNCTION:  
 C       read the file definition for specified description-name FMAME
@@ -40,14 +40,13 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID   !  index for file
-        CHARACTER*(*)   FNAME !  name of requested file description
+        INTEGER      , INTENT(IN   ) :: FID   !  index for file
+        CHARACTER*(*), INTENT(IN   ) :: FNAME !  name of requested file description
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1     !  look up names in name tables
-        EXTERNAL        INDEX1
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -64,9 +63,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 C.......   State variable:  names table, file ID for last call
         
         CHARACTER*16    FNAMES( MXVARS3 )
-        INTEGER         LID
-        DATA            LID / -1 /
-        SAVE            LID
+        INTEGER, SAVE :: LID = -1
 
 
 C.............................................................................
@@ -468,5 +465,5 @@ C...........   Error and warning message formats..... 91xxx
      &            3 ( /5X , A , : , I5 ), // )
 
 
-        END
+        END FUNCTION RDDICT3
 

@@ -1,16 +1,14 @@
 
-C.........................................................................
+        LOGICAL FUNCTION RDTFLAG( FID,VID, JDATE,JTIME, STEP, VERBOSE )
+
+C***********************************************************************
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 by Baron Advanced Meteorological Systems.
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL   FUNCTION  RDTFLAG( FID, VID, JDATE, JTIME, STEP )
-
-C***********************************************************************
-C  function body starts at line  88
+C  function body starts at line  102
 C
 C  FUNCTION:
 C       returns TRUE with STEP = record number for this time step
@@ -22,6 +20,8 @@ C       not JDATE:JTIME).
 C
 C       If FID is a "list file-set" upon entry, returns the FID of the
 C       appropriate "list" entry.
+C
+C       If VERBOSE, writes warning message when data not available.
 C
 C  PRECONDITIONS REQUIRED:
 C       FID is the file ID of either a "real" netCDF file or of a
@@ -46,6 +46,15 @@ C       Modified 7/2003 by CJC:  improved error-handling
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type
+C
+C       Bug-Fix 11/2004 by CJC:  correct "timestep not available"
+C       test & message for case that VID > 0.
+C
+C       Modified 11/2004 by CJC:  new "verbose-flag" argument
+C
+C       Modified 1/2007 by CJC:  improved error-messages; logic simplification
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -59,20 +68,19 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  subscript for file in STATE3 arrays
-        INTEGER         VID             !  subscript for vble in STATE3 arrays
-        INTEGER         JDATE           !  date (YYYYDDD) for query
-        INTEGER         JTIME           !  time (HHMMSS) for query
-        INTEGER         STEP            !  time step record number
+        INTEGER, INTENT(INOUT) :: FID             !  subscript for file in STATE3 arrays
+        INTEGER, INTENT(IN   ) :: VID             !  subscript for vble in STATE3 arrays
+        INTEGER, INTENT(IN   ) :: JDATE           !  date (YYYYDDD) for query
+        INTEGER, INTENT(IN   ) :: JTIME           !  time (HHMMSS) for query
+        INTEGER, INTENT(  OUT) :: STEP            !  time step record number
+        LOGICAL, INTENT(IN   ) :: VERBOSE
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         JSTEP3          !  compute time step record numbers
-        INTEGER         RDBFLAG         !  for BINFIL3 files
-        LOGICAL         SYNCFID
-
-        EXTERNAL        JSTEP3, RDBFLAG, SYNCFID
+        INTEGER, EXTERNAL :: JSTEP3          !  compute time step record numbers
+        INTEGER, EXTERNAL :: RDBFLAG         !  for BINFIL3 files
+        LOGICAL, EXTERNAL :: SYNCFID
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -110,7 +118,7 @@ C.......   If list file-set, find which actual file contains this time step:
             CALL M3MSG2( MESG )
             MESG = 'Variable ' // VLIST3( VID,FID ) //
      &             ' not available in file-set ' // FLIST3( FID )
-            CALL M3WARN( 'READ3', JDATE, JTIME, MESG )
+            CALL M3WARN( 'RDTFLAG', JDATE, JTIME, MESG )
             RDTFLAG = .FALSE.
             RETURN
 
@@ -134,20 +142,20 @@ C...........   Compute record number, and check availability:
 
             IF ( STEP .LT. 0 ) THEN
 
-                MESG = 'Time step error reading file:  ' // FLIST3(FID)
-                CALL M3MSG2( MESG )
-                WRITE( MESG,91020 )
-     &              'Requested date & time:    ', JDATE, JTIME
-                CALL M3MSG2( MESG )
-                WRITE( MESG,91020 )
-     &              'File starting date & time:',
-     &              SDATE3( FID ), STIME3( FID )
-                CALL M3MSG2( MESG )
-                WRITE( MESG,91030 )
-     &              'File time step:           ', TSTEP3( FID )
-                CALL M3MSG2( MESG )
-                MESG = 'Time step error reading file:  ' // FLIST3(FID)
-                CALL M3WARN( 'READ3', JDATE, JTIME, MESG )
+                IF ( VERBOSE ) THEN
+                    WRITE( MESG,91020 )
+     &                 'Requested date & time:    ', JDATE, JTIME
+                    CALL M3MSG2( MESG )
+                    WRITE( MESG,91020 )
+     &                 'File starting date & time:',
+     &                 SDATE3( FID ), STIME3( FID )
+                    CALL M3MSG2( MESG )
+                    WRITE( MESG,91030 )
+     &                 'File time step:           ', TSTEP3( FID )
+                    CALL M3MSG2( MESG )
+                    MESG = 'Time step error for file:  '//FLIST3(FID)
+                    CALL M3WARN( 'RDTFLAG', JDATE, JTIME, MESG )
+                END IF          !  if verbose
                 RDTFLAG = .FALSE.
                 RETURN
 
@@ -213,18 +221,16 @@ C.......   Deal with netCDF, native-binary-layer BINFIL3 files:
             IF ( IERR .EQ. 8 ) THEN     !  timestep flag not yet written
 
                 EFLAG = .TRUE.
-                MESG = 'Time step not yet written in file ' //
-     &          FLIST3( FID )
-                CALL M3WARN( 'RDTFLAG', FLAG1, FLAG2, MESG )
+                MESG  = 'Time step not yet written in file ' //
+     &                  FLIST3( FID )
 
             ELSE IF ( IERR .NE. 0 ) THEN
 
                 WRITE( MESG,91010 ) 'netCDF error number', IERR
                 CALL M3MSG2( MESG )
-                MESG = 'Error reading netCDF time step flag for ' //
-     &                 FLIST3( FID )
-                CALL M3WARN( 'RDTFLAG', FLAG1, FLAG2, MESG )
                 EFLAG = .TRUE.
+                MESG  = 'Error reading netCDF time step flag for '//
+     &                 FLIST3( FID )
 
             END IF
 
@@ -236,19 +242,42 @@ C.......   Deal with netCDF, native-binary-layer BINFIL3 files:
 
             IF ( IERR .EQ. 0 ) THEN
 
-                MESG = 'Error reading time-flags for BINIO3 file:  '
-     &          // FLIST3( FID )
-                CALL M3WARN( 'RDTFLAG', FLAG1, FLAG2, MESG )
+                MESG = 'Error reading time-flags for BINIO3 file '
+     &              // FLIST3( FID )
                 EFLAG = .TRUE.
 
             END IF          !  if ierr nonzero or not for NCVGT1()
 
         END IF          !  if netCDF file; else if BINIO3 file
 
+        IF ( EFLAG ) THEN       !  errors
+
+            IF ( VERBOSE ) THEN
+                CALL M3WARN( 'RDTFLAG', JDATE, JTIME, MESG )
+            END IF              !  if verbose
+
+            RDTFLAG = .FALSE.
+            RETURN
+
+        END IF                  !  if eflag
+
 
 C...........   Check time step flags for all variables:
 
-        IF ( .NOT. EFLAG ) THEN !  no errors
+        IF ( VID .GT. 0 ) THEN
+
+            IF ( FLAGS( 1,1 ) .NE. FLAG1  .OR.
+     &           FLAGS( 2,1 ) .NE. FLAG2  ) THEN
+
+                MESG = 'Time step not available in file ' //
+     &                  FLIST3( FID ) // ' for variable ' // 
+     &                  VLIST3( VID,FID )
+                EFLAG = .TRUE.
+                CALL M3WARN( 'RDTFLAG', JDATE, JTIME, MESG )
+
+            END IF          !  if bad flag value
+
+        ELSE
 
             DO  V = 1, DELT( 2 )
 
@@ -258,16 +287,16 @@ C...........   Check time step flags for all variables:
                     MESG = 'Time step not available in file ' //
      &                      FLIST3( FID ) // ' for variable ' // 
      &                      VLIST3( V,FID )
-                    CALL M3WARN( 'RDTFLAG', FLAG1, FLAG2, MESG )
                     EFLAG = .TRUE.
+                    CALL M3WARN( 'RDTFLAG', JDATE, JTIME, MESG )
 
                 END IF          !  if bad flag value
 
             END DO
 
-        END IF          !  if no errors
+        END IF          !  if vid > 0, or not
 
-        RDTFLAG = (.NOT. EFLAG )
+        RDTFLAG = ( .NOT.EFLAG )
 
         RETURN
 
@@ -281,5 +310,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91030   FORMAT ( A , I6.6 )
 
-        END
+        END FUNCTION RDTFLAG
 

@@ -1,16 +1,15 @@
-C.........................................................................
+
+        LOGICAL FUNCTION FLUSH3 ( FNAME )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C 2003 by Baron Advanced Meteorological Systems.
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  FLUSH3 ( FNAME )
-
-C***********************************************************************
-C  function  FLUSH3   starts at line   75
+C  function  FLUSH3   starts at line   74
 C
 C  FUNCTION:
 C       Flushes I/O API file with logical name FNAME.
@@ -36,6 +35,8 @@ C
 C       Modified 10/2003 by CJC for I/O API version 3:
 C       Structure in terms of new LOGICAL SYNCFID, INTEGER NAME2FID;
 C       support for native-binary BINFILE3 and LISTFIL3 file types
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -54,11 +55,9 @@ C...........   ARGUMENTS and their descriptions:
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1          !  look up names in tables
-        INTEGER         NAME2FID        !  fname~~> fid lookup
-        INTEGER         TRIMLEN
-        LOGICAL         SYNCFID
-        EXTERNAL        INDEX1, NAME2FID, TRIMLEN, SYNCFID
+        INTEGER, EXTERNAL :: INDEX1          !  look up names in tables
+        INTEGER, EXTERNAL :: NAME2FID        !  fname~~> fid lookup
+        LOGICAL, EXTERNAL :: SYNCFID
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -84,5 +83,5 @@ C.......   Find STATE3 index for the file; then call SYNCFID:
         FLUSH3 = SYNCFID( FILE )
         RETURN
 
-        END
+        END FUNCTION FLUSH3
 

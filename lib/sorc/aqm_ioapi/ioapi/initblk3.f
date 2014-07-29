@@ -1,19 +1,20 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/initblk3.f,v 1.2 2000/11/28 21:22:50 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         BLOCK DATA  INITBLK3
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2011 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C
 C  FUNCTION:  initialize I/O state for STATE3 common, Models-3 I/O API
 C
-C  REVISION  HISTORY:  prototype 3/92 by CJC
-C
+C  REVISION  HISTORY:
+C       prototype 3/1992 by CJC
+C       Version   4/2011 by CJC:  initialize VGTYP3(1) for CHKBUF3()
 C***********************************************************************
 
         IMPLICIT NONE
@@ -24,6 +25,7 @@ C***********************************************************************
         DATA  COUNT3 / 0 /
         DATA  LOGDEV / IMISS3  /
         DATA  FINIT3 / .FALSE. /
+        DATA  VGTYP3(1) / 0 /
 
         END
 

@@ -1,18 +1,18 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/dscgrid.f,v 1.2 2000/11/28 21:22:39 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2001 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         FUNCTION  DSCGRID( GNAME, CNAME,
      &              CTYPE, P_ALP, P_BET, P_GAM, XCENT, YCENT,
      &              XORIG, YORIG, XCELL, YCELL, NCOLS, NROWS, NTHIK )
 
 C***********************************************************************
-C  function body starts at line  129
-C  entry DSCOORD starts at line  333
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  122
+C  entry DSCOORD starts at line  325
 C
 C  FUNCTION:
 C
@@ -27,10 +27,14 @@ C  RETURN VALUE:  TRUE iff the operation succeeds
 C
 C  REVISION HISTORY:
 C
-C       7/94  Prototype version by CJC
-C       8/2001:  Bug fix by CJC to correct handling if GRIDDESC file
-C       does not exist
+C       7/1994  Prototype version by CJC
 C
+C       8/2001:  Bug fix by CJC to correct handling if GRIDDESC file
+C       does not exist.
+C
+C       10/2007:  close GRIDDESC file after reading it...
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
@@ -43,72 +47,61 @@ C...........   ENTRY Types
         
         
 C...........   ARGUMENTS and their descriptions:
-        
-        CHARACTER*(*) GNAME	!  grid  sys name
-        CHARACTER*(*) CNAME	!  coord sys name
-        INTEGER       CTYPE	!  coord sys type
-        REAL*8        P_ALP	!  first, second, third map
-        REAL*8        P_BET	!  projection descriptive
-        REAL*8        P_GAM	!  parameters
-        REAL*8        XCENT	!  lon for coord-system X=0
-        REAL*8        YCENT	!  lat for coord-system Y=0
-        REAL*8        XORIG	!  X-coordinate origin of grid (map units)
-        REAL*8        YORIG	!  Y-coordinate origin of grid
-        REAL*8        XCELL	!  X-coordinate cell dimension
-        REAL*8        YCELL	!  Y-coordinate cell dimension
-        INTEGER       NCOLS	!  number of grid columns
-        INTEGER       NROWS	!  number of grid rows
-        INTEGER       NTHIK	!  BOUNDARY:  perimeter thickness (cells)
+
+        CHARACTER*(*), INTENT(IN   ) :: GNAME	!  grid  sys name
+        CHARACTER*(*), INTENT(  OUT) :: CNAME	!  coord sys name
+        INTEGER,       INTENT(  OUT) :: CTYPE	!  coord sys type
+        REAL*8 ,       INTENT(  OUT) :: P_ALP	!  first, second, third map
+        REAL*8 ,       INTENT(  OUT) :: P_BET	!  projection descriptive
+        REAL*8 ,       INTENT(  OUT) :: P_GAM	!  parameters
+        REAL*8 ,       INTENT(  OUT) :: XCENT	!  lon for coord-system X=0
+        REAL*8 ,       INTENT(  OUT) :: YCENT	!  lat for coord-system Y=0
+        REAL*8 ,       INTENT(  OUT) :: XORIG	!  X-coordinate origin of grid (map units)
+        REAL*8 ,       INTENT(  OUT) :: YORIG	!  Y-coordinate origin of grid
+        REAL*8 ,       INTENT(  OUT) :: XCELL	!  X-coordinate cell dimension
+        REAL*8 ,       INTENT(  OUT) :: YCELL	!  Y-coordinate cell dimension
+        INTEGER,       INTENT(  OUT) :: NCOLS	!  number of grid columns
+        INTEGER,       INTENT(  OUT) :: NROWS	!  number of grid rows
+        INTEGER,       INTENT(  OUT) :: NTHIK	!  BOUNDARY:  perimeter thickness (cells)
         
 
 C...........   PARAMETERS and their descriptions:
 
-        INTEGER       MXCORD3   !  max number of coord systems in GRIDDESC
-        INTEGER       MXGRDS3   !  max number of coord systems in GRIDDESC
-        CHARACTER*16  GRIDDESC  !  logical name for grid desc file
+        CHARACTER*16, PARAMETER :: GRIDDESC = 'GRIDDESC'  !  logical name for grid desc file
 
-        PARAMETER ( MXCORD3 = 32 , 
-     &              MXGRDS3 = 256 ,
-     &              GRIDDESC = 'GRIDDESC' )
+        INTEGER, PARAMETER :: MXCORD3 =  32   !  max number of coord systems in GRIDDESC
+        INTEGER, PARAMETER :: MXGRDS3 = 256   !  max number of coord systems in GRIDDESC
 
             
 C...........   EXTERNAL FUNCTIONS:
         
-        INTEGER      INDEX1, GETEFILE, TRIMLEN
-        EXTERNAL     INDEX1, GETEFILE, TRIMLEN
+        INTEGER, EXTERNAL :: INDEX1, GETEFILE
         
 
 C...........   SAVED LOCAL VARIABLES and their descriptions:
               
-        LOGICAL      FIRSTIME
-        DATA         FIRSTIME / .TRUE. /
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
         
-        INTEGER      NCORDS	!  number of coord sys defs in GRIDDEFS
-        INTEGER      NGRIDS     !  number of grid      defs in GRIDDEFS
+        INTEGER, SAVE :: NCORDS	!  number of coord sys defs in GRIDDEFS
+        INTEGER, SAVE :: NGRIDS     !  number of grid      defs in GRIDDEFS
         
-        CHARACTER*16  CNAMES( MXCORD3 )
-        INTEGER       CTYPES( MXCORD3 )
-        REAL*8        P_ALPS( MXCORD3 )
-        REAL*8        P_BETS( MXCORD3 )
-        REAL*8        P_GAMS( MXCORD3 )
-        REAL*8        XCENTS( MXCORD3 )
-        REAL*8        YCENTS( MXCORD3 )
-        
-        CHARACTER*16 GNAMES( MXGRDS3 )
-        CHARACTER*16 CORDSS( MXGRDS3 )
-        REAL*8       XORIGS( MXGRDS3 )
-        REAL*8       YORIGS( MXGRDS3 )
-        REAL*8       XCELLS( MXGRDS3 )
-        REAL*8       YCELLS( MXGRDS3 )
-        INTEGER      NCOLSS( MXGRDS3 )
-        INTEGER      NROWSS( MXGRDS3 )
-        INTEGER      NTHIKS( MXGRDS3 )
+        CHARACTER*16, SAVE :: CNAMES( MXCORD3 )
+        CHARACTER*16, SAVE :: GNAMES( MXGRDS3 )
+        CHARACTER*16, SAVE :: CORDSS( MXGRDS3 )
 
-        SAVE         FIRSTIME, NCORDS, NGRIDS,
-     &               CNAMES, CTYPES, P_ALPS, P_BETS, P_GAMS, 
-     &               XCENTS, YCENTS, 
-     &               GNAMES, CORDSS, XORIGS, YORIGS, XCELLS, YCELLS, 
-     &               NCOLSS, NROWSS, NTHIKS
+        INTEGER, SAVE :: CTYPES( MXCORD3 )
+        REAL*8,  SAVE :: P_ALPS( MXCORD3 )
+        REAL*8,  SAVE :: P_BETS( MXCORD3 )
+        REAL*8,  SAVE :: P_GAMS( MXCORD3 )
+        REAL*8,  SAVE :: XCENTS( MXCORD3 )
+        REAL*8,  SAVE :: YCENTS( MXCORD3 )
+        REAL*8,  SAVE :: XORIGS( MXGRDS3 )
+        REAL*8,  SAVE :: YORIGS( MXGRDS3 )
+        REAL*8,  SAVE :: XCELLS( MXGRDS3 )
+        REAL*8,  SAVE :: YCELLS( MXGRDS3 )
+        INTEGER, SAVE :: NCOLSS( MXGRDS3 )
+        INTEGER, SAVE :: NROWSS( MXGRDS3 )
+        INTEGER, SAVE :: NTHIKS( MXGRDS3 )
         
 C...........   Scratch local variables and their descriptions:
             
@@ -126,10 +119,10 @@ C...........   Scratch local variables and their descriptions:
 C............................................................................
 C.......   begin body of routine DSCGRID:
 
-        IF ( TRIMLEN( GNAME ) .GT. 16 ) THEN
+        IF ( LEN_TRIM( GNAME ) .GT. 16 ) THEN
             WRITE( MESG,94020 )
      &          'Grid "', GNAME, '" Max name length 16; actual:', 
-     &          TRIMLEN( GNAME )
+     &          LEN_TRIM( GNAME )
             CALL M3WARN( 'DSCGRID', 0, 0, MESG )
             DSCGRID = .FALSE.
             RETURN
@@ -144,12 +137,11 @@ C.......   begin body of routine DSCGRID:
         
             IUNIT = GETEFILE( GRIDDESC, .TRUE., .TRUE., 'DESCGRID' )
             IF ( IUNIT .LT. 0 ) THEN
+
                 CALL NAMEVAL( GRIDDESC, NAMBUF )
                 CALL M3WARN( 'DSCGRID', 0, 0, 
      &                       'Could not open GRIDDESC file' )
-                MESG = 'Path name "' // 
-     &                    NAMBUF( 1:TRIMLEN( NAMBUF ) ) //
-     &                   '"'
+                MESG = 'Path name "' // TRIM( NAMBUF ) // '"'
                 CALL M3MESG( MESG )
                 DSCGRID = .FALSE.
                 RETURN
@@ -272,6 +264,8 @@ C...............   Read and discard coord sys chunk header:
 
 23              CONTINUE
                             
+            CLOSE( IUNIT )
+
             FIRSTIME = .FALSE.
 
         END IF          !  if firstime (end of initialization)
@@ -312,10 +306,8 @@ C...............   Read and discard coord sys chunk header:
                 XCENT = BADVAL3
                 YCENT = BADVAL3
                    
-                MESG = 'Missing coord system "' //
-     &               CORDSS( I )( 1:TRIMLEN( CORDSS( I ) ) ) //
-     &               '" for grid "' //
-     &               GNAME( 1:TRIMLEN( GNAME ) ) //
+                MESG = 'Missing coord system "' // TRIM( CORDSS( I ) )//
+     &               '" for grid "' // TRIM( GNAME ) //
      &               '" in GRIDDEFS'
                 CALL M3WARN( 'DSCGRID', 0, 0, MESG )
 
@@ -375,5 +367,5 @@ C...............   Format statements  ..................................
 
 94020   FORMAT( 3A, I7 )
 
-        END
+        END FUNCTION  DSCGRID
 

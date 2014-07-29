@@ -1,19 +1,17 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION  XTRACT3 ( FNAME, VNAME, LAY0, LAY1,
      &                              ROW0, ROW1, COL0, COL1,
      &                              JDATE, JTIME, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  120
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  123
 C
 C  FUNCTION:  Read into the array BUFFER(*) all the data from the
 C             Models-3 data file with logical name FNAME for variable
@@ -52,6 +50,16 @@ C       associated with INIT3()
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C
+C       Modified 11/2004 by CJC:  new "verbose-flag" argument to RDTFLAG
+C
+C       Modified 10/30/2005 by CJC:  removed extraneous "VNAME=VNAME"
+C       following suggestion by Dr. Michael Bane that this causes
+C       segfault on some systems.
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
+C
+C       Modified 05/2011 by CJC:  better error-messages
 C***********************************************************************
 
       IMPLICIT NONE
@@ -65,34 +73,30 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME           !  logical file name
-        CHARACTER*(*) VNAME           !  variable name, or 'ALL'
-        INTEGER       LAY0            !  lower layer bound
-        INTEGER       LAY1            !  upper layer bound
-        INTEGER       ROW0            !  lower row bound
-        INTEGER       ROW1            !  upper row bound
-        INTEGER       COL0            !  lower col bound
-        INTEGER       COL1            !  upper col bound
-        INTEGER       JDATE           !  date, formatted YYYYDDD
-        INTEGER       JTIME           !  time, formatted HHMMSS
-        REAL          BUFFER(*)       !  input buffer array
+        CHARACTER*(*), INTENT(IN   ) :: FNAME           !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME           !  variable name, or 'ALL'
+        INTEGER      , INTENT(IN   ) :: LAY0            !  lower layer bound
+        INTEGER      , INTENT(IN   ) :: LAY1            !  upper layer bound
+        INTEGER      , INTENT(IN   ) :: ROW0            !  lower row bound
+        INTEGER      , INTENT(IN   ) :: ROW1            !  upper row bound
+        INTEGER      , INTENT(IN   ) :: COL0            !  lower col bound
+        INTEGER      , INTENT(IN   ) :: COL1            !  upper col bound
+        INTEGER      , INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER      , INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        REAL         , INTENT(  OUT) :: BUFFER(*)       !  input buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER       INDEX1     !  look up names in name tables
-        INTEGER       INIT3      !  initialize I/O system files.
-        INTEGER       JSTEP3     !  compute time step record numbers
-        INTEGER       NAME2FID   !  fname~~> fid lookup
-        LOGICAL       RDTFLAG    !  check time step record availability
-        LOGICAL       RDVARS     !  read variables in data window
-        INTEGER       TRIMLEN
-        LOGICAL       XTBUF3     !  read data window from BUFFERED "files"
-        INTEGER       XTRBIN3    !  read data window from BINFIL3 files
-
-        EXTERNAL      INDEX1, INIT3, JSTEP3, NAME2FID, RDTFLAG,
-     &                RDVARS, TRIMLEN, XTBUF3, XTRBIN3
-        EXTERNAL      INITBLK3   !  block data: initialize I/O state
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O system files.
+        INTEGER, EXTERNAL :: JSTEP3     !  compute time step record numbers
+        INTEGER, EXTERNAL :: NAME2FID   !  fname~~> fid lookup
+        LOGICAL, EXTERNAL :: RDTFLAG    !  check time step record availability
+        LOGICAL, EXTERNAL :: RDVARS     !  read variables in data window
+        LOGICAL, EXTERNAL :: XTBUF3     !  read data window from BUFFERED "files"
+        INTEGER, EXTERNAL :: XTRBIN3    !  read data window from BINFIL3 files
+        EXTERNAL          :: INITBLK3        !!  BLOCK DATA to initialize STATE3 commons
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -118,11 +122,18 @@ C   begin body of function  XTRACT3
 
 C.......   Check that Models-3 I/O API has been initialized:
 
-        FLEN  = TRIMLEN( FNAME )
-        VLEN  = TRIMLEN( VNAME )
+        FLEN  = LEN_TRIM( FNAME )
+        VLEN  = LEN_TRIM( VNAME )
         FID   = NAME2FID( FNAME )
 
         EFLAG = ( FID .LE. 0 )
+
+        IF ( EFLAG ) THEN
+            MESG = 'Invalid file name "' // FNAME // '"'
+            CALL M3WARN( 'XTRACT3', JDATE, JTIME, MESG )
+	    XTRACT3 = .FALSE.
+            RETURN
+        END IF          !  if len( fname ) > 16, or if len( vname ) > 1
 
         IF ( VLEN .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
@@ -130,31 +141,24 @@ C.......   Check that Models-3 I/O API has been initialized:
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
      &          'Max vble name length 16; actual:', VLEN
-            CALL M3MSG2( MESG )
+            CALL M3WARN( 'XTRACT3', JDATE, JTIME, MESG )
+	    XTRACT3 = .FALSE.
+            RETURN
         END IF          !  if len( vname ) > 16
         
         IF ( FTYPE3( FID ) .NE. GRDDED3 ) THEN
-
             WRITE( MESG, '( 4A, I3)' )
      &          'File type error in XTRACT3:  ',
      &          FNAME( 1:FLEN ), ' must be GRDDED3 = 1 ',
      &          'Actual file type' , FTYPE3( FID )
             CALL M3WARN( 'XTRACT3', JDATE, JTIME, MESG )
-            EFLAG = .TRUE.
-
-        END IF          !  if file type nongridded, or file volatile
-
-        IF ( EFLAG ) THEN
-            MESG = 'Invalid variable or file name arguments'
-            CALL M3WARN( 'READ3', JDATE, JTIME, MESG )
 	    XTRACT3 = .FALSE.
             RETURN
-        END IF          !  if len( fname ) > 16, or if len( vname ) > 16
+        END IF          !  if file type nongridded, or file volatile
 
 
 C.......   Perform range checks on variable, layer, row, col:
 
-        VNAME = VNAME   !  fixed-length-16 scratch copy of name
         IF ( VNAME .EQ. ALLVAR3 ) THEN
 
             VID = ALLAYS3
@@ -257,7 +261,7 @@ C.......   Perform range checks on variable, layer, row, col:
 
         !!   Note:  rdtflag() calls NCSNC()
 
-        IF ( .NOT. RDTFLAG( FID, VID, JDATE, JTIME, STEP ) ) THEN
+        IF ( .NOT. RDTFLAG( FID,VID, JDATE,JTIME, STEP, .TRUE. ) ) THEN
 
             MESG = 'Time step not available for file:  ' // FNAME
             CALL M3WARN( 'XTRACT3', JDATE, JTIME, MESG )
@@ -302,5 +306,5 @@ C...........   Read data from netCDF file into BUFFER()
 
         RETURN
 
-        END
+        END FUNCTION  XTRACT3
 

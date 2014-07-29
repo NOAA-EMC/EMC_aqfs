@@ -1,17 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION CKGEOM( FILE, GRID )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  CKGEOM( FILE, GRID )
-
-C***********************************************************************
-C  program body starts at line  96
+C  program body starts at line  92
 C
 C  DESCRIPTION:
 C       Check consistency of horizontal grid description of the specified
@@ -32,6 +30,8 @@ C       Prototype 8/99 by Carlie J. Coats, Jr., NCSC
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -45,18 +45,14 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FILE    !  logical name of file to check
-        CHARACTER*(*)   GRID    !  GRIDDESC name of grid to check
-
-
-C...........   PARAMETERS and their descriptions:
+        CHARACTER*(*), INTENT(IN   ) :: FILE    !  logical name of file to check
+        CHARACTER*(*), INTENT(IN   ) :: GRID    !  GRIDDESC name of grid to check
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         DSCGRID
-        INTEGER         INDEX1
-        EXTERNAL        DSCGRID, INDEX1
+        LOGICAL, EXTERNAL :: DSCGRID
+        INTEGER, EXTERNAL :: INDEX1
 
 C...........   LOCAL VARIABLES and their descriptions:
 
@@ -225,5 +221,5 @@ C.......   Check that Models-3 I/O has been initialized:
 
         CKGEOM = ( .NOT. EFLAG )
 
-        END
+        END FUNCTION CKGEOM
 

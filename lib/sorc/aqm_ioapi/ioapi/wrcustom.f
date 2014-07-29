@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/wrcustom.f,v 1.2 2000/11/28 21:23:09 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL   FUNCTION WRCUSTOM( FID, VID, TSTAMP, STEP2, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  70
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  69
 C
 C  FUNCTION:  writes data from Models-3 CUSTOM data file with STATE3
 C             index FID, for alll variables and layers, for time step
@@ -27,7 +27,7 @@ C  REVISION  HISTORY:
 C       prototype 3/92 by CJC
 C       revised  10/94 by CJC:  allow write-by-variable; record 
 C       	time-step number as time step flag; restart files.
-C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -41,18 +41,17 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  vble index within the STATE3 commons
-        INTEGER         TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER         STEP2           !  file record number (maybe mod 2)
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  vble index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  file record number (maybe mod 2)
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         WRVARS     !  write "variables" part of timestep record
-        EXTERNAL        WRVARS
-        EXTERNAL        INITBLK3   !  block data: initialize I/O state
+        LOGICAL, EXTERNAL :: WRVARS     !  write "variables" part of timestep record
+        EXTERNAL          :: INITBLK3        !!  BLOCK DATA to initialize STATE3 commons
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -85,5 +84,5 @@ C...........   Perform the writes:
 
         RETURN
 
-        END
+        END FUNCTION WRCUSTOM
 

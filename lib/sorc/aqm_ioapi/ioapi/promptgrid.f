@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION PROMPTGRID()
 
 C***********************************************************************
-C  function body starts at line  55
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  52
 C
 C  RETURNS:  TRUE iff success
 C
@@ -21,14 +19,14 @@ C	uses DSCGRID or DSCOORD to put grid/coordinate system description
 C	into FHEAD3.EXT data structures.
 C
 C  PRECONDITIONS REQUIRED:
-C	Valid GRIDDEFS file
+C	Valid GRIDDESC file
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:
 C	DSCOORD, DSCGRID, GETSTR, GETYN, M3WARN
 C
 C  REVISION  HISTORY:
 C	prototype 11/95 by CJC
-C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -40,10 +38,7 @@ C...........   INCLUDES:
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL		DSCOORD, DSCGRID, GETYN
-        INTEGER		TRIMLEN
-
-        EXTERNAL        DSCOORD, DSCGRID, GETYN, TRIMLEN
+        LOGICAL, EXTERNAL :: DSCOORD, DSCGRID, GETYN
 
 C...........   Local Variables:
 
@@ -79,9 +74,9 @@ C   begin body of function  PROMPTGRID
      &                              XCELL3D, YCELL3D, 
      &                              NCOLS3D, NROWS3D, NTHIK3D ) ) THEN
 
-                    WRITE( *,92000 ) 
+                    WRITE( *,'( 5X, A )' ) 
      &              'Could not get description for coordinate system "'
-     &              // CNAME( 1 : TRIMLEN( CNAME ) ) // '"'
+     &              // TRIM( CNAME ) // '"'
 
                     IF ( GETYN( 'Try again?', .TRUE. ) ) THEN
                         GO TO  11
@@ -102,11 +97,5 @@ C   begin body of function  PROMPTGRID
 
         RETURN
 
-C******************  FORMAT  STATEMENTS   ******************************
-
-C...........   Informational (LOG) message formats... 92xxx
-
-92000	FORMAT( 5X, A )
-
-        END
+        END FUNCTION PROMPTGRID
 

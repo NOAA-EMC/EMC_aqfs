@@ -529,21 +529,21 @@ let "soilhr=soilhr-1"
 typeset -Z2 soilhr
 
 if [ "$SENDCOM" = 'YES' ]; then
-     cp $DATA/aqm.${cycle}.nmm00.tm00 $COMOUT/aqm.${cycle}.nmm00.tm00
-     cp $DATA/aqm.${cycle}.nmm06.tm00 $COMOUT/aqm.${cycle}.nmm06.tm00
-     cp $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
-     cp $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
-     cp $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
+     mv $DATA/aqm.${cycle}.nmm00.tm00 $COMOUT/aqm.${cycle}.nmm00.tm00
+     mv $DATA/aqm.${cycle}.nmm06.tm00 $COMOUT/aqm.${cycle}.nmm06.tm00
+     mv $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
+     mv $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
+     mv $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
 #     cp $DATA/GRIDCRO3D $COMOUT/aqm.${cycle}.grdcro3d.ncf
-     cp $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
-     cp $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
-     cp $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
-     cp $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
+     mv $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
+     mv $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
+     mv $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
+     mv $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
 #     cp $DATA/CHEMBDY3D $COMOUT/aqm.${cycle}.chembdy3d.ncf
 #     cp $DATA/CHEMCRO3D $COMOUT/aqm.${cycle}.chemcro3d.ncf
-     cp /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
-     cp $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
-     cp $DATA/soilout.${PDY}.${OUTGRID}.ncf     $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
+     mv /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
+     mv $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
+     mv $DATA/soilout.${PDY}.${OUTGRID}.ncf     $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 
 #     sync
 

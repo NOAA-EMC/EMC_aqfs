@@ -1,17 +1,16 @@
 
-C.........................................................................
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
-C 2003 by Baron Advanced Meteorological Systems.
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         CHARACTER*16 FUNCTION PROMPTMFILE( PROMPT, FMODE, 
      &                                     DEFAULT, CALLER )
 
 C***********************************************************************
-C  function body starts at line 99
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line 91
 C
 C       If environment variable PROMPTFLAG is 'Y', returns DEFAULT.
 C
@@ -31,7 +30,7 @@ C       "setenv <lname> <pathname>" for the file before program launch
 C       file description set in FDESC3.EXT structures if appropriate
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:
-C       GETYN, TRIMLEN, OPEN3
+C       GETYN, OPEN3
 C
 C  REVISION  HISTORY:
 C       prototype 6/1995 by CJC
@@ -43,6 +42,7 @@ C       M3FLUSH to ensure flush() of PROMPT and of log-messages for
 C       IRIX F90v7.4  
 C       Revised   7/2003 by CJC:  clean up LUNIT=INIT3() and
 C       FIRST-TIME logic
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -52,27 +52,21 @@ C***********************************************************************
 
 C...........   ARGUMENTS and their descriptions:
         
-        CHARACTER*(*) PROMPT         !  prompt for user
-        INTEGER       FMODE          !  file opening-mode
-        CHARACTER*(*) DEFAULT        !  default logical file name
-        CHARACTER*(*) CALLER         !  caller-name for logging messages
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT         !  prompt for user
+        INTEGER      , INTENT(IN   ) :: FMODE          !  file opening-mode
+        CHARACTER*(*), INTENT(IN   ) :: DEFAULT        !  default logical file name
+        CHARACTER*(*), INTENT(IN   ) :: CALLER         !  caller-name for logging messages
 
 
-C...........   PARAMETER
+C...........   PARAMETERS:
 
-        CHARACTER*16    BLANK16
-        CHARACTER*16    NONE16
-
-        PARAMETER     ( BLANK16 = ' ' , 
-     &                  NONE16  = 'NONE' )
+        CHARACTER*16, PARAMETER :: BLANK16 = ' '
+        CHARACTER*16, PARAMETER :: NONE16  = 'NONE'
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         TRIMLEN
-        LOGICAL         ENVYN
-        LOGICAL         GETYN
-        EXTERNAL        ENVYN, GETYN, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN, GETYN
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -87,11 +81,9 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
  
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
-        INTEGER         LUNIT        !  log-file unit number
-        DATA            LUNIT    / IMISS3 /
-        LOGICAL         PROMPTON     !  Actually prompt or open default
+        INTEGER, SAVE :: LUNIT = IMISS3
+        LOGICAL, SAVE :: PROMPTON     !  Actually prompt or open default
 
-        SAVE            LUNIT, PROMPTON
  
 C***********************************************************************
 C   begin body of function  PROMPTMFILE
@@ -115,14 +107,14 @@ C.......   Decide whether 'NONE' is a valid response
 
 C.......   Construct actual prompt; Loop:  get file name until file opens
         
-            BUFFER = PROMPT ( 1: TRIMLEN( PROMPT  ) ) // ' [' //
-     &               DEFAULT( 1: TRIMLEN( DEFAULT ) ) // '] >> '
+            BUFFER = TRIM( PROMPT  ) // ' [' //
+     &               TRIM( DEFAULT ) // '] >> '
 
 11          CONTINUE
-       
+        
                 LNAME = ' '
                 CALL M3PROMPT( BUFFER, LNAME, IOS )
-
+            
                 IF ( IOS .NE. 0 ) THEN
 
                     MESG = 'Could not read your response'
@@ -151,13 +143,13 @@ C.......   Construct actual prompt; Loop:  get file name until file opens
                 IF ( .NOT. OPEN3( LNAME, FMODE, CALLER ) ) THEN !  failure to open
 
                     MESG = 'Could not open file "' //
-     &                     LNAME( 1 : TRIMLEN( LNAME ) ) // '".'
+     &                     TRIM( LNAME ) // '".'
                     CALL M3MSG2( MESG )
                     IF ( GETYN( 'Try again?', .TRUE. ) ) THEN
                         GO TO  11
                     ELSE
                         MESG = 'Ending program "' //
-     &                          CALLER( 1 : TRIMLEN( CALLER ) ) // '".'
+     &                          TRIM( CALLER ) // '".'
                         CALL M3EXIT( CALLER, 0, 0, MESG, 2 )
                     END IF
 
@@ -189,8 +181,7 @@ C           ..  Study Planner to skip file without having to input "NONE"
 
             IF ( .NOT. OPEN3( LNAME, FMODE, CALLER ) ) THEN !  failure to open
  
-                MESG = 'Could not open file "' //
-     &                 LNAME( 1 : TRIMLEN( LNAME ) ) // '".'
+                MESG = 'Could not open file "' // TRIM( LNAME ) // '".'
                 CALL M3MSG2( MESG )
                 CALL M3EXIT( CALLER, 0, 0, MESG, 2 )
 
@@ -201,5 +192,5 @@ C           ..  Study Planner to skip file without having to input "NONE"
         PROMPTMFILE = LNAME
         RETURN
 
-        END
+        END FUNCTION PROMPTMFILE
 

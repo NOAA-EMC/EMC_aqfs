@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/m3err.F,v 1.3 2000/11/28 21:13:40 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE  M3ERR ( CALLER, JDATE, JTIME, MSGTXT, FATAL )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C
 C       DEPRECATED!!
 C       Use M3EXIT(), instead.
@@ -39,10 +39,10 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   CALLER          !  name of the caller
-        INTEGER         JDATE, JTIME    !  model date&time for the error
-        CHARACTER*(*)   MSGTXT          !  error message
-        LOGICAL         FATAL           !  terminate program iff TRUE
+        CHARACTER*(*), INTENT(IN   ) :: CALLER          !  name of the caller
+        INTEGER      , INTENT(IN   ) :: JDATE, JTIME    !  model date&time for the error
+        CHARACTER*(*), INTENT(IN   ) :: MSGTXT          !  error message
+        LOGICAL      , INTENT(IN   ) :: FATAL           !  terminate program iff TRUE
 
                  
 C***********************************************************************
@@ -55,5 +55,5 @@ C   begin body of subroutine  M3ERR
         END IF
         RETURN
 
-        END
+        END  SUBROUTINE  M3ERR
 

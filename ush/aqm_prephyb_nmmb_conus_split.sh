@@ -3,13 +3,13 @@
 set -ax 
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
- export  hr_list1="00 04"
- export  hr_list2="01 05"
+ export  hr_list1="00 01"
+ export  hr_list2="04 05"
  export  hr_list3="02 06"
  export  hr_list4="03"
 else
- export  hr_list1="00 04 08 12 16 20 24 28 32 36 40 44 48"
- export  hr_list2="01 05 09 13 17 21 25 29 33 37 41 45"
+ export  hr_list1="00 01 08 12 16 20 24 28 32 36 40 44 48"
+ export  hr_list2="04 05 09 13 17 21 25 29 33 37 41 45"
  export  hr_list3="02 06 10 14 18 22 26 30 34 38 42 46"
  export  hr_list4="03 07 11 15 19 23 27 31 35 39 43 47"
 fi
@@ -73,7 +73,7 @@ fi
 #=====================================================
 
 #===============================================
-echo $fhr
+echo "fhr=$fhr"
 export pgm=aqm_nmm_prep
 # . prep_step
 export FORT10="master3.ctl"
@@ -85,17 +85,19 @@ EOF5
   echo 'about to cat input'
   cat input${fhr}.prd
 
-  rm -rf ${pgmout}.$h_seg
-  startmsg
-  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.$h_seg 2>errfile
+#  rm -rf ${pgmout}.$h_seg
+#  startmsg
+  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd > ${pgmout}.${fhr}.$h_seg 2>errfile
   export err=$?;err_chk
 
    if [ "${PARAFLAG}" = "YES" ]
    then
     rm -rf log_met_prep_grep_${h_seg}
+#    test_file1=$DATA/${pgmout}.${fhr}.${h_seg}
      while [ ! -s log_met_prep_grep_${h_seg} ] ; do
-      if  [[ -s $DATA/${pgmout}.${h_seg} ]] ; then
-        grep -ni "END OF RESOURCE STATISTICS"  $DATA/${pgmout}.${h_seg}  > log_met_prep_grep_${h_seg}
+#jp      if  [[ -s {test_file1} ]] ; then
+      if  [[ -s $DATA/${pgmout}.${fhr}.${h_seg} ]] ; then
+        grep -ni "END OF RESOURCE STATISTICS"  $DATA/${pgmout}.${fhr}.${h_seg}  > log_met_prep_grep_${h_seg}
         break
         sleep 20
       else
@@ -105,30 +107,26 @@ EOF5
      done
    fi
 
+
 # added the following part to check file record number
-# if the record number is not 848, reran itr; 
+# if the record number is not 848, reran itr;
 # if the number is still not correct, exit and stop
-# 
-  nrd_test=`wgrib -v meso.AQFNMM${fhr} | wc -l`
+#
+
+  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
   if [ $nrd_test -ne 848 ]; then
-   echo "The record number of file is not correct at " $fhr
-  startmsg
-  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.$h_seg 2>errfile
+   echo "WARNING:The record number of file is not correct at " $fhr
+#  startmsg
+  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.${fhr}.$h_seg 2>errfile
   export err=$?;err_chk
-  nrd_test=`wgrib -v meso.AQFNMM${fhr} | wc -l`  
+  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
   if [ $nrd_test -ne 848 ]; then
-   echo "The file was not completed after rerun"
-   exit
+   echo "ERROR because the file for $fhr was not completed after rerun"
+   exit 999
   fi
   fi
-   
 
-#  cp  $DATA/meso.AQFNMM${fhr} $DATA/aqm.${cycle}.nmm$fhr.tm00
-
-#  if [ "$SENDCOM" = 'YES' ]
-#  then
-#   cp $DATA/meso.AQFNMM${fhr} $COMOUT/aqm.${cycle}.nmm$fhr.tm00
-#  fi
+  cat  ${pgmout}.${fhr}.$h_seg >> ${pgmout}.$h_seg
 
   let "fhr=fhr+1"
   typeset -Z2 fhr

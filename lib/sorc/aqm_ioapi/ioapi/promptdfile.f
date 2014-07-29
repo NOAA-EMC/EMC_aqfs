@@ -1,18 +1,16 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION PROMPTDFILE( PROMPT, RDONLY, FMTTED, RECLEN,
      &                                DEFAULT, CALLER )
 
 C***********************************************************************
-C  function body starts at line 95
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line 91
 C
 C       Prompts user for logical file name, then opens the direct 
 C	access Fortran file associated with it, for read-only or not, 
@@ -40,34 +38,32 @@ C       variable "PROMPTFLAG"
 C       Revised 6/2003 by CJC:  factor through M3MSG2, M3PROMPT, and
 C       M3FLUSH to ensure flush() of PROMPT and of log-messages for
 C       IRIX F90v7.4  
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
         
-        CHARACTER*(*) PROMPT         !  prompt for user
-        LOGICAL       RDONLY         !  TRUE iff file is input-only
-        LOGICAL       FMTTED         !  TRUE iff file should be formatted
-        INTEGER	      RECLEN         !  record length
-        CHARACTER*(*) DEFAULT        !  default logical file name
-        CHARACTER*(*) CALLER         !  caller-name for logging messages
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT         !  prompt for user
+        LOGICAL      , INTENT(IN   ) :: RDONLY         !  TRUE iff file is input-only
+        LOGICAL      , INTENT(IN   ) :: FMTTED         !  TRUE iff file should be formatted
+        INTEGER	     , INTENT(IN   ) :: RECLEN         !  record length
+        CHARACTER*(*), INTENT(IN   ) :: DEFAULT        !  default logical file name
+        CHARACTER*(*), INTENT(IN   ) :: CALLER         !  caller-name for logging messages
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         GETDFILE, TRIMLEN
-        LOGICAL         ENVYN, GETYN
-        EXTERNAL        GETDFILE, ENVYN, GETYN, TRIMLEN
+        INTEGER, EXTERNAL :: GETDFILE
+        LOGICAL, EXTERNAL :: ENVYN, GETYN
 
 
 C...........   PARAMETER
 
-        CHARACTER*16    BLANK16, NONE16, ALL16
-
-        PARAMETER     ( BLANK16 = ' ' , 
-     &                  NONE16 = 'NONE',
-     &                  ALL16  = 'ALL' )
+        CHARACTER*16, PARAMETER :: BLANK16 = ' '
+        CHARACTER*16, PARAMETER :: NONE16  = 'NONE'
+        CHARACTER*16, PARAMETER :: ALL16   = 'ALL'
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -82,11 +78,8 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         LOGICAL         AFLAG        !  "ALL"  is in the prompt
         LOGICAL         NFLAG        !  "NONE" is in the prompt
 
-        LOGICAL         PROMPTON     !  Actually prompt or open default
-        LOGICAL         FIRSTIME     !  true if first call this execution
-        DATA            FIRSTIME / .TRUE. /
-
-        SAVE     FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON     !  Actually prompt or open default
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 
 C***********************************************************************
@@ -105,14 +98,14 @@ C.......   Get file name; open input control definition file
         AFLAG = ( INDEX( PROMPT, '"ALL"'  ) .GT. 0 )
         NFLAG = ( INDEX( PROMPT, '"NONE"' ) .GT. 0 )
 
-        PLEN  = TRIMLEN( PROMPT  )
-        DLEN  = TRIMLEN( DEFAULT )
+        PLEN  = LEN_TRIM( PROMPT  )
+        DLEN  = LEN_TRIM( DEFAULT )
 
         IF ( DLEN .GT. 16 ) THEN
             WRITE( MESG, '( A, A, A, I6, 2X, A )' )
      &      'Length of DEFAULT "',  DEFAULT( 1:DLEN ) , 
      &      '" exceeds 16; truncating'
-            BUF = CALLER( 1 : TRIMLEN( CALLER ) ) // '/PROMPTDFILE'
+            BUF = TRIM( CALLER ) // '/PROMPTDFILE'
             CALL M3WARN( BUF, 0, 0, MESG )
             DLEN = 16
         END IF
@@ -122,13 +115,13 @@ C.......   Get file name; open input control definition file
             IF ( DLEN + PLEN .GT. 250 ) THEN
                 WRITE( MESG, '( A, A, A, I6, 2X, A )' )
      &          'Prompt too long; truncating'
-                BUF = CALLER( 1 : TRIMLEN( CALLER ) ) // '/PROMPTDFILE'
+                BUF = TRIM( CALLER ) // '/PROMPTDFILE'
                 CALL M3WARN( BUF, 0, 0, MESG )
                 PLEN = 250 - DLEN
             END IF
 
-            BUF = PROMPT ( 1: TRIMLEN( PROMPT  ) ) // ' [' //
-     &            DEFAULT( 1: TRIMLEN( DEFAULT ) ) // '] >> '
+            BUF = TRIM( PROMPT  ) // ' [' //
+     &            TRIM( DEFAULT ) // '] >> '
 
 11          CONTINUE
         
@@ -166,13 +159,13 @@ C.......   Get file name; open input control definition file
                 IF ( IDEV .LT. 0 ) THEN     !  failure to open
 
                     MESG = 'Could not open input file "' //
-     &                     LNAME( 1 : TRIMLEN( LNAME ) ) // '".'
+     &                     TRIM( LNAME ) // '".'
                     CALL M3MSG2( MESG )
                     IF ( GETYN( 'Try again?', .TRUE. ) ) THEN
                         GO TO  11
                     ELSE
                         MESG = 'Ending program "' //
-     &                          CALLER( 1 : TRIMLEN( CALLER ) ) // '".'
+     &                          TRIM( CALLER ) // '".'
                         CALL M3EXIT( CALLER, 0, 0, MESG, 2 )
                     END IF
 
@@ -209,10 +202,10 @@ C           ..  Study Planner to skip file without having to input "NONE"
             IDEV = GETDFILE( LNAME, RDONLY, FMTTED, RECLEN, CALLER )
             IF ( IDEV .LT. 0 ) THEN     !  failure to open
                 MESG = 'Could not open input file "' //
-     &                  LNAME( 1 : TRIMLEN( LNAME ) ) // '".'
+     &                  TRIM( LNAME ) // '".'
                 CALL M3MSG2( MESG )
                 MESG = 'Ending program "' //
-     &                  CALLER( 1 : TRIMLEN( CALLER ) ) // '".'
+     &                  TRIM( CALLER ) // '".'
                 CALL M3EXIT( CALLER, 0, 0, MESG, 2 )
             END IF
 
@@ -221,5 +214,5 @@ C           ..  Study Planner to skip file without having to input "NONE"
         PROMPTDFILE = IDEV
         RETURN
 
-        END
+        END FUNCTION PROMPTDFILE
 

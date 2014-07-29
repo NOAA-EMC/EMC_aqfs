@@ -4,7 +4,7 @@ VERSION "@(#)$Header$"
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -24,32 +24,34 @@ COPYRIGHT
                   case sensitivity handled correctly
 
   C                     bindings start at line   69:
-        envync()    at line   78
-        envintc()   at line  156
-        envrealc()  at line  212
-        envdblec()  at line  268
-        envstrc()   at line  325
-  Feldman-style Fortran bindings start at line  393
-        ENVYN()     at line  519
-        ENVINT()    at line  539
-        ENVREAL()   at line  559
-        ENVDBLE()   at line  579
-        ENVSTR()    at line  599
-        SETENVVAR() at line  629
-  WIN32-style   Fortran bindings start at line  659
-        ENVYN()     at line  760
-        ENVINT()    at line  782
-        ENVREAL()   at line  804
-        ENVDBLE()   at line  826
-        ENVSTR()    at line  848
-        SETENVVAR() at line  878
-  Cray-style    Fortran bindings start at line  910
-        ENVYN()     at line 1014
-        ENVINT()    at line 1037
-        ENVREAL()   at line 1056
-        ENVDBLE()   at line 1075
-        ENVSTR()    at line 1094
-        SETENVVAR() at line 1122
+        envync()    at line   87
+        envintc()   at line  165
+        envrealc()  at line  221
+        envdblec()  at line  277
+        envstrc()   at line  334
+  Feldman-style Fortran bindings start at line  401
+        ENVYN()     at line  529
+        ENVINT()    at line  552
+        ENVREAL()   at line  575
+        ENVDBLE()   at line  600
+        ENVSTR()    at line  625
+        SETENVVAR() at line  657
+        
+  WIN32-style   Fortran bindings start at line  689
+        ENVYN()     at line  788
+        ENVINT()    at line  810
+        ENVREAL()   at line  833
+        ENVDBLE()   at line  855
+        ENVSTR()    at line  877
+        SETENVVAR() at line  906
+
+  Cray-style    Fortran bindings start at line  936
+        ENVYN()     at line 1038
+        ENVINT()    at line 1063
+        ENVREAL()   at line 1084
+        ENVDBLE()   at line 1107
+        ENVSTR()    at line 1130
+        SETENVVAR() at line 1158
 
 REVISION HISTORY:
     Prototype 3/1995 by CJC
@@ -61,6 +63,11 @@ REVISION HISTORY:
     to Cray versions of lentrim() and SETENVVAR()
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications, BINFIL3 input
+    Format bug-fix 1/2005 by CJC following suggestion by Dr. Michael Bane,
+    Univ. Manchester, UK
+    Version   4/2005 by CJC:  Bug-fix in envync() from David Wong, US EPA,
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
 **********************************************************************/
 
 #include "iodecl3.h"
@@ -83,7 +90,7 @@ int envync( const char * lname       ,
             int        * status )
     {
     char  *evalue ;
-    char   value, ch ;
+    char   value ;
     char   mesg[ BUFLEN ] ;
     
     if ( evalue = getenv( lname ) )
@@ -92,8 +99,7 @@ int envync( const char * lname       ,
             {
             if ( value == '.' ) 
                 {
-                ch = evalue[ 1 ] ;
-                if( islower( ch ) ) ch = toupper( ch ) ;
+                value = evalue[1 ] ;
                 }
             if( islower( value ) ) 
                 {
@@ -121,7 +127,7 @@ int envync( const char * lname       ,
             else{
                 sprintf( mesg, 
                          "%s %s %s: '%.16s', %s  %s",
-                         "Value for",  lname, "not T,F,Y, or N", evalue, 
+                         "Value for",  lname, "not T,F,Y, or N " , evalue, 
                          "returning defaultval  ",
                          defaultval ? "TRUE" : "FALSE" ) ;
                 m3errc( "envync", 0, 0, mesg, 0 ) ;
@@ -133,7 +139,7 @@ int envync( const char * lname       ,
             sprintf( mesg,
                      "%s %s %s:  %s",                            
                      "Value for", lname, 
-                     "defined but empty; returning default",
+                     "defined but empty; returning default ",
                      defaultval ? "TRUE" : "FALSE" ) ;
             m3mesgc( mesg ) ;
             *status = -1 ;
@@ -144,7 +150,7 @@ int envync( const char * lname       ,
         sprintf( mesg,
                  "%s %s %s  %s",                            
                  "Value for", lname, 
-                 "not defined;returning default:", 
+                 "not defined;returning default: ", 
                  defaultval ? "TRUE" : "FALSE" ) ;
         m3mesgc( mesg ) ;
         *status = -2 ;
@@ -173,7 +179,7 @@ int envintc( const char *lname,
                 {
                 sprintf( mesg, 
                          "%s %s %s: '%.16s', %s  %d",
-                         "Value for",  lname, "not an integer", evalue, 
+                         "Value for",  lname, "not an integer ", evalue, 
                          "returning default", defaultval ) ;
                 m3errc( "envintc", 0, 0, mesg, 0 ) ;
                 *status = 1 ;
@@ -192,7 +198,7 @@ int envintc( const char *lname,
             sprintf( mesg,
                      "%s %s %s:  %d",                            
                      "Value for", lname, 
-                     "defined but empty; returning default", defaultval ) ;
+                     "defined but empty; returning default ", defaultval ) ;
             m3mesgc( mesg ) ;
             *status = -1 ;
             return defaultval  ;
@@ -228,17 +234,17 @@ float envrealc( const char *lname,
             if ( evalue == end )        /** strtol() failure **/
                 {
                 sprintf( mesg, 
-                         "%s %s %s: '%.16s', %s  %f",
-                         "Value for",  lname, "not a real", evalue, 
-                         "returning default", defaultval ) ;
+                         "%s %s %s: '%.16s', %s  %G",
+                         "Value for",  lname, "not a real ", evalue, 
+                         "returning default ", (double) defaultval ) ;
                 m3errc( "envrealc", 0, 0, mesg, 0 ) ;
                 *status = 1 ;
                 return defaultval ;
                 }                       /** END:  strtol() failure **/
             else{                       /** ELSE: strtol() success **/
                 sprintf( mesg,
-                         "%s %s:  %f",                            
-                         "Value for", lname, value ) ;
+                         "%s %s:  %G",                            
+                         "Value for", lname, (double) value ) ;
                 m3mesgc( mesg ) ;
                 *status = 0 ;
                 return value ;
@@ -246,9 +252,9 @@ float envrealc( const char *lname,
             }                           /** END:  lname defined      **/
         else{                           /** ELSE  lname defined but empty  **/
             sprintf( mesg,
-                     "%s %s %s:  %f",                            
+                     "%s %s %s:  %G",                            
                      "Value for", lname, 
-                     "defined but empty; returning default", defaultval ) ;
+                     "defined but empty; returning default ", (double) defaultval ) ;
             m3mesgc( mesg ) ;
             *status = -1 ;
             return defaultval  ;
@@ -256,9 +262,9 @@ float envrealc( const char *lname,
         }                       /** END:  lname defined     **/
     else{                       /** ELSE  lname not defined **/
         sprintf( mesg,
-                 "%s %s %s:  %f",                            
+                 "%s %s %s:  %G",                            
                  "Value for", lname, 
-                 "not defined; returning default", defaultval ) ;
+                 "not defined; returning default ", (double) defaultval ) ;
         m3mesgc( mesg ) ;
         *status = -2 ;
         return defaultval ;
@@ -284,8 +290,8 @@ double envdblec( const char  *lname,
             if ( evalue == end )        /** strtod() failure **/
                 {
                 sprintf( mesg, 
-                         "%s %s %s: '%.16s', %s  %lf",
-                         "Value for",  lname, "not a double", evalue, 
+                         "%s %s %s: '%.16s', %s  %G",
+                         "Value for",  lname, "not a double ", evalue, 
                          "returning default:", defaultval ) ;
                 m3errc( "envdblec", 0, 0, mesg, 0 ) ;
                 *status = 1 ;
@@ -293,8 +299,8 @@ double envdblec( const char  *lname,
                 }                       /** END:  strtod() failure **/
             else{                       /** ELSE: strtod() success **/
                 sprintf( mesg,
-                         "%s %s:  %lf",                            
-                         "Value for", lname, value ) ;
+                         "%s %s:  %G",                            
+                         "Value for ", lname, value ) ;
                 m3mesgc( mesg ) ;
                 *status = 0 ;
                 return value ;
@@ -302,9 +308,9 @@ double envdblec( const char  *lname,
             }                           /** END:  lname defined      **/
         else{                           /** ELSE  lname defined but empty  **/
             sprintf( mesg,
-                     "%s %s %s:  %lf",                            
+                     "%s %s %s:  %G",                            
                      "Value for", lname, 
-                     "defined but empty; returning default", defaultval ) ;
+                     "defined but empty; returning default ", defaultval ) ;
             m3mesgc( mesg ) ;
             *status = -1 ;
             return defaultval  ;
@@ -312,9 +318,9 @@ double envdblec( const char  *lname,
         }                       /** END:  lname defined     **/
     else{                       /** ELSE  lname not defined **/
         sprintf( mesg,
-                 "%s %s %s:  %lf",                            
+                 "%s %s %s:  %G",                            
                  "Value for", lname, 
-                 "not defined;returning default", defaultval ) ;
+                 "not defined;returning default ", defaultval ) ;
         m3mesgc( mesg ) ; 
         *status = -2 ;
         return defaultval ;
@@ -416,7 +422,7 @@ void envstrc( const char * lname,
 
 #endif
 
-#if FLDMN || defined(__hpux) || defined(_AIX)
+#if FLDMN || defined(__hpux) || defined(_AIX) || defined(ABSFT)
 
 
 /** -------------------------------------------------------------- **/
@@ -424,10 +430,10 @@ void envstrc( const char * lname,
 /** -------------------------------------------------------------- **/
 /** ----------------------  name2cstr()  ------------------------- **/
 
-static void  name2cstr( const char * source, 
-                        char       * target,
-                        FSTR_L       slen,
-                        FSTR_L       tlen )
+void  name2cstr( const char * source, 
+                       char       * target,
+                       FSTR_L       slen,
+                       FSTR_L       tlen )
     {
     char  *bound ;
     char   ch ;
@@ -457,7 +463,7 @@ static void  name2cstr( const char * source,
 
 /** -------------------- fstr2cstr() ----------------------------- **/
 
-static void  fstr2cstr( const char * source, 
+void  fstr2cstr( const char * source, 
                         char       * target, 
                         FSTR_L       slen, 
                         FSTR_L       tlen )
@@ -482,7 +488,7 @@ static void  fstr2cstr( const char * source,
 
 /** --------------------- cstr2fstr() ---------------------------- **/
 
-static void  cstr2fstr( const char * source, 
+void  cstr2fstr( const char * source, 
                         char *       target, 
                         FSTR_L       tlen )
     {
@@ -687,7 +693,7 @@ FINT SETENVVAR( const char * lname,
 /** -------------------------------------------------------------- **/
 /** ----------------------  name2cstr()  ------------------------- **/
 
-static void  name2cstr( const char * source, 
+void  name2cstr( const char * source, 
                         char       * target,
                         FSTR_L       slen,
                         FSTR_L       tlen )
@@ -716,7 +722,7 @@ static void  name2cstr( const char * source,
 
 /** -------------------- fstr2cstr() ----------------------------- **/
 
-static void  fstr2cstr( const char * source, 
+void  fstr2cstr( const char * source, 
                         char       * target, 
                         FSTR_L       slen, 
                         FSTR_L       tlen )
@@ -741,7 +747,7 @@ static void  fstr2cstr( const char * source,
 
 /** --------------------- cstr2fstr() ---------------------------- **/
 
-static void  cstr2fstr( const char * source, 
+void  cstr2fstr( const char * source, 
                         char *       target, 
                         FSTR_L       tlen )
     {
@@ -759,7 +765,7 @@ static void  cstr2fstr( const char * source,
     }         /** END WIN32 cstr2fstr() **/
 
 
-/** --------------------- cstr2fstr() ---------------------------- **/
+/** --------------------- lentrim() ---------------------------- **/
 
 static int  lentrim( const char *  source, 
                      const FSTR_L  slen )
@@ -774,7 +780,7 @@ static int  lentrim( const char *  source,
         if ( *ch != ' ' ) break
         }
     return( len ) ;
-    }         /** END WIN32 lnetrim() **/
+    }         /** END WIN32 lentrim() **/
 
 
 /** --------------------------  ENVYN()  ------------------------- **/
@@ -935,7 +941,7 @@ FINT SETENVVAR( const char * lname, FSTR_L  namlen,
 /** ------------------------  auxilliary functions  -------------- **/
 /** -------------------------------------------------------------- **/
 
-static void  name2cstr( const _fcd   source, 
+void  name2cstr( const _fcd   source, 
                         char       * target,
                         FSTR_L       tlen  )
     {
@@ -964,7 +970,7 @@ static void  name2cstr( const _fcd   source,
 
 /** -------------------- fstr2cstr() ----------------------------- **/
 
-static void  fstr2cstr( const _fcd   source, 
+void  fstr2cstr( const _fcd   source, 
                         char       * target, 
                         FSTR_L       tlen )
     {
@@ -988,7 +994,7 @@ static void  fstr2cstr( const _fcd   source,
 
 /** --------------------- cstr2fstr() ---------------------------- **/
 
-static void  cstr2fstr( const char * source,
+void  cstr2fstr( const char * source,
                         _fcd         target )
     {
     char *bound ;

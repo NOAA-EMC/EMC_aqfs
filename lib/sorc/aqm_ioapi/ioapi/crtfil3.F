@@ -1,32 +1,30 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION CRTFIL3( EQNAME, FID, PGNAME )
 
 C***********************************************************************
-C  subroutine body starts at line 121
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2011 Baron Advanced Meteorological Systems, and
+C (C) 2011 David Wong
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line 128
 C
 C  FUNCTION:  Create netCDF file FNAME using info stored in the FDESC3
 C             common.  Record history,   Leave file open for update.
 C
-C  PRECONDITIONS REQUIRED:  
+C  PRECONDITIONS REQUIRED:
 C       File definition already put into FDESC3 common.
 C       For file type TSERIES3:  extra attributes in ATDSC3 COMMON
 C
-C  SUBROUTINES AND FUNCTIONS CALLED:  
+C  SUBROUTINES AND FUNCTIONS CALLED:
 C       CRDICT3
 C
 C  REVISION  HISTORY:
 C       prototype 9/1994 by CJC for new version of OPEN3()
-C
-C       modified 10/1994 by CJC to support write granularity at the 
+C       modified 10/1994 by CJC to support write granularity at the
 C       varible-level for gridded, boundary, and custom files:  TFLAG
 C       now dimensioned by <variable-number>, <time-step-number>
 C
@@ -46,6 +44,15 @@ C       Revised   7/2002 by CJC:  fixed KF initialization bug
 C       Revised   5/2003 by CJC:  Set NF_SHARE for volatile files
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type
+C       Modified 12/2004 by CJC:  NVARS3D range check
+C       Modified 11/2008 by CJC:  Environment variable IOAPI_OFFSET_64
+C       controls whether netCDF opened with NF_64BIT_OFFSET, to support
+C       timestep-records > 2GB
+C       Modified 10/2009 by CJC:  flags-change for netCDF4  from
+C       Martin Otte, US EPA -- remove NF_WRITE.
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
+C       Revised 4/2011 by David Wong, US EPA, and by CJC, to add state for
+C       full buffered-file file descriptions.
 C***********************************************************************
 
       IMPLICIT NONE
@@ -65,31 +72,27 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   EQNAME  !  physical name of file to be created
-        INTEGER         FID     !  index into STATE3 arrays
-        CHARACTER*16    PGNAME  !  name of calling program
+        CHARACTER*(*), INTENT(IN   ) ::   EQNAME  !  physical name of file to be created
+        INTEGER      , INTENT(IN   ) ::   FID     !  index into STATE3 arrays
+        CHARACTER*(*), INTENT(IN   ) ::   PGNAME  !  name of calling program
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         CRDICT3 !  create variables for dictionary files
-        INTEGER         CRTBIN3 !  create native-binary-mode files
-        INTEGER         INDEX1  !  look up names in tables
-        INTEGER         TRIMLEN !  length after trimming trailing blanks.
-
-        EXTERNAL        CRDICT3, INDEX1, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN   !  yes-or-no environment variable value
+        LOGICAL, EXTERNAL :: CRDICT3 !  create variables for dictionary files
+        INTEGER, EXTERNAL :: CRTBIN3 !  create native-binary-mode files
+        INTEGER, EXTERNAL :: INDEX1  !  look up names in tables
 
 
 C...........   PARAMETERs and their descriptions:
 
-        INTEGER         MXCOL
-        PARAMETER     ( MXCOL = 1024 )
+        INTEGER, PARAMETER :: MXCOL = 8192
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER         ISCR
-        INTEGER         FMODE           !  netCDF file-opening mode
         INTEGER         FNUM            !  netCDF file ID from NCCRE()
         INTEGER         IERR            !  netCDF error status return
         INTEGER         ATT             !  loop counter for var. attributes
@@ -106,24 +109,50 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER         NDIMS           !  number of dims for NCVDEF()
         INTEGER         DIMS( 5 )       !  array of dims for NCVDEF()
         INTEGER         DELS( 5 )       !  array of dims for NCVPT()
-        INTEGER         C, R
+        INTEGER         C, R, L
         LOGICAL         EFLAG
         CHARACTER*80    DSCBUF          !  scratch buffer for descriptions
         CHARACTER*80    DSCBU2          !  scratch buffer for descriptions
-        CHARACTER*255   NAMBUF          !  scratch buffer to upcase EQNAME in.
+        CHARACTER*512   NAMBUF          !  scratch buffer to upcase EQNAME in.
         INTEGER         KFBUF( MXCOL )  !  scratch buffer for KFCOUNT
+
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
+        LOGICAL, SAVE :: OFFSET64 = .FALSE.
+        INTEGER, SAVE :: FMODE           !  netCDF file-opening mode
 
 
 C.............................................................................
 C   begin body of subroutine  CRTFIL3
 C...........  Create the netCDF file, and put it into definition mode.
 
-#if _CRAY
-        FMODE = IOR( NF_NOCLOBBER , NF_WRITE )
-#endif
-#if ! ( _CRAY )
-        FMODE = IOR( IOR( NF_SHARE, NF_NOCLOBBER ), NF_WRITE )
-#endif
+!$OMP   CRITICAL( WRITE3_INIT )
+        IF ( FIRSTIME ) THEN
+
+            OFFSET64 = ENVYN( 'IOAPI_OFFSET_64',
+     &                        'Use NF_64BIT_OFFSET or not',
+     &                        .FALSE.,
+     &                         IERR )
+            IF ( IERR .GT. 0 ) THEN
+                EFLAG = .TRUE.
+                CALL M3MSG2( 'Bad environment vble "IOAPI_LOG_WRITE"' )
+            END IF
+
+            FMODE = IOR( NF_NOCLOBBER, NF_SHARE )
+            IF ( OFFSET64 ) THEN
+                FMODE = IOR( FMODE, NF_64BIT_OFFSET )
+            END IF
+
+            FIRSTIME = .FALSE.
+
+        END IF		!  firstime
+!$OMP   END CRITICAL( WRITE3_INIT )
+
+        IF ( NVARS3D .GT. MXVARS3 ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
+     &                    'Max NVARS for this build exceeded' )
+            CRTFIL3 = .FALSE.
+            RETURN
+        END IF
 
         EFLAG = .FALSE.
 
@@ -136,13 +165,13 @@ C...........  If BINIO3-mode file, do CRTBIN3 and return
             GO TO 999
         END IF
 
-C...........  IElse create netCDF file and proceed...
+C...........  Else create netCDF file and proceed...
 
         IERR = NF_CREATE( EQNAME, FMODE, FNUM )
         IF ( IERR .NE. 0 ) THEN
             NAMBUF = EQNAME
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
-     &                    'Error creating netCDF file' )   
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
+     &                    'Error creating netCDF file' )
             CALL M3MSG2( EQNAME )
             EFLAG = .TRUE.
             CALL NCCLOS( FNUM, IERR )
@@ -155,11 +184,10 @@ C...........  IElse create netCDF file and proceed...
 C...........   Set attributes valid for all file types:
 C.......   IOAPI_VERSION:  I/O API version and date
 
-        DSCBUF = '2.2 2003141 (May 21, 2003)'
         CALL NCAPTC( FNUM, NCGLOBAL, 'IOAPI_VERSION', NCCHAR,
-     &               TRIMLEN( DSCBUF ), DSCBUF, IERR )
+     &               LEN_TRIM( DSCBUF ), VERSN3, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute IOAPI_VERSION' )
             EFLAG = .TRUE.
             GO TO 999
@@ -170,7 +198,7 @@ C.......   EXEC_ID:  execution ID
         CALL NCAPTC( FNUM, NCGLOBAL, 'EXEC_ID', NCCHAR,
      &               MXDLEN3, EXECN3, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute EXEC_ID ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -182,7 +210,7 @@ C.......   FTYPE:  file type ID
         CALL NCAPT( FNUM, NCGLOBAL, 'FTYPE', NCLONG,
      &              1, FTYPE3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute FTYPE' )
             EFLAG = .TRUE.
             GO TO 999
@@ -193,7 +221,7 @@ C.......   CDATE:  creation date
         CALL NCAPT( FNUM, NCGLOBAL, 'CDATE', NCLONG,
      &              1, CURDATE, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute CDATE' )
             EFLAG = .TRUE.
             GO TO 999
@@ -205,7 +233,7 @@ C.......   CTIME:  creation time
      &              1, CURTIME, IERR )
 
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute CTIME' )
             EFLAG = .TRUE.
             GO TO 999
@@ -216,7 +244,7 @@ C.......   WDATE:  date of last update
         CALL NCAPT( FNUM, NCGLOBAL, 'WDATE', NCLONG,
      &              1, CURDATE, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute WDATE' )
             EFLAG = .TRUE.
             GO TO 999
@@ -227,7 +255,7 @@ C.......   WTIME:  time of last update
         CALL NCAPT( FNUM, NCGLOBAL, 'WTIME', NCLONG,
      &              1, CURTIME, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute WTIME' )
             EFLAG = .TRUE.
             GO TO 999
@@ -246,25 +274,25 @@ C...........   files only:
 
 
 C...............   Set up remaining data file attributes:
-C.......   SDATE:  starting date
+C.......   SDATE:STIME  starting date&time (normalized by NEXTIME(:,:,0) )
 
         SDATE3( FID ) = SDATE3D
+        STIME3( FID ) = STIME3D
+        CALL NEXTIME( SDATE3( FID ), STIME3( FID ), 0 )
+
         CALL NCAPT( FNUM, NCGLOBAL, 'SDATE', NCLONG,
-     &              1, SDATE3D, IERR )
+     &              1, SDATE3( FID ), IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute SDATE' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
 
-C.......   STIME:  starting time:
-
-        STIME3( FID ) = STIME3D
         CALL NCAPT( FNUM, NCGLOBAL, 'STIME', NCLONG,
-     &              1, STIME3D, IERR )
+     &              1, STIME3( FID ), IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute STIME' )
             EFLAG = .TRUE.
             GO TO 999
@@ -276,14 +304,14 @@ C.......   TSTEP:  time step
         CALL NCAPT( FNUM, NCGLOBAL, 'TSTEP', NCLONG,
      &              1, TSTEP3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute TSTEP' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
 
 C.......   MXREC:  maximum existing time step number
-        
+
         MXREC3( FID ) = 0
 
 C.......   NTHIK:  thickness of perimeter (cells) for BOUNDARY files
@@ -292,7 +320,7 @@ C.......   NTHIK:  thickness of perimeter (cells) for BOUNDARY files
         CALL NCAPT( FNUM, NCGLOBAL, 'NTHIK', NCLONG,
      &              1, NTHIK3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute NTHIK' )
             EFLAG = .TRUE.
             GO TO 999
@@ -304,7 +332,7 @@ C.......   NCOLS:  number of grid columns/profile levels
         CALL NCAPT( FNUM, NCGLOBAL, 'NCOLS', NCLONG,
      &              1, NCOLS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute NCOLS' )
             EFLAG = .TRUE.
             GO TO 999
@@ -316,7 +344,7 @@ C.......   NROWS:  number of grid rows/data sites
         CALL NCAPT( FNUM, NCGLOBAL, 'NROWS', NCLONG,
      &              1, NROWS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &      'Error creating netCDF file attribute NROWS' )
             EFLAG = .TRUE.
             GO TO 999
@@ -328,7 +356,7 @@ C.......   NLAYS:  number of layers
         CALL NCAPT( FNUM, NCGLOBAL, 'NLAYS', NCLONG,
      &              1, NLAYS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute NLAYS' )
             EFLAG = .TRUE.
             GO TO 999
@@ -340,7 +368,7 @@ C.......   NVARS:  number of variables
         CALL NCAPT( FNUM, NCGLOBAL, 'NVARS', NCLONG,
      &              1, NVARS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute NVARS' )
             EFLAG = .TRUE.
             GO TO 999
@@ -352,7 +380,7 @@ C.......   GDTYP:  grid type ID (lat-lon, UTM, RADM, etc...)
         CALL NCAPT( FNUM, NCGLOBAL, 'GDTYP', NCLONG,
      &              1, GDTYP3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute GDTYP' )
             EFLAG = .TRUE.
             GO TO 999
@@ -364,7 +392,7 @@ C.......   P_ALP:  first map-projection descriptive angle
         CALL NCAPT( FNUM, NCGLOBAL, 'P_ALP', NCDOUBLE,
      &              1, P_ALP3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute P_ALP ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -376,7 +404,7 @@ C.......   P_BET:  second map-projection descriptive angle
         CALL NCAPT( FNUM, NCGLOBAL, 'P_BET', NCDOUBLE,
      &              1, P_BET3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute P_BET ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -388,7 +416,7 @@ C.......   P_GAM:  third map-projection descriptive angle
         CALL NCAPT( FNUM, NCGLOBAL, 'P_GAM', NCDOUBLE,
      &              1, P_GAM3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute P_GAM ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -400,7 +428,7 @@ C.......   XCENT:  lon of coordinate-system origin
         CALL NCAPT( FNUM, NCGLOBAL, 'XCENT', NCDOUBLE,
      &              1, XCENT3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute XCENT ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -412,7 +440,7 @@ C.......   YCENT:  lat of coordinate-system origin
         CALL NCAPT( FNUM, NCGLOBAL, 'YCENT', NCDOUBLE,
      &              1, YCENT3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute YCENT ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -424,7 +452,7 @@ C.......   XORIG:  X-coord of grid origin
         CALL NCAPT( FNUM, NCGLOBAL, 'XORIG', NCDOUBLE,
      &              1, XORIG3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute XORIG ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -436,7 +464,7 @@ C.......   YORIG:  Y-coord of grid origin
         CALL NCAPT( FNUM, NCGLOBAL, 'YORIG', NCDOUBLE,
      &              1, YORIG3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute YORIG ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -448,7 +476,7 @@ C.......   XCELL:  cell width (X direction)
         CALL NCAPT( FNUM, NCGLOBAL, 'XCELL', NCDOUBLE,
      &              1, XCELL3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute XCELL ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -460,7 +488,7 @@ C.......   YCELL:  cell width (Y direction)
         CALL NCAPT( FNUM, NCGLOBAL, 'YCELL', NCDOUBLE,
      &              1, YCELL3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute YCELL ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -471,22 +499,24 @@ C.......   VGTYP:  vertical coordinate type (VGSIGP3, ... ) or IMISS3
         CALL NCAPT( FNUM, NCGLOBAL, 'VGTYP', NCLONG,
      &              1, VGTYP3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute VGTYP ' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
+        VGTYP3( FID ) = VGTYP3D
 
-C.......   VGTOP:  
+C.......   VGTOP:
 
         CALL NCAPT( FNUM, NCGLOBAL, 'VGTOP', NCFLOAT,
      &              1, VGTOP3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute VGTOP ' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
+        VGTOP3( FID ) = VGTOP3D
 
 C.......   VGLVS( 1, ..., NLAYS3D+1 ):  vertical coordinate values
 C.......   (trapped against MXLAYS3 to prevent possible array overflow)
@@ -494,11 +524,14 @@ C.......   (trapped against MXLAYS3 to prevent possible array overflow)
         CALL NCAPT( FNUM, NCGLOBAL, 'VGLVLS', NCFLOAT,
      &              MIN( NLAYS3D+1, MXLAYS3), VGLVS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute VGLVLS ' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAPT() failed
+        DO L = 1, MIN( NLAYS3D+1, MXLAYS3)
+           VGLVS3( L,FID ) = VGLVS3D( L )
+        END DO
 
 C.......   GDNAM:  grid name
 
@@ -506,7 +539,7 @@ C.......   GDNAM:  grid name
         CALL NCAPTC( FNUM, NCGLOBAL, 'GDNAM', NCCHAR,
      &              NAMLEN3, GDNAM3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute GDNAM ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -517,7 +550,7 @@ C.......   UPNAM:  name of last program to update the file
         CALL NCAPTC( FNUM, NCGLOBAL, 'UPNAM', NCCHAR,
      &               NAMLEN3, PGNAME, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute UPNAM ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -529,7 +562,7 @@ C.......   Variables-list for the file:
             CALL NCAPTC( FNUM, NCGLOBAL, 'VAR-LIST', NCCHAR,
      &                   NAMLEN3 * NVARS3( FID ), VNAME3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating attribute VAR-LIST ' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -541,7 +574,7 @@ C.......   FILEDESC:  file description
         CALL NCAPTC( FNUM, NCGLOBAL, 'FILEDESC', NCCHAR,
      &               MXDLEN3 * MXDESC3, FDESC3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute FILEDESC ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -552,7 +585,7 @@ C.......   HISTORY:  update description
         CALL NCAPTC( FNUM, NCGLOBAL, 'HISTORY', NCCHAR,
      &               MXDLEN3 * MXDESC3, SCNDSC, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF file attribute HISTORY ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -569,7 +602,7 @@ C...........   (valid for all file types)
             TSIZE = NCUNLIM
             DSIZE = 5               !  for ddim
 
-        ELSE 
+        ELSE
             IF ( TSTEP3D .GT. 0 ) THEN
                 TSIZE = NCUNLIM
             ELSE IF ( TSTEP3D .LT. 0 ) THEN    !  restart (circular-buffer) file
@@ -584,7 +617,7 @@ C...........   (valid for all file types)
 
         TDIM = NCDDEF( FNUM, 'TSTEP', TSIZE, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension TSTEP ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -592,7 +625,7 @@ C...........   (valid for all file types)
 
         DDIM = NCDDEF( FNUM, 'DATE-TIME', DSIZE, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension DATE-TIME' )
             EFLAG = .TRUE.
             GO TO 999
@@ -600,7 +633,7 @@ C...........   (valid for all file types)
 
         LDIM = NCDDEF( FNUM, 'LAY', NLAYS3D, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension LAY' )
             EFLAG = .TRUE.
             GO TO 999
@@ -608,12 +641,12 @@ C...........   (valid for all file types)
 
         VDIM = NCDDEF( FNUM, 'VAR', MAX( NVARS3D, 1 ), IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension VAR ' )
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCDDEF() failed
-               
+
         IF ( FTYPE3D .EQ. KFEVNT3 ) THEN
 
             NDIMS = 2               !  for tindx(fid)
@@ -623,7 +656,7 @@ C...........   (valid for all file types)
             DSCBU2 = 'Event-valid flags:  ' //
      &          'start YYYYDDD,HHMMSS; COL,ROW; duration H*MMSS>'
 
-        ELSE 
+        ELSE
 
             NDIMS = 3               !  for tindx(fid)
             DIMS( 1 ) = DDIM        !  date field or time field
@@ -637,10 +670,10 @@ C...........   (valid for all file types)
 
 C...........   Create timestep-available-flag variable:
 
-        TINDX3( FID ) = NCVDEF( FNUM, 'TFLAG', 
+        TINDX3( FID ) = NCVDEF( FNUM, 'TFLAG',
      &                          NCLONG, NDIMS, DIMS, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF variable TFLAG ' )
             EFLAG = .TRUE.
             GO TO 999
@@ -649,7 +682,7 @@ C...........   Create timestep-available-flag variable:
         CALL NCAPTC( FNUM, TINDX3( FID ), 'units', NCCHAR,
      &               NAMLEN3, DSCBUF( 1:NAMLEN3 ), IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating FLAG attribute "units"' )
             EFLAG = .TRUE.
             GO TO 999
@@ -659,16 +692,16 @@ C...........   Create timestep-available-flag variable:
         CALL NCAPTC( FNUM, TINDX3( FID ), 'long_name', NCCHAR,
      &               NAMLEN3, DSCBUF( 1:NAMLEN3 ), IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating FLAG attribute "long_name" ' )
             EFLAG = .TRUE.
             GO TO 999
         END IF              !  ierr nonzero:  NCAPTC() failed
 
-        CALL NCAPTC( FNUM, TINDX3( FID ), 'var_desc', NCCHAR, 
+        CALL NCAPTC( FNUM, TINDX3( FID ), 'var_desc', NCCHAR,
      &               MXDLEN3, DSCBU2, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating FLAG attribute VAR_DESC ')
             EFLAG = .TRUE.
             GO TO 999
@@ -681,7 +714,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'COL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension COL' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -699,7 +732,7 @@ C...........   Now, other dimensions (depend upon file type):
             BSIZE3( FID ) = NCOLS3( FID ) * NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'ROW', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension ROW ' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -707,7 +740,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'COL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension COL' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -723,13 +756,13 @@ C...........   Now, other dimensions (depend upon file type):
         ELSE IF ( FTYPE3D .EQ. BNDARY3 ) THEN
 
             BSIZE3( FID ) = 2 * ABS( NTHIK3( FID ) )
-     &                        * ( NCOLS3( FID ) + NROWS3( FID ) 
+     &                        * ( NCOLS3( FID ) + NROWS3( FID )
      &                          + 2 * NTHIK3( FID ) )
             ISCR = 2 * NTHIK3D
             ISCR = ISCR * ( NCOLS3D + NROWS3D + ISCR )
             RDIM = NCDDEF( FNUM, 'PERIM', ISCR, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension PERIM' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -746,7 +779,7 @@ C...........   Now, other dimensions (depend upon file type):
             BSIZE3( FID ) = NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'SITE-NO', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension SITE-NO' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -757,7 +790,7 @@ C...........   Now, other dimensions (depend upon file type):
             NINDX3( FID ) = NCVDEF( FNUM, 'ID-COUNT', NCLONG,
      &                              1, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID-COUNT' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -768,7 +801,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             SINDX3( FID ) = NCVDEF( FNUM, 'ID', NCLONG, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -785,7 +818,7 @@ C...........   Now, other dimensions (depend upon file type):
             BSIZE3( FID ) = NCOLS3( FID ) * NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'SITE-NO', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension SITE-NO' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -793,7 +826,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'LEVEL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension LEVEL' )
                 EFLAG = .TRUE.
                  GO TO 999
@@ -804,7 +837,7 @@ C...........   Now, other dimensions (depend upon file type):
             NINDX3( FID ) = NCVDEF( FNUM, 'ID-COUNT', NCLONG,
      &                              1, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID-COUNT' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -815,7 +848,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             SINDX3( FID ) = NCVDEF( FNUM, 'ID', NCLONG, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -824,7 +857,7 @@ C...........   Now, other dimensions (depend upon file type):
             LINDX3( FID ) = NCVDEF( FNUM, 'LEVEL-COUNT', NCLONG,
      &                              2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable LEVEL-COUNT' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -832,7 +865,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             XINDX3( FID ) = NCVDEF( FNUM, 'X', NCFLOAT, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable X' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -840,7 +873,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             YINDX3( FID ) = NCVDEF( FNUM, 'Y', NCFLOAT, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable Y' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -848,7 +881,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             ZINDX3( FID ) = NCVDEF( FNUM, 'Z', NCFLOAT, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable Z' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -866,7 +899,7 @@ C...........   Now, other dimensions (depend upon file type):
             BSIZE3( FID ) = NCOLS3( FID ) * NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'SITE-NO', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension SITE-NO' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -874,7 +907,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'LEVEL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension LEVEL' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -885,7 +918,7 @@ C...........   Now, other dimensions (depend upon file type):
             NINDX3( FID ) = NCVDEF( FNUM, 'ID-COUNT', NCLONG,
      &                              1, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID-COUNT' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -896,7 +929,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             SINDX3( FID ) = NCVDEF( FNUM, 'ID', NCLONG, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable ID' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -905,7 +938,7 @@ C...........   Now, other dimensions (depend upon file type):
             WCNDX3( FID ) = NCVDEF( FNUM, 'WIN-COLS', NCLONG,
      &                              2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable WIN-ROWS' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -914,7 +947,7 @@ C...........   Now, other dimensions (depend upon file type):
             WRNDX3( FID ) = NCVDEF( FNUM, 'WIN-ROWS', NCLONG,
      &                              2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable WIN-ROWS' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -923,7 +956,7 @@ C...........   Now, other dimensions (depend upon file type):
             LINDX3( FID ) = NCVDEF( FNUM, 'WIN-LEVS', NCLONG,
      &                              2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable WIN-LEVS' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -931,7 +964,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             XINDX3( FID ) = NCVDEF( FNUM, 'X', NCDOUBLE, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable X' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -939,7 +972,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             YINDX3( FID ) = NCVDEF( FNUM, 'Y', NCDOUBLE, 2, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable Y' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -947,7 +980,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             DXNDX3( FID ) = NCVDEF( FNUM, 'DX', NCDOUBLE, 2, DIMS, IERR)
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable DX' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -955,7 +988,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             DYNDX3( FID ) = NCVDEF( FNUM, 'DY', NCDOUBLE, 2, DIMS, IERR)
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF variable DY' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -972,7 +1005,7 @@ C...........   Now, other dimensions (depend upon file type):
             BSIZE3( FID ) = NCOLS3( FID )
             RDIM = NCDDEF( FNUM, 'ROW-NO', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension ROW-NO' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -980,7 +1013,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'SP-COEF-NO', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF dimension SP-COEF-NO' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -991,10 +1024,10 @@ C...........   Now, other dimensions (depend upon file type):
 
             NDIMS = 2
 
-            SINDX3( FID ) = NCVDEF( FNUM, 'COL-COUNT', 
+            SINDX3( FID ) = NCVDEF( FNUM, 'COL-COUNT',
      &                              NCLONG, NDIMS, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF variable COL-COUNT' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -1005,47 +1038,47 @@ C...........   Now, other dimensions (depend upon file type):
 
             NDIMS = 2
 
-            LINDX3( FID ) = NCVDEF( FNUM, 'COEFF-INDEX', 
+            LINDX3( FID ) = NCVDEF( FNUM, 'COEFF-INDEX',
      &                              NCLONG, NDIMS, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &          'Error creating netCDF variable COEFF-INDEX' )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCVDEF() failed
 
         ELSE IF ( FTYPE3D .EQ. TSRIES3 ) THEN
- 
+
             BSIZE3( FID ) = NCOLS3( FID ) * NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'ROW', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension ROW' )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCDDEF() failed
- 
+
             CDIM = NCDDEF( FNUM, 'COL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension COL' )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCDDEF() failed
- 
+
             DIMS( 1 ) = CDIM
             DIMS( 2 ) = RDIM
             DIMS( 3 ) = LDIM
             DIMS( 4 ) = TDIM
- 
+
             NDIMS = 4
- 
+
         ELSE IF ( FTYPE3D .EQ. PTRFLY3 ) THEN	!  "exotic" gridded type
 
             BSIZE3( FID ) = NCOLS3( FID ) * NROWS3( FID )
             RDIM = NCDDEF( FNUM, 'ROW', NROWS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension ROW' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -1053,7 +1086,7 @@ C...........   Now, other dimensions (depend upon file type):
 
             CDIM = NCDDEF( FNUM, 'COL', NCOLS3D, IERR )
             IF ( IERR .NE. 0 ) THEN
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error creating netCDF dimension COL' )
                 EFLAG = .TRUE.
                 GO TO 999
@@ -1104,13 +1137,13 @@ C...........   Now, other dimensions (depend upon file type):
                  EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCVDEF() failed
-           
+
             DIMS( 1 ) = EDIM
             DIMS( 2 ) = CDIM
             DIMS( 3 ) = RDIM
             NDIMS = 3
 
-            SINDX3( FID ) = NCVDEF( FNUM, 'KFEVENT', 
+            SINDX3( FID ) = NCVDEF( FNUM, 'KFEVENT',
      &                              NCLONG, 3, DIMS, IERR )
             IF ( IERR .NE. 0 ) THEN
                 CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
@@ -1145,7 +1178,7 @@ C...........   Now, other dimensions (depend upon file type):
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCVDEF() failed
-     
+
             NDIMS = 2           !  for kfevnt variables
             DIMS( 1 ) = LDIM
             DIMS( 2 ) = TDIM
@@ -1159,7 +1192,7 @@ C...........   Now, other dimensions (depend upon file type):
             CALL NCABOR( FNUM, IERR )
             GO TO 999
 
-        END IF  !  if file type CUSTOM3, GRDDED3, BNDARY3, IDDATA3, 
+        END IF  !  if file type CUSTOM3, GRDDED3, BNDARY3, IDDATA3,
                 !  PROFIL3, GRNEST3, SMATRIX3, or else none of these.
 
 
@@ -1182,16 +1215,17 @@ C.......   Define all the Models-3 variables for this file:
             END IF
 
             VLIST3( VAR,FID ) = VNAME3D( VAR )
+            UNITS3( VAR,FID ) = UNITS3D( var )
             VTYPE3( VAR,FID ) = ISCR
-            VINDX3( VAR,FID ) = NCVDEF( FNUM, 
+            VINDX3( VAR,FID ) = NCVDEF( FNUM,
      &                                  VNAME3D( VAR ),
-     &                                  VTYPE3D( VAR ), 
+     &                                  VTYPE3D( VAR ),
      &                                  NDIMS, DIMS, IERR )
 
             IF ( IERR .NE. 0 ) THEN
-                DSCBUF =  
+                DSCBUF =
      &           'Error creating netCDF variable ' // VNAME3D( VAR )
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF ) 
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCVDEF() failed
@@ -1202,10 +1236,10 @@ C...........   Note:  "long_name" and "units" are standard netCDF attributes.
             CALL NCAPTC( FNUM, VINDX3( VAR,FID ), 'long_name',
      &                   NCCHAR, NAMLEN3, VNAME3D( VAR ), IERR )
             IF ( IERR .NE. 0 ) THEN
-                DSCBUF =  
+                DSCBUF =
      &          'Error creating  attribute LONG_NAME for variable ' //
-     &          VNAME3D( VAR ) 
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF ) 
+     &          VNAME3D( VAR )
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCAPTC() failed
@@ -1225,10 +1259,10 @@ C...........   Note:  "long_name" and "units" are standard netCDF attributes.
             CALL NCAPTC( FNUM, VINDX3( VAR,FID ), 'var_desc',
      &                   NCCHAR, MXDLEN3, VDESC3D( VAR ), IERR )
             IF ( IERR .NE. 0 ) THEN
-                DSCBUF =  
+                DSCBUF =
      &          'Error creating  attribute UNITS for variable ' //
-     &          VNAME3D( VAR ) 
-                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF ) 
+     &          VNAME3D( VAR )
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF )
                 EFLAG = .TRUE.
                 GO TO 999
             END IF              !  ierr nonzero:  NCAPTC() failed
@@ -1239,38 +1273,38 @@ C...........   Note:  "long_name" and "units" are standard netCDF attributes.
 C...........   Additional variable attributes for time series
 
         IF ( FTYPE3D .EQ. TSRIES3 ) THEN
-        
+
             DO 120 VAR = 1 , NVARS3D
- 
+
                 CALL NCAPT( FNUM, VINDX3( VAR,FID ), 'natts',
      &                    NCLONG, 1, NATTS3D( VAR ), IERR )
                 IF ( IERR .NE. 0 ) THEN
-                    DSCBUF =  
-     &              'Error creating  attribute "natts" for ' // 
-     &              'variable ' // VNAME3D( VAR ) 
-                    CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF ) 
+                    DSCBUF =
+     &              'Error creating  attribute "natts" for ' //
+     &              'variable ' // VNAME3D( VAR )
+                    CALL M3ABORT( FLIST3( FID ), FNUM, IERR, DSCBUF )
                     EFLAG = .TRUE.
                     GO TO 999
                 END IF
- 
+
                 DO 115 ATT = 1, NATTS3D( VAR )   ! loop for each addtnl var. att.
 
-                    CALL NCAPT( FNUM, 
+                    CALL NCAPT( FNUM,
      &                          VINDX3( VAR,FID ), ATNAM3D( ATT,VAR ),
      &                          NCFLOAT, 1, FATTS3D( ATT,VAR ), IERR )
 
                     IF ( IERR .NE. 0 ) THEN
-                        DSCBUF =  
-     &                    'Error creating  attribute ' // 
+                        DSCBUF =
+     &                    'Error creating  attribute ' //
      &                     ATNAM3D( ATT,VAR ) //
-     &                    ' for variable ' // VNAME3D( VAR ) 
+     &                    ' for variable ' // VNAME3D( VAR )
                         CALL M3ABORT( FLIST3(FID), FNUM, IERR, DSCBUF )
                         EFLAG = .TRUE.
                         GO TO 999
                     END IF
 
 115             CONTINUE
- 
+
 120         CONTINUE
 
         END IF          !   ftype tseries3
@@ -1281,7 +1315,7 @@ C...........   now defined.
 
         CALL NCENDF( FNUM, IERR )
         IF ( IERR .NE. 0 ) THEN
-            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR,
      &              'Error putting netCDF file into data mode.' )
             EFLAG = .TRUE.
             GO TO 999
@@ -1313,7 +1347,7 @@ C...........   now defined.
             END DO
             END DO
 
-        END IF          !  if KF-Event file:  
+        END IF          !  if KF-Event file:
 
         IF ( VOLAT3( FID ) ) THEN     !  volatile file:  synch with disk
             CALL NCSNC( FNUM, IERR )
@@ -1344,5 +1378,5 @@ C...........   Error and warning message formats..... 91xxx
 91010   FORMAT ( //5X , '>>> WARNING in subroutine CRTFIL3 <<<',
      &            2 ( /5X , A , : ) , I5, // )
 
-        END
+        END FUNCTION CRTFIL3
 

@@ -60,7 +60,8 @@
 
 # BASEDIR = /nwprod/lib/sorc/aqm_ioapi
 # EMC
-BASEDIR = /naqfc/save/${USER}/nw${envir}/cmaq.${model_ver}/lib/sorc/aqm_ioapi
+#BASEDIR = /naqfc/save/${USER}/nw${envir}/cmaq.${model_ver}/lib/sorc/aqm_ioapi
+BASEDIR=$(PWD)
 
 IODIR   = $(BASEDIR)/ioapi
 FIXDIR  = $(IODIR)/fixed_src

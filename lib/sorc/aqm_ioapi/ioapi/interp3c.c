@@ -6,7 +6,7 @@ VERSION:
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -33,6 +33,8 @@ REVISION HISTORY:
  	Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
         type resolution modifications
 
+        Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+        upper-case Fortran  symbols, prepend _C to common blocks.
 **************************************************************************/
 
 #include  <string.h>
@@ -50,11 +52,11 @@ REVISION HISTORY:
 #endif
 
 
-#if defined(INTERP3)
+#if defined(INTERP3) || defined(ABSFT)
 
 		/** HACKS FOR FELDMAN-DESCENDED F77'S FOLLOW: **/
 
-    extern FINT FINTERP3( const char  * fname ,
+    extern FINT  INTERP3( const char  * fname ,
                           const char  * vname ,
                           const char  * cname ,
                           FINT         * jdate ,
@@ -65,7 +67,7 @@ REVISION HISTORY:
                           FSTR_L        vnamelen ,
                           FSTR_L        cnamelen ) ;
 
-    extern FINT FINTERPX( const char  * fname ,
+    extern FINT  INTERPX( const char  * fname ,
                           const char  * vname ,
                           const char  * cname ,
                           FINT        * col0 ,
@@ -97,7 +99,7 @@ int interp3c( const char  * fname ,
     time = (FINT) jtime ;
     size = (FINT) bsize ;
 
-    return INTERP(  fname , 
+    return INTERP3(  fname , 
                      vname , 
                      cname , 
                    & date , 
@@ -159,7 +161,7 @@ int interpxc( const char  * fname ,
 
 #elif defined(_WIN32)
 
-    extern FINT FINTERP3( const char  * fname ,
+    extern FINT  INTERP3( const char  * fname ,
                           FSTR_L        fnamelen ,
                           const char  * vname ,
                           FSTR_L        vnamelen ,
@@ -170,7 +172,7 @@ int interpxc( const char  * fname ,
                           FINT        * bsize ,
                           FREAL       * buffer );
 
-    extern FINT FINTERPX( const char  * fname ,
+    extern FINT  INTERPX( const char  * fname ,
                           int           fnamelen ,
                           const char  * vname ,
                           int           vnamelen ,
@@ -267,7 +269,7 @@ int interpxc( const char  * fname ,
 
 #include <fortran.h>
 
-    extern FINT FINTERP3( const _fcd     fname ,
+    extern FINT  INTERP3( const _fcd     fname ,
                           const _fcd     vname ,
                           const _fcd     cname ,
                           const  FINT   * jdate ,
@@ -275,7 +277,7 @@ int interpxc( const char  * fname ,
                           const  FINT   * bsize ,
                           FREAL        * buffer ) ;
 
-    extern FINT FINTERPX( const _fcd     fname ,
+    extern FINT  INTERPX( const _fcd     fname ,
                           const _fcd     vname ,
                           const _fcd     cname ,
                           const  FINT  * col0 ,

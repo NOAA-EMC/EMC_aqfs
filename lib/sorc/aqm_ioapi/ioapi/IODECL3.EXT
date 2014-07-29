@@ -55,10 +55,10 @@
         LOGICAL         INTERP3 !  do time interpolation from a M3 file
         LOGICAL         DDTVAR3 !  do time derivative from M3 file
 
-        LOGICAL        INTERPX  ! time interpolation from a window
+        LOGICAL         INTERPX !  time interpolation from a window
                                 !  extraction from an M3 gridded file
-!!        LOGICAL        PINTERPB ! parallel time interpolation from an
-                                ! M3 boundary file
+!!        LOGICAL      PINTERPB !  parallel time interpolation from an
+                                !  M3 boundary file
 
         LOGICAL         INQATT3 !  inquire attributes in M3 file
         LOGICAL         RDATT3  !  read numeric attributes by name from M3 file

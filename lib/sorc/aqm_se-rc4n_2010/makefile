@@ -41,8 +41,8 @@ FFLAGS = -132 -O3 -fp-model precise -assume byterecl  ##$(FSTD) -Q -O3 -qstrict
 
 $(LIBNAME) : $(OBJS)
 	$(FC) $(FFLAGS) -c $?
-	ar -crv $@ $(OBJS)
-	ranlib $@
+	ar -crv ../../$@ $(OBJS)
+	ranlib ../../$@
 #	ar -crv $@ $?
 #	chmod 644 $@
 

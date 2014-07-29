@@ -1,0 +1,33 @@
+#!/bin/csh -f
+#
+# @(#)$Header: /afs/isis/depts/cep/emc/apps/archive/filesetapi/filesetapi/Setup,v 1.2 2003/01/29 16:42:15 mhouyoux Exp $
+#
+## HEADER ########################################################
+#
+# This script sets up the environment variables needed for compiling
+# and linking to the filesetapi library.
+#
+##################################################################
+
+if ( $?EDSS_SUBSYS ) then
+
+   #  Set directory names
+   setenv FS_ROOT    $EDSS_SUBSYS/filesetapi     # FileSetAPI source and root 
+   setenv IOINC      $EDSS_SUBSYS/ioapi_includes # I/O API include files
+
+   if ( $?EDSS_EXE ) then
+      setenv  FS_BIN "$FS_ROOT/$EDSS_EXE"
+   endif
+
+   #  Get system-specific flags
+   source $EDSS_SUBSYS/filesetapi/sysflags
+
+else
+   echo "ERROR: FileSetAPI \"Setup\" script requires setting of the EDSS_SUBSYS"
+   echo "       environment variable prior to using it."
+   set status = 1
+
+endif
+
+
+exit( $status )

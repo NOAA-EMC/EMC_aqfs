@@ -1,15 +1,15 @@
 
-C.........................................................................
+        INTEGER  FUNCTION SECSDIFF ( ADATE, ATIME, ZDATE, ZTIME )
+
+C***********************************************************************
 C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        INTEGER  FUNCTION  SECSDIFF ( ADATE, ATIME, ZDATE, ZTIME )
-
-C***********************************************************************
-C  function body starts at line  45
+C  function body starts at line  67
 C
 C  FUNCTION:  returns the time interval (seconds) between ADATE:ATIME
 C             and ZDATE:ZTIME
@@ -25,42 +25,60 @@ C       Version     2/1993 by CJC for CRAY, etc.
 C
 C       Unification 2/2002 by CJC with global-climate SECSDIFF, which
 C       uses a 360-day "year"
+C
+C       Version 1/2007 by CJC:  simplification; handle negative 
+C       *DATE arguments correctly
+C
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         ADATE, ATIME
-        INTEGER         ZDATE, ZTIME
+        INTEGER, INTENT(IN   ) :: ADATE, ATIME
+        INTEGER, INTENT(IN   ) :: ZDATE, ZTIME
 
 
 C...........   PARAMETERS and their descriptions:
 
-        INTEGER         YDAYS   !  "normal"-year # of days
-        INTEGER         LDAYS   !      leap-year # of days
+        !  "normal"-year, leap-year # of days
 
 #ifdef IO_360
-        PARAMETER     ( YDAYS = 360, LDAYS = 360 )
+        INTEGER, PARAMETER :: YDAYS = 360
+        INTEGER, PARAMETER :: LDAYS = 360
 #endif
 #ifndef IO_360
-        PARAMETER     ( YDAYS = 365, LDAYS = 366 )
+        INTEGER, PARAMETER :: YDAYS = 365
+        INTEGER, PARAMETER :: LDAYS = 366
 #endif
 
 
 C...........   Local Variables
 
-        INTEGER         AYEAR,  ZYEAR, DAYS, HOURS, MINS, SECS
+        INTEGER         AYEAR,  ZYEAR, YEAR, DAYS, HOURS, MINS, SECS
         INTEGER         TOTAL
+        INTEGER         BDATE, YDATE
 
 
 C***********************************************************************
 C   begin body of function  SECSDIFF
 
+        IF ( ADATE .GT. 1000 .AND. ZDATE .GT. 1000 ) THEN
+            BDATE = ADATE
+            YDATE = ZDATE
+        ELSE    ! adjust both by multiple of 400-year leap-year cycle
+            YEAR  = MAX( -ADATE, -ZDATE ) / 1000 + 1
+            YEAR  = 400 * ( YEAR / 400 + 1 )
+            BDATE = ADATE + YEAR * 1000
+            YDATE = ZDATE + YEAR * 1000
+        END IF
+
+
 C.......   Start with day, hour, min, sec differences:
 
-        DAYS  = MOD( ZDATE,     1000 ) -  MOD( ADATE, 1000 )
-        HOURS =      ZTIME / 10000     -       ATIME / 10000 
+        DAYS  = MOD( YDATE,     1000 ) -  MOD( BDATE,   1000 )
+        HOURS =      ZTIME /   10000   -       ATIME / 10000 
         MINS  = MOD( ZTIME/100, 100 )  -  MOD( ATIME/100, 100 )
         SECS  = MOD( ZTIME,     100 )  -  MOD( ATIME,     100 )
 
@@ -69,8 +87,8 @@ C.......   Start with day, hour, min, sec differences:
 
 C.......   Now add corrections for differences in years:
 
-        AYEAR = ADATE / 1000
-        ZYEAR = ZDATE / 1000
+        AYEAR = BDATE / 1000
+        ZYEAR = YDATE / 1000
 
 11      CONTINUE        !  loop accumulating seconds if AYEAR < ZYEAR
 
@@ -112,5 +130,5 @@ C.......   Now add corrections for differences in years:
 
         RETURN
 
-        END
+        END FUNCTION SECSDIFF
 

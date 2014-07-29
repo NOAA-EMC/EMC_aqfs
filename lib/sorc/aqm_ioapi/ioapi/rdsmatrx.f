@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION RDSMATRX( FID, VID, STEP, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  73
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  72
 C
 C  FUNCTION:  reads data from Models-3 SMATRX3 data file with state-variable
 C             index FID, for variable VID for the time step record STEP.
@@ -30,6 +28,8 @@ C       prototype 2/1995 by CJC
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -43,16 +43,15 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  variable index or -1 == ALL
-        INTEGER         STEP            !  time step record number
-        REAL            BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  variable index or -1 == ALL
+        INTEGER, INTENT(IN   ) :: STEP            !  time step record number
+        REAL   , INTENT(  OUT) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         RDVARS     !  read "variables" part of timestep records
-        EXTERNAL        RDVARS
+        LOGICAL, EXTERNAL :: RDVARS
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -152,5 +151,5 @@ C...........   Error and warning message formats..... 91xxx
 91010   FORMAT ( A , : , I5, :, A )
 
 
-        END
+        END FUNCTION RDSMATRX
 

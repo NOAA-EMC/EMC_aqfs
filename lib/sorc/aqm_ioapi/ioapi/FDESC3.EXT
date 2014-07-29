@@ -1,7 +1,9 @@
 
 !.........................................................................
 ! Version "@(#)$Header$"
-!    EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
+!    EDSS/Models-3 I/O API.
+!    Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+!    2003-2008 by Baron Advanced Meteorological Systems.
 !    Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 !    See file "LGPL.txt" for conditions of use.
 !....................................................................
@@ -50,6 +52,9 @@
 !
 !       Modified  2/2002 by CJC updated dates, license, compatibility with
 !       both free and fixed Fortran 9x source forms
+!
+!       Modified  8/2008 by CJC:  comments for defining parameters
+!       for new map projections ALBGRD3, LEQGRD3
 !
 !  SET BY:
 !          DESC3:    Everything in FDESC3.EXT
@@ -105,9 +110,10 @@
 !.......              Note that Western hemisphere longitudes are taken 
 !.......              to be negative.
 !.......
-!.......   Lambert    PROJ_ALPHA <= PROJ_BETA are the two latitudes which
-!.......              determine the projection cone; PROJ_GAMMA is the
-!.......              central meridian.  Coordinate units are meters.
+!.......   Lambert Conformal Conic:  PROJ_ALPHA <= PROJ_BETA are the two
+!.......              latitudes which determine the projection cone;
+!.......              PROJ_GAMMA is the central meridian.
+!.......              Coordinate units are meters.
 !.......
 !.......   (General) Mercator   PROJ_ALPHA and PROJ_BETA are the
 !.......              latitude and longitude of the coordinate origin
@@ -143,6 +149,16 @@
 !.......   Equatorial Mercator   PROJ_ALPHA is the latitude of true scale.
 !.......              PROJ_BETA is unused.
 !.......              PROJ_GAMMA is the longitude of the central meridian.
+!.......              Coordinate units are meters.
+!.......              to be negative.
+!.......
+!.......   Albers Equal Area:  PROJ_ALPHA <= PROJ_BETA are the two
+!.......              latitudes which determine the projection cone;
+!.......              PROJ_GAMMA is the central meridian.
+!.......              Coordinate units are meters.
+!.......
+!.......   Lambert Azimuthal Equal-Area:  PROJ_ALPHAis the central latitude;
+!.......              PROJ_BETA is unused; PROJ_GAMMA is the central meridian.
 !.......              Coordinate units are meters.
 !.......   
 !.......   (XCENT3D,YCENT3D):

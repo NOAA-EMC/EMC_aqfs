@@ -1,0 +1,6 @@
+C @(#)$Header: /afs/isis/depts/cep/emc/apps/archive/edss_tools/edss_tools/src/inc/IOSTRG3.EXT,v 1.2 2001/01/31 16:47:04 smith_w Exp $ 
+
+C.........  Width of other global character strings 
+        INTEGER, PARAMETER :: IOVLEN3 = 16  ! length of I/O API variables
+        INTEGER, PARAMETER :: IODLEN3 = 80  ! length of I/O API var descrption
+        INTEGER, PARAMETER :: IOULEN3 = 16  ! length of I/O API units

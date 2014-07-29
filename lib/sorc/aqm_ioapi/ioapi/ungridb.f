@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/ungridb.f,v 1.3 2000/12/04 16:03:50 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE  UNGRIDB( NCOLS, NROWS, XORIG, YORIG, XCELL, YCELL,
      &                       NPTS, XLOC, YLOC, NU, CU )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  subroutine body starts at line  63
 C
 C  FUNCTION:
@@ -30,21 +30,21 @@ C  SUBROUTINES AND FUNCTIONS CALLED:  none
 C
 C  REVISION  HISTORY:
 C	prototype 12/95 by CJC
-C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER		NCOLS, NROWS	!  number of grid columns, rows
-        REAL*8		XORIG, YORIG	!  X,Y coords of LL grid corner
-        REAL*8		XCELL, YCELL	!  X,Y direction cell size
-        INTEGER		NPTS	        !  number of (point-source) locations
-        REAL		XLOC( NPTS ) 	!  X point coordinates
-        REAL		YLOC( NPTS ) 	!  Y point coordinates
-        INTEGER		NU( 4,NPTS )    !  single-indexed subscripts into grid
-        REAL            CU( 4,NPTS )    !  coefficients
+        INTEGER, INTENT(IN   ) :: NCOLS, NROWS	!  number of grid columns, rows
+        REAL*8 , INTENT(IN   ) :: XORIG, YORIG	!  X,Y coords of LL grid corner
+        REAL*8 , INTENT(IN   ) :: XCELL, YCELL	!  X,Y direction cell size
+        INTEGER, INTENT(IN   ) :: NPTS	        !  number of (point-source) locations
+        REAL   , INTENT(IN   ) :: XLOC( NPTS ) 	!  X point coordinates
+        REAL   , INTENT(IN   ) :: YLOC( NPTS ) 	!  Y point coordinates
+        INTEGER, INTENT(  OUT) :: NU( 4,NPTS )    !  single-indexed subscripts into grid
+        REAL   , INTENT(  OUT) :: CU( 4,NPTS )    !  coefficients
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         
@@ -217,5 +217,5 @@ C   begin body of subroutine  UNGRIDB
 11      CONTINUE        !  end matrix computation loop on point sources
 
         RETURN
-        END
+        END  SUBROUTINE  UNGRIDB
 

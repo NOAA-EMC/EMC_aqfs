@@ -1,19 +1,23 @@
 # @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.AIX,v 1.2 2000/11/28 21:56:41 smith_w Exp $
-AR = ar
-CC = xlc_r -DFLDMN=1
-FC = ncepxlf
-M4 = m4
-M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+#  AIX with Feldman underscore-style name mangling
+AR   = ar
+CC   = xlc_r -DFLDMN=1
+FC   = xlf_r
+M4   = m4
+CPP  = cpp
+LINK = $(CC)
+
+MFLAGS    = -qextname -qarch=auto -qtune=auto
+
 OMPFLAGS  = 
 OMPLIBS   = -lxlsmp
-PVMROOT   = /usr/local/apps/pvm3
-
-PVMLIBS   = 
-COPTFLAGS = -O3
-FOPTFLAGS = -O3 -qnosave -qfixed -qsmp=noauto -bstatic -bmaxdata:0x70000000
-FPPFLAGS  = -WF,-DAUTO_ARRAYS=1,-DF90=1,-D_AIX,-DFLDMN=1
+COPTFLAGS = -O3 -DAUTO_ARRAYS=1 -DF90=1 -DFLDMN=1
+FOPTFLAGS = -O3 -qnosave -qfixed -qsmp=noauto -bstatic -bmaxdata:0x70000000 ${MFLAGS}
+FPPFLAGS  = -WF,-DAUTO_ARRAYS=1,-DF90=1,-D_AIX,-DFLDMN=1 ${MFLAGS}
 FSFLAGS   = -qsave
-ARCHFLAGS = -qextname -qtune=pwr3
+ARCHFLAGS = 
 PARFLAGS  =
 ARCHLIB   = 
+
+M4DEFFILE = $(PVM_ROOT)/conf/$(PVM_ARCH).m4
 PVMLIBS   = -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3

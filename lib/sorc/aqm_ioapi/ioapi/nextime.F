@@ -1,23 +1,23 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       SUBROUTINE NEXTIME  ( JDATE , JTIME, DTIME )
 
 C.....................................................................
-C       subroutine body starts approx line 60
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C       subroutine body starts approx line 74
 C
 C  FUNCTION:
 C
 C       Subroutine to add  DTIME  to the current time, and then
-C       update the clock  JTIME  and calendar  JDATE  accordingly.  
-C       Output is fully normalized.
+C       update the clock  JTIME  and calendar  IDATE  accordingly.  
+C       Output is fully normalized (0 <= JTIME <= 235959).
 C
-C   JDATE is stored in the form   YYYYDDD = YEAR*1000  +  DAY
+C   IDATE is stored in the form   YYYYDDD = YEAR*1000  +  DAY
 C   JTIME is stored in the form   HHMMSS  = HOUR*10000 +  MINS*100  +  SECS
 C   DTIME is stored in the form   HHMMSS  = HOUR*10000 +  MINS*100  +  SECS
 C
@@ -34,21 +34,31 @@ C
 C       Unification 2/2002 by CJC with global-climate DAYMON, which
 C       uses a 360-day "year"
 C
+C       Unification 2/2002 by CJC with global-climate DAYMON, which
+C       uses a 360-day "year"
+C
+C       Version 5/2005 by CJC:  special case for time-independent data
+C       (necessary for date:time=0000000:000000 normalization in CRTFIL3())
+C
+C       Version 1/2007 by CJC:  handle negative JDATEs correctly
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C........................................................................
 
         IMPLICIT  NONE
 
 C.......   ARGUMENTS:
 
-        INTEGER         JDATE           !  date (encoded YYYYDDD)
-        INTEGER         JTIME           !  time (encoded  HHMMSS)
-        INTEGER         DTIME           !  time increment (encoded HHMMSS)
+        INTEGER, INTENT(INOUT) :: JDATE           !  date (encoded YYYYDDD)
+        INTEGER, INTENT(INOUT) :: JTIME           !  time (encoded  HHMMSS)
+        INTEGER, INTENT(IN   ) :: DTIME           !  time increment (encoded HHMMSS)
 
 
 C.......   LOCAL VARIABLES:  day and year components of date
 
-        INTEGER         YEAR            !  year-component    of JDATE
-        INTEGER         DAYS            !  day-component     of JDATE
+        INTEGER         IBIAS, IDATE
+        INTEGER         YEAR            !  year-component    of IDATE
+        INTEGER         DAYS            !  day-component     of IDATE
         INTEGER         HOUR            !  hours-component   of JTIME
         INTEGER         MINS            !  minutes-component of JTIME
         INTEGER         SECS            !  seconds-component of JTIME
@@ -59,8 +69,21 @@ C.......   LOCAL VARIABLES:  day and year components of date
 
 C........................................................................
 C       begin  NEXTIME
+C.......   Construct equivalent problem with positive IDATE = JDATE + IBIAS
+
+        IF ( JDATE .GE. 1000 ) THEN
+            IDATE = JDATE
+            IBIAS = 0
+        ELSE    ! adjust date by multiple of 400-year leap-year cycle
+            YEAR  = -JDATE
+            YEAR  = YEAR / 1000 + 1
+            YEAR  = 400 * ( YEAR / 400 + 1 )
+            IBIAS = 1000 * YEAR
+            IDATE = JDATE + IBIAS
+        END IF
+
 C.......   Increment seconds part of JTIME by DTIME (secs), and
-C.......   re-normalize minute, hour, day part of JDATE:JTIME
+C.......   re-normalize minute, hour, day part of IDATE:JTIME
 
         IF ( DTIME .GE. 0 ) THEN
             ATIME = DTIME
@@ -90,7 +113,7 @@ C.......   re-normalize minute, hour, day part of JDATE:JTIME
         MINS  =  MINS  -  SCR * 60
         HOUR  =  JTIME / 10000  +  SIGN * ( ATIME / 10000 )  +  SCR
 
-        DAYS  =  MOD ( JDATE , 1000 )
+        DAYS  =  MOD ( IDATE , 1000 )
 
         IF  ( HOUR .LT. -23 )  THEN
             SCR  = -HOUR / 24
@@ -114,11 +137,10 @@ C.......   re-normalize minute, hour, day part of JDATE:JTIME
 
         JTIME  =  10000 * HOUR  +  100 * MINS  +  SECS
 
-
-C...........   Update JDATE:
+C...........   Update IDATE:
 C...........   Note that each year must be treated individually
 
-        YEAR  =  JDATE / 1000
+        YEAR  =  IDATE / 1000
 
 100     CONTINUE        !  loop normalizing negative day numbers
 
@@ -193,9 +215,8 @@ C...........   Note that each year must be treated individually
 
 #endif
 
-
-        JDATE  =   1000 * YEAR  +  DAYS
+        JDATE  =   1000 * YEAR  +  DAYS - IBIAS
 
 
         RETURN
-        END
+        END  SUBROUTINE NEXTIME

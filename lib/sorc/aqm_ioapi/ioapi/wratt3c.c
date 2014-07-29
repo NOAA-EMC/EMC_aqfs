@@ -5,7 +5,7 @@ VERSION "@(#)$Header$"
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -31,6 +31,9 @@ COPYRIGHT
 
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications
+
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
 **************************************************************************/
 
 #include  <string.h>
@@ -52,7 +55,7 @@ COPYRIGHT
 #endif
 
 
-#if defined(WRATT3)
+#if defined(WRATT3) || defined(ABSFT)
 
     extern FINT WRATT3( const char * fname ,
                         const char * vname ,
@@ -118,7 +121,9 @@ int wratt3c( const char  * fname ,
                 	/** END  CASE OF FELDMAN-DESCENDED F77 TARGETS **/
                 	/** NEXT CASE:  Win32 wratt3c(): **/
 
+
 #elif defined(_WIN32)
+
 
 #include <stdio.h> /* for sprintf */
 

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/hhmmss.f,v 1.3 2000/11/28 21:22:49 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+        CHARACTER*10 FUNCTION HHMMSS ( JTIME )
+
+C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        CHARACTER*10 FUNCTION  HHMMSS ( JTIME )
-
-C***********************************************************************
-C  function body starts at line  62
+C  function body starts at line  57
 C
 C  FUNCTION:  format and return the time as a character string 
 C             "HH:MM:SS"
@@ -26,25 +26,20 @@ C
 C
 C  REVISION  HISTORY:
 C	prototype 10/90 by CJC
-C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER       JTIME   !  Julian time, coded YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME   !  Julian time, coded YYYYDDD
 
 
-C...........   SAVED LOCAL VARIABLES and their descriptions:
-C...........   NOTE:  the ANSI standard requires the use of SAVE statements
-C...........   for variables which must retain their values from call to call.
+C...........   PARAMETERs
 
-        CHARACTER*1	DIGITS( 0:9 )
-        DATA       	DIGITS
-     &  / '0','1','2','3','4','5','6','7','8','9' /
-
-        SAVE DIGITS
+        CHARACTER*1, PARAMETER :: DIGITS( 0:9 ) =
+     &  (/ '0','1','2','3','4','5','6','7','8','9' /)
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -109,5 +104,5 @@ C   begin body of function  HHMMSS
 
         RETURN
 
-        END
+        END FUNCTION HHMMSS
 

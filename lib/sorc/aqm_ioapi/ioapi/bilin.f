@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/bilin.f,v 1.2 2000/11/28 21:22:31 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+        SUBROUTINE BILIN( M, N, P, IX, AX, V, C )
+
+C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        SUBROUTINE  BILIN( M, N, P, IX, AX, V, C )
-
-C***********************************************************************
 C  subroutine body starts at line  74
 C
 C  FUNCTION:  apply a 4-band sparse matrix to an array ("layered vector")
@@ -53,14 +53,14 @@ C***********************************************************************
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
-        
-        INTEGER         M               ! length of input  vector
-        INTEGER         N               ! length of output vector
-        INTEGER         P               ! number of layers
-        INTEGER         IX( 4,N )       ! index array
-        REAL            AX( 4,N )       ! 4-band coeff matrix
-        REAL            V( M,P )        ! P-layered input  vector
-        REAL            C( N,P )        ! P-layered output vector
+
+        INTEGER, INTENT(IN   ) :: M               ! length of input  vector
+        INTEGER, INTENT(IN   ) :: N               ! length of output vector
+        INTEGER, INTENT(IN   ) :: P               ! number of layers
+        INTEGER, INTENT(IN   ) :: IX( 4,N )       ! index array
+        REAL   , INTENT(IN   ) :: AX( 4,N )       ! 4-band coeff matrix
+        REAL   , INTENT(IN   ) :: V( M,P )        ! P-layered input  vector
+        REAL   , INTENT(  OUT) :: C( N,P )        ! P-layered output vector
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -88,5 +88,5 @@ C   begin body of subroutine  BILIN
         END DO
 
         RETURN
-        END
+        END SUBROUTINE BILIN
 

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/shut3.F,v 1.3 2000/11/28 21:13:44 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
+        LOGICAL FUNCTION SHUT3 ( )
+
+C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  SHUT3 ( )
-
-C***********************************************************************
-C  function body starts at line  68
+C  function body starts at line  69
 C
 C  FUNCTION:  Flushes and closes down all Models-3 files currently open.
 C
@@ -31,6 +31,8 @@ C       Modified  5/1999 by ALT for coupling-mode operation
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type.
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -47,8 +49,7 @@ C...........   INCLUDES:
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         CLOSEBIN3
-        EXTERNAL        CLOSEBIN3
+        INTEGER, EXTERNAL :: CLOSEBIN3
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -132,5 +133,5 @@ C...........   Error and warning message formats..... 91xxx
 91010   FORMAT ( //5X , '>>> WARNING in subroutine SHUT3 <<<',
      &            3 ( /5X , A , : ) , I5, // )
 
-        END
+        END FUNCTION SHUT3
 

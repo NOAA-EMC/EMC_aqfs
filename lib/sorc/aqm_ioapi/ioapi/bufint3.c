@@ -4,29 +4,31 @@ VERSION "@(#)$Header$"
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
-public  function BUFVGT3()  starts at line  148
-public  function BUFVGT3D() starts at line  200
-public  function BUFINT3()  starts at line  252
-public  function BUFINT3D() starts at line  351
-public  function BUFCRE3()  starts at line  449
-public  function BUFPUT3()  starts at line  495
-public  function BUFPUT3I() starts at line  532
-public  function BUFPUT3D() starts at line  569
-public  function BUFGET3()  starts at line  608
-public  function BUFGET3I() starts at line  653
-public  function BUFGET3D() starts at line  698
-public  function BUFXTR3()  starts at line  747
-public  function BUFXTR3I() starts at line  805
-public  function BUFXTR3D() starts at line  863
-public  function BUFDDT3()  starts at line  911
-public  function BUFDDT3D() starts at line  964
-public  function BUFDEL3()  starts at line 1000
-public  function BUFINTX()  starts at line 1020
-public  function BUFINTXD() starts at line 1130
+public  function BUFVGT3()  starts at line  165
+public  function BUFVGT3D() starts at line  217
+public  function BUFVRD3()  starts at line  274
+public  function BUFVRD3D() starts at line  332
+public  function BUFINT3()  starts at line  393
+public  function BUFINT3D() starts at line  491
+public  function BUFCRE3()  starts at line  592
+public  function BUFPUT3()  starts at line  633
+public  function BUFPUT3I() starts at line  679
+public  function BUFPUT3D() starts at line  725
+public  function BUFGET3()  starts at line  771
+public  function BUFGET3I() starts at line  816
+public  function BUFGET3D() starts at line  861
+public  function BUFXTR3()  starts at line  906
+public  function BUFXTR3I() starts at line  964
+public  function BUFXTR3D() starts at line 1022
+public  function BUFDDT3()  starts at line 1080
+public  function BUFDDT3D() starts at line 1122
+public  function BUFDEL3()  starts at line 1169
+public  function BUFINTX()  starts at line 1189
+public  function BUFINTXD() starts at line 1299
 
 NOTE:
     !!!  MACHINE-DEPENDENT CODE !!!  Dependent upon the
@@ -69,6 +71,11 @@ REVISION HISTORY:
     found in BUFINTX by David Wong, US EPA.
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications, BINFIL3 input
+    Modified 9/2004 by CJC:  virtual-file bugfix -- new BUFVRD3, BUFVRD3D,
+    add allocation facilites to BUFPUT* routines; new interface to READ3V.
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
+    Modified 04/2011 for full buffered-file file descriptions.
 **************************************************************************/
 
 #include <stdio.h>
@@ -84,9 +91,12 @@ REVISION HISTORY:
 #if FLDMN
 
 #define  RDVARS    rdvars_
+#define  READ3V    read3v_
 
 #define  BUFVGT3   bufvgt3_
 #define  BUFVGT3D  bufvgt3d_
+#define  BUFVRD3   bufvrd3_
+#define  BUFVRD3D  bufvrd3d_
 #define  BUFCRE3   bufcre3_
 #define  BUFDEL3   bufdel3_
 #define  BUFDDT3   bufddt3_
@@ -108,9 +118,12 @@ REVISION HISTORY:
 #elif defined(__hpux) || defined(_AIX)
 
 #define  RDVARS    rdvars
+#define  READ3V    read3v
 
 #define  BUFVGT3   bufvgt3
 #define  BUFVGT3D  bufvgt3d
+#define  BUFVRD3   bufvrd3
+#define  BUFVRD3D  bufvrd3d
 #define  BUFCRE3   bufcre3
 #define  BUFDEL3   bufdel3
 #define  BUFDDT3   bufddt3
@@ -129,14 +142,31 @@ REVISION HISTORY:
 #define  BUFINTX   bufintx
 #define  BUFINTXD  bufintxd
 
+#elif defined(ABSFT)
+
+        /*  do nothing!  */
+        /*  Absoft uses ALL_CAP name mangling, Feldman-style strings */
+
+#else
+
+#error   "Error compiling envgets.c:  unsupported architecture"
+
 #endif
 
 
-/** EXTERNAL FORTRAN FUNCTION FOR READING NETCDF DATA: **/
+/** EXTERNAL FORTRAN FUNCTIONS FOR READING NETCDF, PVM DATA: **/
 
         extern FINT RDVARS( FINT *fid,    FINT *vid,
                             FINT  dims[], FINT delts[], FINT *delta,
                             void *buffer ) ;
+
+#ifdef IOAPICPL
+
+        extern FINT READ3V( FINT *fid,   FINT *vid,   FINT *skip,
+                            FINT *kdate, FINT *ktime, void *buffer,
+                            FINT *count ) ;
+
+#endif          /**  ifdef IOAPICPL  **/
 
 
 /*****************  STATE VARIABLES ************************************/
@@ -147,7 +177,7 @@ REVISION HISTORY:
 
 
 /*****************  BUFVGT3: *****************************************/
-/** Read data for INTERP3() and DDTVAR3() (type FREAL) **/
+/** Read physical-file data for INTERP3() and DDTVAR3() (type FREAL) **/
     
 FINT BUFVGT3 ( FINT  *fndx,      /** M3 file index **/
                FINT  *vndx,      /** M3 variable index **/
@@ -158,32 +188,22 @@ FINT BUFVGT3 ( FINT  *fndx,      /** M3 file index **/
                FINT  *delta,     /** offset for read-op **/
                FINT  *tstep )    /** TRUE iff time-dependent file **/
 
-    {  /**  begin body of bufint3() **/
+    {  /**  begin body of bufvgt3() **/
 
     FINT   size ;               /** SCRATCH VARIABLE:  BUFFER SIZE  **/
     FINT   ierr ;               /** RETURN FLAG FOR NCVGT()  **/
     FREAL *bptr ;               /** FOR TRAVERSING INTERPOLATION BUFFER **/
-    FREAL *mptr ;               /** FOR TRAVERSING INTERPOLATION BUFFER **/
     char   mesg[ 81 ] ;
-
-    int ii;
 
     if ( ! ( bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ) )   /** NOT YET ALLOCATED **/
         {
-        size = ( *tstep ? 2 : 1 ) * sizeof( FREAL ) * (*bsize );
-
-        baddr[ *fndx ][ *vndx ] = malloc( size ) ;
+        size = (FINT)( ( *tstep ? 2 : 1 ) * sizeof( FREAL ) * (*bsize ) );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
         bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ;
-
-        mptr = bptr;
-        for (ii = 0; ii < size/4; ii++)
-            { *mptr = -2.0;
-              mptr++;
-            }
 
         if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
             {
-            m3mesgc( "Error allocating internal buffer for INTERP3()" ) ;
+            m3mesgc( "Error allocating internal buffer for BUFVGTP3()" ) ;
             return( 0 ) ;
             }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
 
@@ -191,9 +211,8 @@ FINT BUFVGT3 ( FINT  *fndx,      /** M3 file index **/
 
     if ( *rflag )                               /** READ IS NECESSARY **/
         {
-        size = ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
-
-        ierr = RDVARS( fndx, vndx, dims, delt, &size, (void *)(bptr + size) ) ;
+        bptr += ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
+        ierr = RDVARS( fndx, vndx, dims, delt, bsize, (void *)bptr ) ;
         if ( ! ierr )  
             {
             sprintf( mesg, "netCDF error %d reading file", ierr ) ;
@@ -220,7 +239,7 @@ FINT BUFVGT3D( FINT  *fndx,      /** M3 file index **/
                FINT  *delta,     /** offset for read-op **/
                FINT  *tstep )    /** TRUE iff time-dependent file **/
 
-    {  /**  begin body of bufint3() **/
+    {  /**  begin body of bufvgt3d() **/
 
     FINT    size ;               /** SCRATCH VARIABLE:  BUFFER SIZE  **/
     FINT    ierr ;               /** RETURN FLAG FOR NCVGT()  **/
@@ -230,13 +249,12 @@ FINT BUFVGT3D( FINT  *fndx,      /** M3 file index **/
     if ( ! ( bptr = (double *) baddr[ *fndx ][ *vndx ] ) )   /** NOT YET ALLOCATED **/
         {
         size = ( *tstep ? 2 : 1 ) * sizeof( double ) * (*bsize );
-
-        baddr[ *fndx ][ *vndx ] = malloc( size ) ;
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
         bptr = (double *) baddr[ *fndx ][ *vndx ];
 
         if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
             {
-            m3mesgc( "Error allocating internal buffer for INTERP3()" ) ;
+            m3mesgc( "Error allocating internal buffer for BUFVGT3D()" ) ;
             return( 0 ) ;
             }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
 
@@ -244,8 +262,8 @@ FINT BUFVGT3D( FINT  *fndx,      /** M3 file index **/
 
     if ( *rflag )                               /** READ IS NECESSARY **/
         {
-        size = ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
-        ierr = RDVARS( fndx, vndx, dims, delt, &size, (void *)(bptr + size) ) ;
+        bptr += ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
+        ierr = RDVARS( fndx, vndx, dims, delt, bsize, (void *)bptr ) ;
         if ( ! ierr )  
             {
             sprintf( mesg, "netCDF error %d reading file", ierr ) ;
@@ -258,6 +276,118 @@ FINT BUFVGT3D( FINT  *fndx,      /** M3 file index **/
 
     }           /**  END FUNCTION bufvgt3() **/
 
+
+
+#ifdef IOAPICPL
+
+#include "state3.h"
+
+extern IOAPI_BSTATE3 BSTATE3;
+extern IOAPI_CSTATE3 CSTATE3;
+
+/*****************  BUFVRD3: *****************************************/
+/** Read virtual-file data for INTERP3() and DDTVAR3() (type FREAL) **/
+    
+FINT BUFVRD3 ( FINT  *fndx,      /** M3 file index **/
+               FINT  *vndx,      /** M3 variable index **/
+               FINT  *delta,     /** subscript offset  for read-op **/
+               FINT  *bsize,     /** buffer size **/
+               FINT  *kdate,     /** date yyyyddd **/
+               FINT  *ktime      /** time hhmmss **/
+               )
+
+    {  /**  begin body of bufint3() **/
+
+    FINT   size ;               /** SCRATCH VARIABLE:  BUFFER SIZE  **/
+    FINT   ierr ;               /** RETURN FLAG FOR NCVGT()  **/
+    FREAL *bptr ;               /** FOR TRAVERSING INTERPOLATION BUFFER **/
+    char   mesg[ 81 ] ;
+    FINT   fid, skip, istep ;
+
+    fid   = (FINT) (*fndx - 1) ;
+    istep = BSTATE3.tstep[ fid ] ;
+    if ( ! ( bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ) )   /** NOT YET ALLOCATED **/
+        {
+        size = (FINT)( ( istep ? 2 : 1 ) * sizeof( FREAL ) * (*bsize ) );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
+        bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ;
+
+        if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
+            {
+            m3mesgc( "Error allocating internal buffer for BUFVRD3()" ) ;
+            return( 0 ) ;
+            }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
+
+        }           /**  END IF-BLOCK:  NEED TO ALLOCATE THIS VARIABLE **/
+
+    bptr += ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
+    skip  = (FINT) 0 ;
+    ierr  =  READ3V( fndx, vndx, (FINT *) & skip, bsize,
+                     kdate, ktime, (void *)bptr );
+    if ( ! ierr )  
+        {
+        sprintf( mesg, "PVM error %d reading file", ierr ) ;
+        m3mesgc( mesg ) ;
+        return( 0 ) ;
+        }
+
+    return( -1 ) ;              /** .TRUE. **/
+
+    }           /**  END FUNCTION bufvrd3() **/
+
+
+/*****************  BUFVRD3D: *****************************************/
+/** Read virtual-file data for INTERP3() and DDTVAR3() (type FREAL) **/
+    
+FINT BUFVRD3D ( FINT  *fndx,      /** M3 file index **/
+                FINT  *vndx,      /** M3 variable index **/
+                FINT  *delta,     /** subscript offset  for read-op **/
+                FINT  *bsize,     /** buffer size **/
+                FINT  *kdate,     /** date yyyyddd **/
+                FINT  *ktime      /** time hhmmss **/
+                )
+
+    {  /**  begin body of bufint3() **/
+
+    FINT    size ;               /** SCRATCH VARIABLE:  BUFFER SIZE  **/
+    FINT    ierr ;               /** RETURN FLAG FOR NCVGT()  **/
+    double *bptr ;               /** FOR TRAVERSING INTERPOLATION BUFFER **/
+    char    mesg[ 81 ] ;
+    FINT    fid, skip, istep ;
+
+    fid   = (FINT) (*fndx - 1) ;
+    istep = BSTATE3.tstep[ fid ] ;
+    if ( ! ( bptr = (double *)baddr[ *fndx ][ *vndx ] ) )   /** NOT YET ALLOCATED **/
+        {
+        size = (FINT)( ( istep ? 2 : 1 ) * sizeof( double ) * (*bsize ) );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
+        bptr = (double *)baddr[ *fndx ][ *vndx ] ;
+
+        if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
+            {
+            m3mesgc( "Error allocating internal buffer for BUFVRD3D3()" ) ;
+            return( 0 ) ;
+            }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
+
+        }           /**  END IF-BLOCK:  NEED TO ALLOCATE THIS VARIABLE **/
+
+    bptr += ( *bsize ) * ( *delta ) ;        /**  = OFFSET FOR READ **/
+    skip  = (FINT) 0 ;
+    ierr  =  READ3V( fndx, vndx, (FINT *) & skip, bsize,
+                     kdate, ktime, (void *)bptr );
+    if ( ! ierr )  
+        {
+        sprintf( mesg, "PVM error %d reading file", ierr ) ;
+        m3mesgc( mesg ) ;
+        return( 0 ) ;
+        }
+
+    return( -1 ) ;              /** .TRUE. **/
+
+    }           /**  END FUNCTION bufvrd3d() **/
+
+
+#endif          /**  ifdef IOAPICPL  **/
 
 
 /*****************  BUFINT3: *****************************************/
@@ -486,9 +616,9 @@ FINT BUFCRE3 ( FINT  *fndx,     /** M3 file index **/
             if      ( btype[i] == M3REAL ) asize = rsize * sizeof( FREAL ) ;
             else if ( btype[i] == M3DBLE ) asize = rsize * sizeof( double ) ;
             else if ( btype[i] == M3INT  ) asize = rsize * sizeof( FINT ) ;
-            if ( ! ( baddr[ *fndx ][ i ] = malloc( asize ) ) )
+            if ( ! ( baddr[ *fndx ][ i ] = malloc( (size_t) asize ) ) )
                 {
-                m3mesgc( "Error allocating internal buffer for OPEN3()" ) ;
+                m3mesgc( "Error allocating internal buffer for BUFCRE3()" ) ;
                 return( 0 ) ;
                 }                     /**  END IF-BLOCK:  MALLOC() FAILED **/
             }           /** END LOOP SETTING baddr[][] FOR THIS VARIABLE**/
@@ -507,6 +637,7 @@ FINT BUFPUT3 ( FINT  *fndx,     /** M3 file index **/
                FINT  *vndx,     /** variable index **/
                FINT  *bsize,    /** individual-variable buffer size **/
                FINT  *where,    /** 0,1 subscript into circ buffer for WRITE **/
+               FINT  *tstep,    /** TRUE iff time-stepped data **/
                FREAL *buffer )  /** output buffer array **/
 
     {  /**  begin body of bufput3() **/
@@ -519,8 +650,16 @@ FINT BUFPUT3 ( FINT  *fndx,     /** M3 file index **/
     
     if ( !( bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ) ) /** "FILE" NOT YET ALLOCATED **/
         {
-        m3mesgc( "BUFFERED file not yet allocated" ) ;
-        return( 0 ) ;
+        size = (FINT)( ( *tstep ? 2 : 1 ) * sizeof( FREAL ) * (*bsize ) );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
+        bptr = (FREAL *)baddr[ *fndx ][ *vndx ] ;
+
+        if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
+            {
+            m3mesgc( "Error allocating internal buffer for BUFPUT3()" ) ;
+            return( 0 ) ;
+            }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
+
         }
 
     if ( *where ) bptr += size ;
@@ -544,6 +683,7 @@ FINT BUFPUT3I( FINT  *fndx,     /** M3 file index **/
                FINT  *vndx,     /** variable index **/
                FINT  *bsize,    /** individual-variable buffer size **/
                FINT  *where,    /** 0,1 subscript into circ buffer for WRITE **/
+               FINT  *tstep,    /** TRUE iff time-stepped data **/
                FINT  *buffer )  /** output buffer array **/
 
     {  /**  begin body of bufput3() **/
@@ -556,8 +696,16 @@ FINT BUFPUT3I( FINT  *fndx,     /** M3 file index **/
     
     if ( !( bptr = (FINT *) baddr[ *fndx ][ *vndx ] ) ) /** "FILE" NOT YET ALLOCATED **/
         {
-        m3mesgc( "BUFFERED file not yet allocated" ) ;
-        return( 0 ) ;
+        size = (FINT)( ( *tstep ? 2 : 1 ) * sizeof( FINT ) * (*bsize ) );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
+        bptr = (FINT *)baddr[ *fndx ][ *vndx ] ;
+
+        if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
+            {
+            m3mesgc( "Error allocating internal buffer for BUFPUT3I()" ) ;
+            return( 0 ) ;
+            }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
+
         }
 
     if ( *where ) bptr += size ;
@@ -581,6 +729,7 @@ FINT BUFPUT3D( FINT   *fndx,     /** M3 file index **/
                FINT   *vndx,     /** variable index **/
                FINT   *bsize,    /** individual-variable buffer size **/
                FINT   *where,    /** 0,1 subscript into circ buffer for WRITE **/
+               FINT  *tstep,    /** TRUE iff time-stepped data **/
                double *buffer )  /** output buffer array **/
 
     {  /**  begin body of bufput3() **/
@@ -593,8 +742,16 @@ FINT BUFPUT3D( FINT   *fndx,     /** M3 file index **/
     
     if ( !( bptr = (double *) baddr[ *fndx ][ *vndx ] ) ) /** "FILE" NOT YET ALLOCATED **/
         {
-        m3mesgc( "BUFFERED file not yet allocated" ) ;
-        return( 0 ) ;
+        size = ( *tstep ? 2 : 1 ) * sizeof( double ) * (*bsize );
+        baddr[ *fndx ][ *vndx ] = malloc( (size_t) size ) ;
+        bptr = (double *) baddr[ *fndx ][ *vndx ];
+
+        if ( ! bptr )    /** CHECK FOR MALLOC() FAILURE **/
+            {
+            m3mesgc( "Error allocating internal buffer for BUFPUT3D()" ) ;
+            return( 0 ) ;
+            }                   /**  END IF-BLOCK:  MALLOC() FAILED **/
+
         }
 
     if ( *where ) bptr += size ;
@@ -1030,7 +1187,7 @@ void BUFDEL3 ( FINT * fndx )     /** M3 file index **/
     }  /** end body of bufinit() **/
 
 /*****************  BUFINTX: *****************************************/
-/** Do time interpolation for INTERP3() **/
+/** Do time interpolation for INTERPX() **/
     
 FINT BUFINTX ( FINT  *fndx,      /** M3 file index **/
                FINT  *vndx,      /** M3 variable index **/
@@ -1066,7 +1223,6 @@ FINT BUFINTX ( FINT  *fndx,      /** M3 file index **/
         {
         pp   = *p ;      /** BY CONSTRUCTION:  pp + qq = 1; pp,qq >= 0 **/
         qq   = *q ;
-
         if ( qq == 0.0 ) 
             {
             bptr = bptr + ( *last ? size : 0 ) ;
@@ -1110,9 +1266,7 @@ FINT BUFINTX ( FINT  *fndx,      /** M3 file index **/
                     qptr =  bptr + r * size1 + l * size2 + dim0[0] - 1; ;
                     for  ( c = dim0[0] - 1; c < dim1[0] ; c++, i++ )
                         {
-
                         buffer[ i ] = pp * (*pptr) + qq * (*qptr) ;
-
                         *pptr++;
                         *qptr++;
                          }

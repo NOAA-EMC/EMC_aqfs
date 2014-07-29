@@ -1,7 +1,4 @@
-#EMC
-#usrdir    = /naqfc/save/$(USER)
-#NCO
-#usrdir =
+
 DIR       = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
 CMD       = aqm_fcst_nmmb_v46
 
@@ -18,7 +15,6 @@ MPI     = /opt/ibmhpc/pe1301/mpich2/intel/include64
 FC      = mpfort
 CC      = /usr/bin/mpcc
 
-#FSTD    = -fixed -132 -fp-model precise 
 FSTD      = -fixed -132 -override-limits -mp1 -fp-model precise
 
 # DBG = -g -traceback
@@ -259,7 +255,7 @@ OBJECTS = $(F90_MODULES) $(DRIVER) $(INIT) $(COUPLE) $(ADV) $(HDIFF) \
 .SUFFIXES: .F .f .c
 
 $(CMD) : $(OBJECTS)
-	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -o $@
+	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -o ../../exec/$@
 
 .c.o:
 	$(CC) $(C_FLAGS) -c $<
@@ -271,4 +267,4 @@ $(CMD) : $(OBJECTS)
 	$(FC) -c $(F_FLAGS) $(CPP_FLAGS) $(INCLUDES) $<
 
 clean:
-	/bin/rm -f $(OBJECTS) $(CMD) F*.f *.mod
+	/bin/rm -f $(OBJECTS) ../../exec/$(CMD) F*.f *.mod

@@ -1,21 +1,19 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-         
         INTEGER FUNCTION KFWRITE( FNAME, COL, ROW, JDATE, JTIME, KFLEN,
      &                            BUFFER )
 
 C***********************************************************************
-C  function body starts at line  110
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  107
 C
-C  FUNCTION:  writes all the data from BUFFER() for for the event at 
-C	COL:ROW:JDATE:JTIME and having duration KFLEN (formatted YYYYDDD 
+C  FUNCTION:  writes all the data from BUFFER() for for the event at
+C	COL:ROW:JDATE:JTIME and having duration KFLEN (formatted YYYYDDD
 C	and HHMMSS) to the KF-Cloud Event file with logical name FNAME.
 C
 C  RETURN VALUE:  record number at which the event written, or -1 for failure
@@ -42,6 +40,8 @@ C       Modified  1/2002 by CJC:  check TRIMLEN() of FNAME
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -55,32 +55,29 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME      !  logical file name
-        INTEGER       COL        !  column number for this event
-        INTEGER       ROW        !  row    number for this event
-        INTEGER       JDATE      !  date, formatted YYYYDDD
-        INTEGER       JTIME      !  date, formatted HHMMSS
-        INTEGER       KFLEN      !  time, formatted HHMMSS
-        REAL          BUFFER(*)  !  output buffer array
+        CHARACTER*(*), INTENT(IN   ) ::  FNAME      !  logical file name
+        INTEGER      , INTENT(IN   ) ::  COL        !  column number for this event
+        INTEGER      , INTENT(IN   ) ::  ROW        !  row    number for this event
+        INTEGER      , INTENT(IN   ) ::  JDATE      !  date, formatted YYYYDDD
+        INTEGER      , INTENT(IN   ) ::  JTIME      !  date, formatted HHMMSS
+        INTEGER      , INTENT(IN   ) ::  KFLEN      !  time, formatted HHMMSS
+        REAL         , INTENT(IN   ) ::  BUFFER(*)  !  output buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER       INDEX1     !  look up names in name tables
-        INTEGER       INIT3      !  initialize I/O system files.
-        INTEGER       TRIMLEN    !  trimmed string length
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O system files.
 
-        EXTERNAL      INDEX1, INIT3, INITBLK3, TRIMLEN
-
+        EXTERNAL          :: INITBLK3        !!  BLOCK DATA to initialize STATE3 commons
 
 C...........   MACHINE DEPENDENCY !!
 
-        INTEGER         TYPSIZE( 6 )    !  sizeof( variable ) / sizeof( real )
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
 
@@ -123,11 +120,11 @@ C.......   Check that Models-3 I/O has been initialized:
 
 C.......   Find netCDF index for the file, and check time step availability:
 
-        IF ( TRIMLEN( FNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. NAMLEN3 ) THEN
             MESG = 'File "'// FNAME// '"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( 3( A , :, I5, :, 2X ) )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
             KFWRITE = -1
             RETURN
@@ -146,11 +143,11 @@ C.......   Find netCDF index for the file, and check time step availability:
             GO TO  999        !  return from kfwrite()
 
         END IF
-        
+
         FNUM = CDFID3( FID )
         IF ( FTYPE3( FID ) .NE. KFEVNT3 ) THEN
 
-            WRITE( MESG,91030 ) 
+            WRITE( MESG,91030 )
      &          'File:  ' / /FIL16 // ' has type ', FTYPE3( FID ),
      &          'Not a KF-CLOUD-EVENT file'
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
@@ -187,14 +184,14 @@ C.......   Find netCDF index for the file, and check time step availability:
         DIMT( 2 ) = ROW
         IF ( COL .GT. NCOLS3( FID ) .OR. ROW .GT. NROWS3( FID ) .OR.
      &       COL .LT. 1             .OR. ROW .LT. 1 ) THEN
-            WRITE( MESG, '(A, A )' ) 
+            WRITE( MESG, '(A, A )' )
      &              'KFWRITE:  file ', FNAME
             CALL M3MSG2( MESG )
-            WRITE( MESG, '( A, I9, A, I9, A )' ) 
+            WRITE( MESG, '( A, I9, A, I9, A )' )
      &          'Requested (col,row)=(', COL, ',',ROW, ')'
             CALL M3MSG2( MESG )
-            WRITE( MESG, '( A, I9, A, I9, A )' ) 
-     &          'File dimensions (ncols,nrows)=(',  
+            WRITE( MESG, '( A, I9, A, I9, A )' )
+     &          'File dimensions (ncols,nrows)=(',
      &          NCOLS3(FID), ',',NROWS3(FID), ')'
             CALL M3MSG2( MESG )
             CALL M3WARN( 'KFWRITE', 0, 0, 'Out-of-bounds request' )
@@ -222,7 +219,7 @@ C.......   Find netCDF index for the file, and check time step availability:
         IF ( CREC .GT. NTHIK3( FID ) ) THEN
 
             WRITE( MESG,91050 )
-     &              'Maximum event count ', NTHIK3( FID ), 
+     &              'Maximum event count ', NTHIK3( FID ),
      &              'exceeded at column', COL, 'row', ROW,
      &              'date and time', JDATE, JTIME
 
@@ -243,18 +240,18 @@ C.......   Write the variables in the event-record:
 
         INDX = 1
         DO  11  V = 1, NVARS3( FID )
-            
-            CALL NCVPT( FNUM, VINDX3( V,FID ), DIMT, DELT, 
+
+            CALL NCVPT( FNUM, VINDX3( V,FID ), DIMT, DELT,
      &                  BUFFER( INDX ), IERR )
 
             IF ( IERR .NE. 0 ) THEN
 
-                WRITE( MESG,91011 )          
+                WRITE( MESG,91011 )
      &              'Error writing variable ',
      &              VLIST3( V,FID ),
      &              'from file ' // FLIST3( FID ) ,
      &              'netCDF error number', IERR
-   
+
                 CALL M3WARN( 'KFWRITE', 0, 0, MESG )
 !$OMP       CRITICAL( S_LOGOUT )
                 WRITE( LOGDEV,* ) 'IOAPI ID    ', FID
@@ -272,7 +269,7 @@ C.......   Write the variables in the event-record:
             END IF                  !  ierr nonzero:  NCVPT() failed
 
             INDX = INDX  +  NLAYS3( FID ) * TYPSIZE( VTYPE3( V,FID ) )
-                   
+
 11      CONTINUE
 
 
@@ -291,9 +288,9 @@ C.......   Write TFLAG for the event-record:
         DELT( 2 ) = 1
 
         CALL NCVPT( FNUM, TINDX3( FID ), DIMT, DELT, TFLAG, IERR )
-           
+
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
+            WRITE( MESG,91040 )
      &      'Error ', IERR, 'writing TFLAG to file ' // FLIST3( FID )
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
             KFWRITE = -1
@@ -306,11 +303,11 @@ C.......   update KFCOUNT, KFEVENT, KFSDATE, KFSTIME, KFLNGTH:
         DIMT( 1 ) = CREC
         DIMT( 2 ) = COL
         DIMT( 3 ) = ROW
-        
+
         CALL NCVPT1( FNUM, SINDX3( FID ), DIMT, IREC, IERR )
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
-     &      'Error ', IERR, 'writing KFEVENT to file ' // 
+            WRITE( MESG,91040 )
+     &      'Error ', IERR, 'writing KFEVENT to file ' //
      &      FLIST3( FID ) // ' at col ', COL, 'row', ROW, 'count', CREC
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
             KFWRITE = -1
@@ -319,7 +316,7 @@ C.......   update KFCOUNT, KFEVENT, KFSDATE, KFSTIME, KFLNGTH:
 
         CALL NCVPT1( FNUM, LINDX3( FID ), DIMT, JDATE, IERR )
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
+            WRITE( MESG,91040 )
      &      'Error ', IERR, 'writing KFSDATE to file ' //
      &      FLIST3( FID ) // ' at col ', COL, 'row', ROW, 'count', CREC
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
@@ -329,8 +326,8 @@ C.......   update KFCOUNT, KFEVENT, KFSDATE, KFSTIME, KFLNGTH:
 
         CALL NCVPT1( FNUM, XINDX3( FID ), DIMT, JTIME, IERR )
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
-     &      'Error ', IERR, 'writing KFSTIME to file ' // 
+            WRITE( MESG,91040 )
+     &      'Error ', IERR, 'writing KFSTIME to file ' //
      &      FLIST3( FID ) // ' at col ', COL, 'row', ROW, 'count', CREC
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
             KFWRITE = -1
@@ -339,7 +336,7 @@ C.......   update KFCOUNT, KFEVENT, KFSDATE, KFSTIME, KFLNGTH:
 
         CALL NCVPT1( FNUM, YINDX3( FID ), DIMT, KFLEN, IERR )
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
+            WRITE( MESG,91040 )
      &      'Error ', IERR, 'writing KFLNGTH to file ' //
      &      FLIST3( FID ) // ' at col ', COL, 'row', ROW, 'count', CREC
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
@@ -355,7 +352,7 @@ C.......   Update KFCOUNT:
 
         CALL NCVPT1( FNUM, NINDX3( FID ), DIMT, CREC, IERR )
         IF ( IERR .NE. 0 ) THEN
-            WRITE( MESG,91040 )          
+            WRITE( MESG,91040 )
      &      'Error ', IERR, 'writing KFCOUNT to file ' //
      &      FLIST3( FID ) // ' at col ', COL, 'row', ROW, 'count', CREC
             CALL M3WARN( 'KFWRITE', 0, 0, MESG )
@@ -363,7 +360,7 @@ C.......   Update KFCOUNT:
             GO TO  999        !  return from kfwrite()
         END IF
 
-        MXREC3( FID ) = IREC                
+        MXREC3( FID ) = IREC
         KFWRITE       = IREC
 
 999     CONTINUE        !  target of "exit from routine"
@@ -412,5 +409,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91050   FORMAT ( A , 3 ( I10, :, 2X , A, : ), I9.7, ':', I6.6 )
 
-        END
+        END FUNCTION  KFWRITE
 

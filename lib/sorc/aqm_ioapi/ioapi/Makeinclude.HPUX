@@ -1,0 +1,23 @@
+# @(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/Makeinclude.IRIX6n32,v 1.3 2000/12/04 15:54:58 smith_w Exp $
+#
+AR   = ar
+CC   = c89
+FC   = f90
+M4   = m4
+CPP  = cpp
+LINK = $(CC)
+
+MFLAGS    = 
+
+OMPFLAGS  = # -mp -mpio
+OMPLIBS   = -L/opt/fortran90/lib/libp/ -lU77
+COPTFLAGS = -O2 ${MFLAGS}
+FOPTFLAGS = -O2 +Onolimit ${MFLAGS}
+FPPFLAGS  = +cpp=yes
+FSFLAGS   = +save
+ARCHFLAGS = -DAUTO_ARRAYS=1 -DF90=1
+PARFLAGS  =
+ARCHLIB   = 
+
+M4DEFFILE = # $(PVM_ROOT)/conf/$(PVM_ARCH).m4
+PVMLIBS   = -L$(PVM_ROOT)/lib/$(PVM_ARCH) -lpvm3

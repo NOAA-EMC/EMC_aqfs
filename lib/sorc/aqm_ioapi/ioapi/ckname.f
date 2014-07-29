@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/ckname.f,v 1.2 2000/11/28 21:22:33 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION CKNAME( NAME )
 
 C***********************************************************************
-C  function body starts at line  55
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  50
 C
 C  RETURNS:  TRUE iff NAME has content but no embedded blanks.
 C
@@ -26,7 +26,7 @@ C***********************************************************************
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)	NAME
+        CHARACTER*(*), INTENT(IN   ) ::	NAME
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -37,17 +37,12 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
 C...........   SAVED LOCAL VARIABLES:  alpha, alphanumeric tables
 
-        CHARACTER*56    ALPHA
-        DATA		ALPHA
-     &          /
+        CHARACTER*56, PARAMETER :: ALPHA =
      &  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz$_#@'
-     &          /
 
-        CHARACTER*10    NUMER
-        DATA		NUMER / '0123456789' /
+        CHARACTER*10, PARAMETER :: NUMER = '0123456789'
 
-        CHARACTER*66    ALNUM
-        DATA		ALNUM / ' '  /
+        CHARACTER*66, SAVE :: ALNUM = ' '
 
 C***********************************************************************
 C   begin body of function  CKNAME
@@ -70,7 +65,7 @@ C.......   If you get to here:  entire name blank.
         RETURN
 
 C.......   Number of trailing blanks found.
-C.......   Check rest of naem for legality:
+C.......   Check rest of name for legality:
 
 12      CONTINUE
 
@@ -90,5 +85,5 @@ C...........   If you get to here:  entire name OK
 
         CKNAME = .TRUE.
         RETURN
-        END
+        END FUNCTION CKNAME
 

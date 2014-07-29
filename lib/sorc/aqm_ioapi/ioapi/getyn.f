@@ -1,17 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION GETYN ( PROMPT , DEFAULT )
+
+C******************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  GETYN ( PROMPT , DEFAULT )
-
-C******************************************************************
-C  function body begins at line 91
+C  function body begins at line 90
 C
 C  FUNCTION:
 C
@@ -46,6 +44,7 @@ C       Modified 1/1997 by CJC:  logs result
 C       Modified 4/2002 by CJC:  now accepts T, t, F, f, .TRUE., .FALSE., etc.
 C       Revised  6/2003 by CJC:  factor through M3PROMPT to ensure flush()
 C       of PROMPT for IRIX F90v7.4  
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C
 C  ARGUMENT LIST DESCRIPTION:
 C
@@ -61,15 +60,13 @@ C**********************************************************************
 
 C.......   Arguments:
 
-        CHARACTER*(*)   PROMPT
-        LOGICAL         DEFAULT
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT
+        LOGICAL       , INTENT(IN   ) :: DEFAULT
 
 
 C.......   External functions:
 
-        LOGICAL         ENVYN
-        INTEGER         TRIMLEN
-        EXTERNAL        ENVYN, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN
 
 
 C.......   Parameter:  maximum number of attempts allowed to the user
@@ -83,11 +80,9 @@ C.......   Local Variables:
         INTEGER         LENGTH , COUNT , IOS
         CHARACTER*80    ANSWER
         CHARACTER*80    MESG
-        LOGICAL         PROMPTON
 
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
-        SAVE            FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 
 C*********************   begin  GETYN   *******************************
@@ -100,7 +95,7 @@ C*********************   begin  GETYN   *******************************
  
         END IF
 
-        LENGTH  =  TRIMLEN( PROMPT )
+        LENGTH  =  LEN_TRIM( PROMPT )
 
         IF( .NOT. PROMPTON ) THEN
             GETYN = DEFAULT
@@ -134,8 +129,8 @@ C.....  Continue only if PROMPTON is true
 
             GO TO  900
 
-        ELSE IF (          ( ANSWER ( 1:1 ) .EQ. 'Y' )
-     &          .OR.  ( ANSWER ( 1:1 ) .EQ. 'Y' )
+        ELSE IF (     ( ANSWER ( 1:1 ) .EQ. 'Y' )
+     &          .OR.  ( ANSWER ( 1:1 ) .EQ. 'y' )
      &          .OR.  ( ANSWER ( 1:1 ) .EQ. 'T' )
      &          .OR.  ( ANSWER ( 1:1 ) .EQ. 't' )
      &          .OR.  ( ANSWER ( 1:2 ) .EQ.'.T' )
@@ -200,5 +195,5 @@ C.....  Continue only if PROMPTON is true
             CALL M3MSG2( MESG )
             GO TO  11
 
-        END
+        END FUNCTION GETYN 
 

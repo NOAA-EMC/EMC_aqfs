@@ -1,11 +1,3 @@
-#envir    =para
-#model_ver=v4.6.2
-#EMC
-#usrdir   =/naqfc/save/${USER}
-
-# NCO
-#usrdir=
-#
 
 DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
 CMD      = aqm_cmaq2grib
@@ -28,6 +20,6 @@ FC     = ifort
 FLAGS  = -I$(INC) 
 
 $(CMD): $(SRCS)
-	$(FC) -o $(@) $(FLAGS) $(SRCS) $(LIBS) 
+	$(FC) -o ../../exec/$(@) $(FLAGS) $(SRCS) $(LIBS) 
 clean :
-	rm -rf $(CMD)
+	rm -rf ../../exec/$(CMD)

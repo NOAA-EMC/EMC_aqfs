@@ -1,18 +1,16 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRVARS( FID, VID, FLAGS, STEP2, 
      &                           DIMS, DELS, DELTA, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  94
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  99
 C
 C  FUNCTION:  writes "variables" part of time step records from Models-3
 C             files with index FID, for all layers and variables for
@@ -46,6 +44,8 @@ C
 C       Modified 10/2003 by CJC for I/O API version 3:
 C       Structure in terms of LOGICAL SYNCFID
 C       support for native-binary BINFILE3 and LISTFIL3 file types
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -59,21 +59,20 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER       FID             !  file index within the STATE3 commons
-        INTEGER       VID             !  vble index within the STATE3 commons
-        INTEGER       FLAGS( 2 )      !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER       STEP2           !  physical time step number (maybe mod 2)
-        INTEGER       DIMS( 5 )       !  corner arg array for NCVGT()
-        INTEGER       DELS( 5 )       !  diag   arg array for NCVGT()
-        INTEGER       DELTA           !  d(INDX) / d(NCVGTcall)
-        REAL          BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  vble index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: FLAGS( 2 )      !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  physical time step number (maybe mod 2)
+        INTEGER, INTENT(IN   ) :: DIMS( 5 )       !  corner arg array for NCVGT()
+        INTEGER, INTENT(IN   ) :: DELS( 5 )       !  diag   arg array for NCVGT()
+        INTEGER, INTENT(IN   ) :: DELTA           !  d(INDX) / d(NCVGTcall)
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   EXTERNAL FUNCTIONs:
 
-        INTEGER         WRBFLAG, WRBVARS
-        LOGICAL         WRTFLAG, SYNCFID
-        EXTERNAL        WRBFLAG, WRBVARS, WRTFLAG, SYNCFID
+        INTEGER, EXTERNAL :: WRBFLAG, WRBVARS
+        LOGICAL, EXTERNAL :: WRTFLAG, SYNCFID
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -84,12 +83,11 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         LOGICAL       AFLAG
         CHARACTER*256 MESG
 
-        INTEGER         TYPSIZE( 6 )    !  sizeof( variable ) / sizeof( real )
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
 
@@ -102,46 +100,33 @@ C...............   Process native-binary-layer files:
 
 !$OMP CRITICAL( S_NC )
             IERR = WRBVARS( FID, VID, STEP2, BUFFER )
-c           IF ( 0 .EQ. IERR ) THEN     !  error
-c               AFLAG = .TRUE.
-c           ELSE IF ( 0 .EQ. WRBFLAG( FID, VID, STEP2, FLAGS ) ) THEN
-c               AFLAG = .TRUE.
-c           ELSE
-c               AFLAG = .FALSE.
-c           END IF
-
             IF ( 0 .EQ. IERR ) THEN     !  error
+                AFLAG = .TRUE.
+            ELSE IF ( 0 .EQ. WRBFLAG( FID, VID, STEP2, FLAGS ) ) THEN
                 AFLAG = .TRUE.
             ELSE
                 AFLAG = .FALSE.
-                IF (VID .GT. 0) THEN
-                   IF ( 0 .EQ. WRBFLAG( FID, VID, STEP2, FLAGS ) ) THEN
-                      AFLAG = .TRUE.
-                   END IF
-                ELSE
-                   DO VAR = 1, NVARS3( FID )
-                      IF ( 0 .EQ. WRBFLAG( FID, VAR, STEP2, 
-     &                                     FLAGS ) ) THEN
-                         AFLAG = .TRUE.
-                         GOTO 99
-                      END IF 
-                   END DO
-                END IF
             END IF
-
- 99         CONTINUE
- 
 !$OMP END CRITICAL( S_NC )
 
             IF ( AFLAG ) THEN
 !$OMP CRITICAL( S_LOGOUT )
-                WRITE( LOGDEV, '( 5X, 5 A )' )
+                WRITE( LOGDEV,'( 5X, A )' )
+     &                  '>>> WARNING in subroutine WRVARS <<<'
+                IF ( VID .GT. 0 ) THEN
+                    WRITE( LOGDEV, '( 5X, 5 A )' )
      &                  'Error writing variable ', VLIST3( VID,FID ),
      &                  'to BINIO file ', FLIST3( FID )
-                WRITE( LOGDEV,* ) 'IOAPI file ID ', FID
-                WRITE( LOGDEV,* ) 'variable      ', VINDX3( VID,FID )
-                WRITE( LOGDEV,* ) 'dims array    ', DIMS
-                WRITE( LOGDEV,* ) 'delts array   ', DELS
+                    WRITE( LOGDEV,'( 5X, A, I6 )' ) 
+     &                  'variable  ID  ', VINDX3( VID,FID )
+                ELSE
+                    WRITE( LOGDEV,'( 5X, 2 A )' ) 
+     &                  'Error writing ALL-VARIABLES to BINIO file ', 
+     &                  FLIST3( FID )
+                END IF
+                WRITE( LOGDEV,'( 5X, A, I6 )' ) 'IOAPI file ID ', FID
+                WRITE( LOGDEV,'( 5X, A, 5 I6 )' ) 'dims array  ', DIMS
+                WRITE( LOGDEV,'( 5X, A, 5 I6 )' ) 'delts array ', DELS
                 WRITE( LOGDEV,* )
 !$OMP END CRITICAL( S_LOGOUT )
                 WRVARS = .FALSE.
@@ -271,5 +256,5 @@ C...........   Error and warning message formats..... 91xxx
      &            /5X , A , I5 , : ,
      &            /5X , A ) 
 
-        END
+        END FUNCTION WRVARS
 

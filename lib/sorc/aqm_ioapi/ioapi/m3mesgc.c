@@ -6,7 +6,7 @@ VERSION:
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -42,7 +42,7 @@ REVISION HISTORY:
 #endif
 
 
-#if defined(M3MESG) || defined(_WIN32)
+#if defined(M3MESG) || defined(_WIN32) || defined(ABSFT)
 
 
     extern void M3MESG( const char * message ,

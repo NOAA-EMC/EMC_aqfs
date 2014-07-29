@@ -6,7 +6,7 @@ VERSION:
 
 COPYRIGHT
     (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -29,14 +29,19 @@ INTEGER     XTRBIN3()    - extract a "window" from a GRIDDED BINIO3 file
 INTEGER     FLUSHBIN3()  - flush a specified BINIO3 file to disk
 INTEGER     CLOSEBIN3()  - close a specified BINIO3 file
 INTEGER     WRBPATCH()   - write a specified slab timestep/variable record
-INTEGER     WRBSMATRX()  - write spares matrix
+                           for distributed version of EPA's CMAQ
 
 CALLS:  none
 
 REVISION HISTORY:
     Prototype 10/2003 by CJC for I/O APIv3
 
-    Bug-fixes 12/2003 from Jeffrey O. Young and David Wong (US EPA)
+    Bug-fixes 12/2003-1/2004 from Jeffrey O. Young and David Wong (US EPA)
+
+    Modified 12/2004:  NVARS range check in OPNBIN3
+
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
 
 BINFIL3 file Structure:
 
@@ -70,6 +75,7 @@ BINFIL3 file Structure:
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
 
 #include <unistd.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -110,7 +116,6 @@ BINFIL3 file Structure:
 #define FLUSHBIN3  flushbin3_
 #define CLOSEBIN3  closebin3_
 #define WRBPATCH   wrbpatch_
-#define WRBSMATRX  wrbsmatrx_
 
 #elif defined(__hpux) || defined(_AIX)
 
@@ -133,7 +138,13 @@ BINFIL3 file Structure:
 #define FLUSHBIN3  flushbin3
 #define CLOSEBIN3  closebin3
 #define WRBPATCH   wrbpatch
-#define WRBSMATRX  wrbsmatrx
+
+#elif defined(ABSFT)
+
+#define BDESC3     _CBDESC3
+#define CDESC3     _CCDESC3
+#define BSTATE3    _CBSTATE3
+#define CSTATE3    _CCSTATE3
 
 #else
 
@@ -271,33 +282,6 @@ static int get_int4( INT4 int4 )
            + 16777216*(int)int4[3] ) ;
     }                   /** END   static int get_int4() **/
 
-static void  name2cstr( const char * source, 
-                        char       * target,
-                        FSTR_L       slen,
-                        FSTR_L       tlen )
-    {
-    char  *bound ;
-    char   ch ;
-    int    length ;
-    
-    tlen-- ;
-
-    for ( length = ( slen < tlen ? slen : tlen ) ,
-          bound  = target + length - 1 ;
-              target < bound ;
-                  target++ , source++ )
-        {
-        ch = *source ;
-        if ( isspace( ch ) ) break ;
-        *target = ch ;
-
-        } /**  END FOR-LOOP COPYING  lname  TO  buffer[], ETC.  **/
-    
-    *target = '\0' ;
-    
-    }    /** END Feldmanish name2cstr() **/
-    
-
 static int  set_fstate( int f,
                         int ncol,
                         int nrow,
@@ -340,7 +324,14 @@ static int  set_fstate( int f,
     fstate[ f ]->rsize = fsiz ;
     fstate[ f ]->dsize = dsiz ;
 
-    ssum = 2 * nvar * sizeof( INT4 ) ;
+   if ( nvar == 0 )
+       {
+       ssum = 2 * sizeof( INT4 ) ;
+       fstate[ f ]->voffset[ 0 ] = ssum ;
+       }
+   else{
+       ssum = 2 * nvar * sizeof( INT4 ) ;
+       }
 
     if ( ftyp == CUSTOM3 )
         {
@@ -384,7 +375,7 @@ static int  set_fstate( int f,
         fstate[ f ]->vtype[ v ] = vtyp[ v ] ;
         BSTATE3.vtype[ f ][ v ] = vtyp[ v ] ;
 
-        if ( (vtyp[ v ] == M3INT) || (vtyp[ v ] == 0) )
+        if ( vtyp[ v ] == M3INT )
             {
             vsize = rsize * (off_t)isiz ;
             }
@@ -413,6 +404,41 @@ static int  set_fstate( int f,
                                     + nvar * sizeof( M3Name )
                                     + nvar * sizeof( M3Name )
                                     + nvar * sizeof( M3Line ) ) ;
+
+#ifdef  BIN3_DEBUG
+    m3mesgc( " " ) ;
+    sprintf( mesg, "IOBIN3/set_fstate(%d)", f ) ;
+    m3mesgc( mesg ) ;
+    
+    sprintf( mesg, "fstate[%d]->nrecs = %d", f, fstate[ f ]->nrecs ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->fmode = %d", f, fstate[ f ]->fmode ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->ftype = %d", f, fstate[ f ]->ftype ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->ncols = %d", f, fstate[ f ]->ncols ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->nrows = %d", f, fstate[ f ]->nrows ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->nlays = %d", f, fstate[ f ]->nlays ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->nvars = %d", f, fstate[ f ]->nvars ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->nthik = %d", f, fstate[ f ]->nthik ) ;
+    m3mesgc( mesg ) ;
+    for ( v = 0 ; v < nvar ; v++ )
+        {
+        sprintf( mesg, "fstate[%d]->vrecsiz[ %d ] = %d", f, v, (int)fstate[ f ]->vrecsiz[ v ] ) ;
+        m3mesgc( mesg ) ;
+        sprintf( mesg, "fstate[%d]->voffset[ %d ] = %d", f, v, (int)fstate[ f ]->voffset[ v ] ) ;
+        m3mesgc( mesg ) ;
+        }
+    sprintf( mesg, "fstate[%d]->trecsize = %d", f, (int)fstate[ f ]->trecsize ) ;
+    m3mesgc( mesg ) ;
+    sprintf( mesg, "fstate[%d]->hdrsize  = %d", f, (int)fstate[ f ]->hdrsize ) ;
+    m3mesgc( mesg ) ;
+    
+#endif    
 
     return( result ) ;
 
@@ -497,7 +523,7 @@ FINT INITBIN3( const char *version,
     union { int  ival; INT4  cval ; } iscr ;
 
     run_date = *jdate ;
-    run_date = *jdate ;
+    run_time = *jtime ;
 
     n = (size_t) ( length < NAMLEN3 - 1 ? length : NAMLEN3 - 1 ) ;
     memcpy( ioapi_version, version, n ) ;
@@ -587,15 +613,8 @@ FINT CRTBIN3( const char * fname ,
     set_int4( bin_hdr.dsize,      (int) sizeof( double ) ) ;
     memcpy(   bin_hdr.gridname,   CDESC3.gdnam, (size_t)NAMLEN3 ) ;
     memcpy(   bin_hdr.updtname,   CDESC3.upnam, (size_t)NAMLEN3 ) ;
-/*
-    memcpy(   bin_hdr.file_desc,  CDESC3.fdesc, (size_t)MXDLEN3 ) ;
-*/
-    memcpy(   bin_hdr.file_desc,  CDESC3.fdesc, (size_t)(MXDLEN3 * MXDESC3) ) ;
-
-/*
-    memcpy(   bin_hdr.updt_desc,  CDESC3.updsc, (size_t)MXDLEN3 ) ;
-*/
-    memcpy(   bin_hdr.updt_desc,  CDESC3.updsc, (size_t)(MXDLEN3 * MXDESC3) ) ;
+    memcpy(   bin_hdr.file_desc,  CDESC3.fdesc, (size_t)MXDLEN3*MXDESC3 ) ;
+    memcpy(   bin_hdr.updt_desc,  CDESC3.updsc, (size_t)MXDLEN3*MXDESC3 ) ;
     set_int4( bin_hdr.cdate,      run_date ) ;
     set_int4( bin_hdr.ctime,      run_time ) ;
     set_int4( bin_hdr.wdate,      run_date ) ;
@@ -697,7 +716,6 @@ FINT CRTBIN3( const char * fname ,
         }
 
     nsize = (size_t) MXDLEN3 ; 
-
     asize = fwrite( (void *)CDESC3.vdesc, nsize, nelts, filptr ) ;
     if ( asize != nelts )
         {
@@ -787,7 +805,6 @@ FINT OPNBIN3( const char * fname ,
         }
 
     name2cstr( fname, fpath, llen, (FSTR_L)512 ) ;
-
     mode = ( *fmode ) % 2 ;     /*  "or" with NF_NOWRITE = 0; NF_WRITE = 1  */
     filptr = fopen( fpath, fmodes[ mode ] ) ;
     if ( ! filptr )
@@ -843,6 +860,21 @@ FINT OPNBIN3( const char * fname ,
     isiz = get_int4( bin_hdr.intsize ) ;
     fsiz = get_int4( bin_hdr.rsize ) ;
     dsiz = get_int4( bin_hdr.dsize ) ;
+
+    if ( nvar > MXVARS3 )
+        {
+        m3mesgc( "CRTBIN3:  max NVARS exceeded for this build" ) ;
+        perror( (char *) 0 ) ;
+        if ( fclose( filptr ) ) 
+            {
+            m3mesgc( "CRTBIN3:  fclose() failure" ) ;
+            perror( (char *) 0 ) ;
+            }
+        free( filptr ) ;
+        free( fstate[ f ] ) ;
+        fstate[ f ] = (Bin_State3*) 0 ;
+        return( (FINT) 0 ) ;
+        }
 
     for( v = 0 ; v < nvar ; v++ )
         {
@@ -910,7 +942,10 @@ FINT DSCBIN3( const FINT * fid )
     off_t       where ;
     FILE      * filptr ;
     Bin_Hdr3    bin_hdr ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
+#endif
+
 
     f = *fid - 1 ;
 
@@ -958,7 +993,6 @@ FINT DSCBIN3( const FINT * fid )
     BDESC3.ctime = get_int4( bin_hdr.ctime ) ;
     BDESC3.wdate = get_int4( bin_hdr.wdate ) ;
     BDESC3.wtime = get_int4( bin_hdr.wtime ) ;
-
     BDESC3.vgtyp = get_int4( bin_hdr.vgtyp ) ;
 
     sscanf(  bin_hdr.vgtop, "%e",  & BDESC3.vgtop ) ;
@@ -1016,7 +1050,9 @@ FINT RDBFLAG( const FINT * fid,
     size_t      asize, rsize, nsize ;
     INT4        tflag[ 2 * MXVARS3 ] ;
     FILE      * filptr ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
+#endif
 
     f = *fid  - 1 ;
     v = *vid  - 1 ;
@@ -1092,7 +1128,9 @@ FINT WRBFLAG( const FINT * fid,
     INT4        tflag[ 2 * MXVARS3 ] ;
     INT4        mxrec ;
     FILE      * filptr ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
+#endif
 
     f = *fid  - 1 ;
     v = *vid  - 1 ;
@@ -1113,15 +1151,10 @@ FINT WRBFLAG( const FINT * fid,
         }
 
     fstate[ f ]->fmode = RW_MODE ;
-
-    if (fstate[ f ]->ftype == 6)
-       where = sizeof( Bin_Hdr3 );
-    else
-       where  = fstate[ f ]->hdrsize + s * fstate[ f ]->trecsize ;
-
+    where  = fstate[ f ]->hdrsize + s * fstate[ f ]->trecsize ;
     if ( v < 0 )
         {
-        n     = ( fstate[ f ]->nvars > 0 ? 2 * fstate[ f ]->nvars : 1 ) ;
+        n     = ( fstate[ f ]->nvars > 0 ? fstate[ f ]->nvars : 1 ) ;
         rsize = (size_t)( 2 * n ) ;
         }
     else{
@@ -1137,7 +1170,7 @@ FINT WRBFLAG( const FINT * fid,
 
     for ( n = 0 ; n < rsize ; n++ )
         {
-        t = (int)( flags[ n ] ) ;
+        t = (int)( flags[ n % 2 ] ) ;
         set_int4( tflag[ n ] , t ) ;
         }
 
@@ -1158,7 +1191,6 @@ FINT WRBFLAG( const FINT * fid,
 #endif
 
     nrec = fstate[f]->nrecs ;
-
     if ( nrec < s + 1 )
         {
         nrec = s + 1 ;
@@ -1193,22 +1225,26 @@ FINT RDBVARS( const FINT * fid,
               const FINT * var,
               const FINT * lay,
               const FINT * step,
-              const FINT * size,
               void       * buffer )
-
     {
-    int         f, v, w, l, s, ftyp, nvar, first ;
+    int         f, v, w, l, s, ftyp ;
     off_t       now, where ;
     size_t      asize, nsize, rsize, tsize ;
     FILE      * filptr ;
     char      * bptr ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
-    char      * lbuffer = buffer ;
+#endif
 
     f = *fid  - 1 ;
     v = *var  - 1 ;
     l = *lay  - 1 ;
     s = *step - 1 ;
+
+#ifdef  BIN3_DEBUG
+    sprintf( mesg, "RDBVARS:  FILE %d LAYER = %d VBLE = %d STEP = %d", 
+                              f,      l,         v,        s ) ;
+#endif
 
     if ( ! fstate[ f ] )
         {
@@ -1226,51 +1262,39 @@ FINT RDBVARS( const FINT * fid,
         }
 
     fstate[ f ]->fmode = RW_MODE ;
-
     where  = fstate[ f ]->hdrsize + s*fstate[ f ]->trecsize ;
 
                         /**  First, the entire-timestep-record cases:  **/
 
     ftyp = fstate[ f ]->ftype ;
-    nvar = fstate[ f ]->nvars ;
 
     if ( ( ftyp == IDDATA3 ) || ( ftyp == PROFIL3 ) ||
          ( ftyp == GRNEST3 ) || ( ftyp == SMATRX3 ) ||
          ( v < 0 && l < 0 ) )
         {
-        tsize = 2 * sizeof( INT4 ) * fstate[ f ]->nvars ;
-
-        if ((nvar == 0) && (ftyp == SMATRX3))
-           where += 2 * sizeof( INT4 ) ;
-        else
-           where += tsize ;
-
+        tsize = fstate[ f ]->voffset[ 0 ] ;
+        where += tsize ;
         rsize = fstate[ f ]->trecsize - tsize ;
         }
-                        /* next, the single-variable read operation  */
-    else if ( v >= 0 )
+
+    else if ( v >= 0 )  /* next, the single-variable read operations  */
         {
-        if ( l >= 0 )   /* single-variable read operation  */
+        if ( l < 0 )    /* single-variable/all-layers read operation  */
+            {
+            rsize  = fstate[ f ]->vrecsiz[ v ] * fstate[ f ]->nlays ;
+            where += fstate[ f ]->voffset[ v ] ;
+            }
+        else            /* single-variable/single-layer read operation  */
             {
             rsize  = fstate[ f ]->vrecsiz[ v ] ;
             where += fstate[ f ]->voffset[ v ] + l * fstate[ f ]->vrecsiz[ v ] ;
-            }
-        else{
-            rsize  = fstate[ f ]->vrecsiz[ v ] * fstate[ f ]->nlays ;
-            where += fstate[ f ]->voffset[ v ] ;
             }
         }
                         /*  all-variable/single-layer read operation  */
     else{               /*  Must be done iteratively:  */
 
-        first = 0;
-        if (l < 0)
-           { first = 1;
-             l = 0;
-           }
-
         nsize = sizeof( char ) ;
-        for( bptr = lbuffer, w = 0 ; w < fstate[ f ]->nvars ; w++ )
+        for( bptr = buffer, w = 0 ; w < fstate[ f ]->nvars ; w++ )
             {
             rsize = fstate[ f ]->vrecsiz[ w ] ;
             now = where + fstate[ f ]->voffset[ w ] + l * rsize ;
@@ -1288,17 +1312,40 @@ FINT RDBVARS( const FINT * fid,
                 return( (FINT) 0 ) ;
                 }
             bptr += rsize ;
-
-            if (first)
-               { first = 0;
-                 l = fstate[ f ]->nlays;
-               }
-
             }
 
         return( (FINT) 1 ) ;
 
         }   /**  end iterative all-variable/single-layer read operation  */
+
+#ifdef  BIN3_DEBUG
+    sprintf( mesg, "RDBVARS:  NSIZE = %d ", (int) nsize ) ;
+    m3mesgc( mesg ) ;
+
+    sprintf( mesg, "RDBVARS:  RSIZE = %d ", (int) rsize ) ;
+    m3mesgc( mesg ) ;
+
+    if ( v < 0 ) 
+        {
+        sprintf( mesg, "RDBVARS:  OFFSET = %d ", (int) fstate[ f ]->voffset[ 0 ] ) ;
+        m3mesgc( mesg ) ;
+
+        sprintf( mesg, "RDBVARS:  RECSIZ = %d ", (int) fstate[ f ]->vrecsiz[ 0 ] ) ;
+        m3mesgc( mesg ) ;
+        }
+    else
+        {
+        sprintf( mesg, "RDBVARS:  VOFFSET = %d ", (int) fstate[ f ]->voffset[ v ] ) ;
+        m3mesgc( mesg ) ;
+
+        sprintf( mesg, "RDBVARS:  VRECSIZ = %d ", (int) fstate[ f ]->vrecsiz[ v ] ) ;
+        m3mesgc( mesg ) ;
+        }
+
+    sprintf( mesg, "RDBVARS:  WHERE = %d ", (int) where ) ;
+    m3mesgc( mesg ) ;
+
+#endif
 
     if ( 0 != fseeko( filptr, where, SEEK_SET ) )
         {
@@ -1308,35 +1355,12 @@ FINT RDBVARS( const FINT * fid,
 
     nsize = sizeof( char ) ;
     asize = fread( buffer, nsize, rsize, filptr ) ;
-
     if ( asize != rsize )
         {
         m3mesgc( "RDBVARS:  fread( TIMESTEP ) failure" ) ;
         perror( (char *) 0 ) ;
         return( (FINT) 0 ) ;
         }
-
-    if (*size > 1)
-       {
-         where = where + rsize * fstate[ f ]->nvars + fstate[ f ]->nvars * 2 * sizeof(FREAL);
-
-         if ( 0 != fseeko( filptr, where, SEEK_SET ) )
-            { m3mesgc( "RDBVARS:  fseeko( TIMESTEP ) failure" ) ;
-              return( (FINT) 0 ) ;
-            }
-
-         nsize = sizeof( char ) ;
-
-         lbuffer = lbuffer + rsize ;
-
-         asize = fread( lbuffer, nsize, rsize, filptr ) ;
-
-         if ( asize != rsize )
-             { m3mesgc( "RDBVARS:  fread( TIMESTEP ) failure" ) ;
-               perror( (char *) 0 ) ;
-               return( (FINT) 0 ) ;
-             }
-       }
 
 #ifdef BIN3_DEBUG
     sprintf( mesg,
@@ -1356,11 +1380,13 @@ FINT WRBVARS( const FINT * fid,
               const FINT * step,
               void       * buffer )
     {
-    int         f, v, s, nvar, ftyp ;
+    int         f, v, s, ftyp ;
     off_t       where, tsize ;
     size_t      asize, nsize, rsize ;
     FILE      * filptr ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
+#endif
 
     f    = *fid  - 1 ;
     v    = *vid  - 1 ;
@@ -1383,21 +1409,15 @@ FINT WRBVARS( const FINT * fid,
 
     fstate[ f ]->fmode = RW_MODE ;
     where  = fstate[ f ]->hdrsize + s*fstate[ f ]->trecsize ;
-
+    
     ftyp = fstate[ f ]->ftype ;
-    nvar = fstate[ f ]->nvars ;
 
     if ( ( ftyp == IDDATA3 ) || ( ftyp == PROFIL3 ) ||
          ( ftyp == GRNEST3 ) || ( ftyp == SMATRX3 ) ||
          ( v < 0 ) )
         {
-        tsize = 2 * sizeof( INT4 ) * nvar ;
-
-        if ((nvar == 0) && (ftyp == SMATRX3))
-           where += 2 * sizeof( INT4 ) ;
-        else
-           where += tsize ;
-
+        tsize = fstate[ f ]->voffset[ 0 ]  ;
+        where += tsize ;
         rsize = fstate[ f ]->trecsize - tsize ;
         }
     else{                       /*  single-variable write operation  */
@@ -1413,7 +1433,6 @@ FINT WRBVARS( const FINT * fid,
 
     nsize = sizeof( char ) ;
     asize = fwrite( buffer, nsize, rsize, filptr ) ;
-
     if ( asize != rsize )
         {
         m3mesgc( "WRBVARS:  fwrite( TIMESTEP ) failure" ) ;
@@ -1448,10 +1467,11 @@ FINT XTRBIN3( const FINT * fid,
     size_t      s, ss, ds, dd, dw, di, asize, rsize, lsize, vsize, nsize ;
     FILE      * filptr ;
     char      * dptr, * sptr, * lsptr ;
-    char        mesg[ 256 ] ;
-
     static char   * inbuf = (char *) 0 ;
-    static size_t  last_size = 0 ;
+    static size_t   last_size = 0 ;
+#ifdef BIN3_DEBUG
+    char        mesg[ 256 ] ;
+#endif
 
     f  = *fid - 1 ;
     v  = *var - 1 ;
@@ -1480,13 +1500,17 @@ FINT XTRBIN3( const FINT * fid,
     fstate[ f ]->fmode = RW_MODE ;
 
     lsize = BSTATE3.ncols[ f ] * BSTATE3.nrows[ f ] ;
-    vsize = ( c1 - c0 + 1 ) * ( r1 - r0 + 1 ) * ( l1 - l0 + 1 ) ;
+    vsize = lsize * ( l1 - l0 + 1 ) ;
     if ( vsize > last_size )
         {
         if ( inbuf ) free( inbuf ) ;
-        inbuf = malloc( lsize * ( l1 - l0 + 1 )  * sizeof( double ) ) ;
-        if ( ! inbuf )
+        inbuf = malloc( vsize  * sizeof( double ) ) ;
+        if ( inbuf )
             {
+            last_size = vsize ;
+            }
+        else{
+            last_size = 0 ;
             m3mesgc( "XTRBIN3:  malloc() failure" ) ;
             perror( (char *) 0 ) ;
             return( (FINT) 0 ) ;
@@ -1498,12 +1522,10 @@ FINT XTRBIN3( const FINT * fid,
 
     if ( v == ALLAYS3 )                 /*   multi-vble extract  */
         {
-
-        for ( n = 0, dptr = buffer ; n < v ; n++ )
+        for ( n = 0, dptr = buffer ; n < BSTATE3.nvars[ f ] ; n++ )
             {
             t      = BSTATE3.vtype[ f ][ n ] ;
             s      = tsizes[ t ] ;
-            ss     = s * BSTATE3.ncols[ f ] ;
             dd     = s * ( c1 - c0 + 1 ) ;                              /*  row size           */
             ds     = s * lsize ;                                        /*  layer size         */
             dw     = ds * ( *lay0 - 1 ) + fstate[ f ]->voffset[ n ] ;   /*  layer+vble offset  */
@@ -1518,9 +1540,7 @@ FINT XTRBIN3( const FINT * fid,
                 return( (FINT) 0 ) ;
                 }
 
-
             asize = fread( (void *)inbuf, nsize, rsize, filptr ) ;
-
             if ( asize != rsize )
                 {
                 m3mesgc( "XTRBIN3:  fread( TIMESTEP ) failure" ) ;
@@ -1538,7 +1558,7 @@ FINT XTRBIN3( const FINT * fid,
 
             for ( sptr = inbuf + di, l = l0 - 1 ; l < l1 ; l++, sptr+=ds )
                 {
-                for ( r = r0 - 1, lsptr = sptr; r < r1 ; r++, lsptr+=ss, dptr+=dd )
+                for ( r = r0-1, lsptr = sptr; r < r1; r++, lsptr+=ss, dptr+=dd )
                     {
                     memcpy( (void *)dptr, (void *)lsptr, dd ) ;
                     }
@@ -1547,18 +1567,15 @@ FINT XTRBIN3( const FINT * fid,
         }                               /*  if multi-vble extract  */
 
     else{                               /*  else single-vble extract  */
+
         t      = BSTATE3.vtype[ f ][ v ] ;
         s      = tsizes[ t ] ;
-        ss     = s * BSTATE3.ncols[ f ] ;
-        dd     = s * ( c1 - c0 + 1 ) ;          /*  row size  */
-        ds     = s * lsize ;                    /*  layer-size    */
-        rsize  = ds * ( *lay1 - *lay0 + 1 ) ;   /*  volume to read */
-        dw     = s * lsize * ( *lay0 - 1 ) ;    /*  layer offset  */
-
-/*
-        where += fstate[ f ]->voffset[ v-1 ] ;
-*/
-        where += fstate[ f ]->voffset[ v ] ;
+        ss     = s * BSTATE3.ncols[ f ] ;       /*   intput row size  */
+        dd     = s * ( c1 - c0 + 1 ) ;          /*  output row size   */
+        ds     = s * lsize ;                    /*  input layer-size  */
+        rsize  = ds * ( *lay1 - *lay0 + 1 ) ;   /*  volume to read    */
+        dw     = s * lsize * ( *lay0 - 1 ) ;    /*  layer offset in file */
+        where += fstate[ f ]->voffset[ v ] ;    /*  vble  offset in file */
         di     = s * ( BSTATE3.ncols[ f ] * ( r0 - 1 ) + c0 - 1 ) ;
 
         if ( 0 != fseeko( filptr, where + dw, SEEK_SET ) )
@@ -1570,7 +1587,6 @@ FINT XTRBIN3( const FINT * fid,
             }
 
         asize = fread( (void *)inbuf, nsize, rsize, filptr ) ;
-
         if ( asize != rsize )
             {
             m3mesgc( "XTRBIN3:  fread( TIMESTEP ) failure" ) ;
@@ -1606,7 +1622,9 @@ FINT FLUSHBIN3( const FINT * fid )
     {
     FILE *filptr ;
     int   f ;
+#ifdef BIN3_DEBUG
     char  mesg[ 256 ] ;
+#endif
 
     f = *fid - 1 ;
     if ( ! fstate[ f ] )
@@ -1646,7 +1664,9 @@ FINT CLOSEBIN3( const FINT * fid )
     {
     FILE *filptr ;
     int   f ;
+#ifdef BIN3_DEBUG
     char  mesg[ 256 ] ;
+#endif
 
     f = *fid - 1 ;
     if ( ! fstate[ f ] )
@@ -1691,19 +1711,21 @@ FINT WRBPATCH( const FINT * fid,
                      FINT grid_map[],
                      FINT size_map[],
                const FINT * step,
-               void       * buffer )
+               void       * patch )
 
     {
-    int         f, v, s, l, r, nlay, ncol;
-    off_t       where, start, rcoffset;
-    size_t      asize, nsize, rsize, prsize ;
+    int         f, v, s, l, r, r0, r1, c0, nlay, ncol;
+    off_t       where, start, rowsiz;
+    size_t      asize, chsize, rsize, prsize, tsize ;
     FILE      * filptr ;
+    char      * buffer ;
+#ifdef BIN3_DEBUG
     char        mesg[ 256 ] ;
-    char      * lbuffer = buffer;
+#endif
 
-    f    = *fid  - 1 ;
-    v    = *vid  - 1 ;
-    s    = *step - 1 ;
+    f = *fid  - 1 ;
+    v      = *vid  - 1 ;
+    s      = *step - 1 ;
 
     if ( ! fstate[ f ] )
         {
@@ -1720,56 +1742,60 @@ FINT WRBPATCH( const FINT * fid,
         return( (FINT) 0 ) ;
         }
 
-    fstate[ f ]->fmode = RW_MODE ;
-    nlay = fstate[ f ]->nlays ;
-    ncol = fstate[ f ]->ncols ;
+    if ( v < 0 )        /*  multi-variable case:  */
+        {
+        m3mesgc( "WRBPATCH:  ALLVARS write is not supported" ) ;
+        perror( (char *) 0 ) ;
+        return( (FINT) 0 ) ;
+        }                       /*  end loop on v  */
+
+    fstate[ f ]->fmode = RW_MODE ;      /*  not header-mode  */
+
+    c0     = grid_map[0] - 1 ;                  /*  Starting C subscripts  */
+    r0     = grid_map[1] - 1 ;
+    r1     = r0 + size_map[1] ;                 /*  Upper subscript bound  */
+    nlay   = fstate[ f ]->nlays ;
+    ncol   = fstate[ f ]->ncols ;
+    tsize  = tsizes[ fstate[ f ]->vtype[ v ] ] ;
     rsize  = fstate[ f ]->vrecsiz[ v ] ;
+    start  = fstate[ f ]->hdrsize + s*fstate[ f ]->trecsize
+                                  +   fstate[ f ]->voffset[ v ]
+                                  + tsize * ( ncol*r0 + c0 );
+    rowsiz = tsize * ncol ;             /* row size in file  */
+    prsize = tsize * size_map[0]  ;     /* row size in patch */
+    chsize = sizeof( char ) ;
+    buffer = (char *) patch ;           /*  patch-data pointer  */
 
-    if (v < 0)
-       where = fstate[ f ]->hdrsize + s*fstate[ f ]->trecsize + fstate[ f ]->voffset[ 0 ] ;
-    else
-       where = fstate[ f ]->hdrsize + s*fstate[ f ]->trecsize + fstate[ f ]->voffset[ v ] ;
-
-    /* compute the starting point with respect to each patch */
-    start = where + ((grid_map[1] - 1) * ncol + (grid_map[0] - 1)) * sizeof (FREAL);
-
-    rcoffset = ncol * sizeof (FREAL);             /* row column offset */
-    prsize  = size_map[0] * sizeof (FREAL);       /* compute the patch record size */
-
-    for (l = 0; l < nlay; l++)
+    for ( l = 0 ; l < nlay ; l++ )
         { 
-          where = start + l * rsize - rcoffset;   /* starting location of a patch */
-                                                  /* in the spatial domain        */
+        where = start + l*rsize ;       /*  file-data pointer  */
+        for ( r = r0 ; r  < r1 ; r++ )
+            { 
+            if ( 0 != fseeko( filptr, where, SEEK_SET ) )
+                {
+                m3mesgc( "WRBPATCH:  single-vble fseeko() failure" ) ;
+                return( (FINT) 0 ) ;
+                }
 
-          for (r = grid_map[1]; r < grid_map[1] + size_map[1]; r++)
-              { 
-                where = where + rcoffset;
+            asize = fwrite( buffer, chsize, prsize, filptr ) ;
 
-                if ( 0 != fseeko( filptr, where, SEEK_SET ) )
-                   {
-                     m3mesgc( "WRBPATCH:  fseeko( TIMESTEP ) failure 1" ) ;
-                     return( (FINT) 0 ) ;
-                   }
+            if ( asize != prsize )
+               {
+               m3mesgc( "WRBPATCH:  single-vble fwrite() failure" ) ;
+               perror( (char *) 0 ) ;
+               return( (FINT)   0 ) ;
+               }
 
-                nsize = sizeof( char ) ;
-                asize = fwrite( lbuffer, nsize, prsize, filptr ) ;
+            buffer += prsize ;      /* advance the buffer locations */
+            where  += rowsiz ;
+            }               /*  end loop on r  */
+        }                   /*  end loop on l  */
 
-                if ( asize != prsize )
-                   {
-                     m3mesgc( "WRBPATCH:  fwrite( TIMESTEP ) failure 2" ) ;
-                     perror( (char *) 0 ) ;
-                     return( (FINT) 0 ) ;
-                   }
-
-                lbuffer = lbuffer + prsize;         /* advance the buffer location */
-
-              }
-        }
 
 #ifdef BIN3_DEBUG
     sprintf( mesg,
-             "WRBPATCH:  file  %d  where = %d  nsize = %d rsize = %d",
-             f, (int)  where, (int) nsize, (int) rsize ) ;
+             "WRBPATCH:  file  %d  where = %d  csize = %d rsize = %d",
+             f, (int)  where, (int) chsize, (int) rsize ) ;
     m3mesgc( mesg ) ;
 #endif
 
@@ -1777,90 +1803,4 @@ FINT WRBPATCH( const FINT * fid,
 
     }   /*  end "int WRBPATCH()"  */
 
-/** -------------------- WRBSMATRX() ----------------------------- **/
 
-FINT WRBSMATRX( const FINT * fid,
-                const FINT * size1,
-                const FINT * size2,
-                void       * buffer )
-
-    {
-    int         f;
-    off_t       where;
-    size_t      asize, nsize, rsize;
-    FILE      * filptr ;
-    char        mesg[ 256 ] ;
-    char      * lbuffer = buffer;
-
-    f    = *fid  - 1 ;
-
-    if ( ! fstate[ f ] )
-        {
-        m3mesgc( "WRBSMATRX:  file not yet open" ) ;
-        perror( (char *) 0 ) ;
-        return( (FINT) 0 ) ;
-        }
-
-    filptr = fstate[ f ]->fptr ;
-    if ( ! filptr )
-        {
-        m3mesgc( "WRBSMATRX:  bad FID" ) ;
-        perror( (char *) 0 ) ;
-        return( (FINT) 0 ) ;
-        }
-
-    fstate[ f ]->fmode = RW_MODE ;
-    rsize  = fstate[ f ]->vrecsiz[ 0 ] ;
-
-    where = sizeof( Bin_Hdr3 );
-
-    if ( 0 != fseeko( filptr, where, SEEK_SET ) )
-       {
-         m3mesgc( "WRBSMATRX:  fseeko( TIMESTEP ) failure 1" ) ;
-         return( (FINT) 1 ) ;
-       }
-
-    rsize = sizeof (FINT) * *size1;
-    nsize = sizeof( char ) ;
-
-    asize = fwrite( buffer, nsize, rsize, filptr ) ;
-
-    if ( asize != rsize )
-       {
-         m3mesgc( "WRBSMATRX:  fwrite( TIMESTEP ) failure 2" ) ;
-         perror( (char *) 1 ) ;
-         return( (FINT) 1 ) ;
-       }
-
-    where = where + rsize;
-
-    if ( 0 != fseeko( filptr, where, SEEK_SET ) )
-       {
-         m3mesgc( "WRBSMATRX:  fseeko( TIMESTEP ) failure 1" ) ;
-         return( (FINT) 2 ) ;
-       }
-
-    lbuffer = lbuffer + rsize;
-
-    rsize = sizeof (FINT) * *size2;
-    nsize = sizeof( char ) ;
-
-    asize = fwrite( lbuffer, nsize, rsize, filptr ) ;
-
-    if ( asize != rsize )
-       {
-         m3mesgc( "WRBSMATRX:  fwrite( TIMESTEP ) failure 2" ) ;
-         perror( (char *) 2 ) ;
-         return( (FINT) 2 ) ;
-       }
-
-#ifdef BIN3_DEBUG
-    sprintf( mesg,
-             "WRBSMATRX:  file  %d  where = %d  nsize = %d rsize = %d",
-             f, (int)  where, (int) nsize, (int) rsize ) ;
-    m3mesgc( mesg ) ;
-#endif
-
-    return( (FINT) 0 ) ;
-
-    }   /*  end "int WRBSMATRX()"  */

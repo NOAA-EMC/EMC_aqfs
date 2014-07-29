@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/m3exit.F,v 1.3 2000/11/28 21:13:41 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE M3EXIT( CALLER, JDATE, JTIME, MSGTXT, EXITSTAT )
 
 C***********************************************************************
-C  subroutine body starts at line  67
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line  76
 C
 C  FUNCTION:  Generate simple error messages for Models-3 core;
 C             terminate program execution via CALL EXIT( EXITSTAT )
@@ -19,15 +19,18 @@ C
 C  SUBROUTINES AND FUNCTIONS CALLED:  DT2STR, INIT3, SHUT3
 C
 C  REVISION  HISTORY:	
-C	prototype 5/92 by CJC
-C       Revised   8/96 to close currently-open POSIX-OK Fortran units.
-C       Modified  1/97 by CJC to trim trailing blanks from MSGTXT
-C       Modified  2/97 by CJC:  conditional definition of EXIT under AIX 
-C       Modified 10/98 by CJC:  Factor all output through m3msg2(), to
-C                      get around SGI OpenMP bug.
-C                      Caution:  messages may not be sequenced correctly
-C                      when called by multiple threads simultaneously
-C       Modified  5/99 by ALT for coupling-mode operation
+C	prototype 5/1992 by CJC
+C       Revised   8/1996 to close currently-open POSIX-OK Fortran units.
+C       Modified  1/1997 by CJC to trim trailing blanks from MSGTXT
+C       Modified  2/1997 by CJC:  conditional definition of EXIT under AIX 
+C       Modified 10/1998 by CJC:  Factor all output through m3msg2(), to
+C       get around SGI OpenMP bug.
+C       Caution:  messages may not be sequenced correctly when called by
+C       multiple threads simultaneously
+C       Modified  5/1999 by ALT for coupling-mode operation
+C       Modified  4/2004 by CJC:  factor through M3PARAG() -- fixes
+C       multi-thread sequencing problem.
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
 #ifdef   _AIX
@@ -43,21 +46,21 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   CALLER          !  name of the caller
-        INTEGER         JDATE, JTIME    !  model date&time for the error
-        CHARACTER*(*)   MSGTXT          !  error message
-        INTEGER         EXITSTAT        !  exit status for program
+        CHARACTER*(*), INTENT(IN   ) :: CALLER          !  name of the caller
+        INTEGER      , INTENT(IN   ) :: JDATE, JTIME    !  model date&time for the error
+        CHARACTER*(*), INTENT(IN   ) :: MSGTXT          !  error message
+        INTEGER      , INTENT(IN   ) :: EXITSTAT        !  exit status for program
 
                  
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        CHARACTER*24    DT2STR
-        EXTERNAL        DT2STR
+        CHARACTER*24, EXTERNAL :: DT2STR
+
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
-        CHARACTER*256   MESG
-        INTEGER         IDEV, ISTAT
+        CHARACTER*256   MESG( 6 )
+        INTEGER         LINE, IDEV, ISTAT
         LOGICAL         OFLAG
 
 
@@ -69,29 +72,35 @@ C   begin body of subroutine  M3EXIT
             CALL SETSYNCHRO3V(1)
         END IF
 #endif
-        CALL M3MSG2( ' ' )      !  guarantees initialization of logdev
+
+        LINE = 1
+        MESG( LINE ) = ' '
 
         IF ( .NOT. SHUT3() ) THEN
-            MESG = 'Could not shut down I/ O API files correctly'
-            CALL M3MSG2( MESG )
+            LINE = LINE + 1
+            MESG( LINE ) ='Could not shut down I/O API files correctly'
         END IF
 
+        LINE = LINE + 1
         IF ( EXITSTAT .NE. 0 ) THEN
-            MESG = '*** ERROR ABORT in subroutine ' // CALLER
+            MESG( LINE ) = '*** ERROR ABORT in subroutine ' // CALLER
         ELSE    !  errstat = 0:  successful completion
-            MESG = '--->>  Normal Completion of program ' // CALLER
+            MESG( LINE ) = '--->> Normal Completion of program '//CALLER
         END IF
 
-
-        CALL M3MSG2( MESG )
-        CALL M3MSG2( MSGTXT )
+        LINE = LINE + 1
+        MESG( LINE ) = MSGTXT
 
         IF ( JDATE .GT. 0  .OR.  JTIME .GT. 0 ) THEN
-            WRITE( MESG, '( A, 2X, A, 2X, A, I7, A, I6.6, A )' ) 
+        LINE = LINE + 1
+            WRITE( MESG( LINE ), '( A, 2X, A, 2X, A, I7, A, I6.6, A )' ) 
      &      'Date and time', DT2STR( JDATE, JTIME ),  
      &      '(', JDATE, ':', JTIME, ')'
-            CALL M3MSG2( MESG )
         END IF
+
+        LINE = LINE + 1
+        MESG( LINE ) = ' '
+        CALL M3PARAG( LINE, MESG )
 
         DO  IDEV = 10, 99
             INQUIRE( UNIT = IDEV, OPENED = OFLAG, IOSTAT = ISTAT )
@@ -109,5 +118,5 @@ C   begin body of subroutine  M3EXIT
 
         CALL EXIT( EXITSTAT )
 
-        END
+        END SUBROUTINE M3EXIT
 

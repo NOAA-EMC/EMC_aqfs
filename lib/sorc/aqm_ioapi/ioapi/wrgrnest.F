@@ -1,15 +1,15 @@
 
-C.........................................................................
-CC Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRGRNEST( FID, TSTAMP, STEP2, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  90
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  92
 C
 C  MACHINE DEPENDENCY:  Depends upon how much space location variables
 C             take up within BUFFER(*):  managed via parameter DBLSIZE
@@ -37,6 +37,8 @@ C
 C       Modified  5/1999 by CJC for OpenMP log-file thread-safety
 C
 C       Modified  2/2002 by CJC for OpenMP netCDF thread-safety
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -50,28 +52,26 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER       FID             !  file index within the STATE3 commons
-        INTEGER       TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER       STEP2           !  file record number (maybe mod 2)
-        REAL          BUFFER(*)       !  buffer array for input
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: TSTAMP( 2 )     !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  file record number (maybe mod 2)
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  buffer array for input
 
 
 C...........   PARAMETER and its description:
 C...........   MACHINE DEPENDENCY:
 
-        INTEGER         DBLSIZE         !  number of words needed for a REAL*8
 #if  _CRAY || REAL8
-        PARAMETER     ( DBLSIZE = 1 )
+        INTEGER, PARAMETER :: DBLSIZE = 1
 #endif
 #if  ! ( _CRAY || REAL8 )
-        PARAMETER     ( DBLSIZE = 2 )
+        INTEGER, PARAMETER :: DBLSIZE = 2
 #endif
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL       WRVARS     !  write "variables" part of timestep record
-        EXTERNAL      WRVARS
+        LOGICAL, EXTERNAL :: WRVARS
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -268,5 +268,5 @@ C...........   Error and warning message formats..... 91xxx
      &            2 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION WRGRNEST
 

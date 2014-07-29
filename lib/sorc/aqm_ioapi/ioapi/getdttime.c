@@ -3,7 +3,7 @@ VERSION "@(#)$Header$"
     EDSS/Models-3 I/O API.
 
 COPYRIGHT (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -25,9 +25,13 @@ REVISION HISTORY:
 
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications
+
+    Modified 2/2007 by CJC:  "#include <stdlib.h>" for "exit()" call
+    per Dr. Frank Binkowski
 **************************************************************************/
 
 
+#include <stdlib.h>
 #include <time.h>
 #include  "parms3.h"
 

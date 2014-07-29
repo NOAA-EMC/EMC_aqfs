@@ -1,18 +1,18 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION  XTBUF3( FID, VID, 
      &                            LAY0, LAY1, ROW0, ROW1, COL0, COL1,
      &                            JDATE, JTIME,
      &                            BUFFER )
 
 C***********************************************************************
-C  function body starts at line  82
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  83
 C
 C  FUNCTION:  reads data from Models-3 BUFFERED "file" with M3 file
 C       index FID for variable with index VID and indicated col-row-layer
@@ -38,6 +38,8 @@ C	Modified 10/1994 by CJC to work with XTRACT3() having granularity
 C	at the level of individual variables.
 C
 C       Modified 5/2002 to support types other than REAL
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -49,25 +51,23 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER       FID             !  file     id for STATE3 arrays
-        INTEGER       VID             !  variable id  "     "     "
-        INTEGER       LAY0            !  lower layer  bound
-        INTEGER       LAY1            !  upper layer  bound
-        INTEGER       ROW0            !  lower row    bound
-        INTEGER       ROW1            !  upper row    bound
-        INTEGER       COL0            !  lower column bound
-        INTEGER       COL1            !  upper column bound
-        INTEGER       JDATE           !  date, formatted YYYYDDD
-        INTEGER       JTIME           !  time, formatted HHMMSS
-        REAL          BUFFER(*)       !  input buffer array
+        INTEGER, INTENT(IN   ) :: FID             !  file     id for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: VID             !  variable id  "     "     "
+        INTEGER, INTENT(IN   ) :: LAY0            !  lower layer  bound
+        INTEGER, INTENT(IN   ) :: LAY1            !  upper layer  bound
+        INTEGER, INTENT(IN   ) :: ROW0            !  lower row    bound
+        INTEGER, INTENT(IN   ) :: ROW1            !  upper row    bound
+        INTEGER, INTENT(IN   ) :: COL0            !  lower column bound
+        INTEGER, INTENT(IN   ) :: COL1            !  upper column bound
+        INTEGER, INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        REAL   , INTENT(  OUT) :: BUFFER(*)       !  output buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER       JSTEP3     !  compute time step record numbers
-        INTEGER       BUFXTR3, BUFXTR3D, BUFXTR3I    !  from bufint3.c
-
-        EXTERNAL      JSTEP3, BUFXTR3, BUFXTR3D, BUFXTR3I
+        INTEGER, EXTERNAL :: JSTEP3     !  compute time step record numbers
+        INTEGER, EXTERNAL :: BUFXTR3, BUFXTR3D, BUFXTR3I    !  from bufint3.c
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -185,5 +185,5 @@ C   begin body of function  XTBUF3
         END IF		!  if vid > 0, or not
         
         RETURN
-        END
+        END FUNCTION  XTBUF3
 

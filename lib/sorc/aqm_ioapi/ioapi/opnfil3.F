@@ -1,16 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION  OPNFIL3 ( EQNAME, FID, FSTATUS, PGNAME )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  function body starts at line  98
 C
 C  FUNCTION: 
@@ -28,7 +26,6 @@ C  PRECONDITIONS REQUIRED:
 C       File FLIST3( FID ) already exists.
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:
-C       TRIMLEN
 C
 C  REVISION  HISTORY:
 C       prototype 9/1994 by CJC to go with new version of OPEN3()
@@ -52,6 +49,13 @@ C       revised   6/2002 by CJC:  Don't set NF_SHARE for Cray
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type
+C
+C       Modified 12/2004 by CJC:  MXVARS3 check
+C
+C       Modified 10/2009 by CJC:  flags-change for netCDF4  from 
+C       Martin Otte, US EPA -- remove NF_NOCLOBBER
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -65,18 +69,16 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   EQNAME  !  physical name of file to be opened
-        INTEGER         FID     !  index into STATE3 tables
-        INTEGER         FSTATUS !  read-only/read-write status for NCOPN()
-        CHARACTER*(*)   PGNAME  !  name of calling program
+        CHARACTER*(*), INTENT(IN   ) :: EQNAME  !  physical name of file to be opened
+        INTEGER      , INTENT(IN   ) :: FID     !  index into STATE3 tables
+        INTEGER      , INTENT(IN   ) :: FSTATUS !  read-only/read-write status for NCOPN()
+        CHARACTER*(*), INTENT(IN   ) :: PGNAME  !  name of calling program
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL         CKFILE3 !  header-consistency check
-        INTEGER         OPNBIN3 !  open native-binary-mode files
-        INTEGER         TRIMLEN !  string length (except trailing blanks)
-        EXTERNAL        CKFILE3, TRIMLEN
+        LOGICAL, EXTERNAL :: CKFILE3 !  header-consistency check
+        INTEGER, EXTERNAL :: OPNBIN3 !  open native-binary-mode files
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -90,7 +92,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         INTEGER              D( MAXVDIMS )
         LOGICAL              EFLAG
         CHARACTER*(MAXNCNAM) TNAME      !  dummy arg for NCDINQ
-        CHARACTER*256        EQ256      !  fixed-length buffer
+        CHARACTER*512        EQ512      !  fixed-length buffer
         CHARACTER*256        MESG       !  fixed-length buffer
 
 C.............................................................................
@@ -108,10 +110,10 @@ C   begin body of subroutine  OPNFIL3
             FMODE = FSTATUS
         ELSE
 #if _CRAY
-            FMODE = IOR( NF_NOCLOBBER , NF_WRITE )
+            FMODE = NF_WRITE
 #endif
 #if ! ( _CRAY )
-           FMODE = IOR( IOR( NF_SHARE, NF_NOCLOBBER ), NF_WRITE )
+           FMODE = IOR( NF_SHARE, NF_WRITE )
 #endif
         END IF
 #if ! ( _CRAY )
@@ -133,12 +135,12 @@ C...........  If BINIO3-mode file, do CRTBIN3 and return
 
 C...........  Else open the netCDF file with that EQNAME....
 
-        EQ256= EQNAME    
+        EQ512= EQNAME    
         IERR = NF_OPEN( EQNAME, FMODE, FNUM )
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
      &      'Error opening file at path-name:' )
-            CALL M3MSG2( EQ256 )
+            CALL M3MSG2( EQ512 )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCCRE() failed
@@ -162,6 +164,11 @@ C.......   NVARS:  number of variables
         IF ( IERR .NE. 0 ) THEN
             CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
      &      'Error reading netCDF file attribute NVARS' )
+            EFLAG = .TRUE.
+            GO TO 999
+        ELSE IF ( NVARS3( FID ) .GT. MXVARS3 ) THEN
+            CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &      'Max value of attribute NVARS exceeded for this build' )
             EFLAG = .TRUE.
             GO TO 999
         END IF          !  ierr nonzero:  NCAGT() failed
@@ -355,6 +362,36 @@ C.......   (in map units; see FDESC3.EXT for description)
                 CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
      &          'Error reading file attribute XCELL' )
                 EFLAG = .TRUE.
+                GO TO 999
+            END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGTYP:  vertical coordinate type
+           
+            CALL NCAGT( FNUM, NCGLOBAL, 'VGTYP', VGTYP3( FID ), IERR )
+            IF ( IERR .NE. 0 ) THEN
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGTYP.' )
+                CALL M3MSG2( MESG )
+                GO TO 999
+            END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGTOP:  vertical  coordinate sigma-top
+
+            CALL NCAGT( FNUM, NCGLOBAL, 'VGTOP', VGTOP3( FID ), IERR )
+            IF ( IERR .NE. 0 ) THEN
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGTOP.' )
+                CALL M3MSG2( MESG )
+                GO TO 999
+            END IF          !  ierr nonzero:  NCAGT() failed
+
+C.......   VGLVS:  vertical coordinate values
+
+            CALL NCAGT( FNUM, NCGLOBAL, 'VGLVLS', VGLVS3(1,FID), IERR )
+            IF ( IERR .NE. 0 ) THEN
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, 
+     &                'Error reading file attribute VGLVS.' )
+                CALL M3MSG2( MESG )
                 GO TO 999
             END IF          !  ierr nonzero:  NCAGT() failed
 
@@ -664,7 +701,7 @@ C.......   Variables-list for the file:
             END IF          !  ierr nonzero:  NCAGT() failed
         END IF              !  if nvars > 0
 
-        DO 100  VAR = 1 , NVARS3( FID )
+        DO  VAR = 1 , NVARS3( FID )
 
             VINDX3( VAR,FID ) = NCVID( FNUM, VLIST3( VAR,FID ), IERR )
             IF ( IERR .NE. 0 ) THEN
@@ -686,7 +723,17 @@ C.......   Variables-list for the file:
                 GO TO 999
             END IF          !  ierr nonzero:  NCAGT() failed
 
-100     CONTINUE
+            CALL NCAGTC( FNUM, VINDX3( VAR,FID ), 'units',
+     &                   UNITS3( VAR,FID ), NAMLEN3, IERR )
+            IF ( IERR .NE. 0 ) THEN
+                MESG = 'Error reading units for  variable '
+     &          // VLIST3( VAR,FID )
+                CALL M3ABORT( FLIST3( FID ), FNUM, IERR, MESG )
+                EFLAG = .TRUE.
+                GO TO 999
+            END IF          !  ierr nonzero:  NCAGT() failed
+
+        END DO          !  end loop on variables
 
 
 C.......   If opened for WRITE:  put attribute HISTORY:  update description
@@ -758,5 +805,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91010   FORMAT ( A , : I5 )
 
-        END
+        END FUNCTION  OPNFIL3
 

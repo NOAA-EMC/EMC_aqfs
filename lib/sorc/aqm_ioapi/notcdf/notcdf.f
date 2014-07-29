@@ -29,10 +29,8 @@ C.........................................................................
         LOGICAL FUNCTION NCF_STAT()
         IMPLICIT NONE
         LOGICAL  ENVYN
-        EXTERNAL ENVYN
         INTEGER  INITLOG3
-C        EXTERNAL ENVYN, INITLOG3
-        EXTERNAL INITLOG3
+        EXTERNAL ENVYN, INITLOG3
         LOGICAL  FIRSTIME, STATUS
         SAVE     FIRSTIME, STATUS
         DATA     FIRSTIME, STATUS / 2 * .TRUE. /
@@ -45,7 +43,8 @@ C        EXTERNAL ENVYN, INITLOG3
      &          .TRUE., IOS )
             IF ( IOS .GT. 0 ) THEN
                 CALL M3EXIT( 'NOTCDF', 0, 0,
-     &                 'Badly formatted env vble "NOTCDF_FATAL"', 2 )
+     &          'Badly formatted environment variable "NOTCDF_FATAL"',
+     &          2 )
             END IF
             FIRSTIME = .FALSE.
         END IF
@@ -58,7 +57,7 @@ C        EXTERNAL ENVYN, INITLOG3
         LOGICAL  NCF_STAT
         EXTERNAL NCF_STAT
         CALL M3ERR( 'NF_INQ_LIBVERS',0,0, 
-     &              'notCDF call to NF_INQ_LIBVERS', NCF_STAT() )
+     &              'notCDF call to NF_INQ_LIBVERS', .FALSE. )
         NF_INQ_LIBVERS = 'notCDF version 1.0'
         RETURN
         END
@@ -77,7 +76,7 @@ C        EXTERNAL ENVYN, INITLOG3
 
         INTEGER FUNCTION  NF_CREATE (PATH, CMODE, NCID)
         IMPLICIT NONE
-        CHARACTER(*)  PATH
+        CHARACTER*(*) PATH
         INTEGER       CMODE
         INTEGER       NCID
         LOGICAL       NCF_STAT
@@ -90,7 +89,7 @@ C        EXTERNAL ENVYN, INITLOG3
 
         INTEGER FUNCTION  NF_OPEN(PATH, MODE, NCID)
         IMPLICIT NONE
-        CHARACTER(*)  PATH
+        CHARACTER*(*) PATH
         INTEGER       MODE
         INTEGER       NCID
         LOGICAL       NCF_STAT
@@ -224,7 +223,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_DEF_DIM(NCID, NAME, ILEN, DIMID)
         IMPLICIT NONE
         INTEGER       NCID, ILEN, DIMID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_DEF_DIM',0,0, 
@@ -236,7 +235,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_INQ_DIMID(NCID, NAME, DIMID)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       DIMID
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -249,7 +248,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_INQ_DIM(NCID, DIMID, NAME, DLEN)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       DIMID
         INTEGER       DLEN
         LOGICAL       NCF_STAT
@@ -263,7 +262,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_INQ_DIMNAME(NCID, DIMID, NAME)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       DIMID
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -289,7 +288,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_RENAME_DIM(NCID, DIMID, NAME)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       DIMID
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -300,10 +299,10 @@ C        EXTERNAL ENVYN, INITLOG3
         END
 
         INTEGER FUNCTION  NF_DEF_VAR(NCID, NAME, XTYPE,
-     &                               NDIMS, DIMID, VARID)
+     &                               NDIMS, DIMID,  VARID)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE
         INTEGER       NDIMS
         INTEGER       DIMID
@@ -317,11 +316,10 @@ C        EXTERNAL ENVYN, INITLOG3
         END
 
         INTEGER FUNCTION  NF_INQ_VAR(NCID, VARID, NAME, XTYPE,
-     &                               NDIMS, DIMID, NATTS)
+     &                               NDIMS,  DIMID, NATTS)
         IMPLICIT NONE
-        INTEGER       NCID
-        INTEGER       VARID
-        CHARACTER(*)  NAME
+        INTEGER       NCID, VARID
+        CHARACTER*(*) NAME
         INTEGER       XTYPE
         INTEGER       NDIMS
         INTEGER       DIMID
@@ -337,7 +335,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_INQ_VARID(NCID, NAME, VARID)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       VARID
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -350,7 +348,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER FUNCTION  NF_INQ_VARNAME(NCID, VARID, NAME)
         IMPLICIT NONE
         INTEGER       NCID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       VARID
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -416,7 +414,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_RENAME_VAR',0,0, 
@@ -429,7 +427,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  TEXT
+        CHARACTER*(*) TEXT
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_VAR_TEXT',0,0, 
@@ -442,7 +440,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  TEXT
+        CHARACTER*(*) TEXT
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_VAR_TEXT',0,0, 
@@ -586,7 +584,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       INDEX
-        CHARACTER(*)  TEXT
+        CHARACTER*(*) TEXT
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_VAR1_TEXT',0,0, 
@@ -600,7 +598,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       INDEX
-        CHARACTER(*)  TEXT
+        CHARACTER*(*) TEXT
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_VAR1_TEXT',0,0, 
@@ -755,7 +753,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       START, COUNT
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_VARA_TEXT',0,0, 
@@ -770,7 +768,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       START, COUNT
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_VARA_TEXT',0,0, 
@@ -935,7 +933,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       START(*), COUNT(*), STRIDE
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_VARS_TEXT',0,0, 
@@ -950,7 +948,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       START(*), COUNT(*), STRIDE
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_VARS_TEXT',0,0, 
@@ -1116,7 +1114,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       VARID
         INTEGER       START(*), COUNT(*), STRIDE
         INTEGER       IMAP(*)
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_VARM_TEXT',0,0, 
@@ -1132,7 +1130,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       VARID
         INTEGER       START(*), COUNT(*), STRIDE
         INTEGER       IMAP(*)
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_VARM_TEXT',0,0, 
@@ -1305,7 +1303,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE
         INTEGER       ILEN
         LOGICAL       NCF_STAT
@@ -1320,7 +1318,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       ATTNUM
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1334,7 +1332,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1348,7 +1346,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       ILEN
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1363,7 +1361,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCID
         INTEGER       VARID
         INTEGER       ATTNUM
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_INQ_ATTNAME',0,0, 
@@ -1377,7 +1375,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID_IN,  NCID_OUT
         INTEGER       VARID_IN, VARID_OUT
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_COPY_ATT',0,0, 
@@ -1390,7 +1388,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  CURNAME, NEWNAME
+        CHARACTER*(*) CURNAME, NEWNAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_RENAME_ATT',0,0, 
@@ -1403,7 +1401,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_DEL_ATT',0,0, 
@@ -1416,9 +1414,9 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       ILEN
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_PUT_ATT_TEXT',0,0, 
@@ -1431,8 +1429,8 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
-        CHARACTER(*)  TEXT(*)
+        CHARACTER*(*) NAME
+        CHARACTER*(*) TEXT(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
         CALL M3ERR( 'NF_GET_ATT_TEXT',0,0, 
@@ -1446,7 +1444,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE, ILEN
         INTEGER*1     I1VALS(*)
         LOGICAL       NCF_STAT
@@ -1461,7 +1459,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER*1     I1VALS(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1476,7 +1474,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE, ILEN
         INTEGER*2     I2VALS(*)
         LOGICAL       NCF_STAT
@@ -1491,7 +1489,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER*2     I2VALS(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1506,7 +1504,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE, ILEN
         INTEGER       IVALS(*)
         LOGICAL       NCF_STAT
@@ -1521,7 +1519,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       IVALS(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1536,7 +1534,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE, ILEN
         REAL          RVALS(*)
         LOGICAL       NCF_STAT
@@ -1551,7 +1549,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         REAL          RVALS(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1566,7 +1564,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         INTEGER       XTYPE, ILEN
         DOUBLEPRECISION DVALS(*)
         LOGICAL       NCF_STAT
@@ -1581,7 +1579,7 @@ C        EXTERNAL ENVYN, INITLOG3
         IMPLICIT NONE
         INTEGER       NCID
         INTEGER       VARID
-        CHARACTER(*)  NAME
+        CHARACTER*(*) NAME
         DOUBLEPRECISION DVALS(*)
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1593,7 +1591,7 @@ C        EXTERNAL ENVYN, INITLOG3
 
         INTEGER FUNCTION NCCRE(FNAME, CMODE, RCODE)
         IMPLICIT NONE
-        CHARACTER(*)  FNAME
+        CHARACTER*(*) FNAME
         INTEGER       CMODE, RCODE
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -1605,7 +1603,7 @@ C        EXTERNAL ENVYN, INITLOG3
 
         INTEGER FUNCTION NCOPN(FNAME, RWMODE, RCODE)
         IMPLICIT NONE
-        CHARACTER(*)  FNAME
+        CHARACTER*(*) FNAME
         INTEGER       RWMODE, RCODE
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
@@ -2042,7 +2040,7 @@ C        EXTERNAL ENVYN, INITLOG3
         INTEGER       NCOPTS
         LOGICAL       NCF_STAT
         EXTERNAL      NCF_STAT
-        CALL M3ERR( 'NCPOPT',0,0,'notCDF call to NCPOPT', NCF_STAT() )
+        CALL M3ERR( 'NCPOPT',0,0,'notCDF call to NCPOPT', .FALSE. )
         RETURN
         END
 

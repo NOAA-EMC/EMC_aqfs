@@ -1,28 +1,27 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/cbarnesN.F,v 1.3 2000/11/28 21:13:35 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Portions copyright (C) 1992-1997 MCNC
-C See file "COPYRIGHT.txt" for conditions of use.
-C.........................................................................
-
-C 
-
       SUBROUTINE CBARNESN( NG, LAT, LON,
      &                     NP, NV, YLAT, XLON, Z, WL50, GRID )
 
 C***********************************************************************
-C    subroutine body starts at line  149
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C    subroutine body starts at line  123
 C
 C  FUNCTION:
 C
-C    This routine grids multiple variables (or layers) Z( NP,1...NV ) 
-C    at a time from locations with lat-lon coordinates 
-C    ( YLAT(1...NP), XLON(1...NP) ) and produces output array 
+C    This routine grids multiple variables (or layers) Z( NP,1...NV )
+C    at a time from locations with lat-lon coordinates
+C    ( YLAT(1...NP), XLON(1...NP) ) and produces output array
 C    GRID( NG,NV ) on the locations ( LAT(1...NG), LON(1...NG) ).
 C    For gridding purposes, NG should be NCOLS*NROWS; CBARNESN will
 C    regard the corresponding array as singly-indexed.
 C
-C    This routine grids multiple variables (or layers) from 
+C    This routine grids multiple variables (or layers) from
 C    source data located at latitudes and longitudes YLAT,XLON.
 C    to the locations specified by LAT,LON)
 C
@@ -53,11 +52,12 @@ C           data locations in a single corrective iteration, rather than
 C           multiple biquadratic back-interpolation from the predicted grid.
 C   ?????   Modified by ?Steve Fudge? for UAM BEIS
 C   CBARNESN():
-C   12/95   Modified by CJC to fit EDSS/Models-3 conventions from 
+C   12/95   Modified by CJC to fit EDSS/Models-3 conventions from
 C           the UAM BEIS CGRID1().  Uses "exact" spherical-geometry
 C           distance formula.
 C   08/2000 Bug-fix by CJC in SAVED-variables list
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
         IMPLICIT NONE
@@ -66,39 +66,26 @@ C***********************************************************************
 
 C.......   ARGUMENTS:
 
-        INTEGER    NG               !  Number of output values (=NCOLS*NROWS)
-        REAL       LAT( NG )        !  single-indexed output latitudes
-        REAL       LON( NG )        !  single-indexed output longitudes
-        INTEGER    NP               !  number of input sources
-        INTEGER    NV               !  number of input variables
-        REAL       YLAT( NP )       !  input latitudes
-        REAL       XLON( NP )       !  input longitudes
-        REAL       Z   ( NP, NV )   !  input values
-        REAL       WL50             !  50 Percent filtered wavelength  (KM)
-        REAL       GRID( NG, NV )   !  output values
-
-
-C...........   EXTERNAL FUNCTIONS:
-
-#ifdef _CRAY
-#define AUTO_ARRAYS 1
-#endif
-
-#if ! AUTO_ARRAYS
-        INTEGER         MALLOC
-#endif
+        INTEGER, INTENT(IN   ) ::    NG               !  Number of output values (=NCOLS*NROWS)
+        REAL   , INTENT(IN   ) ::    LAT( NG )        !  single-indexed output latitudes
+        REAL   , INTENT(IN   ) ::    LON( NG )        !  single-indexed output longitudes
+        INTEGER, INTENT(IN   ) ::    NP               !  number of input sources
+        INTEGER, INTENT(IN   ) ::    NV               !  number of input variables
+        REAL   , INTENT(IN   ) ::    YLAT( NP )       !  input latitudes
+        REAL   , INTENT(IN   ) ::    XLON( NP )       !  input longitudes
+        REAL   , INTENT(IN   ) ::    Z   ( NP, NV )   !  input values
+        REAL   , INTENT(IN   ) ::    WL50             !  50 Percent filtered wavelength  (KM)
+        REAL   , INTENT(  OUT) ::    GRID( NG, NV )   !  output values
 
 
 C...........   PARAMETERS:
 
-        REAL       G, GINV, R0LN50, ALOG10, R2DSQ, AC
-
-      PARAMETER   ( G      =  0.4          ,
-     &              GINV   =  2.5          ,
-     &              R0LN50 =  2.1058923    ,
-     &              ALOG10 =  2.3025850929 ,
-     &              R2DSQ  =  RPI180 * RPI180 ,
-     &              AC     =  30.0 * ALOG10 / D2KMSQ )
+        REAL, PARAMETER :: G      =  0.4
+        REAL, PARAMETER :: GINV   =  2.5
+        REAL, PARAMETER :: R0LN50 =  2.1058923
+        REAL, PARAMETER :: ALOG10 =  2.3025850929
+        REAL, PARAMETER :: R2DSQ  =  RPI180 * RPI180
+        REAL, PARAMETER :: AC     =  30.0 * ALOG10 / D2KMSQ
 
 
 C...........   LOCAL VARIABLES:
@@ -110,7 +97,6 @@ C...........   LOCAL VARIABLES:
         REAL       WTOT1, WTOT2  !  sum of weights
         REAL       FTOT1( NV )   !  accumulator for values
         REAL       FTOT2( NV )   !  accumulator for corrections
-        REAL       DELX          !  lon difference
         REAL       DSQ           !  DELX**2  +  DELY**2
         REAL       XA, YA        !  LON, LAT of current station
         REAL       XB, YB        !  LON, LAT of current station
@@ -120,58 +106,17 @@ C...........   LOCAL VARIABLES:
 
 C...........   STATE VARIABLES:
 
-        REAL       WL501
-        DATA       WL501  /  -1.0  /  !  last value of WL50
-
-        REAL       C4K           !  Gauss constant for first pass
-        REAL       GC4K          !  Gauss constant for second pass
-        REAL       RMAXA         !  maximum scanning radii, for first
-        REAL       RMAXB         !  and second passes
-        REAL       ANUMA         !  numerator, beyond scanning radius,
-        REAL       ANUMB         !  for first and second passes
-
-        SAVE       WL501, C4K, RMAXA, ANUMA, GC4K, RMAXB, ANUMB
-
-#if ! AUTO_ARRAYS
-        INTEGER         SIZE, LSIZE
-        POINTER         ( P, DZ )
-        POINTER         ( P1, FTOT1 )
-        POINTER         ( P2, FTOT2 )
- 
-        DATA            LSIZE  /  -1          /  !  last value of N
-        SAVE            P, P1, P2, LSIZE
-#endif
+        REAL, SAVE :: WL501 = -1.0  !  last value of WL50
+        REAL, SAVE :: C4K           !  Gauss constant for first pass
+        REAL, SAVE :: GC4K          !  Gauss constant for second pass
+        REAL, SAVE :: RMAXA         !  maximum scanning radii, for first
+        REAL, SAVE :: RMAXB         !  and second passes
+        REAL, SAVE :: ANUMA         !  numerator, beyond scanning radius,
+        REAL, SAVE :: ANUMB         !  for first and second passes
 
 
 C..................................................................
 C.......   begin body of  CBARNESN:
-
-#if ! AUTO_ARRAYS
-        SIZE = NP * NV
-        IF ( SIZE .GT. LSIZE ) THEN
-
-            IF ( LSIZE .GT. 0 )  THEN
-                CALL FREE( P )
-                CALL FREE( P1 )
-                CALL FREE( P2 )
-            END IF
-
-            P = MALLOC( 8 * SIZE )
-            IF ( P .EQ. 0 )
-     &           CALL M3EXIT( 'TSHIFT', 0, 0,
-     &                        'Memory allocation error for P', 2 )
-            P1 = MALLOC( 8 * NV )
-            IF ( P1 .EQ. 0 )
-     &           CALL M3EXIT( 'TSHIFT', 0, 0,
-     &                        'Memory allocation error for P1', 2 )
-            P2 = MALLOC( 8 * NV )
-            IF ( P2 .EQ. 0 )
-     &           CALL M3EXIT( 'TSHIFT', 0, 0,
-     &                        'Memory allocation error for P2', 2 )
-            LSIZE = SIZE
-
-        END IF		!  if size increased
-#endif
 
 C...........   Calculate the scaling filter parameter
 
@@ -201,20 +146,16 @@ C.......   estimated error  DZ  at that point:
               FTOT1( I ) = 0.0
 111       CONTINUE              !  end loop on variables I
 
-          XA    =  PI180 * XLON( N )
-          YA    =  PI180 * YLAT( N )
-          CY    =  COS( YA )                
-          SY    =  SIN( YA )
+          XA    =  XLON( N )
+          YA    =  YLAT( N )
+          CY    =  COS( PI180 * YA )  **2
           WTOT1 =  0.0
 
           DO  133  M = 1 , NP
 
-              XB = PI180 * XLON( M )
-              YB = PI180 * YLAT( M )
-              DELX  =  XB  -  XA
-              DSQ   =  R2DSQ * 
-     &                 ACOS( COS( DELX ) * CY * COS( YB ) +
-     &                                     SY * SIN( YB ) )**2
+              XB = XLON( M ) - XA
+              YB = YLAT( M ) - YA
+              DSQ   =  R2DSQ * ( YB**2 + CY * XB**2 )
 
               IF ( DSQ .LE. RMAXA )  THEN
                   W1     =  EXP ( DSQ * C4K )
@@ -222,7 +163,7 @@ C.......   estimated error  DZ  at that point:
                   W1     =  ANUMA / DSQ
               END IF
               WTOT1  =  WTOT1  +  W1
-              
+
               DO  122  I = 1, NV
                   FTOT1( I )  =  FTOT1( I )  +  W1 * Z ( M,I )
 122           CONTINUE              !  end loop on variables I
@@ -258,20 +199,17 @@ C.......   set of weights
           XG   =  PI180 * LON( J )    !  LON of grid nodes at index J
           CY   =  COS( YG )
           SY   =  SIN( YG )
-           
+
 C.......   Scan each input data point
-      
+
           WTOT1 = 0.0
           WTOT2 = 0.0
 
           DO  233  N = 1, NP
-           
-              XA    =  PI180 * XLON( N )
-              YA    =  PI180 * YLAT( N )
-              DELX  =  XA  -  XG
-              DSQ   =  R2DSQ * 
-     &                 ACOS( COS( DELX ) * CY * COS( YA ) +
-     &                                     SY * SIN( YA ) )**2
+
+              XA    =  XLON( N ) - XG
+              YA    =  YLAT( N ) - YG
+              DSQ   =  R2DSQ * ( YA**2 + CY*XA**2 )
 
               IF ( DSQ .LE. RMAXB )  THEN
                   W1  =  EXP ( DSQ * C4K )
@@ -316,7 +254,7 @@ C*************************  MESSAGE  FORMATS  **************************
 C.......   Internal buffering formats     94xxx
 
 
-94010 FORMAT ( 'Weights total zero at site', I5, 2X, 
+94010 FORMAT ( 'Weights total zero at site', I5, 2X,
      &         'at lat-lon', F7.2, ':', F7.2, 2X,
      &         'input count=', I6 )
 
@@ -324,4 +262,4 @@ C.......   Internal buffering formats     94xxx
      &         'input count=', I9 )
 
 
-      END
+      END SUBROUTINE CBARNESN

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRBUF3( FID, VID, JDATE, JTIME, STEP, BUFFER )
 
 C***********************************************************************
-C  function body starts at line  77
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  81
 C
 C  FUNCTION:  writes all the data from BUFFER() for timestep JDATE:JTIME
 C             (formatted YYYYDDD and HHMMSS) to the Models-3 BUFFERED
@@ -33,6 +33,13 @@ C       modified 10/1994 by CJC to permit WRITE3-granularity at the level
 C       of individual variables.
 C
 C       Modified 5/2002 to support types other than REAL
+C
+C       Modified 9/2004 by CJC for I/O API v3 TSTEP/buffer management
+C       unification
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
+C
+C       Bug-fix 04/2011 vy CJC:  argument-list fix for BUFPUT3()
 C***********************************************************************
 
       IMPLICIT NONE
@@ -45,25 +52,24 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file-subscript for STATE3 arrays
-        INTEGER         VID             !  vble-subscript for STATE3 arrays
-        INTEGER         JDATE           !  date, formatted YYYYDDD
-        INTEGER         JTIME           !  time, formatted HHMMSS
-        INTEGER         STEP            !  time step record number
-        REAL            BUFFER(*)       !  output buffer array
+        INTEGER, INTENT(IN   ) :: FID             !  file-subscript for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: VID             !  vble-subscript for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        INTEGER, INTENT(IN   ) :: STEP            !  time step record number
+        REAL   , INTENT(IN   ) :: BUFFER(*)       !  output buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         BUFPUT3, BUFPUT3D, BUFPUT3I
-        EXTERNAL        BUFPUT3, BUFPUT3D, BUFPUT3I
+        INTEGER, EXTERNAL :: BUFPUT3, BUFPUT3D, BUFPUT3I
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
         INTEGER         V       !  loop counter (over variables)
         INTEGER         IDUM    !  scratch variable
-        INTEGER         SIZE, I
+        INTEGER         SIZE, I, TSTEP
         INTEGER         JSTEP
         INTEGER         ADATE, ATIME
         INTEGER         ZDATE, ZTIME
@@ -74,7 +80,8 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 C***********************************************************************
 C   begin body of function  WRBUF3
 
-        SIZE = BSIZE3( FID ) * NLAYS3( FID )
+        SIZE  = BSIZE3( FID ) * NLAYS3( FID )
+        TSTEP = TSTEP3( FID )
 
         JSTEP = ABS( TSTEP3( FID ) )
         IF ( JSTEP .GT. 0 ) THEN
@@ -144,7 +151,7 @@ C   begin body of function  WRBUF3
                 LTIME3( VID,FID ) = JTIME
 
             ELSE IF ( NDATE3( VID,FID ) .EQ. IMISS3 ) THEN  ! second call, 
-                                                          ! time dependent case
+                                                            ! time dependent case
 
                 IF  ( LDATE3( VID,FID ) .EQ. ADATE  .AND.
      &                LTIME3( VID,FID ) .EQ. ATIME ) THEN  ! step forward
@@ -186,14 +193,17 @@ C   begin body of function  WRBUF3
             END IF
 
             IF ( VTYPE3( VID,FID ) .EQ. M3REAL ) THEN
-                WRBUF3 = ( 0 .NE. BUFPUT3 ( FID, VID, 
-     &                                      SIZE, IDUM, BUFFER ) ) 
+                WRBUF3 = ( 0 .NE. BUFPUT3 ( FID, VID,
+     &                                      SIZE, IDUM, TSTEP,
+     &                                      BUFFER ) ) 
             ELSE IF ( VTYPE3( VID,FID ) .EQ. M3INT ) THEN
-                WRBUF3 = ( 0 .NE. BUFPUT3I( FID, VID, 
-     &                                      SIZE, IDUM, BUFFER ) )
+                WRBUF3 = ( 0 .NE. BUFPUT3I( FID, VID,
+     &                                      SIZE, IDUM, TSTEP,
+     &                                      BUFFER ) )
             ELSE IF ( VTYPE3( VID,FID ) .EQ. M3DBLE ) THEN
-                WRBUF3 = ( 0 .NE. BUFPUT3D( FID, VID, 
-     &                                      SIZE, IDUM, BUFFER ) )
+                WRBUF3 = ( 0 .NE. BUFPUT3D( FID, VID,
+     &                                      SIZE, IDUM, TSTEP,
+     &                                      BUFFER ) )
             END IF
 
         ELSE    !  "all-variables" write request
@@ -307,7 +317,7 @@ C   begin body of function  WRBUF3
                 END IF!  if "advance 1", "retreat 1", or not "last" or "next"
 
                 WFLAG = ( 0 .NE. BUFPUT3( FID, V, SIZE, IDUM, 
-     &                                    BUFFER( I ) ) )
+     &                                    TSTEP3( FID ), BUFFER( I ) ) )
 
                 I = I + SIZE    !  set up for next variable's slice of buffer()
 
@@ -339,5 +349,5 @@ C...........   Internal buffering formats..... 93xxx
 
 93020   FORMAT ( A, :, I9, ':', I6.6, :, A, :, 2X, I6.6 )
 
-        END
+        END FUNCTION WRBUF3
 

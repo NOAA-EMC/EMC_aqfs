@@ -1,5 +1,5 @@
 #envir    =prod
-#model_ver=v4.6.0
+#model_ver=v4.6.3
 #EMC
 #usrdir   =/naqfc/save/${USER}
 
@@ -28,6 +28,6 @@ FC     = ifort
 FLAGS  = -I$(INC) 
 
 $(CMD): $(SRCS)
-	$(FC) -o $(@) $(FLAGS) $(SRCS) $(LIBS) 
+	$(FC) -o ../../exec/$(@) $(FLAGS) $(SRCS) $(LIBS) 
 clean :
-	rm -rf $(CMD)
+	rm -rf ../../exec/$(CMD)

@@ -1,18 +1,16 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       LOGICAL FUNCTION FILCHK3( FNAME, 
      &                          FTYPE, NCOLS, NROWS, NLAYS, NTHIK ) 
 
 C***********************************************************************
-C  function body starts at line  77
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  76
 C
 C  FUNCTION:
 C       Checks to see whether file FNAME has the indicated type FTYPE
@@ -34,6 +32,7 @@ C
 C       Modified 12/2003 by CJC for I/O API version 3:  uses new
 C       INTEGER NAME2FID for file-lookup
 C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -57,10 +56,10 @@ C...........   ARGUMENTS and their descriptions:
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         INDEX1     !  look up names in name tables
-        INTEGER         NAME2FID   !  fname~~> fid lookup
-        EXTERNAL        INDEX1, NAME2FID
-        EXTERNAL        INITBLK3   !  block data: initialize I/O state
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: NAME2FID   !  fname~~> fid lookup
+
+        EXTERNAL :: INITBLK3            !  block data: initialize I/O state
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -448,5 +447,5 @@ C...........   Error and warning message formats..... 91xxx
 
 91010   FORMAT ( 3 ( A , :, I5, :, 2X ) )
 
-        END
+        END FUNCTION FILCHK3
 

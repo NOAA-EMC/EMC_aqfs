@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/crdict3.f,v 1.2 2000/11/28 21:22:34 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION CRDICT3( FID )
 
 C***********************************************************************
-C  function body starts at line  64
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  66
 C
 C  FUNCTION:  Perform "Models-3 variables" part of netCDF file creation
 C             for CREATE3 for the dictionary file with index FID.
@@ -22,8 +22,10 @@ C             for all file types.
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:  INDEX1
 C
-C  REVISION  HISTORY:  prototype 3/92 by CJC
+C  REVISION  HISTORY:
+C       prototype 3/92 by CJC
 C
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -37,7 +39,7 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER  	FID		!  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: FID		!  file index within the STATE3 commons
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -543,5 +545,5 @@ C...........   Error and warning message formats..... 91xxx
      &            3 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION CRDICT3
 

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/poly.f,v 1.2 2000/11/28 21:23:00 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       REAL    FUNCTION  POLY (XPT, XPTS, YPTS, NDEG)
 
 C***********************************************************************
-C  function body starts at line  63
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  64
 C
 C  FUNCTION:
 C        Performs arbitrary-degree polynomial interpolation for XPT on
@@ -23,6 +23,7 @@ C    11/88   Modified for ROMNET
 C    ??/90   Modified for ROM 2.2 by CJC:  scalar coefficient arithmetic --
 C            no restrictions on NDEG
 C    4/91    Modified by CJC:  optimized initialization
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C
 C  ARGUMENT LIST DESCRIPTION:
 C
@@ -41,10 +42,10 @@ C***********************************************************************
 
 C...........   ARGUMENTS:
 
-        INTEGER         NDEG
-        REAL            XPT
-        REAL            XPTS ( NDEG + 1 )
-        REAL            YPTS ( NDEG + 1 )
+        INTEGER, INTENT(IN   ) :: NDEG
+        REAL   , INTENT(IN   ) :: XPT
+        REAL   , INTENT(IN   ) :: XPTS ( NDEG + 1 )
+        REAL   , INTENT(IN   ) :: YPTS ( NDEG + 1 )
 
 
 C...........   LOCAL VARIABLES:
@@ -116,5 +117,5 @@ C...........   Compute interpolated value
 
 
         RETURN
-        END
+        END FUNCTION POLY
 

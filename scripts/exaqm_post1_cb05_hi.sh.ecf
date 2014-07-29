@@ -194,19 +194,19 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
    do
        echo 0 > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export XLFUNIT_11=aqm.t${cyc}z.grib2_HIpmwrf.196
-       export XLFUNIT_12="filesize"
-       export XLFUNIT_31=
-       export XLFUNIT_51=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.temp
+       export FORT11=aqm.t${cyc}z.grib2_HIpmwrf.196
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.temp
        $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.196
 #       export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export XLFUNIT_11=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.temp
-       export XLFUNIT_12="filesize"
-       export XLFUNIT_31=
-       export XLFUNIT_51=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.196
+       export FORT11=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.temp
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awpHIpmwrf_aqm_${hr}.196
        $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.196
 #       export err=$?;err_chk
 

@@ -1,19 +1,20 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/cktflag3.f,v 1.2 2000/11/28 21:22:33 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
       LOGICAL FUNCTION CKTFLAG3( FID, VID, 
      &                           JDATE, JTIME, TSTEP, NSTEPS,
      &                           JSTEP, DELTA )
 
 C***********************************************************************
-C  function body starts at line  80
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
+C (C) 2003-2010 Baron Advanced Meteorological Systems
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  79
 C
-C  FUNCTION:  reads and checks time step flags for file # FID and 
+C  FUNCTION:
+C       reads and checks time step flags for file # FID and 
 C	variable VID for the time series starting at date and time 
 C	JDATE (coded YYYYDDD) and time JTIME (HHMMSS), and time interval
 C	TSTEP (HHMMSS).
@@ -25,9 +26,9 @@ C
 C  PRECONDITIONS REQUIRED:  (FID,VID) valid.
 C
 C  REVISION  HISTORY:  
-C       prototype 5/96 by CJC
-C       revised   6/99 by CJC:  OpenMP thread-safety
-C
+C       prototype 5/1996 by CJC
+C       revised   6/1999 by CJC:  OpenMP thread-safety
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -41,21 +42,20 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file subscript  for STATE3 arrays
-        INTEGER         VID             !  vble subscripts for STATE3 arrays
-        INTEGER         JDATE           !  date, formatted YYYYDDD
-        INTEGER         JTIME           !  time, formatted HHMMSS
-        INTEGER         TSTEP           !  time step
-        INTEGER         NSTEPS          !  number of steps
-        INTEGER         JSTEP           !  starting step number
-        INTEGER         DELTA           !  time-step increment
+        INTEGER, INTENT(IN   ) :: FID             !  file subscript  for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: VID             !  vble subscripts for STATE3 arrays
+        INTEGER, INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER, INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        INTEGER, INTENT(IN   ) :: TSTEP           !  time step
+        INTEGER, INTENT(IN   ) :: NSTEPS          !  number of steps
+        INTEGER, INTENT(  OUT) :: JSTEP           !  starting step number
+        INTEGER, INTENT(  OUT) :: DELTA           !  time-step increment
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         JSTEP3          !  compute time step record numbers
-        INTEGER         TIME2SEC        !  HHMMSS ~~> seconds
-        EXTERNAL        JSTEP3, TIME2SEC
+        INTEGER, EXTERNAL :: JSTEP3          !  compute time step record numbers
+        INTEGER, EXTERNAL :: TIME2SEC        !  HHMMSS ~~> seconds
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -320,5 +320,5 @@ C...........   Error and warning message formats..... 91xxx
      &            /5X , A ,
      &            /5X , A , I9, // )
 
-        END
+        END FUNCTION CKTFLAG3
 

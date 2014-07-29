@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         REAL*8 FUNCTION STR2DBLE( STRING )
 
 C***********************************************************************
-C  function body starts at line  62
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  57
 C
 C  RETURNS:
 C       REAL value decoded from STRING, or BADVAL3 for "missing",
@@ -22,8 +22,9 @@ C  SUBROUTINES AND FUNCTIONS CALLED:
 C       M3ERR()
 C
 C  REVISION  HISTORY:
-C       Adampted 4/2003 by CJC from STR2DBLE()
-C
+C       Adapted 4/2003 by CJC from STR2REAL()
+C       Bug-fix 5/2009 from B.H. Baek, UNC-CH:  VAL should be REAL*8
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -33,25 +34,18 @@ C...........   INCLUDES:
         INCLUDE 'PARMS3.EXT'
 
 
-C...........   EXTERNAL functions
-
-        INTEGER         TRIMLEN
-        EXTERNAL        TRIMLEN
-
-
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   STRING
+        CHARACTER*(*), INTENT(IN   ) :: STRING
 
 
 C...........   PARAMETERS
             
-        CHARACTER*1     BLANK
-        PARAMETER     ( BLANK = ' ' )
+        CHARACTER*1, PARAMETER :: BLANK = ' '
         
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
-        REAL		VAL
+        REAL*8          VAL
         INTEGER         I, L, N, P, IOS
         CHARACTER*8     FMT
         CHARACTER*80    MSG
@@ -60,7 +54,7 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 C***********************************************************************
 C   begin body of function  STR2DBLE
 
-        L = TRIMLEN( STRING )
+        L = LEN_TRIM( STRING )
             
         DO  11  I = 1, L        !  skip leading whitespace
             IF ( STRING( I:I ) .GT. BLANK ) GO TO 12
@@ -96,5 +90,5 @@ C.......   If you get to here:  no number there
 
 94010   FORMAT( '(G', I2.2, '.', I2.2, ')' )
 
-        END
+        END FUNCTION STR2DBLE
 

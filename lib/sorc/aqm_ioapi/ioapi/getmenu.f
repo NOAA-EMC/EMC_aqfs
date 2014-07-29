@@ -1,19 +1,17 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION GETMENU( ITEMCNT, DEFAULT, PROMPT, CHOICES )
 
 C...............................................................
-C       function body starts at line  90
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C       function body starts at line  83
 C
-C       CALLS:      TRIMLEN
+C       CALLS:
 C       RETURNS:    user-selected item number from menu choices.
 C
 C  FUNCTION:
@@ -47,30 +45,28 @@ C       Revised  5/2003 by CJC:  factor through M3MSG2 to ensure flush()
 C       of log-messages.
 C       Revised 6/2003 by CJC:  factor through M3PROMPT to ensure flush()
 C       of PROMPT for IRIX F90v7.4  
-C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C...............................................................
 
         IMPLICIT NONE
 
 C.......   ARGUMENTS:
 
-        INTEGER         ITEMCNT         !  number of choices
-        INTEGER         DEFAULT         !  default response
-        CHARACTER*(*)   PROMPT          !  prompt string
-        CHARACTER*(*)   CHOICES ( * )   !  array of choice strings
+        INTEGER      , INTENT(IN   ) :: ITEMCNT         !  number of choices
+        INTEGER      , INTENT(IN   ) :: DEFAULT         !  default response
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT          !  prompt string
+        CHARACTER*(*), INTENT(IN   ) :: CHOICES ( * )   !  array of choice strings
 
 
 C.......   EXTERNAL FUNCTION:
 
-        LOGICAL         ENVYN
-        INTEGER         TRIMLEN
-        EXTERNAL        ENVYN, TRIMLEN
+        LOGICAL, EXTERNAL :: ENVYN
 
 
 C.......   LOCAL VARIABLES:
 
         INTEGER         LENGTH          !  length of default as ASCII string
-        INTEGER         I , M, N
+        INTEGER         I , M
         INTEGER         ANSWER
         INTEGER         ERRCNT
         INTEGER         IOS
@@ -78,11 +74,8 @@ C.......   LOCAL VARIABLES:
         CHARACTER*8     FMTSTR
         CHARACTER*256   MESG
 
-        LOGICAL         PROMPTON
-
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
-        SAVE            FIRSTIME, PROMPTON
+        LOGICAL, SAVE :: PROMPTON
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 C...............................................................
 C   begin body of GETMENU
@@ -96,8 +89,8 @@ C   begin body of GETMENU
         END IF
 
         IF( .NOT. PROMPTON ) THEN
-            I =   TRIMLEN( CHOICES( DEFAULT ) )
-            M  =  TRIMLEN( PROMPT )
+            I =   LEN_TRIM( CHOICES( DEFAULT ) )
+            M  =  LEN_TRIM( PROMPT )
             GETMENU = DEFAULT
             MESG = 'Using default response "' //
      &          CHOICES( DEFAULT )( 1:I ) // '" for query:'
@@ -139,13 +132,11 @@ C   begin body of GETMENU
 
         DO  200  I = 1 , ITEMCNT
 
-            M  =  TRIMLEN( CHOICES ( I ) )
-
-            WRITE ( 6,92030 ) I , CHOICES ( I ) ( 1:M )
+            WRITE ( 6,92030 ) I , TRIM( CHOICES ( I ) )
 
 200     CONTINUE
 
-        M  =  TRIMLEN( PROMPT )
+        M  =  LEN_TRIM( PROMPT )
 
         IF ( ITEMCNT .LE. 18 )  WRITE ( 6,92020 )
         WRITE ( 6,92010 )
@@ -165,11 +156,9 @@ C   begin body of GETMENU
             GO TO 900
         ELSE IF ( BUFFER ( 1:1 )  .EQ. ' ' )  THEN
             GETMENU  =  DEFAULT
-            MESG = 'Using default "' //
-     &              CHOICES( DEFAULT )( 1:TRIMLEN( CHOICES( DEFAULT )))
-     &              // '"'
+            MESG = 'Using default "' // TRIM( CHOICES( DEFAULT ) )//'"'
         ELSE
-            WRITE( FMTSTR, 94010 ) TRIMLEN( BUFFER )
+            WRITE( FMTSTR, 94010 ) LEN_TRIM( BUFFER )
 
             READ( BUFFER, FMTSTR, IOSTAT=IOS, ERR=400 ) ANSWER
 
@@ -185,10 +174,7 @@ C   begin body of GETMENU
             END IF
 
             GETMENU  =  ANSWER
-            MESG = 'Using response "'//
-     &              CHOICES( ANSWER )( 1:TRIMLEN( CHOICES( ANSWER )))
-
-     &              // '"'
+            MESG = 'Using response "'// TRIM( CHOICES( ANSWER ) )// '"'
         END IF
         CALL M3MSG2( MESG )
 
@@ -253,7 +239,5 @@ C...........   Internal buffering formats............ 94xxx
 94010   FORMAT( '( I', I3, ')' )
 
 
-        END
-
-C................   end   GETMENU  ....................................
+        END FUNCTION GETMENU
 

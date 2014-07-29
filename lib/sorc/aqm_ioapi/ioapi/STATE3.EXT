@@ -1,7 +1,10 @@
 
 !.........................................................................
 ! Version "@(#)$Header$"
-! EDSS/Models-3 I/O API.  Copyright (C) 1992-2002 MCNC
+! EDSS/Models-3 I/O API.
+! Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+! (C) 2003-2011 Baron Advanced Meteorological Systems, LLC., and
+C (C) 2011 David Wong, US EPA
 ! Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 ! See file "LGPL.txt" for conditions of use.
 !....................................................................
@@ -18,7 +21,7 @@
 !       resulting modified INCLUDE-file.
 !
 !       By making any changes to this INCLUDE file, the user
-!       explicitly agrees that in the case any assistance is 
+!       explicitly agrees that in the case any assistance is
 !       required of MCNC or of the I/O API author, Carlie J. Coats, Jr.
 !       as a result of such changes, THE USER AND/OR HIS PROJECT OR
 !       CONTRACT AGREES TO REIMBURSE MCNC AND/OR THE I/O API AUTHOR,
@@ -56,6 +59,12 @@
 !       by M3MSG2() to control error output to the screen.
 !
 !       Modified 10/2002 by CJC for I/O AP1 v3:  add VERSN3 to CSTATE3
+!
+!       Re-formatted 8/2006 by CJC to get around SGI free-source-form
+!       compiler bug
+!
+!       Revised 4/2011 by David Wong, US EPA, and by CJC, to add state for
+!       full buffered-file file descriptions.
 !....................................................................
 
         LOGICAL       FINIT3            ! Is M3 FORTRAN I/O started?
@@ -100,6 +109,10 @@
         REAL*8        XCELL3( MXFILE3 ) ! X-coord cell dimension, by file
         REAL*8        YCELL3( MXFILE3 ) ! X-coord cell dimension, by file
 
+        INTEGER       VGTYP3( MXFILE3 ) ! vertical grid type
+        REAL          VGTOP3( MXFILE3 ) ! sigma-top
+        REAL          VGLVS3( MXLAYS3+1,MXFILE3 ) ! level-surface vertical coordinate values
+
         LOGICAL       VOLAT3( MXFILE3 ) ! "volatile" flags:  use NCSYNC
 
         LOGICAL       RONLY3( MXFILE3 ) ! read-only flags
@@ -107,16 +120,16 @@
 !...........   Circular buffer structures used for BUFFERED "files".
 
         INTEGER       BSIZE3( MXFILE3 )           !  buffer size or IMISS
-        INTEGER       LDATE3( MXVARS3, MXFILE3 )  !  start date, time for 
+        INTEGER       LDATE3( MXVARS3, MXFILE3 )  !  start date, time for
         INTEGER       LTIME3( MXVARS3, MXFILE3 )  !  current BUFFERED data
-        INTEGER       NDATE3( MXVARS3, MXFILE3 )  !  end date, time for 
+        INTEGER       NDATE3( MXVARS3, MXFILE3 )  !  end date, time for
         INTEGER       NTIME3( MXVARS3, MXFILE3 )  !  current BUFFERED data
         INTEGER       ILAST3( MXVARS3, MXFILE3 )  !  0,1 sub. for LDATE:LTIME
 
 !...........   Data structures used for input LIST "file-sequences" for,
 !...........   READ3/INTERP3, designated by logical-name bindings of the
 !...........   form "setenv FOO "LIST:BAR,QUX,ZOT..."
-!...........   This is done with "sparse representation" for the data 
+!...........   This is done with "sparse representation" for the data
 !...........   structures
 !...........   NLIST3(FID) s the number of list entries for FLIST3(FID).
 !...........   ILCNT3 is the total number of active list-entries.
@@ -147,15 +160,16 @@
         CHARACTER*80  SCNDSC( MXDESC3 ) ! scenario description text
 
         CHARACTER*16  VLIST3( MXVARS3 , MXFILE3 ) ! variable-name table
+        CHARACTER*16  UNITS3( MXVARS3 , MXFILE3 ) ! variable unit
 
         !!  non-character portion of current I/O API state
         !!  Note that DOUBLE components are listed first, in order
         !!  to ensure appropriate (64-bit, usually) alignment.
 
         COMMON  / BSTATE3 /                                             &
-     &                                                                  &
      &          P_ALP3, P_BET3, P_GAM3,                                 &
      &          XCENT3, YCENT3, XORIG3, YORIG3, XCELL3, YCELL3,         &
+     &          VGTYP3, VGTOP3, VGLVS3,                                 &
      &          FINIT3, COUNT3, CURDATE, CURTIME, LOGDEV,               &
      &          CDFID3, FTYPE3, SDATE3, STIME3, TSTEP3, MXREC3,         &
      &          NVARS3, NLAYS3, NROWS3, NCOLS3, NTHIK3,                 &
@@ -170,9 +184,8 @@
         !!  character portion of current I/O API state
 
         COMMON  / CSTATE3 /                                             &
-     &                                                                  &
-     &          EXECN3, VERSN3, SCNDSC, FLIST3, GDNAM3, VLIST3
- 
+     &          EXECN3, SCNDSC, FLIST3, GDNAM3, VLIST3, UNITS3, VERSN3
+
         SAVE / BSTATE3 / , / CSTATE3 /
 
 !................   end   STATE3.EXT   ....................................

@@ -1,9 +1,0 @@
-I don't understand what is happening with the tar-file; "ls -l"
-gives:
-
-    -rw-rw-r--    1 coats    rt_grp    1336280 Dec 12 12:20 /env/public/webdata/products/ioapi/ioapi_3.tar.gz
-
-In any case, I am attaching the new "iobin3.c" (and everything else,
-back to the first of December).
-
---Carlie

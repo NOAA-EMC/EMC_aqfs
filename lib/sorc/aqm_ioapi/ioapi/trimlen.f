@@ -29,7 +29,7 @@ C***********************************************************************
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)	STRING
+        CHARACTER*(*), INTENT( IN ) :: STRING
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -55,5 +55,5 @@ C   begin body of function  TRIMLEN
 
         RETURN
 
-        END
+        END FUNCTION  TRIMLEN
 

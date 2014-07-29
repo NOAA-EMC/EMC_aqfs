@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/findc.f,v 1.2 2000/11/28 21:22:43 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION FINDC( KEY, N, LIST )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  function body starts at line 49
 C
 C  RETURNS:
@@ -31,9 +31,9 @@ C***********************************************************************
 
 C...........   ARGUMENTS and their descriptions:
         
-        CHARACTER*(*)  KEY           !  key
-        INTEGER        N             !  table size
-        CHARACTER*(*)  LIST( N )     !  table to search for KEY
+        CHARACTER*(*), INTENT(IN   ) :: KEY           !  key
+        INTEGER      , INTENT(IN   ) :: N             !  table size
+        CHARACTER*(*), INTENT(IN   ) :: LIST( N )     !  table to search for KEY
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -70,5 +70,5 @@ C   begin body of function  FINDC
         
         FINDC = M
         RETURN
-        END
+        END FUNCTION FINDC
 

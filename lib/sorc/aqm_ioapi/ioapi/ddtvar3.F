@@ -1,18 +1,16 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION DDTVAR3( FNAME, VNAME, CALLER,
      &                            JDATE, JTIME, RSIZE, BUFFER )
 
 C***********************************************************************
-C  DDTVAR3 function body starts at line  157
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  DDTVAR3 function body starts at line  154
 C
 C  NOTE:  MACHINE-DEPENDENT CODE !!!  depends upon FORTRAN : C
 C       coupling between DDTVAR3() and BUFDDT3()
@@ -59,6 +57,9 @@ C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3() and OPEN3()
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C       Modified  8/17/2004 by CJC:  deal with virtual-file bug.
+C       Modified 11/2004 by CJC:  new "verbose-flag" argument to RDTFLAG
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -74,46 +75,20 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME           !  logical file name
-        CHARACTER*(*)   VNAME           !  variable name, or 'ALL'
-        CHARACTER*(*)   CALLER          !  name of caller
-        INTEGER         JDATE           !  date, formatted YYYYDDD
-        INTEGER         JTIME           !  time, formatted HHMMSS
-        INTEGER         RSIZE           !  record dim, words, for error-check
-        REAL            BUFFER( RSIZE ) !  interpolation-output buffer array
+        CHARACTER*(*), INTENT(IN   ) :: FNAME           !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME           !  variable name, or 'ALL'
+        CHARACTER*(*), INTENT(IN   ) :: CALLER          !  name of caller
+        INTEGER      , INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER      , INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        INTEGER      , INTENT(IN   ) :: RSIZE           !  record dim, words, for error-check
+        REAL         , INTENT(  OUT) :: BUFFER( RSIZE ) !  interpolation-output buffer array
 
 
-C...........   EXTERNAL FUNCTIONS and their descriptions:
+C...........   PARAMETER :
 
-        INTEGER         BUFDDT3         !  ddt() from circ. bufs. (C)
-        INTEGER         BUFVGT3         !  alloc/read for circ. bufs. (C)
-        LOGICAL         CURRSTEP        !  finds start of timestep
-        INTEGER         INDEX1          !  name-table lookup
-        INTEGER         INIT3           !  initialize I/O API
-        INTEGER         JSTEP3          !  compute time step record numbers
-        INTEGER         NAME2FID        !  fname~~> fid lookup
-        LOGICAL         RDTFLAG         !  get date&time availability; rec #
-        LOGICAL         OPEN3           !  opens M3 files
-        INTEGER         SECSDIFF        !  computes date&time differences
-        INTEGER         TIME2SEC        !  converts time to seconds
-        INTEGER         TRIMLEN         !  effective char. string length
-
-        EXTERNAL  BUFDDT3, BUFVGT3, CURRSTEP, INDEX1, INIT3, JSTEP3,
-     &            NAME2FID, OPEN3, RDTFLAG, SECSDIFF, TIME2SEC, TRIMLEN
-
-#ifdef IOAPICPL
-        LOGICAL         DDTVAR3V        !  "virtual" file  
-        EXTERNAL        DDTVAR3V
-#endif
-
-C...........   STATE VARIABLES:  
-
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME        / .TRUE. /
-
-        CHARACTER*16    TYPNAMES( -3 : 5 )
-        DATA            TYPNAMES
-     &      / 'UNKNOWN',        !  -3:  file type error
+        CHARACTER*16, PARAMETER :: TYPNAMES( -4 : 5 ) = 
+     &     (/ 'UNKNOWN',        !  -4:  file type error
+     &        'KFEVNT3',        !  -3:  file type error
      &        'DGRAPH3',        !  -2:  known file types
      &        'CUSTOM3',        !  -1:    "
      &        'DCTNRY3',        !   0:    "
@@ -121,9 +96,31 @@ C...........   STATE VARIABLES:
      &        'BNDARY3',        !   2:    "
      &        'IDDATA3',        !   3:    "
      &        'PROFIL3',        !   4:    "
-     &        'GRNEST3' /       !   5:    "
+     &        'GRNEST3' /)      !   5:    "
 
-        SAVE            FIRSTIME, TYPNAMES
+
+C...........   EXTERNAL FUNCTIONS and their descriptions:
+
+        INTEGER, EXTERNAL :: BUFDDT3         !  ddt() from circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFVGT3         !  alloc/read for circ. bufs. (C)
+        LOGICAL, EXTERNAL :: CURRSTEP        !  finds start of timestep
+        INTEGER, EXTERNAL :: INDEX1          !  name-table lookup
+        INTEGER, EXTERNAL :: INIT3           !  initialize I/O API
+        INTEGER, EXTERNAL :: JSTEP3          !  compute time step record numbers
+        INTEGER, EXTERNAL :: NAME2FID        !  fname~~> fid lookup
+        LOGICAL, EXTERNAL :: RDTFLAG         !  get date&time availability; rec #
+        LOGICAL, EXTERNAL :: OPEN3           !  opens M3 files
+        INTEGER, EXTERNAL :: SECSDIFF        !  computes date&time differences
+        INTEGER, EXTERNAL :: TIME2SEC        !  converts time to seconds
+
+#ifdef IOAPICPL
+        REAL            P, Q
+        LOGICAL, EXTERNAL :: INTPQV
+#endif
+
+C...........   STATE VARIABLES:  
+
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -155,8 +152,8 @@ C   begin body of function  DDTVAR3
 C...........   Check length of name arguments; copy into length=16 buffers
             
         EFLAG = .FALSE.
-        FLEN  = TRIMLEN( FNAME )
-        VLEN  = TRIMLEN( VNAME )
+        FLEN  = LEN_TRIM( FNAME )
+        VLEN  = LEN_TRIM( VNAME )
 
         IF ( FLEN .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
@@ -190,7 +187,7 @@ C.......   Find netCDF index for the file, and check time step availability:
 
         IF ( FID .EQ. 0 ) THEN  !  file needs opening
 
-            NAMBUF = CALLER // ':DDTVAR3'
+            NAMBUF = TRIM( CALLER ) // ':DDTVAR3'
             IF ( .NOT.OPEN3( FNAME, FSREAD3, NAMBUF ) ) THEN
 
                 MESG = 'Could not open ' // FNAME
@@ -252,7 +249,7 @@ C.......   Find netCDF index for the file, and check time step availability:
 
         ELSE        !  bad file type for DDTVAR3()
 
-            IF ( IDUM .LT. -2   .OR.  IDUM .GT. 5 ) IDUM = -3
+            IF ( IDUM .LT. -3   .OR.  IDUM .GT. 5 ) IDUM = -4
             NAMBUF = CALLER // ':DDTVAR3'
             MESG   = 'Can not interpolate:  file "' //
      &          FNAME( 1:FLEN ) // 
@@ -306,6 +303,14 @@ C.......   buffers for interpolation, and initialize related data structures.
         END IF    !  if variable not available; else if not already set up
 
 
+#ifdef IOAPICPL
+        IF ( CDFID3( FID ) .EQ. VIRFIL3 ) THEN !  virtual file
+            EFLAG = (.NOT. INTPQV( FID, VID, JDATE, JTIME, P, Q ) )
+            GO TO   1001
+        END IF
+#endif
+
+
 C.......   Interpolate/copy to JDATE:JTIME
 
 !$OMP       CRITICAL( S_INTERP )        !!  avoid race conditions for
@@ -317,17 +322,6 @@ C.......   Interpolate/copy to JDATE:JTIME
             DO  11  IDUM = 1, RSIZE
                 BUFFER( IDUM ) = 0.0        
 11          CONTINUE
-            GO TO 999
-
-        ELSE IF ( CDFID3( FID ) .EQ. VIRFIL3 ) THEN
-
-#ifdef IOAPICPL
-            DDTVAR3 = DDTVAR3V( FID, VID, JDATE, JTIME, BUFFER )
-#else
-            CALL M3WARN('DDTVAR3', JDATE, JTIME,
-     &      'Virtual files not supported in this I/O API version')
-            EFLAG = .TRUE.
-#endif
             GO TO 999
 
         END IF    !  if time-independent; else if virtual file
@@ -421,7 +415,7 @@ C...........   data at the pastward end is still treated under (1).)
 
                     IF ( .NOT. RDTFLAG( FID, VID, 
      &                                  DATE2, TIME2,
-     &                                  STEP ) ) THEN
+     &                                  STEP, .TRUE. ) ) THEN
 
                         MESG = 'Time step not available for ' //
      &                       VNAME( 1:VLEN ) //
@@ -432,7 +426,7 @@ C...........   data at the pastward end is still treated under (1).)
 
                     ELSE IF ( .NOT. RDTFLAG( FID, VID, 
      &                                       DATE1, TIME1,
-     &                                       STEP ) ) THEN
+     &                                       STEP, .TRUE. ) ) THEN
 
                         MESG = 'Time step not available for ' //
      &                       VNAME( 1:VLEN ) //
@@ -483,7 +477,7 @@ C...........   data at the pastward end is still treated under (1).)
                 CALL NEXTIME( DATE1, TIME1, TSTEP3( FID ) )
                 
                 IF ( .NOT. RDTFLAG( FID, VID, DATE1, TIME1,
-     &                              STEP ) ) THEN
+     &                              STEP, .TRUE. ) ) THEN
 
                     MESG = 'Time step not available for "' //
      &                      VNAME( 1:VLEN ) //
@@ -545,6 +539,7 @@ C..........   If read will be necessary, check timestep flags first:
 
 !$OMP   END CRITICAL( S_INTERP )
 
+1001    CONTINUE
 	IF ( EFLAG ) THEN
             DDTVAR3 = .FALSE.
             RETURN
@@ -591,5 +586,5 @@ C...........   Internal buffering formats............ 94xxx
 94040   FORMAT( A, :, I9.7, ':', I6.6 )
 
 
-        END             !  logical function DDTVAR3
+        END FUNCTION DDTVAR3
 

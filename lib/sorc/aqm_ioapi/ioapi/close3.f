@@ -1,17 +1,15 @@
 
-C.........................................................................
+        LOGICAL FUNCTION CLOSE3 ( FNAME )
+
+C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-
-        LOGICAL FUNCTION  CLOSE3 ( FNAME )
-
-C***********************************************************************
-C  function body starts at line  77
+C  function body starts at line  74
 C
 C  FUNCTION:
 C       Flushes and closes down file with logical name FNAME
@@ -27,7 +25,7 @@ C
 C       FNAME is not virtual, does exist, and has been opened
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:
-C       CLOSEBIN3, M3MSG2, NAME2FID, TRIMLEN
+C       CLOSEBIN3, M3MSG2, NAME2FID
 C
 C  REVISION  HISTORY:  
 C       prototype 8/1995 by CJC
@@ -36,6 +34,8 @@ C       Modified  1/2000 by CJC for OpenMP thread-safety
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; use NAME2FID
+C
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -49,15 +49,13 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   FNAME   !  logical name of file to be opened
+        CHARACTER*(*), INTENT(IN   ) :: FNAME   !  logical name of file to be closed
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         CLOSEBIN3       !  for BINFIL3 files
-        INTEGER         NAME2FID        !  fname ~~> fid lookup
-        INTEGER         TRIMLEN
-        EXTERNAL        CLOSEBIN3, NAME2FID, TRIMLEN
+        INTEGER, EXTERNAL :: CLOSEBIN3       !  for BINFIL3 files
+        INTEGER, EXTERNAL :: NAME2FID        !  fname ~~> fid lookup
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -138,5 +136,5 @@ C...........   Error and warning message formats..... 91xxx
      &            3 ( /5X , A , : ) , I5, // )
 
 
-        END
+        END FUNCTION CLOSE3
 

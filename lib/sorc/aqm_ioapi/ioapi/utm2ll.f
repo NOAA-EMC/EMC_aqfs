@@ -5,11 +5,11 @@ C***********************************************************************
 C Version "@(#)$Header$"
 C EDSS/Models-3 I/O API.
 C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
+C (C) 2003-2010 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-C  subroutine body starts at line  108
+C  subroutine body starts at line  98
 C
 C  FUNCTION:
 C     Convert UTM zone-Z coordinates X-Y to LAT-LON coords
@@ -26,6 +26,7 @@ C       X,Y are now in meters.
 C       Version 10/1995 uses GTPZ0()
 C       Version 4/2003 by Carlie J. Coats, Jr., BAMS:  support for 
 C       additional (non-GRS80) spheres, via INITSPHERES/SPHEREDAT
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -33,25 +34,17 @@ C***********************************************************************
 
 C...........   ARGUMENTS:
 
-      REAL      X       !  UTM easting  in meters
-      REAL      Y       !  UTM northing in meters
-      INTEGER   Z       !  UTM zone
-      REAL      LON     !  East longitude in decimal degrees
-      REAL      LAT     !  North latitude in decimal degrees
-
-CC...........   PARAMETERS:
-C
-C      REAL*8      PI 
-C      REAL*8      RPI180
-C      PARAMETER ( PI     = 3.14159 26535 89793 23846 26433 83279D0 ,
-C     &            RPI180 = 180.0D0 / PI )
+      REAL   , INTENT(IN   ) :: X       !  UTM easting  in meters
+      REAL   , INTENT(IN   ) :: Y       !  UTM northing in meters
+      INTEGER, INTENT(IN   ) :: Z       !  UTM zone
+      REAL   , INTENT(  OUT) :: LON     !  East longitude in decimal degrees
+      REAL   , INTENT(  OUT) :: LAT     !  North latitude in decimal degrees
 
 
 C...........   External Functions
 
-        INTEGER         INIT3           !  from M3IO
-        LOGICAL         INITSPHERES, SPHEREDAT
-        EXTERNAL        INIT3, INITSPHERES, SPHEREDAT
+        INTEGER, EXTERNAL :: INIT3           !  from M3IO
+        LOGICAL, EXTERNAL :: INITSPHERES, SPHEREDAT
 
 
 C.......   LOCAL VARIABLES:
@@ -83,24 +76,20 @@ C...........   SAVED LOCAL VARIABLES and their descriptions:
 C...........   NOTE:  the ANSI standard requires the use of SAVE statements
 C...........   for variables which must retain their values from call to call.
 
-        LOGICAL         FIRSTIME
-        DATA            FIRSTIME / .TRUE. /
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 C.......   Error codes for GTPZ0:
 
-      CHARACTER*64      MESG( 9 )
-      DATA              MESG /
-     &  'Illegal input system code INSYS',
-     &  'Illegal output system code IOSYS',
-     &  'Illegal input unit code INUNIT',
-     &  'Illegal output unit code IOUNIT',
-     &  'Inconsistent unit and system codes for input',
-     &  'Inconsistent unit and system codes for output',
-     &  'Illegal input zone code INZONE',
-     &  'Illegal output zone code IOZONE',
-     &  'Projection-specific error' /
-
-        SAVE   FIRSTIME, MESG
+      CHARACTER*64, PARAMETER :: MESG( 9 ) = (/
+     &  'Illegal input system code INSYS                ',
+     &  'Illegal output system code IOSYS               ',
+     &  'Illegal input unit code INUNIT                 ',
+     &  'Illegal output unit code IOUNIT                ',
+     &  'Inconsistent unit and system codes for input   ',
+     &  'Inconsistent unit and system codes for output  ',
+     &  'Illegal input zone code INZONE                 ',
+     &  'Illegal output zone code IOZONE                ',
+     &  'Projection-specific error                      ' /)
 
 
 C***********************************************************************
@@ -151,5 +140,5 @@ C.......   Decode output arguments for GTPZ0()
 
 
         RETURN
-        END
+        END SUBROUTINE UTM2LL
 

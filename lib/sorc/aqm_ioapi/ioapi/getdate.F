@@ -1,20 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         INTEGER FUNCTION GETDATE ( DEFAULT , PROMPT )
 
 C********************************************************************
-C       function body starts at line  57
-C
-C       CALLS:
-C               GETNUM. JULIAN
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C       function body starts at line  58
 C
 C  FUNCTION:
 C
@@ -23,6 +18,9 @@ C       YYYYDDD or YYYYMMDD
 C       For non-IO_360, attempts to detect both Gregorian YYYYMMDD and
 C       Julian YYYYDDD representations and return the correct Julian in
 C       both cases.
+C
+C  CALLS:
+C       GETNUM. JULIAN
 C
 C  RETURNS:
 C       user response after checking its range; or default.
@@ -34,19 +32,19 @@ C
 C       2/2002 Unification by Carlie J. Coats, Jr., MCNC Environmental
 C       Programs with global-climate GETDATE, which uses a 360-day "year".
 C
+C       Modified 03/20010 by CJC: F9x changes for I/O API v3.1
 C****************************************************************************
 
         IMPLICIT NONE
 
 C.......   ARGUMENTS:
 
-        INTEGER         DEFAULT         !  Default return date, YYYYDDD
-        CHARACTER*(*)   PROMPT          !  Prompt for user
+        INTEGER      , INTENT(IN   ) :: DEFAULT         !  Default return date, YYYYDDD
+        CHARACTER*(*), INTENT(IN   ) :: PROMPT          !  Prompt for user
 
 C.......   EXTERNAL FUNCTIONS:
 
-        INTEGER         GETNUM, JULIAN
-        EXTERNAL        GETNUM, JULIAN
+        INTEGER, EXTERNAL :: GETNUM, JULIAN
 
 
 C.......   LOCAL VARIABLES:
@@ -85,16 +83,12 @@ C.........  Check range
 
         ENDIF
 #endif
-        
+
         WRITE( MESG, '( A, I9.7 )' ) 'Using date', JDATE
         CALL M3MSG2( MESG )
         GETDATE = JDATE
 
         RETURN
 
-C................   end body of GETDATE  .......................................
-
-        END
-
-C................   end   GETDATE  ....................................
+        END FUNCTION GETDATE
 

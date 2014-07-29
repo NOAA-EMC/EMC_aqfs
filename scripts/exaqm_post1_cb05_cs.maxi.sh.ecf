@@ -19,6 +19,7 @@ while [ ! -s ${COMIN}/aqm.${cycle}.aconc.ncf ]; do
 done
 
 export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc.ncf
+#export CMAQFILE2=${COMIN}/aqm.${cycle}.aconc.ncf
 export CMAQFILE2=${COMIN}/aqm.t00z.aconc.ncf
 if [ $cyc -eq 12 ]; then
  export CMAQFILE3=${COMIN}/aqm.t06z.aconc.ncf
@@ -34,7 +35,6 @@ id_gribdomain=148
 EOF5
 
 startmsg
-#$EXECaqm/aqm_cmaq_maxi2grib_CHA
 $EXECaqm/aqm_post_maxi_CHA 
 export err=$?;err_chk
 

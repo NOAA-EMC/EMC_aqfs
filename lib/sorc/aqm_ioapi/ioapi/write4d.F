@@ -1,19 +1,17 @@
-
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
          
         LOGICAL FUNCTION WRITE4D( FNAME, VNAME, 
      &                            JDATE, JTIME, TSTEP, NRECS,
      &                            BUFFER )
 
 C***********************************************************************
-C  function body starts at line  134
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  129
 C
 C  FUNCTION:  
 C       writes all the data from BUFFER() for timestep sequence
@@ -43,6 +41,11 @@ C       Modified  1/2002 by CJC:  check TRIMLEN() of FNAME
 C
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
+C
+C       Bug-fix 2/2005 due to Alex Zubrow (U. Chicago):  need to return
+C       WRITE4D = .TRUE. for success.
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -56,25 +59,22 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME      !  logical file name
-        CHARACTER*(*) VNAME      !  logical file name
-        INTEGER       JDATE      !  starting date, formatted YYYYDDD
-        INTEGER       JTIME      !  startng time, formatted HHMMSS
-        INTEGER       TSTEP      !  time-step, formatted HHMMSS
-        INTEGER       NRECS      !  Number of steps to write
-        REAL          BUFFER(*)  !  output buffer array
+        CHARACTER*(*), INTENT(IN   ) :: FNAME      !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME      !  logical file name
+        INTEGER      , INTENT(IN   ) :: JDATE      !  starting date, formatted YYYYDDD
+        INTEGER      , INTENT(IN   ) :: JTIME      !  startng time, formatted HHMMSS
+        INTEGER      , INTENT(IN   ) :: TSTEP      !  time-step, formatted HHMMSS
+        INTEGER      , INTENT(IN   ) :: NRECS      !  Number of steps to write
+        REAL         , INTENT(IN   ) :: BUFFER(*)  !  output buffer array
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        LOGICAL       ENVYN      !  get YES/NO environment variable
-        INTEGER       INDEX1     !  look up names in name tables
-        INTEGER       INIT3      !  initialize I/O system files.
-        INTEGER       JSTEP3     !  compute time step record numbers
-        INTEGER       TRIMLEN    !  trimmed string length
-        LOGICAL       WRVARS     !  write time step records
-
-        EXTERNAL      ENVYN, INDEX1, INIT3, JSTEP3, TRIMLEN, WRVARS  
+        LOGICAL, EXTERNAL :: ENVYN      !  get YES/NO environment variable
+        INTEGER, EXTERNAL :: INDEX1     !  look up names in name tables
+        INTEGER, EXTERNAL :: INIT3      !  initialize I/O system files.
+        INTEGER, EXTERNAL :: JSTEP3     !  compute time step record numbers
+        LOGICAL, EXTERNAL :: WRVARS     !  write time step records
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -98,11 +98,10 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         CHARACTER*256 MESG            !  for m3msg2
 
 
-C...........   STATIC Variables:
+C...........   PARAMETERs Variables:
 
-        CHARACTER*7   TYPNAMES( -3 : 7 )
-        DATA          TYPNAMES
-     &      / 'UNKNOWN',        !  -3:  file type error
+        CHARACTER*7, PARAMETER :: TYPNAMES( -3 : 7 ) =
+     &     (/ 'UNKNOWN',        !  -3:  file type error
      &        'DGRAPH3',        !  -2:  known file types
      &        'CUSTOM3',        !  -1:    "
      &        'DCTNRY3',        !   0:    "
@@ -112,17 +111,13 @@ C...........   STATIC Variables:
      &        'PROFIL3',        !   4:    "
      &        'GRNEST3',        !   5:    "
      &        'SMATRX3',        !   6:    "
-     &        'UNKNOWN' /       !   7:    "
-
-        LOGICAL       FIRSTIME
-        DATA          FIRSTIME   / .TRUE. /
-        INTEGER       TYPSIZE( 6 )
+     &        'UNKNOWN' /)      !   7:    "
 
 #if _CRAY || REAL8
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 1 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 1 /)
 #endif
 #if ! ( _CRAY || REAL8 )
-        DATA            TYPSIZE / 1, 1, 1, 1, 1, 2 /
+        INTEGER, PARAMETER :: TYPSIZE( 6 ) = (/ 1, 1, 1, 1, 1, 2 /)
 #endif
 
 
@@ -147,21 +142,21 @@ C.......   Check that Models-3 I/O has been initialized:
 C.......   Find netCDF index for the file, and check time step availability:
 
         EFLAG = .FALSE.
-        IF ( TRIMLEN( FNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( FNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME//'"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A , I10 )' )
-     &          'Max file name length 16; actual:', TRIMLEN( FNAME )
+     &          'Max file name length 16; actual:', LEN_TRIM( FNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( fname ) > 16
 
-        IF ( TRIMLEN( VNAME ) .GT. NAMLEN3 ) THEN
+        IF ( LEN_TRIM( VNAME ) .GT. NAMLEN3 ) THEN
             EFLAG = .TRUE.
             MESG  = 'File "'// FNAME// '" Variable "'// VNAME//'"'
             CALL M3MSG2( MESG )
             WRITE( MESG, '( A, I10 )'  )
-     &          'Max vble name length 16; actual:', TRIMLEN( VNAME )
+     &          'Max vble name length 16; actual:', LEN_TRIM( VNAME )
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
         
@@ -387,11 +382,13 @@ C...........   from file into BUFFER(), selecting by file type:
         END DO          !  end loop on output records.
 
         WRITE( MESG, '( A, I9, A, I6.6, A, I6.6, A, I10)' ) 
-     &          VAR16( 1:TRIMLEN(VAR16) ) // ' written to ' //
-     &          FIL16( 1:TRIMLEN(FIL16) ) // ' for sequence', 
+     &          TRIM( VAR16 ) // ' written to ' //
+     &          TRIM( FIL16 ) // ' for sequence', 
      &          JDATE, ':', JTIME, ':', TSTEP, ':', NRECS
 	    CALL M3MSG2( MESG )
         
+        WRITE4D = .TRUE.
+
         RETURN
 
 C******************  FORMAT  STATEMENTS   ******************************
@@ -404,5 +401,5 @@ C...........   Internal buffering formats..... 93xxx
 
 93020   FORMAT ( A, :, I9, ':', I6.6, :, A, :, 2X, I6.6 )
 
-        END
+        END FUNCTION WRITE4D
 

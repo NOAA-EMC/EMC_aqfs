@@ -1,5 +1,5 @@
-envir    =prod
-model_ver=v4.6.0
+#envir    =prod
+#model_ver=v4.6.0
 #EMC
 #usrdir   =/naqfc/save/${USER}
 
@@ -7,7 +7,6 @@ model_ver=v4.6.0
 usrdir=
 
 DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
-#CMD      = aqm_cmaq_maxi2grib_CHA 
 CMD      = aqm_post_maxi_CHA
 SRCS     = cmaq-maxi2grib.f90 
 
@@ -28,6 +27,6 @@ FC     = ifort
 FLAGS  = -I$(INC) 
 
 $(CMD): $(SRCS)
-	$(FC) -o $(@) $(FLAGS)  $(SRCS) $(LIBS) 
+	$(FC) -o ../../exec/$(@) $(FLAGS)  $(SRCS) $(LIBS) 
 clean :
-	rm -rf $(CMD)
+	rm -rf ../../exec/$(CMD)

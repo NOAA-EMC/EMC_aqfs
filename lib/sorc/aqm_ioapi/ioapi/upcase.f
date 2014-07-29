@@ -1,14 +1,14 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/upcase.f,v 1.2 2000/11/28 21:23:07 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE  UPCASE ( BUFFER )
 
 C***********************************************************************
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
 C  subroutine body starts at line  49
 C
 C  FUNCTION:  upcase the text in BUFFER
@@ -17,24 +17,24 @@ C  PRECONDITIONS REQUIRED:  text is ASCII
 C
 C  SUBROUTINES AND FUNCTIONS CALLED:  none
 C
-C  REVISION  HISTORY:  prototype 1/91 by CJC
+C  REVISION  HISTORY:
+C       prototype 1/91 by CJC
 C
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   BUFFER
+        CHARACTER*(*), INTENT(INOUT) :: BUFFER
 
 
 C...........   PARAMETER:  ASCII for 'a', 'z', 'A'
 
-        INTEGER       IA, IZ, AADIF
-
-        PARAMETER   ( IA    = 97, 
-     &                IZ    = 122, 
-     &                AADIF = 32 )
+        INTEGER, PARAMETER :: IA    =  97
+        INTEGER, PARAMETER :: IZ    = 122
+        INTEGER, PARAMETER :: AADIF =  32
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -56,5 +56,5 @@ C   begin body of subroutine  UPCASE
 
         RETURN
 
-        END
+        END SUBROUTINE  UPCASE
 

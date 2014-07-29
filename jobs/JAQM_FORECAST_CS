@@ -15,22 +15,19 @@ export RUN=aqm
 ############################################
 ############################################
 export PARAFLAG=${PARAFLAG:-NO}
-export usrdir=${usrdir:-}
-export usr_tmp=${usr_tmp:-}
-export COM_OUT=${COM_OUT:-}
 #####################################
 # obtain unique process id (pid) and make temp directories
 #####################################
 export pid=$$
 export job=aqm_fcst_cs
-export DATA=${usr_tmp}/tmpnwprd/${job}.${pid}
+export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
 mkdir -p $DATA
 cd $DATA 
 
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${usr_tmp}/com/logs/jlogfiles/jlogfile.$$
+export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.$$}
 ####################################
 # Determine Job Output Name on System
 ####################################
@@ -46,7 +43,7 @@ export SENDCOM=YES
 export SENDDBN=NO
 export SENDECF=YES
 
-
+export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm
@@ -69,24 +66,15 @@ sh $utilscript/postmsg.sh "$jlogfile" "$msg"
 $utilscript/setpdy.sh
 . PDY
 
-if [ "${PARAFLAG}" = "YES" ]
-then
- echo "Testing with /com_p6 data"
- export INPEMIDIR=/naqfc/noscrub/${USER}/com/${NET}/para/emission
- export COM=${COM_OUT}/com/${NET}/${envir}
- export COMIN=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
- export COMOUT=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDY}
- export COMINm1=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm1}
- export COMINm2=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm2}
- export COMINm3=${COM_OUT}/com/${NET}/${envir}/${RUN}.${PDYm3}
-else
- export COM=/com/${NET}/${envir}
- export COMIN=/com/${NET}/${envir}/${RUN}.${PDY}
- export COMOUT=/com/${NET}/${envir}/${RUN}.${PDY}
- export COMINm1=/com/${NET}/${envir}/${RUN}.${PDYm1}
- export COMINm2=/com/${NET}/${envir}/${RUN}.${PDYm2}
- export COMINm3=/com/${NET}/${envir}/${RUN}.${PDYm3}
-fi
+export COM=/com/${NET}/${envir}
+export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-/com/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMINm2=${COMINm2:-/com/${NET}/${envir}/${RUN}.${PDYm2}}
+export COMINm3=${COMINm3:-/com/${NET}/${envir}/${RUN}.${PDYm3}}
+
+export INPEMIDIR=${INPEMIDIR:-/com/aqm/prod/emission}
+
 mkdir -p $COMOUT
  
 env
@@ -95,7 +83,7 @@ env
 # Execute the Script
 ###################################################
 ${HOMEaqm}/scripts/exaqm_cmaqv46_cs.sh.ecf
-err=$?
+err=$?; err_chk
 ##################################################
 cat $pgmout
 

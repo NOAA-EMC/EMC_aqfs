@@ -9,7 +9,7 @@ C (C) 2003 Baron Advanced Meteorological Systems
 C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
 C See file "LGPL.txt" for conditions of use.
 C.........................................................................
-C  subroutine body starts at line  109
+C  subroutine body starts at line  110
 C
 C  FUNCTION:
 C     Convert LAT-LON coords to UTM zone-Z coordinates
@@ -28,31 +28,23 @@ C       Version 4/2003 by Carlie J. Coats, Jr., BAMS:  support for
 C       additional (non-GRS80) spheres, via INITSPHERES
 C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3(); also clean up initialization logic
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS:
 
-      REAL       LON    !  Longitude in decimal degrees
-      REAL       LAT    !  Latitude in decimal degrees
-      REAL       X      !  Returned UTM Easting in meters
-      REAL       Y      !  Returned UTM Northing in meters
-      INTEGER    Z      !  UTM zone
-
-CC...........   PARAMETERS:
-C
-C      REAL*8      PI 
-C      REAL*8      PI180
-C      PARAMETER ( PI    = 3.14159 26535 89793 23846 26433 83279D0 ,
-C     &            PI180 = PI / 180.0D0 )
-
+      REAL   , INTENT(IN   ) :: LON    !  Longitude in decimal degrees
+      REAL   , INTENT(IN   ) :: LAT    !  Latitude in decimal degrees
+      REAL   , INTENT(  OUT) :: X      !  Returned UTM Easting in meters
+      REAL   , INTENT(  OUT) :: Y      !  Returned UTM Northing in meters
+      INTEGER, INTENT(IN   ) :: Z      !  UTM zone
         
 C...........   External Functions
 
-        INTEGER         INIT3           !  from M3IO
-        LOGICAL         INITSPHERES, SPHEREDAT
-        EXTERNAL        INIT3, INITSPHERES, SPHEREDAT
+        INTEGER, EXTERNAL :: INIT3           !  from M3IO
+        LOGICAL, EXTERNAL :: INITSPHERES, SPHEREDAT
 
 
 C...........   Local Variables
@@ -83,24 +75,20 @@ C...........   SAVED LOCAL VARIABLES and their descriptions:
 C...........   NOTE:  the ANSI standard requires the use of SAVE statements
 C...........   for variables which must retain their values from call to call.
 
-      INTEGER           LEMSG           !  error message unit number
-      DATA              LEMSG / -9999 /
+      INTEGER, SAVE :: LEMSG = -9999
 
 C.......   Error codes for GTPZ0:
 
-      CHARACTER*64      MESG( 9 )
-      DATA              MESG /
-     &  'Illegal input system code INSYS',
-     &  'Illegal output system code IOSYS',
-     &  'Illegal input unit code INUNIT',
-     &  'Illegal output unit code IOUNIT',
-     &  'Inconsistent unit and system codes for input',
-     &  'Inconsistent unit and system codes for output',
-     &  'Illegal input zone code INZONE',
-     &  'Illegal output zone code IOZONE',
-     &  'Projection-specific error' /
-
-        SAVE   LEMSG, MESG
+      CHARACTER*64, PARAMETER :: MESG( 9 ) = (/
+     &  'Illegal input system code INSYS                ',
+     &  'Illegal output system code IOSYS               ',
+     &  'Illegal input unit code INUNIT                 ',
+     &  'Illegal output unit code IOUNIT                ',
+     &  'Inconsistent unit and system codes for input   ',
+     &  'Inconsistent unit and system codes for output  ',
+     &  'Illegal input zone code INZONE                 ',
+     &  'Illegal output zone code IOZONE                ',
+     &  'Projection-specific error                      ' /)
 
 
 C..........................................................................
@@ -153,4 +141,4 @@ C.......   Decode output arguments for GTPZ0()
       Y = SNGL( CRDIO( 2 ) )
         
       RETURN
-      END
+      END  SUBROUTINE LL2UTM

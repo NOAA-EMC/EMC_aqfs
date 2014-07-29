@@ -1,17 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION WRTFLAG( FID, VID, FLAGS, STEP2 )
 
 C***********************************************************************
-C  function body starts at line  74
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  function body starts at line  73
 C
 C  FUNCTION:
 C       writes "time-step flag" part of time step records from Models-3
@@ -35,6 +33,8 @@ C       Modified 5/2003 by CJC:  additional error-logging messages
 C
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFILE3 file type
+C
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -48,16 +48,15 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER         FID             !  file index within the STATE3 commons
-        INTEGER         VID             !  vble index within the STATE3 commons
-        INTEGER         FLAGS( 2 )      !  ( jdate yyyyddd, jtime hhmmss )
-        INTEGER         STEP2           !  physical time step number (maybe mod 2)
+        INTEGER, INTENT(IN   ) :: FID             !  file index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: VID             !  vble index within the STATE3 commons
+        INTEGER, INTENT(IN   ) :: FLAGS( 2 )      !  ( jdate yyyyddd, jtime hhmmss )
+        INTEGER, INTENT(IN   ) :: STEP2           !  physical time step number (maybe mod 2)
 
 
 C...........   EXTERNAL FUNCTIONS and their descriptions:
 
-        INTEGER         WRBFLAG         !  for BINFIL3 files
-        EXTERNAL        WRBFLAG
+        INTEGER, EXTERNAL :: WRBFLAG         !  for BINFIL3 files
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -163,5 +162,5 @@ C...........   Deal with netCDF file:  set up hyperslab for TFLAG
 
         RETURN
 
-        END
+        END FUNCTION WRTFLAG
 

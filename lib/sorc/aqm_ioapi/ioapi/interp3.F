@@ -1,13 +1,4 @@
 
-C.........................................................................
-C Version "@(#)$Header$"
-C EDSS/Models-3 I/O API.
-C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-C (C) 2003 Baron Advanced Meteorological Systems
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         LOGICAL FUNCTION INTERP3( FNAME, VNAME, CALLER,
      &                            JDATE, JTIME, RSIZE, BUFFER )
 
@@ -16,17 +7,24 @@ C.........................................................................
         LOGICAL INTERPX
 
 C***********************************************************************
-C  INTERP3 function body starts at line  199
-C  Entry INTERPX         starts at line  205
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  INTERP3 function body starts at line  195
+C  Entry INTERPX         starts at line  201
 C
 C  NOTE:  MACHINE-DEPENDENT CODE !!!  depends upon FORTRAN :: C
 C       coupling between INTERP3() and BUFINT3()
 C
-C  FUNCTION:  
+C  FUNCTION:
 C       INTERP3() interpolates data from Models-3 data file with logical
 C       name FNAME, variable VNAME for all layers to date and time
 C       JDATE (coded YYYYDDD) and time JTIME (HHMMSS), putting the
-C       result in BUFFER.  
+C       result in BUFFER.
 C
 C       INTERPX() interpolates with windowing for the specified
 C       column-row-layer range.  For BOUNDARY files, only the
@@ -40,7 +38,7 @@ C
 C       Encapsulates file opens and reads, and all the book-keeping
 C       and data structures necessary for that task.
 C
-C  USES 
+C  USES
 C       C routine BUFINT3():  sets up all the data structures for the
 C       call so that BUFINT3 can allocate and manage read-buffers
 C       internally, call RDVARS() and perform the interpolation.
@@ -50,7 +48,8 @@ C
 C       C routine BUFINTX:  like BUFINT3(), except that the interpolation
 C       occurs only for the specified output window.
 C
-C  RETURN VALUE:  TRUE iff the operation succeeds (and the data is available)
+C  RETURN VALUE:
+C       TRUE iff the operation succeeds (and the data is available)
 C
 C  PRECONDITIONS REQUIRED:
 C       FNAME is a Models-3 data file containing variable VNAME for
@@ -84,6 +83,10 @@ C       Modified 7/2003 by CJC:  bugfix -- clean up critical sections
 C       associated with INIT3()
 C       Modified 10/2003 by CJC for I/O API version 3:  support for
 C       native-binary BINFIL3 file type; uses INTEGER NAME2FID
+C       Modified  3/14/2004 by CJC:  FORMAT changes.
+C       Modified  8/17/2004 by CJC:  deal with virtual-file bug.
+C       Modified 11/2004 by CJC:  new "verbose-flag" argument to RDTFLAG
+C       Modified 03/2010 by CJC: F9x changes for I/O API v3.1
 C***********************************************************************
 
 #define REAL8 DOUBLE PRECISION
@@ -97,57 +100,25 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*) FNAME           !  logical file name
-        CHARACTER*(*) VNAME           !  variable name, or 'ALL'
-        CHARACTER*(*) CALLER          !  name of caller
-        INTEGER       COL0            !  lower col   bound for INTERPX
-        INTEGER       COL1            !  upper col   bound for INTERPX
-        INTEGER       ROW0            !  lower row   bound for INTERPX
-        INTEGER       ROW1            !  upper row   bound for INTERPX
-        INTEGER       LAY0            !  lower layer bound for INTERPX
-        INTEGER       LAY1            !  upper layer bound for INTERPX
-        INTEGER       JDATE           !  date, formatted YYYYDDD
-        INTEGER       JTIME           !  time, formatted HHMMSS
-        INTEGER       RSIZE           !  record dim, words, for error-check
-        REAL          BUFFER( * )     !  interpolation-output buffer array
+        CHARACTER*(*), INTENT(IN   ) :: FNAME           !  logical file name
+        CHARACTER*(*), INTENT(IN   ) :: VNAME           !  variable name, or 'ALL'
+        CHARACTER*(*), INTENT(IN   ) :: CALLER          !  name of caller
+        INTEGER      , INTENT(IN   ) :: COL0            !  lower col   bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: COL1            !  upper col   bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: ROW0            !  lower row   bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: ROW1            !  upper row   bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: LAY0            !  lower layer bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: LAY1            !  upper layer bound for INTERPX
+        INTEGER      , INTENT(IN   ) :: JDATE           !  date, formatted YYYYDDD
+        INTEGER      , INTENT(IN   ) :: JTIME           !  time, formatted HHMMSS
+        INTEGER      , INTENT(IN   ) :: RSIZE           !  record dim, words, for error-check
+        REAL         , INTENT(  OUT) :: BUFFER( * )     !  interpolation-output buffer array
 
+C...........   PARAMETER :
 
-C...........   EXTERNAL FUNCTIONS and their descriptions:
-
-        INTEGER       BUFVGT3         !  alloc/read for   circ. bufs. (C)
-        INTEGER       BUFINT3         !  interp from      circ. bufs. (C)
-        INTEGER       BUFINTX         !  interp/wndw from circ. bufs. (C)
-        INTEGER       BUFVGT3D        !  alloc/read for   circ. bufs. (C)
-        INTEGER       BUFINT3D        !  interp from      circ. bufs. (C)
-        INTEGER       BUFINTXD        !  interp/wndw from circ. bufs. (C)
-        LOGICAL       RDTFLAG         !  get date&time availability; rec #
-
-        LOGICAL       CURRSTEP        !  finds start of timestep
-        LOGICAL       OPEN3           !  opens M3 files
-        INTEGER       INDEX1          !  name-table lookup
-        INTEGER       INIT3           !  start up M3 I/O API
-        INTEGER       JSTEP3          !  compute time step record numbers
-        INTEGER       NAME2FID        !  fname~~> fid lookup
-        INTEGER       SECSDIFF        !  computes date&time differences
-        INTEGER       TIME2SEC        !  converts time to seconds
-        INTEGER       TRIMLEN         !  effective char. string length
-
-        EXTERNAL  BUFVGT3,  BUFINT3,  BUFINTX,
-     &            BUFVGT3D, BUFINT3D, BUFINTXD, RDTFLAG,
-     &            CURRSTEP, OPEN3, INIT3, INDEX1, JSTEP3,
-     &            NAME2FID, SECSDIFF, TIME2SEC, TRIMLEN
-
-
-C...........   STATE VARIABLES:  circular buffer structures used for
-C...........   the interpolation.  Such variables must be SAVEd in order
-C...........   to retain their values from invocation to invocation.
-
-        LOGICAL       FIRSTIME
-        DATA          FIRSTIME        / .TRUE. /
-
-        CHARACTER*16  TYPNAMES( -3 : 5 )
-        DATA          TYPNAMES
-     &      / 'UNKNOWN',        !  -3:  file type error
+        CHARACTER*16, PARAMETER :: TYPNAMES( -4 : 5 ) =
+     &     (/ 'UNKNOWN',        !  -4:  file type error
+     &        'KFEVNT3',        !  -3:  file type error
      &        'DGRAPH3',        !  -2:  known file types
      &        'CUSTOM3',        !  -1:    "
      &        'DCTNRY3',        !   0:    "
@@ -155,9 +126,38 @@ C...........   to retain their values from invocation to invocation.
      &        'BNDARY3',        !   2:    "
      &        'IDDATA3',        !   3:    "
      &        'PROFIL3',        !   4:    "
-     &        'GRNEST3' /       !   5:    "
+     &        'GRNEST3' /)      !   5:    "
 
-        SAVE            FIRSTIME, TYPNAMES
+
+C...........   EXTERNAL FUNCTIONS and their descriptions:
+
+        INTEGER, EXTERNAL :: BUFVGT3         !  alloc/read for   circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFINT3         !  interp from      circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFINTX         !  interp/wndw from circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFVGT3D        !  alloc/read for   circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFINT3D        !  interp from      circ. bufs. (C)
+        INTEGER, EXTERNAL :: BUFINTXD        !  interp/wndw from circ. bufs. (C)
+        LOGICAL, EXTERNAL :: RDTFLAG         !  get date&time availability; rec #
+
+        LOGICAL, EXTERNAL :: CURRSTEP        !  finds start of timestep
+        LOGICAL, EXTERNAL :: OPEN3           !  opens M3 files
+        INTEGER, EXTERNAL :: INDEX1          !  name-table lookup
+        INTEGER, EXTERNAL :: INIT3           !  start up M3 I/O API
+        INTEGER, EXTERNAL :: JSTEP3          !  compute time step record numbers
+        INTEGER, EXTERNAL :: NAME2FID        !  fname~~> fid lookup
+        INTEGER, EXTERNAL :: SECSDIFF        !  computes date&time differences
+        INTEGER, EXTERNAL :: TIME2SEC        !  converts time to seconds
+
+#ifdef IOAPICPL
+        LOGICAL, EXTERNAL :: INTPQV
+#endif
+
+
+C...........   STATE VARIABLES:  circular buffer structures used for
+C...........   the interpolation.  Such variables must be SAVEd in order
+C...........   to retain their values from invocation to invocation.
+
+        LOGICAL, SAVE :: FIRSTIME = .TRUE.
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -188,16 +188,12 @@ C...........   SCRATCH LOCAL VARIABLES and their descriptions:
         CHARACTER*24  NAMBUF          !  buffer for names (CRAY-PORTING HACK)
         CHARACTER*256 MESG            !  buffer for building error messages
 
-#ifdef IOAPICPL
-        LOGICAL       INTERP3V
-        EXTERNAL      INTERP3V
-#endif
 
 C***********************************************************************
 C   begin body of function  INTERP3
 
         XFLAG = .FALSE.
-        NAMBUF = CALLER( 1:TRIMLEN( CALLER ) ) // ':INTERP3'
+        NAMBUF = TRIM( CALLER ) // ':INTERP3'
         GO TO  111
 
         !!-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -207,7 +203,7 @@ C   begin body of function  INTERP3
      &                 JDATE, JTIME, BUFFER )
 
         XFLAG  = .TRUE.
-        NAMBUF = CALLER( 1:TRIMLEN( CALLER ) ) // ':INTERPX'
+        NAMBUF = TRIM( CALLER ) // ':INTERPX'
         GO TO  111
 
         !!-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -219,12 +215,12 @@ C   begin body of function  INTERP3
         END IF
 !$OMP END CRITICAL( S_INIT )
 
-           
+
 C...........   Check length of name arguments; copy into length=16 buffers
 
         EFLAG = .FALSE.
-        FLEN  = TRIMLEN( FNAME )
-        VLEN  = TRIMLEN( VNAME )
+        FLEN  = LEN_TRIM( FNAME )
+        VLEN  = LEN_TRIM( VNAME )
         FIL16 = FNAME
         VAR16 = VNAME
 
@@ -241,7 +237,7 @@ C...........   Check length of name arguments; copy into length=16 buffers
      &          'Max vble name length 16; actual:', VLEN
             CALL M3MSG2( MESG )
         END IF          !  if len( vname ) > 16
-        
+
         IF ( EFLAG ) THEN
             MESG  = 'File "' //FIL16// '" Variable "' //VAR16//'"'
             CALL M3MSG2( MESG )
@@ -254,7 +250,7 @@ C...........   Check length of name arguments; copy into length=16 buffers
             END IF
             RETURN
         END IF          !  if len( fname ) > 16, or if len( vname ) > 16
-        
+
 
 C.......   Find netCDF index for the file, and open it if necessary
 
@@ -331,7 +327,7 @@ C.......   Find netCDF index for the file, and open it if necessary
         ELSE IF ( IDUM .EQ. BNDARY3 ) THEN
 
             DELTA = 2 * NTHIK3( FID )
-            DELTA = ABS( DELTA ) * ( NCOLS3( FID ) 
+            DELTA = ABS( DELTA ) * ( NCOLS3( FID )
      &                             + NROWS3( FID ) + DELTA )
 
             DIMS( 1 ) = 1
@@ -364,51 +360,51 @@ C.......   Find netCDF index for the file, and open it if necessary
             EFLAG = .FALSE.
             IF ( LAY0 .LT. 1 .OR. LAY0 .GT. LAY1 ) THEN
                 EFLAG = .TRUE.
-                WRITE( MESG, '( A, I10 )' ) 
+                WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument LAY0=', LAY0
                 CALL M3MSG2( MESG )
             END IF
             IF ( LAY1 .LT. LAY0 .OR. LAY1 .GT.  NLAYS3( FID ) ) THEN
                 EFLAG = .TRUE.
-                WRITE( MESG, '( A, I10 )' ) 
+                WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument LAY1=', LAY1
                 CALL M3MSG2( MESG )
             END IF
             IF ( FTYPE3( FID ) .EQ. CUSTOM3 ) THEN
                 IF ( COL0 .LT. 1 .OR. COL0 .GT.  COL1 ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument COL0=', COL0
                     CALL M3MSG2( MESG )
                 END IF
                 IF ( COL1 .LT. COL0 .OR. COL1 .GT.  NCOLS3( FID ) ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument COL1=', COL1
                     CALL M3MSG2( MESG )
                 END IF
             ELSE IF ( FTYPE3( FID ) .EQ. GRDDED3 ) THEN
                 IF ( COL0 .LT. 1 .OR. COL0 .GT.  COL1 ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument COL0=', COL0
                     CALL M3MSG2( MESG )
                 END IF
                 IF ( COL1 .LT. COL0 .OR. COL1 .GT.  NCOLS3( FID ) ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument COL1=', COL1
                     CALL M3MSG2( MESG )
                 END IF
                 IF ( ROW0 .LT. 1 .OR. ROW0 .GT.  ROW1 ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument ROW0=', ROW0
                     CALL M3MSG2( MESG )
                 END IF
                 IF ( ROW1 .LT. ROW0 .OR. ROW1 .GT.  NROWS3( FID ) ) THEN
                     EFLAG = .TRUE.
-                    WRITE( MESG, '( A, I10 )' ) 
+                    WRITE( MESG, '( A, I10 )' )
      &                  'Bad argument ROW1=', ROW1
                     CALL M3MSG2( MESG )
                 END IF
@@ -459,7 +455,7 @@ C.......   buffers for interpolation, and initialize related data structures.
             END IF
             RETURN
 
-        ELSE IF ( VTYPE3( VID,FID ) .NE. M3REAL  .AND. 
+        ELSE IF ( VTYPE3( VID,FID ) .NE. M3REAL  .AND.
      &            VTYPE3( VID,FID ) .NE. M3DBLE ) THEN  ! variable of wrong type
 
             MESG = 'Variable "' // VAR16( 1:VLEN ) //
@@ -476,8 +472,10 @@ C.......   buffers for interpolation, and initialize related data structures.
 
 #ifdef IOAPICPL
         IF ( CDFID3( FID ) .EQ. VIRFIL3 ) THEN !  virtual file
-            INTERP3 = INTERP3V( FID, VID, JDATE, JTIME, BUFFER )
-            RETURN
+            EFLAG = (.NOT. INTPQV( FID, VID, JDATE, JTIME, P, Q ) )
+            PP    = DBLE( P )
+            QQ    = 1.0D0 - PP
+            GO TO   1001
         END IF
 #endif
 
@@ -501,7 +499,7 @@ C.......   Interpolate/copy to JDATE:JTIME
                     CALL M3WARN( NAMBUF, JDATE, JTIME, MESG )
                     EFLAG   = .TRUE.
 
-                ELSE IF ( .NOT. RDTFLAG( FID, VID, 0, 0, STEP ) ) THEN
+                ELSE IF (.NOT.RDTFLAG( FID,VID,0,0,STEP,.TRUE. ) ) THEN
 
                     MESG = 'Record not available for "' //
      &                           VAR16( 1:VLEN ) //
@@ -530,9 +528,9 @@ C.......   Interpolate/copy to JDATE:JTIME
             NTIME3( VID,FID ) = 0
 
         ELSE IF ( CDFID3( FID ) .EQ. BUFFIL3 ) THEN	!  "buffered" file
-            
+
             RFLAG = .FALSE.
-            
+
             IF( LDATE3( VID,FID ) .LT. 0 ) THEN
 
                 IF ( ( NDATE3( VID,FID ) .EQ. JDATE ) .AND.
@@ -545,7 +543,7 @@ C.......   Interpolate/copy to JDATE:JTIME
 
                 ELSE
 
-                    MESG = 'Variable "' // 
+                    MESG = 'Variable "' //
      &                       VAR16( 1:VLEN ) //
      &                       '" not yet written to BUFFERED file "' //
      &                       FIL16( 1:FLEN ) // '".'
@@ -623,24 +621,23 @@ C...........   data at the pastward end is still treated under (1).)
      &                         MDATE, MTIME ) ) THEN
 
                     RFLAG = .TRUE.
-                    
+
                     DATE1 = MDATE
                     DATE2 = MDATE
                     TIME1 = MTIME
                     TIME2 = MTIME
-
                     CALL NEXTIME( DATE2, TIME2, TSTEP3( FID ) )
 
                     !  **NOTE** --  use DATE1:TIME1 "step" in DIMS(:) below.
                     !  If DATE1:TIME1 and DATE2:TIME2 both OK, then do
-                    !  normal double-buffered INTERP; 
+                    !  normal double-buffered INTERP;
                     !  else if only DATE1:TIME1 OK then set up single-record
                     !  read and copy
                     !  else fail
 
-                    IF ( .NOT. RDTFLAG( FID, VID, 
+                    IF ( .NOT. RDTFLAG( FID, VID,
      &                                  DATE1, TIME1,
-     &                                  STEP ) ) THEN
+     &                                  STEP, .TRUE. ) ) THEN
 
                         MESG = 'Time step not available for "' //
      &                       VAR16( 1:VLEN ) //
@@ -649,9 +646,9 @@ C...........   data at the pastward end is still treated under (1).)
                         EFLAG   = .TRUE.
                         GO TO 999
 
-                    ELSE IF ( .NOT. RDTFLAG( FID, VID, 
+                    ELSE IF ( .NOT. RDTFLAG( FID, VID,
      &                                       DATE2, TIME2,
-     &                                       STEP2 ) ) THEN
+     &                                       STEP2, .TRUE. ) ) THEN
 
                         DTJL = SECSDIFF( MDATE, MTIME,
      &                                   JDATE, JTIME )
@@ -678,7 +675,7 @@ C...........   data at the pastward end is still treated under (1).)
                         END IF          !  if dtjl=0, or not
 
                     ELSE
-                    
+
                         DELTA =  0                      !  read starts at 2
                         ILAST3( VID, FID ) = 0          !  buffer starts at 0
                         LDATE3( VID, FID ) = MDATE
@@ -709,7 +706,7 @@ C...........   data at the pastward end is still treated under (1).)
      &                  ' by', TSTEP3( FID ), ')'
                     CALL M3WARN( NAMBUF, JDATE, JTIME, MESG )
                     EFLAG = .TRUE.
- 
+
                 END IF  !  if requested date&time after start of file, or not
 
             ELSE IF ( DTJL .GT. DT ) THEN      !  advance by one time step
@@ -717,9 +714,9 @@ C...........   data at the pastward end is still treated under (1).)
                 DATE1 = NDATE3( VID, FID )
                 TIME1 = NTIME3( VID, FID )
                 CALL NEXTIME( DATE1, TIME1, TSTEP3( FID ) )
-                
+
                 IF ( .NOT. RDTFLAG( FID, VID, DATE1, TIME1,
-     &                              STEP ) ) THEN
+     &                              STEP, .TRUE. ) ) THEN
 
                     MESG = 'Time step not available for "' //
      &                      VAR16( 1:VLEN ) //
@@ -769,14 +766,14 @@ C..........   If read will be necessary, check timestep flags first:
 
             IF ( VTYPE3( VID,FID ) .EQ. M3REAL ) THEN
                 IF ( 0 .EQ. BUFVGT3( FID, VID, RFLAG, DIMS, DELS,
-     &                           NLAYS3( FID ) * BSIZE3( FID ), 
+     &                           NLAYS3( FID ) * BSIZE3( FID ),
      &                           DELTA, TSTEP3( FID ) ) ) THEN
 
-                    WRITE( MESG,94040 ) 'Timesteps:  LAST',  
+                    WRITE( MESG,94040 ) 'Timesteps:  LAST',
      &                         LDATE3( VID,FID ), LTIME3( VID,FID ),
      &              '; NEXT',  NDATE3( VID,FID ), NTIME3( VID,FID )
                     CALL M3MSG2( MESG )
-                    MESG = 'Error reading ' // 
+                    MESG = 'Error reading ' //
      &                      VAR16( 1:VLEN ) // ' from ' //
      &                      FIL16( 1:FLEN )
                     CALL M3WARN( NAMBUF, JDATE, JTIME, MESG )
@@ -784,14 +781,14 @@ C..........   If read will be necessary, check timestep flags first:
                 END IF              !  if bufvgt() fails
             ELSE IF ( VTYPE3( VID,FID ) .EQ. M3DBLE ) THEN
                 IF ( 0 .EQ. BUFVGT3D( FID, VID, RFLAG, DIMS, DELS,
-     &                           NLAYS3( FID ) * BSIZE3( FID ), 
+     &                           NLAYS3( FID ) * BSIZE3( FID ),
      &                           DELTA, TSTEP3( FID ) ) ) THEN
 
-                    WRITE( MESG,94040 ) 'Timesteps:  LAST',  
+                    WRITE( MESG,94040 ) 'Timesteps:  LAST',
      &                         LDATE3( VID,FID ), LTIME3( VID,FID ),
      &              '; NEXT',  NDATE3( VID,FID ), NTIME3( VID,FID )
                     CALL M3MSG2( MESG )
-                    MESG = 'Error reading ' // 
+                    MESG = 'Error reading ' //
      &                      VAR16( 1:VLEN ) // ' from ' //
      &                      FIL16( 1:FLEN )
                     CALL M3WARN( NAMBUF, JDATE, JTIME, MESG )
@@ -805,6 +802,7 @@ C..........   If read will be necessary, check timestep flags first:
 
 !$OMP   END CRITICAL( S_INTERP )
 
+1001    CONTINUE
 	IF ( EFLAG ) THEN
             IF ( XFLAG ) THEN
                 INTERPX = .FALSE.
@@ -844,10 +842,19 @@ C...........   status and return accordingly:
             DELS(3) = LAY0
             DELT(3) = LAY1
 
-            INTERPX = ( BUFINTX( FID, VID, NLAYS3( FID )*BSIZE3( FID ),
-     &                           ILAST3( VID,FID ), TSTEP3( FID ),
-     &                           DIMS, DELS, DELT, 
-     &                           P, Q, BUFFER ) .NE. 0 )
+            IF ( VTYPE3( VID,FID ) .EQ. M3REAL ) THEN
+                INTERPX = ( BUFINTX( FID, VID,
+     &                               NLAYS3( FID )*BSIZE3( FID ),
+     &                               ILAST3( VID,FID ), TSTEP3( FID ),
+     &                               DIMS, DELS, DELT,
+     &                               P, Q, BUFFER ) .NE. 0 )
+            ELSE IF ( VTYPE3( VID,FID ) .EQ. M3DBLE ) THEN
+                INTERPX = ( BUFINTXD( FID, VID,
+     &                                NLAYS3( FID )*BSIZE3( FID ),
+     &                                ILAST3( VID,FID ), TSTEP3( FID ),
+     &                                DIMS, DELS, DELT,
+     &                                PP, QQ, BUFFER ) .NE. 0 )
+            END IF
 
             EFLAG   = ( .NOT. INTERPX )
 
@@ -866,11 +873,11 @@ C...........   status and return accordingly:
             EFLAG   = ( .NOT. INTERP3 )
 
         END IF          !  if XFLAG or not
-        
+
         IF ( EFLAG ) THEN
-            MESG   =  'Could not interpolate "' 
+            MESG   =  'Could not interpolate "'
      &                 // VAR16( 1:VLEN )
-     &                 // '" from file "' 
+     &                 // '" from file "'
      &                 // FIL16( 1:FLEN ) // '"'
             CALL M3WARN( NAMBUF, JDATE, JTIME, MESG )
             IF( CDFID3( FID ) .GE. 0 ) THEN	!  not a buffered virtual file
@@ -882,20 +889,14 @@ C...........   status and return accordingly:
 
 C******************  FORMAT  STATEMENTS   ******************************
 
-C...........   Error and warning message formats..... 91xxx
-
-91010   FORMAT ( A , I5 )
-
 C...........   Internal buffering formats............ 94xxx
 
 94010   FORMAT( A, I7, A, I7 )
 
-94020   FORMAT( A, I4, 2X, A )
-
 94030   FORMAT( I7.7, ':', I6.6, A, I7.7, ':', I6.6, A, I8 , A )
 
-94040   FORMAT( A, :, I9.7, ':', I6.6 )
+94040   FORMAT( 2( A, :, I9.7, ':', I6.6, : ) )
 
 
-        END             !  logical function interp3
+        END FUNCTION INTERP3
 

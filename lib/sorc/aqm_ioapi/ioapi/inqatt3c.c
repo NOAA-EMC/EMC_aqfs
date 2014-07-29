@@ -5,7 +5,7 @@ VERSION:
     "inqatt3c.c" version "@(#)$Header$"
 
 COPYRIGHT (C) 1992-2002 MCNC and Carlie J. Coats, Jr., and
-    (C) 2003 Baron Advanced Meteorological Systems.
+    (C) 2003-2010 Baron Advanced Meteorological Systems.
     Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
     See file "LGPL.txt" for conditions of use.
 
@@ -29,6 +29,9 @@ REVISION HISTORY:
 
     Modified 10/2003 by CJC for I/O APIv3:  cross-language FINT/FSTR_L
     type resolution modifications
+
+    Modified 11/2005 by CJC:  extra name-mangling for Absoft Pro Fortran:
+    upper-case Fortran  symbols, prepend _C to common blocks.
 **************************************************************************/
 
 #include  <string.h>
@@ -50,7 +53,7 @@ REVISION HISTORY:
 #define  BUFLEN  512
 
 
-#if defined(INQATT3)
+#if defined(INQATT3) || defined(ABSFT)
 
     extern FINT INQATT3( const char * fname ,
                          const char * vname ,
@@ -160,58 +163,11 @@ int inqatt3c( const char          * fname ,
                 	/** END  CASE OF Win32 **/
                 	/** NEXT CASE:  CRAY-TARGETED inqatt3c(): **/
 
-#elif  defined(_CRAY)   /** treatment:  CRAY arryas of strings?? **/
+#elif  defined(_CRAY)   /** treatment:  CRAY arrys of strings?? **/
 
 #if( 0 )    /** if 0 **/
 
 #include <fortran.h>
-
-/** -------------------- Cray fstr2cstr() ----------------------------- **/
-
-static void  fstr2cstr( const _fcd   source, 
-                        char       * target, 
-                        int          tlen )
-    {
-    char *ptr, *bound, ch ;
-    int   slen, length ;
-
-    slen = _fcdlen( source ) ;
-    tlen-- ;
-
-    length = ( slen < tlen ? slen : tlen ) ;
-    ptr    = _fcdtocp( source ) ;
-    for ( bound  = ptr + length ; ptr < bound ; target++ , ptr++ )
-        {
-        *target = *ptr ;
-        }
-    
-    *target = '\0' ;
-    
-    }           /** END Cray fstr2cstr() **/
-
-
-/** --------------------- Cray cstr2fstr() ---------------------------- **/
-
-static void  cstr2fstr( const char * source,
-                        _fcd         target )
-    {
-    char *bound ;
-    char *ptr ;
-    char  ch ;
-    int   length ;
-
-    length = _fcdlen ( target ) ;
-    ptr    = _fcdtocp( target ) ;
-    for (  bound  = ptr + length ;  ptr < bound ;  ptr++ , source++ )
-        {
-        if ( !( ch = *source ) ) break ;
-        *ptr = ch ;
-        }
-    for ( ; ptr < bound ; ptr++ )
-        {
-        *ptr = ' ' ;
-        }
-    }           /** END Cray cstr2fstr() **/
 
 
     extern FINT INQATT3( const _fcd   fname ,

@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/pcoef.f,v 1.2 2000/11/28 21:22:59 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE  PCOEF( N, X, Y, C )
 
 C***********************************************************************
-C  subroutine body starts at line  56
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line  54
 C
 C  FUNCTION:  returns array C of polynomial coefficients
 C	for the polynomial fitting the data 
@@ -22,22 +22,22 @@ C
 C  REVISION  HISTORY:
 C	Prototype 11/95 by CJC adapted from _Numerical_Recipes_,
 C	section 3.5 (pp. 92-94), routine POLCOE
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
 
 C...........   ARGUMENTS and their descriptions:
 
-        INTEGER		N
-        REAL		X( N )
-        REAL		Y( N )
-        REAL		C( N )
+        INTEGER, INTENT(IN   ) :: N
+        REAL   , INTENT(IN   ) :: X( N )
+        REAL   , INTENT(IN   ) :: Y( N )
+        REAL   , INTENT(  OUT) :: C( N )
 
 
 C...........   PARAMETERS and their descriptions:
 
-        INTEGER		NMAX
-        PARAMETER     ( NMAX = 15 )
+        INTEGER, PARAMETER :: NMAX = 15
 
 
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
@@ -99,5 +99,5 @@ C   begin body of subroutine  PCOEF
 
         RETURN
 
-        END
+        END SUBROUTINE PCOEF
 

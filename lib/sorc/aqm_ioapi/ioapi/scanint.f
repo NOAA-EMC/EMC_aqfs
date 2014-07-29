@@ -1,15 +1,15 @@
 
-C.........................................................................
-C Version "@(#)$Header: /env/proj/archive/cvs/ioapi/./ioapi/src/SCANINT.f,v 1.2 2000/11/28 21:23:05 smith_w Exp $"
-C EDSS/Models-3 I/O API.  Copyright (C) 1992-1999 MCNC
-C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
-C See file "LGPL.txt" for conditions of use.
-C.........................................................................
-
         SUBROUTINE SCANINT( STRING, VALUE, NCHARS, NDIGITS )
 
 C***********************************************************************
-C  subroutine body starts at line 57
+C Version "@(#)$Header$"
+C EDSS/Models-3 I/O API.
+C Copyright (C) 1992-2002 MCNC and Carlie J. Coats, Jr.,
+C (C) 2003-2010 by Baron Advanced Meteorological Systems.
+C Distributed under the GNU LESSER GENERAL PUBLIC LICENSE version 2.1
+C See file "LGPL.txt" for conditions of use.
+C.........................................................................
+C  subroutine body starts at line 68
 C
 C  RETURNS:
 C       INTEGER
@@ -34,6 +34,7 @@ C
 C  REVISION  HISTORY:
 C       Adapted 7/2001 by CJC from STR2INT()
 C
+C       Modified 03/2010 by CJC: F90 changes for I/O API v3.1
 C***********************************************************************
 
       IMPLICIT NONE
@@ -45,14 +46,13 @@ C...........   INCLUDES:
 
 C...........   ARGUMENTS and their descriptions:
 
-        CHARACTER*(*)   STRING
-        INTEGER         VALUE, NCHARS, NDIGITS
+        CHARACTER*(*), INTENT(IN   ) :: STRING
+        INTEGER      , INTENT(  OUT) :: VALUE, NCHARS, NDIGITS
 
 
 C...........   PARAMETERS
             
-        CHARACTER*1     BLANK
-        PARAMETER     ( BLANK = ' ' )
+        CHARACTER*1, PARAMETER :: BLANK = ' '
         
 C...........   SCRATCH LOCAL VARIABLES and their descriptions:
 
@@ -116,5 +116,5 @@ C.......   If you get to here:  no number there
         END IF
         
         RETURN
-        END
+        END SUBROUTINE SCANINT
 
