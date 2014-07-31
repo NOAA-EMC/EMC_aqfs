@@ -128,8 +128,8 @@ yesterday=${YYm1}${jjm1}
 #=============================================
  export COM=/com/${NET}/${envir}
  export COMIN=${COMIN:-/com/${NET}/prod/${RUN}.${PDY}}
- export COMINm1=${COMINm1:-/com/${NET}/para1/${RUN}.${PDYm1}}
- export COMOUT=${COMOUT:-/com/${NET}/para1/${RUN}.${PDY}}
+ export COMINm1=${COMINm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
+ export COMOUT=${COMOUT:-/com/${NET}/prod/${RUN}.${PDY}}
  export COMNAM=${COMNAM:-/com/${NET}/prod/${RUN}.${PDY}}
  export COMNAMm1=${COMNAMm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
 
