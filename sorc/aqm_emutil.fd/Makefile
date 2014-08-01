@@ -20,6 +20,7 @@
 #
  FILESETAPI=$(DIR)/lib/sorc/aqm_filesetapi
  EDSS_TOOLS=$(DIR)/lib/sorc/aqm_edss_tools
+ ESMOKE_TOOLS=$(DIR)/lib/sorc/aqm_smoke
  EMMOD=$(DIR)/sorc/aqm_emmod.fd
 #
 
@@ -32,6 +33,7 @@ FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)      \
 	 -I$(mydir)/$(EDSS_EXE) \
 	 -I$(EMMOD)/$(EDSS_EXE) \
+	 -I$(ESMOKE_TOOLS)/$(EDSS_EXE) \
 	 -I$(EDSS_TOOLS)/$(EDSS_EXE)
 	 
 #FFLAGS = -O2 -save -zero -extend_source -nbs -W0 \

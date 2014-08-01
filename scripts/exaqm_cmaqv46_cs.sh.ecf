@@ -159,8 +159,8 @@ fi
  export CTM_WVEL=Y
 
 #para4 run for NAMx + 2014-real_emission + snow_modulate_pm_emiss + NTR
-# export NTR_FAST=Y
- export NTR_FAST=N
+ export NTR_FAST=Y
+# export NTR_FAST=N
 
 #------------------------------------------------------
 # Convert PDY to day of year
