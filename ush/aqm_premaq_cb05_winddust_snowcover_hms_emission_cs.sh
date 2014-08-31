@@ -88,6 +88,7 @@ export err=$?;err_chk
 
 if [ -e $EMIS_1 ]; then
  echo "dust emissions merge done"
+ cp ${DATA}/CCTM_DUST_${sdate}.ncf $COMOUT/CCTM_DUST_${cycle}_${sdate}.ncf
 else
  echo "error in dust emissions merge"
  exit 32

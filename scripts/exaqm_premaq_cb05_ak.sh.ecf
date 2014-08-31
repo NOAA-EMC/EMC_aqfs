@@ -541,7 +541,7 @@ if [ "$SENDCOM" = 'YES' ]; then
      mv $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
 #     cp $DATA/CHEMBDY3D $COMOUT/aqm.${cycle}.chembdy3d.ncf
 #     cp $DATA/CHEMCRO3D $COMOUT/aqm.${cycle}.chemcro3d.ncf
-     mv /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
+#jp     mv /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
      mv $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
      mv $DATA/soilout.${PDY}.${OUTGRID}.ncf     $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 

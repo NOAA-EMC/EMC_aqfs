@@ -2,7 +2,7 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_post1_5xpmnmmb.sh
+# Script name:         exaqm_post1_5xozconnmmb.sh
 # Script description:  Run CMAQ post processing 
 #
 # Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
@@ -48,7 +48,7 @@ export XLFRTEOPTS="unit_vars=yes"
     fi
   done
 
-export pgm=aqm_post_5xpmnmmb
+export pgm=aqm_post1_5xozconnmmb
 . prep_step
 
 export CHEM3D=${COMIN}/aqm.${cycle}.aconc.ncf
@@ -163,9 +163,9 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
    $utilexec/copygb -N ozcon_scale -g 227 -x -i"1 1" tmpfile tmpfile2
    export err=$?;err_chk
 
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5xpmnmmb.227
+   $utilexec/cnvgrib -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5xozconnmmb.227
    export err=$?;err_chk
-   cp -p aqm.t${cyc}z.grib2_5xpmnmmb.227 $COMOUT
+   cp -p aqm.t${cyc}z.grib2_5xozconnmmb.227 $COMOUT
 
    $utilexec/copygb -N ozcon_scale -g 227 -x -i"1 1" tmpfile.1hr tmpfile2.1hr
    export err=$?;err_chk
@@ -180,7 +180,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
    cp -p aqm.t${cyc}z.grib2_1hr.227 aqm.t${cyc}z.grib2_8hr.227 $COMOUT
    
    if [ "$SENDDBN" = 'YES' ] ; then
-    $DBNROOT/bin/dbn_alert MODEL AQM_03CONC_GB2 $job  $COMOUT/aqm.t${cyc}z.grib2_5xpmnmmb.227
+    $DBNROOT/bin/dbn_alert MODEL AQM_03CONC_GB2 $job  $COMOUT/aqm.t${cyc}z.grib2_5xozconnmmb.227
     $DBNROOT/bin/dbn_alert MODEL AQM_1Hr_03CONC_GB2 $job $COMOUT/aqm.t${cyc}z.grib2_1hr.227
     $DBNROOT/bin/dbn_alert MODEL AQM_8Hr_03CONC_GB2 $job $COMOUT/aqm.t${cyc}z.grib2_8hr.227
    fi
@@ -194,22 +194,22 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
    typeset -Z2 hr
        echo 0 > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export XLFUNIT_11=aqm.t${cyc}z.grib2_5xpmnmmb.227
+       export XLFUNIT_11=aqm.t${cyc}z.grib2_5xozconnmmb.227
        export XLFUNIT_12="filesize"
        export XLFUNIT_31=
-       export XLFUNIT_51=grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.temp
+       export XLFUNIT_51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
 #       $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.227
-       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xozconnmmb_aqm_${hr}.227.${cycle}
 #       export err=$?;err_chk
 
-       echo `ls -l grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
+       echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export XLFUNIT_11=grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.temp
+       export XLFUNIT_11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
        export XLFUNIT_12="filesize"
        export XLFUNIT_31=
-       export XLFUNIT_51=grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.227
+       export XLFUNIT_51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227
 #       $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.227
-       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xozconnmmb_aqm_${hr}.227.${cycle}
 #       export err=$?;err_chk
 
 
@@ -219,14 +219,14 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
        if test "$SENDPCOM" = 'YES'
        then
-           cp grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.227  $pcom/grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.227.$job
+           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $pcom/grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227.$job
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN" = 'YES' ] ; then
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.t${cyc}z.awp5xpmnmmb_aqm_${hr}.227.$job
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227.$job
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"

@@ -9,7 +9,6 @@ export fdir=${fdir:-}
 export fdir=${fdir}/nw${envir}/cmaq.${model_ver}/sorc
 
 for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
-#for src in emmod emutil emqa smkinven point temporal grdmat spcmat smkmerge 
 do
 cd ${fdir}/aqm_${src}.fd
 make clean

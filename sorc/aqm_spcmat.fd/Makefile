@@ -4,9 +4,9 @@
 #
 #usrdir     = /naqfc/save/$(USER)
 #envir      = para
- DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
-#DIR        = $(usrdir)/nw$(envir)/cmaq.v4.6.3
+DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
 LIB_LOC   = $(DIR)/lib
+NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
 #
 mydir=$(PWD)
 EDSS_EXE=Linux2_x86ifort
@@ -37,7 +37,7 @@ MD_SRC 	=$(mydir)
 ETDSRC 	=$(mydir)
 FS_ROOT =$(mydir)
 	 
-LIBS       = -L$(LIB_LOC) $(LIBS_SYS) $(LIBS_COMPILE)
+LIBS       = -L$(LIB_LOC)  -L$(NCF_LIB) $(LIBS_SYS) $(LIBS_COMPILE)
 LIBPATH    = $(LIB_LOC)/libaqm_smoke.a $(LIB_LOC)/libaqm_edsstools.a
 
 #

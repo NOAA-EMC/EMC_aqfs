@@ -44,6 +44,28 @@ $utilexec/copygb -g 198 -x -i"1 1" aqm-maxi.140.grib aqm-maxi.198.grib
 $utilexec/wgrib -s aqm-maxi.198.grib | grep "OZMAX1" | $utilexec/wgrib -i aqm-maxi.198.grib -grib -o aqm-1hro3-maxi.198.grib
 $utilexec/wgrib -s aqm-maxi.198.grib | grep "OZMAX8" | $utilexec/wgrib -i aqm-maxi.198.grib -grib -o aqm-8hro3-maxi.198.grib
 
+#jp0
+cat >cmaq-maxi2grib.ini <<EOF5
+&control
+markutc=04
+outfile='aqm-pm25_24hr.140.grib'
+varlist='pm25_24hr'
+id_gribdomain=140
+/
+EOF5
+
+startmsg
+$EXECaqm/aqm_post_maxi_CHA
+export err=$?;err_chk
+
+$utilexec/copygb -g 198 -x -i"1 1" aqm-pm25_24hr.140.grib aqm-pm25_24hr.198.grib
+
+$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PDMAX24" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-24hr_pm25_max_daily.198.grib
+
+$utilexec/cnvgrib -g12 -m -p32  aqm-24hr_pm25_max_daily.198.grib aqm-24hr_pm25_max_daily.198.grib2
+
+#jp9
+
 for hr in 1 8
 do
 
@@ -93,6 +115,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp grib2.${envir}.${cycle}.aqm-1hro3-max.198 $COMOUT/
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.198 $COMOUT/
  cp aqm-maxi.140.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.140
+ cp aqm-24hr_pm25_max_daily.198.grib $COMOUT/grib.${envir}.${cycle}.aqm-24hr_pm25_max_daily.198
+ cp aqm-24hr_pm25_max_daily.198.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-24hr_pm25_max_daily.198
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.198
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.198

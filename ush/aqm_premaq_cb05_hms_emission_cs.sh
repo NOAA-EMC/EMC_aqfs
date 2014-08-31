@@ -100,10 +100,15 @@ data=`tail -1 $DATA/NOAA${num}_${date9}.OUT`
   pm10=`tail -1 $DATA/NOAA${num}_${date9}.OUT | cut -d, -f4`
   pm=`tail -1 $DATA/NOAA${num}_${date9}.OUT | cut -d, -f5`
    
-  pm25=`echo $pm25 /6.0 /1.46 |bc -l | cut -d. -f1`
-  pm10=`echo $pm10 /6.0 /1.46 |bc -l | cut -d. -f1`
-  pm=`echo $pm /6.0 |bc -l | cut -d. -f1`
+##  pm25=`echo $pm25 /6.0 /1.46 |bc -l | cut -d. -f1`
+##  pm10=`echo $pm10 /6.0 /1.46 |bc -l | cut -d. -f1`
+##  pm=`echo $pm /6.0 |bc -l | cut -d. -f1`
 
+##by lpan 0807  
+  pm25=`echo $pm25 /6.0 /1.46 |bc -l`
+  pm10=`echo $pm10 /6.0 /1.46 |bc -l`
+  pm=`echo $pm /6.0 |bc -l`
+  
   co=`tail -1 $DATA/NOAA${num}_${date9}.OUT | cut -d, -f6 `
   co2=`tail -1 $DATA/NOAA${num}_${date9}.OUT | cut -d, -f7`
   ch4=`tail -1 $DATA/NOAA${num}_${date9}.OUT | cut -d, -f8`

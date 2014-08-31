@@ -1,11 +1,8 @@
-# Version @(#)$Id: Makefile,v 1.6 2003/12/02 15:38:32 cseppan Exp $
-# Path    $Source: /afs/isis/depts/cep/emc/apps/archive/smoke/smoke/src/emmod/Makefile,v $
-# Date    $Date: 2003/12/02 15:38:32 $ 
-
-#usrdir     = /naqfc/save/$(USER)
-#envir      = para
+usrdir     = /naqfc/save/$(USER)
+envir      = para
+model_ver  =v4.6.3
 DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
-#DIR        = $(usrdir)/nw$(envir)/cmaq.v4.6.3
+
 LIB_LOC    = $(DIR)/lib
 #
 

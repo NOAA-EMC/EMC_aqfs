@@ -4,7 +4,7 @@
 # DIR        = $(usrdir)/nw$(envir)/cmaq.v4.6.3
  
  LIB_LOC    = $(DIR)/lib 
- LNTCDF     = -L/usrx/local/NetCDF/3.6.3/lib
+ LNTCDF     = /usrx/local/NetCDF/3.6.3/lib
 
  TARGET     = aqm_fengsha
 

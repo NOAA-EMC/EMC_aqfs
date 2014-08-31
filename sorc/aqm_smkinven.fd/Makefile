@@ -13,6 +13,7 @@ EDSS_EXE   =Linux2_x86ifort
 
 LDIRS      =-L/$(mydir)/$(EDSS_EXE)
 
+NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
 
 LIBS_SYS  = -laqm_smoke -laqm_fileset -laqm_edsstools -laqm_ioapi -lnetcdf
 LIBS_COMPILE =
@@ -40,7 +41,7 @@ ETDSRC =$(mydir)
 FS_ROOT =$(mydir)
 
 #
-LIBS       = -L$(LIB_LOC) $(LIBS_SYS) $(LIBS_COMPILE)
+LIBS       = -L$(LIB_LOC) -L$(NCF_LIB) $(LIBS_SYS) $(LIBS_COMPILE)
 LIBPATH    = $(LIB_LOC)/libaqm_smoke.a $(LIB_LOC)/libaqm_edsstools.a
 
 
