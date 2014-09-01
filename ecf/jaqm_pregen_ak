@@ -1,0 +1,45 @@
+#!/bin/ksh
+#
+#BSUB -o /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_ak.out
+#BSUB -e /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_ak.out
+#BSUB -J jcmaq_pregen_ak
+#BSUB -n 4
+#BSUB -x
+#BSUB -R span[ptile=1]
+#BSUB -W 00:30
+##BSUB -q dev
+#BSUB -q devhigh 
+#BSUB -P naqfc 
+#BSUB -a poe
+##BSUB -a openmpi
+##
+
+export MP_SHARED_MEMORY=yes
+export MEMORY_AFFINITY=MCM
+export MP_EUILIB=us
+export MP_EUIDEVICE=sn_all
+export MP_MPILIB=mpich2
+export MP_STDOUTMODE=unordered
+export MP_LABELIO=yes
+export MP_TASK_AFFINITY=core
+#
+
+# EXPORT list here
+set -ax
+export envir=para
+export PARAFLAG=YES
+ 
+${HOMEaqm}/jobs/JAQM_PREPHYB_AK
+
+err=$?
+if [ "${PARAFLAG}" = "YES" ]
+then
+ #err=$?
+  if [ ${err} -ne 0 ]
+  then
+    exit 249
+  fi
+fi
+
+
+

@@ -1,0 +1,54 @@
+#!/bin/ksh
+#
+#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_post1_ak.out
+#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_post1_ak.out 
+#BSUB -J jaqm_post1_ak
+#BSUB -n 1 
+#BSUB -x
+#BSUB -R span[ptile=1]
+#BSUB -W 00:50
+##BSUB -R rusage[mem=2500]
+#BSUB -W 00:20
+#BSUB -q devhigh
+#BSUB -P naqfc 
+##BSUB -a poe
+
+module load ics
+module load ibmpe
+
+ulimit -s unlimited
+
+export LANG=en_US
+export MP_EAGER_LIMIT=65536
+export MP_COREFILE_FORMAT=core.txt
+export MP_EUIDEVELOP=min
+export MP_EUIDEVICE=sn_all
+export MP_EUILIB=us
+export MP_MPILIB=mpich2
+
+export MP_LABELIO=yes
+export MP_SINGLE_THREAD=yes
+export MP_TASK_AFFINITY=cpu
+#export MP_USE_BULK_XFER=yes
+export MPICH_THROTTLE_ALLTOALL=0
+
+
+# EXPORT list here
+set -ax
+#export envir=para
+export PARAFLAG=YES
+ 
+${HOMEaqm}/jobs/JAQM_POST1_AK
+
+err=$?
+if [ "${PARAFLAG}" = "YES" ]
+then
+ #err=$?
+  if [ ${err} -ne 0 ]
+  then
+    exit 249
+  fi
+fi
+
+
+
