@@ -49,7 +49,7 @@ cat >cmaq-maxi2grib.ini <<EOF5
 &control
 markutc=04
 outfile='aqm-pm25_24hr.139.grib'
-varlist='pm25_24hr'
+varlist='pm25_1hr','pm25_24hr'
 id_gribdomain=139
 /
 EOF5
@@ -60,9 +60,13 @@ export err=$?;err_chk
 
 $utilexec/copygb -g 196 -x -i"1 1" aqm-pm25_24hr.139.grib aqm-pm25_24hr.196.grib
 
+$utilexec/wgrib -s aqm-pm25_24hr.196.grib | grep "PDMAX1" | $utilexec/wgrib -i aqm-pm25_24hr.196.grib -grib -o aqm-1hr_pm25_max_daily.196.grib
 $utilexec/wgrib -s aqm-pm25_24hr.196.grib | grep "PDMAX24" | $utilexec/wgrib -i aqm-pm25_24hr.196.grib -grib -o aqm-24hr_pm25_max_daily.196.grib
+$utilexec/wgrib -s aqm-pm25_24hr.196.grib | grep "PMTF" | $utilexec/wgrib -i aqm-pm25_24hr.196.grib -grib -o aqm-24hr_pm25_ave_daily.196.grib
 
+$utilexec/cnvgrib -g12 -m -p32  aqm-1hr_pm25_max_daily.196.grib aqm-1hr_pm25_max_daily.196.grib2 
 $utilexec/cnvgrib -g12 -m -p32  aqm-24hr_pm25_max_daily.196.grib aqm-24hr_pm25_max_daily.196.grib2 
+$utilexec/cnvgrib -g12 -m -p32  aqm-24hr_pm25_ave_daily.196.grib aqm-24hr_pm25_ave_daily.196.grib2 
 
 #jp9
 
@@ -116,8 +120,12 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp grib2.${envir}.${cycle}.aqm-1hro3-max.196 $COMOUT/
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.196 $COMOUT/
  cp aqm-maxi.139.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.139
+ cp aqm-1hr_pm25_max_daily.196.grib $COMOUT/grib.${envir}.${cycle}.aqm-1hr_pm25_max_daily.196
  cp aqm-24hr_pm25_max_daily.196.grib $COMOUT/grib.${envir}.${cycle}.aqm-24hr_pm25_max_daily.196
+ cp aqm-24hr_pm25_ave_daily.196.grib $COMOUT/grib.${envir}.${cycle}.aqm-24hr_pm25_ave_daily.196
+ cp aqm-1hr_pm25_max_daily.196.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-1hr_pm25_max_daily.196
  cp aqm-24hr_pm25_max_daily.196.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-24hr_pm25_max_daily.196
+ cp aqm-24hr_pm25_ave_daily.196.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-24hr_pm25_ave_daily.196
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_HI_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.196
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_HI_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.196

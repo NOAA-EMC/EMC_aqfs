@@ -460,6 +460,17 @@
 !	endif
 
         call gribitb(lb,work,imax,jmax,51,kpds)
+!jp0
+       if(varlist(L).eq.'pm25_24hr') then
+         kpds(5)=157      
+         do i = (mday-1)*24+1, mday*24
+           kpds(14)=i
+           kpds(15)=i+23
+           work(1:imax,1:jmax)=pm25_24hr(1:imax,1:jmax,i)   ! 24hr_pm25 average 
+           call gribitb(lb,work,imax,jmax,51,kpds)
+         enddo
+       endif
+!jp9      
 	  
         enddo 
 	

@@ -94,7 +94,7 @@ varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN
 metlist='    '
 outfile='aqm.${cycle}.sigma'
 nlayers=1
-id_gribdomain=140
+id_gribdomain=148
 ave1hr=.true.
 /
 EOF5
