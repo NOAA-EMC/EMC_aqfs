@@ -128,8 +128,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp aqm-1hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.1hpm25-max.227.grib2
 # cp aqm-24hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.24hpm25-max.227.grib2
  cp aqm-24hr-pm25-daily-ave.227.grib2 $COMOUT/aqm.${cycle}.24hpm25-ave.227.grib2
-# $utilexec/copygb -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
-# $utilexec/cnvgrib -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.daily-max.227.grib2
+ $utilexec/copygb -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
+ $utilexec/cnvgrib -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.daily-max.227.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.aqm.${cycle}.1ho3-max.227
   $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_GB2 $job $COMOUT/grib2.aqm.${cycle}.8ho3-max.227
