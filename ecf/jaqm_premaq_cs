@@ -6,7 +6,7 @@
 #BSUB -n 1 
 #BSUB -x
 #BSUB -R span[ptile=1]
-#BSUB -W 00:59
+#BSUB -W 01:29
 ##BSUB -q dev
 #BSUB -q devhigh
 #BSUB -R "rusage[mem=10000]"

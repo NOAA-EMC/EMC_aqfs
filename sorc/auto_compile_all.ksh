@@ -1,11 +1,15 @@
 #!/bin/ksh
 
 set -ax
+if [ ${USER}  = "Jianping.Huang" ]
+then
 export fdir=/naqfc/save/${USER}  
 export usrdir=/naqfc/save/${USER}
 export model_ver=v4.6.3
 export envir=para
+fi
 export fdir=${fdir:-}
+export usrdir=${usrdir:-}
 export fdir=${fdir}/nw${envir}/cmaq.${model_ver}/sorc
 
 for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 

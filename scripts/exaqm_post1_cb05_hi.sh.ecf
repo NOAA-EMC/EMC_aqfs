@@ -167,24 +167,25 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
    $utilexec/cnvgrib -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_HIozconnmmb.196
    export err=$?;err_chk
-   cp -p aqm.t${cyc}z.grib2_HIozconnmmb.196 $COMOUT
+#   cp -p aqm.t${cyc}z.grib2_HIozconnmmb.196 $COMOUT/aqm.t${cyc}z.o3.196.grib2
 
    $utilexec/copygb -N ozcon_scale -g 196 -x -i"1 1" tmpfile.1hr tmpfile2.1hr
    export err=$?;err_chk
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.1hr aqm.t${cyc}z.grib2_HI_1hr.196
+   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.1hr aqm.t${cyc}z.grib2.HI.1ho3.196
    export err=$?;err_chk
 
    $utilexec/copygb -N ozcon_scale -g 196 -x -i"1 1" tmpfile.8hr tmpfile2.8hr
    export err=$?;err_chk
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.8hr aqm.t${cyc}z.grib2_HI_8hr.196
+   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.8hr aqm.t${cyc}z.grib2.HI.8ho3.196
    export err=$?;err_chk
 
-   cp -p aqm.t${cyc}z.grib2_HI_1hr.196 aqm.t${cyc}z.grib2_HI_8hr.196 $COMOUT
+   cp -p aqm.t${cyc}z.grib2.HI.1ho3.196  $COMOUT/aqm.t${cyc}z.1ho3.196.grib2   
+   cp -p aqm.t${cyc}z.grib2.HI.8ho3.196 $COMOUT/aqm.t${cyc}z.8ho3.196.grib2  
    
    if [ "$SENDDBN" = 'YES' ] ; then
-    $DBNROOT/bin/dbn_alert MODEL AQM_03CONC_HI_GB2 $job  $COMOUT/aqm.t${cyc}z.grib2_HIozconnmmb.196
-    $DBNROOT/bin/dbn_alert MODEL AQM_1Hr_03CONC_HI_GB2 $job $COMOUT/aqm.t${cyc}z.grib2_HI_1hr.196
-    $DBNROOT/bin/dbn_alert MODEL AQM_8Hr_03CONC_HI_GB2 $job $COMOUT/aqm.t${cyc}z.grib2_HI_8hr.196
+#    $DBNROOT/bin/dbn_alert MODEL AQM_03CONC_HI_GB2 $job  $COMOUT/aqm.t${cyc}z.grib2_HIozconnmmb.196
+    $DBNROOT/bin/dbn_alert MODEL AQM_1Hr_03CONC_HI_GB2 $job $COMOUT/aqm.t${cyc}z.1ho3.196.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_8Hr_03CONC_HI_GB2 $job $COMOUT/aqm.t${cyc}z.8ho3.196.grib2
    fi
    
    ##############################
@@ -218,14 +219,14 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
        if test "$SENDPCOM" = 'YES'
        then
-           cp grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.196  $pcom/grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.196.$job
+           cp grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.196  $pcom/grib2.awpaqm.t${cyc}z.${hr}ho3.196
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN" = 'YES' ] ; then
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.196.$job
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.awpaqm.t${cyc}z.${hr}ho3.196
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"

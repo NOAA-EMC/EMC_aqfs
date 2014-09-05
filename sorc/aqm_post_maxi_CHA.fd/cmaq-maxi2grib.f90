@@ -461,16 +461,28 @@
 
         call gribitb(lb,work,imax,jmax,51,kpds)
 !jp0
-       if(varlist(L).eq.'pm25_24hr') then
-         kpds(5)=157      
-         do i = (mday-1)*24+1, mday*24
-           kpds(14)=i
-           kpds(15)=i+23
-           work(1:imax,1:jmax)=pm25_24hr(1:imax,1:jmax,i)   ! 24hr_pm25 average 
-           call gribitb(lb,work,imax,jmax,51,kpds)
-         enddo
+      if(varlist(L).eq.'pm25_24hr') then
+        kpds(5)=157
+        tmp_t1=kpds(14)
+        tmp_t2=kpds(15)
+!        do i = (mday-1)*24+1, mday*24  !
+        do i = (mday-1)*24+1, mday*24+1,24  !
+          kpds(14)=tmp_t1+i-25
+         if(kpds(14).lt.0) then
+          kpds(16)=7              ! time range indicator, table 5, P1
+          kpds(14)=-kpds(14)
+        else
+         kpds(16)=3     ! time range indicator, table 5
        endif
-!jp9      
+          kpds(15)=tmp_t2+i-25
+          work(1:imax,1:jmax)=pm25_24hr(1:imax,1:jmax,i)   ! 24hr_pm25 average
+          call gribitb(lb,work,imax,jmax,51,kpds)
+        enddo
+        kpds(14)=tmp_t1
+        kpds(15)=tmp_t2
+      endif
+
+!jp9
 	  
         enddo 
 	

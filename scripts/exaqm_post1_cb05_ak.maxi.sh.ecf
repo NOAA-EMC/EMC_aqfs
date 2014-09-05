@@ -60,13 +60,13 @@ export err=$?;err_chk
 
 $utilexec/copygb -g 198 -x -i"1 1" aqm-pm25_24hr.140.grib aqm-pm25_24hr.198.grib
 
-$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PDMAX1" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-1hr_pm25_max_daily.198.grib
-$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PDMAX24" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-24hr_pm25_max_daily.198.grib
-$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PMTF" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-24hr_pm25_ave_daily.198.grib
+$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PDMAX1" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-1hr-pm25-daily-max.198.grib
+$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PDMAX24" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-24hr-pm25-daily-max.198.grib
+$utilexec/wgrib -s aqm-pm25_24hr.198.grib | grep "PMTF" | $utilexec/wgrib -i aqm-pm25_24hr.198.grib -grib -o aqm-24hr-pm25-daily-ave.198.grib
 
-$utilexec/cnvgrib -g12 -m -p32  aqm-1hr_pm25_max_daily.198.grib aqm-1hr_pm25_max_daily.198.grib2
-$utilexec/cnvgrib -g12 -m -p32  aqm-24hr_pm25_max_daily.198.grib aqm-24hr_pm25_max_daily.198.grib2
-$utilexec/cnvgrib -g12 -m -p32  aqm-24hr_pm25_ave_daily.198.grib aqm-24hr_pm25_ave_daily.198.grib2
+$utilexec/cnvgrib -g12 -m -p32  aqm-1hr-pm25-daily-max.198.grib aqm-1hr-pm25-daily-max.198.grib2
+$utilexec/cnvgrib -g12 -m -p32  aqm-24hr-pm25-daily-max.198.grib aqm-24hr-pm25-daily-max.198.grib2
+$utilexec/cnvgrib -g12 -m -p32  aqm-24hr-pm25-daily-ave.198.grib aqm-24hr-pm25-daily-ave.198.grib2
 
 #jp9
 
@@ -99,14 +99,16 @@ rm filesize
 
        if test "$SENDCOM" = 'YES'
        then
-           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198  $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+ #          cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198  $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198  $pcom/grib2.awpaqm.${cycle}.${hr}ho3-max.198 
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN" = 'YES' ] ; then
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+#             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198.$job
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.awpaqm.${cycle}.${hr}ho3-max.198
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"
@@ -116,17 +118,19 @@ rm filesize
 done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
- cp grib2.${envir}.${cycle}.aqm-1hro3-max.198 $COMOUT/
- cp grib2.${envir}.${cycle}.aqm-8hro3-max.198 $COMOUT/
- cp aqm-maxi.140.grib $COMOUT/grib1.${envir}.${cycle}.aqm-daily-max.140
- cp aqm-1hr_pm25_max_daily.198.grib $COMOUT/grib.${envir}.${cycle}.aqm-1hr_pm25_max_daily.198
- cp aqm-24hr_pm25_max_daily.198.grib $COMOUT/grib.${envir}.${cycle}.aqm-24hr_pm25_max_daily.198
- cp aqm-24hr_pm25_ave_daily.198.grib $COMOUT/grib.${envir}.${cycle}.aqm-24hr_pm25_ave_daily.198
- cp aqm-1hr_pm25_max_daily.198.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-1hr_pm25_max_daily.198
- cp aqm-24hr_pm25_max_daily.198.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-24hr_pm25_max_daily.198
- cp aqm-24hr_pm25_ave_daily.198.grib2 $COMOUT/grib2.${envir}.${cycle}.aqm-24hr_pm25_ave_daily.198
+ cp grib2.${envir}.${cycle}.aqm-1hro3-max.198 $COMOUT/aqm.${cycle}.1ho3-max.198.grib2
+ cp grib2.${envir}.${cycle}.aqm-8hro3-max.198 $COMOUT/aqm.${cycle}.8ho3-max.198.grib2
+ cp aqm-maxi.140.grib $COMOUT/aqm.${cycle}.daily-max.140.grib
+ cp aqm-1hr-pm25-daily-max.198.grib $COMOUT/aqm.${cycle}.1hpm25.daily-max.198.grib
+# cp aqm-24hr-pm25-daily-max.198.grib $COMOUT/aqm.${cycle}-24hpm25.daily-max.198.grib
+ cp aqm-24hr-pm25-daily-ave.198.grib $COMOUT/aqm.${cycle}-24hpm25.daily-ave.198.grib
+ cp aqm-1hr-pm25-daily-max.198.grib2 $COMOUT/aqm.${cycle}-1hpm25.daily-max.198.grib2
+# cp aqm-24hr-pm25-daily-max.198.grib2 $COMOUT/aqm.${cycle}-24hpm25.daily-max.198.grib2
+ cp aqm-24hr-pm25-daily-ave.198.grib2 $COMOUT/aqm.${cycle}-24hpm25.daily-ave.198.grib2
+# $utilexec/copygb -g 198 -x -i"1 1" aqm-maxi.140.grib grib1.para.${cycle}.aqm-daily-max.198
+# $utilexec/cnvgrib -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.198 $COMOUT/aqm.${cycle}.daily-max.198.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
-  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-1hro3-max.198
-  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.${envir}.${cycle}.aqm-8hro3-max.198
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.aqm.${cycle}.1ho3-max.198
+  $DBNROOT/bin/dbn_alert MODEL AQM_03MAX_AK_GB2 $job $COMOUT/grib2.aqm.${cycle}.8ho3-max.198
  fi
 fi

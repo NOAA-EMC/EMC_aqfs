@@ -1,12 +1,16 @@
 #!/bin/ksh
 
 set -ax
+if [ ${USER}  = "Jianping.Huang" ]
+then
 export fdir=/naqfc/save/${USER}  
 export usrdir=/naqfc/save/${USER}
 export model_ver=v4.6.3
 export envir=para
+fi
 export fdir=${fdir:-}
 export fdir=${fdir}/nw${envir}/cmaq.${model_ver}/sorc
+export usrdir=${usrdir:-}
 
 for src in emmod emutil emqa smkinven point temporal grdmat spcmat smkmerge 
 
