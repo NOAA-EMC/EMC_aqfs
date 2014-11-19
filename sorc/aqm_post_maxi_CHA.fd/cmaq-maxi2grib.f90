@@ -389,12 +389,12 @@
 	
 	if((ksteps-23).lt.mday*24) cycle
 	
-         do i=1,imax
-	  do j=1,jmax
+!         do i=1,imax
+!	  do j=1,jmax
 !jp	   work(i,j)=maxval(pm25_24hr(i,j,(mday-1)*24+1:mday*24))   ! 24hr daily PM25 maximum
-	   work(i,j)=maxval(pm25_24hr(i,j,(mday-1)*24+1:min((mday-1)*24+24,ksteps)))   ! 24hr daily PM25 maximum
-          enddo
-	 enddo
+!	   work(i,j)=maxval(pm25_24hr(i,j,(mday-1)*24+1:min((mday-1)*24+24,ksteps)))   ! 24hr daily PM25 maximum
+!          enddo
+!	 enddo
 	 
 	 kpds(5)=234                                    ! 24hr daily PM25 maximum
          kpds(17)=24                                    ! Number included in average	 
@@ -424,24 +424,27 @@
 
        kpds(14)=nsteps    ! time range (0,6,12,18), or starting time for average, 0 f from markutc
        if(ntmpstep.lt.0) kpds(14)=1-nsteps   ! initial time is 1st time step, not 0th step
+         tmp9=kpds(14)
        
        if(varlist(L).eq.'pm25_24hr') then
          kpds(14)=kpds(14)+24   ! for 24hr maximum, we pick up second day
        else if(varlist(L).eq.'o3_8hr') then
          kpds(14)=kpds(14)+7   ! for 8hr maximum
        endif
+       if( ntmpstep.gt.0 .and. varlist(L).eq.'pm25_1hr') then
+         kpds(14)=kpds(14)-1
+       endif
+    
 
        if(istime(1).eq.istime(2)) then    ! same file
-!        kpds(15)=min(kpds(14)+23,maxrec2)
-        kpds(15)=min(kpds(14)+24,maxrec2)
+        kpds(15)=min(kpds(14)+23,maxrec2)
        else	      
-!       kpds(15)=min(kpds(14)+23,ksteps)    ! However, if the data in this GRIB record contain, for 
-       kpds(15)=min(kpds(14)+24,ksteps)    ! However, if the data in this GRIB record contain, for 
+        kpds(15)=min(kpds(14)+23,ksteps)    ! However, if the data in this GRIB record contain, for 
                                ! example, an average of a value from one time to another, kpds(14) will 
                                ! hold the value of the beginning time of the average, and kpds(15) will 
                                ! hold the ending time.
        endif
-       
+
        if(kpds(14).lt.0) then
         kpds(16)=7              ! time range indicator, table 5, P1
 	kpds(14)=-kpds(14)
@@ -469,7 +472,6 @@
         kpds(5)=157
         tmp_t1=kpds(14)
         tmp_t2=kpds(15)
-!        do i = (mday-1)*24+1, mday*24  !
         do i = (mday-1)*24+1, mday*24+1,24  !
            kpds(14)=tmp_t1+i-25
          if(kpds(14).lt.0) then
@@ -479,15 +481,13 @@
          kpds(16)=3     ! time range indicator, table 5
        endif
           kpds(15)=tmp_t2+i-25
-          print*,"hjp999=,kpds(14)=",kpds(14),"kpds(15)=",kpds(15)
           work(1:imax,1:jmax)=pm25_24hr(1:imax,1:jmax,i)   ! 24hr_pm25 average
           call gribitb(lb,work,imax,jmax,51,kpds)
-          tmp_t1=tmp_t1+1
-          tmp_t2=tmp_t2+1
+!          tmp_t1=tmp_t1+1
+!          tmp_t2=tmp_t2+1
         enddo
         kpds(14)=tmp_t1
         kpds(15)=tmp_t2
-         print*,"hjppp9"
       endif
 
 !jp9
