@@ -2,9 +2,7 @@
 # Path    $Source: /afs/isis/depts/cep/emc/apps/archive/smoke/smoke/src/spcmat/Makefile,v $
 # Date    $Date: 2004/06/21 17:16:46 $ 
 #
-#usrdir     = /naqfc/save/$(USER)
-#envir      = para
-DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 LIB_LOC   = $(DIR)/lib
 NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
 #

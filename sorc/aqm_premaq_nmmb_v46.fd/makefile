@@ -26,13 +26,7 @@
 #################################################################################
 #
 # Define the name of the executable
-#envir     = prod
-#model_ver = v4.6.2
-#EMC
-#usrdir    = /naqfc/save/$(USER)
-#NCO
-#usrdir =
-DIR       = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
 
 TARGET       = aqm_premaq_nmmb_v46

@@ -86,7 +86,7 @@ EOF5
   cat input${fhr}.prd
 
 #  rm -rf ${pgmout}.$h_seg
-#  startmsg
+  startmsg
   $EXECaqm/aqm_prep_nmmb < input${fhr}.prd > ${pgmout}.${fhr}.$h_seg 2>errfile
   export err=$?;err_chk
 
@@ -116,7 +116,7 @@ EOF5
   nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
   if [ $nrd_test -ne 848 ]; then
    echo "WARNING:The record number of file is not correct at " $fhr
-#  startmsg
+  startmsg
   $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.${fhr}.$h_seg 2>errfile
   export err=$?;err_chk
   nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`

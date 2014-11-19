@@ -20,7 +20,7 @@ export METMOD=NAM		# MM5 or NAM soil types;
 
 sdate=$PDY
 jdate=$DAYOFYEAR
-jtime=${CYC}0000
+jtime=${cyc}0000
 
 cfg=dust.cfg
 year=`echo $sdate | cut -c 1-4`
@@ -82,7 +82,7 @@ fi
 cp ${COMIN}/aqm.${cycle}.emission.ncf $EMIS_1  
     
 export pgm=aqm_fengsha
-#startmsg
+startmsg
 mpirun.lsf ${EXECaqm}/aqm_fengsha_merge  >>  $pgmout 2>errfile
 export err=$?;err_chk
 
@@ -106,7 +106,7 @@ export EMIS3D=$DATA/${emis3d}.ncf
 export METC2D=$COMIN/${metc2d}.ncf
 
 export pgm=aqm_snowdust
-#startmsg
+startmsg
 mpirun.lsf  $EXECaqm/aqm_snowdust
 export err=$?;err_chk
 
@@ -116,7 +116,7 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
 #step 3 HMS
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
-  if [ ${CYC} = '00' -o  ${CYC} = '06' ]  
+  if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
   then
    smoke_emis9=${smoke_emis}/smoke.$PDYm1
   else
@@ -154,7 +154,7 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
 ########################################################
 
 msg='ENDED NORMALLY.'
-#postmsg "$jlogfile" "$msg"
+$DATA/postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

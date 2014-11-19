@@ -34,8 +34,6 @@ if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
   hr_max=48
  fi
 
-#fhr9=0
-#fhr=$fhr
 fhr=0
 
 while [ $fhr -le $hr_max ]
@@ -58,7 +56,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
     fi
   done
  let "fhr=fhr+1"

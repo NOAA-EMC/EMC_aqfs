@@ -3,10 +3,7 @@
 # Date    $Date: 2004/06/21 17:17:37 $ 
 #
 
-#usrdir     = /naqfc/save/$(USER)
-#envir      = para
-#model_ver  = v4.6.3
-DIR        = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR        = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 LIB_LOC    = $(DIR)/lib
 NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
 

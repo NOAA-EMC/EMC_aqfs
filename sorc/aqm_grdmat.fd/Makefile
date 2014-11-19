@@ -3,9 +3,7 @@
 # Date    $Date: 2004/06/28 14:16:44 $ 
 #
 
-#usrdir     = /naqfc/save/$(USER)
-#envir      = para
-DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 #
 mydir      =$(PWD)
 EDSS_EXE   =Linux2_x86ifort

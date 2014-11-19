@@ -53,7 +53,7 @@ esac
     fi
     if [ $ic -ge 180 ]
     then
-    err_exit "COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc.ncf"
+    err_exit "****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc.ncf"
     fi
   done
 

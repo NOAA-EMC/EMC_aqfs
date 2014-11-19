@@ -35,7 +35,7 @@ export MPICH_THROTTLE_ALLTOALL=0
 
 # EXPORT list here
 set -ax
-export envir=para
+#export envir=para
 export PARAFLAG=YES
  
 ${HOMEaqm}/jobs/JAQM_POST1_HI

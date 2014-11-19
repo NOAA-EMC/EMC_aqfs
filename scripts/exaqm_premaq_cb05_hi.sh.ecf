@@ -38,7 +38,10 @@ if [[ $PX_RA = "T" ]]; then
     export CANOPY_IN=${CANOPY_H}
   else
     print Could not find input canopy height file, ${CANOPY_H}
-    exit 111
+    #exit 111
+    echo "*****FATAL ERROR***** - Could not find input canopy height file, $CANOPY_H"
+    postmsg "$jlogfile" "*****FATAL ERROR***** - Could not find input canopy height file, $CANOPY_H"
+    err_exit 111
   fi
 fi
 
@@ -108,6 +111,26 @@ done
 typeset -Z2 endcyc
 echo $endcyc 
 
+#----------------------------------------------------------------
+ic=1
+  while [ $ic -lt 1080 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.nmm${endfhr}.tm00 ]
+    then
+      echo "PREPHYB outoupts are available" 
+    break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 180 ]
+      then
+      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.nmm${endfhr}.tm00"
+      fi
+   done
+#-------------------------------------------------------------
+
 if [ -s $soil_input ]; then
    echo "=====>  The Previous Cycle Ran Successfully"
    export START=WARM
@@ -125,7 +148,7 @@ else
 fi
 
  while [ $fhr -le $endfhr ]; do
-   ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
+   ln -s $COMIN/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
    let "fhr=fhr+1"
    typeset -Z2 fhr
  done
@@ -193,7 +216,10 @@ elif [[ $OUTGRID = 'AK' ]]; then
 else
   print Unexpected output grid specified
   print OUTGRID is $OUTGRID
-  exit 111
+  #exit 111
+  echo "*****FATAL ERROR***** - Invalid OUTGRID - $OUTGRID."
+  postmsg "$jlogfile" "*****FATAL ERROR***** - Invalid OUTGRID - $OUTGRID."
+  err_exit 111
 fi
 
 EQSIGMA=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
@@ -219,7 +245,10 @@ if [ $NLAYS = 22 ]; then
 else
    print Unexpected ctmlay layers specified
    print NLAYS is $NLAYS
-   exit 111
+   #exit 111
+   echo "*****FATAL ERROR***** - Invalid NLAYS - $NLAYS."
+   postmsg "$jlogfile" "*****FATAL ERROR***** - Invalid NLAYS - $NLAYS."
+   err_exit 111
 fi
 
 #-------------------------------------------------------------------
@@ -486,6 +515,14 @@ elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_mgts_${INV_BS}.${OUTGRID}.ncf
 fi
 
+if [ !  -s "$AGTS_L" -o  ! -s "$CGTS_L" ]; then
+  echo "*****FATAL ERROR***** - anthropogenic emission files are missing"
+  postmsg "$jlogfile" "*****FATAL ERROR***** - anthropogenic emission files are missing"
+  err_exit 1
+else
+  echo " anthropogenic emission files are available"
+fi
+
 export LOGFILE=chkreads.log   # we have to delay to set log file to avoid from the conflict of chgsdate
 
 rm -f $LOGFILE
@@ -513,6 +550,12 @@ else
 fi
 
 export OUTFILE=$DATA/emission.${PDY}.m6.ncf
+
+#if [ ! -f $OUTFILE ]; then
+#  echo "*****FATAL ERROR***** - emission file emission.${PDY}.m6.ncf is missing"
+#else
+#  echo " emission file emission.${PDY}.m6.ncf is available"
+#fi
 
 #---------------------------------------------------------------------
 # Execute PREMAQ.
@@ -563,6 +606,6 @@ echo EXITING $0
 ########################################################
 
 msg='ENDED NORMALLY.'
-#postmsg "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################

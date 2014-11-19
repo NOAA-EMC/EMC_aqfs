@@ -1,7 +1,4 @@
- usrdir     = /naqfc/save/$(USER)
- envir      = para
- DIR       = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
-# DIR        = $(usrdir)/nw$(envir)/cmaq.v4.6.3
+ DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
  LIB_LOC    = $(DIR)/lib
  LNTCDF     = /usrx/local/NetCDF/3.6.3/lib

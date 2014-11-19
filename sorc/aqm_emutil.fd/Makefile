@@ -3,7 +3,7 @@
 # Date    $Date: 2005/07/20 19:08:06 $ 
 #
 
- DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+ DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
  LIB_LOC   = $(DIR)/lib
 # #
  mydir=$(PWD)

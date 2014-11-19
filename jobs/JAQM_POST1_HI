@@ -10,18 +10,72 @@ date -u
 export NET=aqm
 export RUN=HI
 ############################################
-export PARAFLAG=${PARAFLAG:-NO}
+
 #####################################
 export pid=$$
-export job=aqm_post1_hi
-export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
+
+# PATH for working directory
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
+then
+   # NCO
+  if [[ ${envir} == prod ]]; then
+    TMPhome=/tmpnwprd1
+  else
+    TMPhome=/tmpnwprd2
+  fi
+   export DATA=$TMPhome/${job}.${pid}
+fi
+
+export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
 mkdir -p $DATA
+
 cd $DATA
 
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${jlogfile:-/com/logs/jlogfile}
+if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
+then
+   # NCO
+    export SENDCOM=YES
+    export SENDDBN=YES
+    export SENDDBN_NTC=YES
+    export SENDECF=YES
+
+   if [ ${envir} = "prod" ]
+   then
+     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
+   else
+     export jlogfile=/com/logs/${envir}/jlogfile
+     export DBNROOT=/nwprod/spa_util/para_dbn
+     #export DBNROOT=/nwprod/spa_util/fakedbn
+   fi
+else
+   # DEV
+   export jlogfile=/dev/null
+   export SENDCOM=YES
+   export SENDDBN=NO
+   export SENDDBN_NTC=NO
+   export SENDECF=NO
+
+fi
+
+##############################
+# Define MP variables
+##############################
+ulimit -s unlimited
+export LANG=en_US
+export MP_EAGER_LIMIT=65536
+export MP_COREFILE_FORMAT=core.txt
+export MP_EUIDEVELOP=min
+export MP_EUIDEVICE=sn_all
+export MP_EUILIB=us
+export MP_MPILIB=mpich2
+export MP_LABELIO=yes
+export MP_SINGLE_THREAD=yes
+export MPICH_THROTTLE_ALLTOALL=0
+export MP_HOLDTIME=1000
 
 ####################################
 # Determine Job Output Name on System
@@ -31,12 +85,10 @@ export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
 export cycle=t${cyc}z
-export MP_HOLDTIME=1000
-export MP_LABELIO=YES
 
-export SENDCOM=YES
-export SENDDBN=NO
-export SENDECF=YES
+####################################
+# Path to HOME Directory
+####################################
 
 export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
@@ -63,7 +115,17 @@ $utilscript/setpdy.sh
 
 export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export pcom=${pcom:-/pcom/${NET}}
+
+if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
+then
+   # NCO
+   if [ ${envir} = "prod" ]
+   then
+     export pcom=${pcom:-/pcom/${NET}}
+   else
+     export pcom=${pcom:-/pcom/${envir}/${NET}}
+   fi
+fi
 
 mkdir -p $COMOUT $pcom
 env
@@ -81,9 +143,17 @@ fi
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
-date
 
-# cd /tmpnwprd
-# rm -rf $DATA
+###################################
+# Remove temp directories
+###################################
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
+then  # NCO
+  cd $TMPhome
+  rm -rf $DATA
+else # DEV
+  echo "Keeping data directory $DATA"
+fi
 
 date

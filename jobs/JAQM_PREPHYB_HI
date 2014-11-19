@@ -11,20 +11,59 @@ date -u
 export NET=aqm
 export RUN=HI
 ############################################
-export PARAFLAG=${PARAFLAG:-NO}
+
 ############################################
 # obtain unique process id (pid) and make temp directories
 #####################################
 export pid=$$
-export job=aqm_prephy_hi
-export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
+
+# PATH for working directory
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
+then
+   # NCO
+  if [[ ${envir} == prod ]]; then
+    TMPhome=/tmpnwprd1
+  else
+    TMPhome=/tmpnwprd2
+  fi
+   export DATA=$TMPhome/${job}.${pid}
+fi
+
+export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
 mkdir -p $DATA
-cd $DATA 
+
+cd $DATA
 
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${pid}}
+if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
+then
+   # NCO
+   if [ ${envir} = "prod" ]
+   then
+     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
+   else
+     export jlogfile=/com/logs/${envir}/jlogfile
+     #export DBNROOT=/nwprod/spa_util/para_dbn
+     export DBNROOT=/nwprod/spa_util/fakedbn
+   fi
+else
+   # DEV
+   export jlogfile=/dev/null
+fi
+
+##############################
+# Define MP variables
+##############################
+export MP_EUILIB=us
+export MP_EUIDEVICE=sn_all
+export MP_MPILIB=mpich2
+export MP_STDOUTMODE=unordered
+export MP_LABELIO=yes
+export MP_HOLDTIME=1000
+
 ####################################
 # Determine Job Output Name on System
 ####################################
@@ -33,12 +72,12 @@ export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
 export cycle=t${cyc}z
-export MP_HOLDTIME=1000
-export MP_LABELIO=YES
 
 export SENDCOM=YES
-export SENDDBN=YES
-export SENDECF=YES
+
+####################################
+# Path to HOME Directory
+####################################
 
 export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
@@ -58,11 +97,6 @@ sh $utilscript/setup.sh
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-if [ $PARAFLAG = "YES" ] 
-then
-export SENDDBN=NO
-fi
-
 $utilscript/setpdy.sh
 . PDY
 
@@ -81,20 +115,20 @@ env
 ###################################################
 ${HOMEaqm}/scripts/exaqm_prephyb_nmmb_hi.sh.ecf
 err=$?; err_chk
-##################################################
-if [ "$err" != '0' ]
-then
-  echo ' '
-  echo '*************************************'
-  echo '*** FATAL ERROR IN CMAQ PREGEN HI JOB ***'
-  echo '*************************************'
-  echo ' '
-  postmsg "ERROR IN HI PROGEN JOB1"
-else
-  msg="JOB $job HAS COMPLETED NORMALLY."
-  postmsg "$jlogfile" "$msg"
-#  cd /tmpnwprd
-#  rm -rf $DATA
+
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+###################################
+# Remove temp directories
+###################################
+
+if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
+then  # NCO
+  cd $TMPhome
+  rm -rf $DATA
+else # DEV
+  echo "Keeping data directory $DATA"
 fi
 
 date -u

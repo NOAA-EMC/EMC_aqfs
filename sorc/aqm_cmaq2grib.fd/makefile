@@ -1,5 +1,5 @@
-
-DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
+#fdir     =${fdir:-}
+DIR      =${fdir}/nw$(envir)/cmaq.$(model_ver)
 CMD      = aqm_cmaq2grib
 SRCS     = aqm_cmaq2grib.f90
 
