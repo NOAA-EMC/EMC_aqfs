@@ -1,7 +1,4 @@
-usrdir     = /naqfc/save/$(USER)
-envir      = para
-model_ver  =v4.6.3
-DIR      = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
 LIB_LOC    = $(DIR)/lib
 #

@@ -22,7 +22,7 @@ tar -xvf $DATA/files_fires.tar >xxx.list
 #     and can be used for eliminating short life time fore for not
 #     being barried to our 72hr fcst
 #-----------------------------------------------------------------
- cp $FEMIT $DATA/EMITIMES
+#jp cp $FEMIT $DATA/EMITIMES
 #-----------------------------------------------------------------
 # create log directory for information output
 #-----------------------------------------------------------------
@@ -30,6 +30,9 @@ export Bluesky_out=$LOG1/$PDY
 mkdir -p ${Bluesky_out}
 
 cd ${Bluesky_out}
+
+#sh $utilscript/setup.sh
+
 ################################################################
 #
 # For  PRODUCTION emission format, the emission file is 72hr
@@ -45,7 +48,7 @@ date4=`/nwprod/util/exec/ndate +72 ${date1}00 |cut -c 1-8`
 date=${date1}
 
 #====================================
-if [ ${CYC} = '00' -o  ${CYC} = '06' ]
+if [ ${cyc} = '00' -o  ${cyc} = '06' ]
 then
  date9=$PDYm2 
 else
@@ -195,10 +198,10 @@ done
     rm -f $LOGFILE
   fi
 export pgm=aqm_bluesky2inv
-#startmsg
+  $DATA/startmsg
 
   $EXECaqm/aqm_bluesky2inv       #----- Main Execution file
-  export err=$?;err_chk
+  export err=$?;$DATA/err_chk
  done
 ################################################################
 #  put  each day's information (3 files) into one file
@@ -353,9 +356,9 @@ export PTDAY=ptday.bluesky.$date.ida.txt
  fi
 
  export pgm=aqm_smkinven
-# startmsg
+ $DATA/startmsg
  $EXECaqm/aqm_smkinven
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #--------------------------------------------------------
 # Define grid to use for modeling: Grdmat
 #--------------------------------------------------------
@@ -373,9 +376,9 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
     rm -f $LOGFILE
  fi
  export pgm=aqm_grdmat
- #startmsg
+ $DATA/startmsg
  $EXECaqm/aqm_grdmat
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #--------------------------------------------------------
 # Define speciation mechanism and input files: Spcmat
 #--------------------------------------------------------
@@ -398,9 +401,9 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
     rm -f $LOGFILE
  fi
  export pgm=aqm_spcmat
- # startmsg 
+  $DATA/startmsg 
 $EXECaqm/aqm_spcmat
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #--------------------------------------------------------
 # Define input files for Temporal program: Temporal
 #--------------------------------------------------------
@@ -410,7 +413,7 @@ $EXECaqm/aqm_spcmat
  export PTPRO=$FIXaqm/amptpro.small-daytime.us+can.txt
  #----- Assume a 48hr forecast (need 49 data from the 1st beginning)
  export G_STDATE=$jday
- export G_STTIME=${CYC}0000
+ export G_STTIME=${cyc}0000
  export G_RUNLEN=${nstep}0000
 #--------------------------------------------------------
 # Output temporal allocation and supplemental files
@@ -425,9 +428,9 @@ $EXECaqm/aqm_spcmat
     rm -f $LOGFILE
  fi
  export pgm=aqm_temporal
-# startmsg
+ $DATA/startmsg
  $EXECaqm/aqm_temporal
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #--------------------------------------------------------------------
 # Plume rise calculation
 # if meteorological data is available ==> run met-dependent programs
@@ -448,9 +451,9 @@ $EXECaqm/aqm_spcmat
        rm -f $LOGFILE
   fi
   export pgm=aqm_laypoint
-  #startmsg
+  $DATA/startmsg
   $EXECaqm/aqm_laypoint
-   export err=$?;err_chk
+   export err=$?;$DATA/err_chk
  fi
 #--------------------------------------------------------
 # Define env variables for Smkmerge program
@@ -495,9 +498,9 @@ $EXECaqm/aqm_spcmat
     rm -f $LOGFILE
  fi
  export pgm=aqm_smkmerge
-# startmsg
+ $DATA/startmsg
  $EXECaqm/aqm_smkmerge
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #--------------------------------------------------------
 # get inventory reports from Smkreport program
 #--------------------------------------------------------
@@ -519,9 +522,9 @@ $EXECaqm/aqm_spcmat
     rm -f $LOGFILE
  fi
  export pgm=aqm_smkreport
-# startmsg
+ $DATA/startmsg
  $EXECaqm/aqm_smkreport
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
 #-----------------------------------------------------------------
 # Location of log3 files, starting merge file
 #-----------------------------------------------------------------
@@ -568,7 +571,7 @@ $EXECaqm/aqm_spcmat
 #-----------------------------------------------------------------
  export pgm=aqm_mrggrid
  $EXECaqm/aqm_mrggrid
- export err=$?;err_chk
+ export err=$?;$DATA/err_chk
  
  if [ ! -f $OUTFILE ]; then
     echo 'there is no fire lasting more than 24 hours'
@@ -584,7 +587,7 @@ cp -rp $COMOUT/aqm.${cycle}.$PDY.emis+fire_HYSPLIT.ncf $COMOUT/aqm.${cycle}.emis
 ########################################################
 
 msg='ENDED NORMALLY.'
-#postmsg "$jlogfile" "$msg"
+$DATA/postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

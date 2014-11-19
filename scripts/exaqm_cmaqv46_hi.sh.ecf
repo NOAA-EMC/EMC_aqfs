@@ -52,15 +52,6 @@ export FILE_EDDY=N
 export READEDDY=N
 export NOTCDF_FATAL=F
 
-#export MPI_SM_POOL=16000
-#export MP_EAGER_LIMIT=65536
-#export MP_SINGLE_THREAD=yes
-#export MP_STDOUTMODE=ordered
-#export MP_LABELIO=yes
-#export MP_SHARED_MEMORY=yes
-#export MP_ADAPTER_USE=shared
-#export MP_CPU_USE=multiple
-
 #------------------------------------------------------
 # now using notCDF v3.4
 #------------------------------------------------------
@@ -125,29 +116,29 @@ case $cyc in
      NSTEPS=060000;;
 esac
 
-if [ -s $restart_file1 ]
+if [ -s "$restart_file1" ]
 then
   restart_file=$restart_file1
   restart_log=$restart_log1
-elif [ -s $restart_file2 ]
+elif [ -s "$restart_file2" ]
 then
   restart_file=$restart_file2
   restart_log=$restart_log2
-elif [ -s $restart_file3 ]
+elif [ -s "$restart_file3" ]
 then
   restart_file=$restart_file3
   restart_log=$restart_log3
-elif [ -s $restart_file4 ]
+elif [ -s "$restart_file4" ]
 then
   restart_file=$restart_file4
   restart_log=$restart_log4
-elif [ -s $restart_file5 ]
+elif [ -s "$restart_file5" ]
 then
   restart_file=$restart_file5
   restart_log=$restart_log5
 fi
 
-if [ -s $restart_file ]
+if [ -s "$restart_file" ]
 then
   export START=WARM
   export INITIAL_RUN=N
@@ -155,6 +146,7 @@ else
   export START=COLD
   export INITIAL_RUN=Y
 fi
+
 #turn on the derived vert. vel. component to conc file
  export CTM_WVEL=Y
 
@@ -187,9 +179,9 @@ TSTEP=010000
           sleep 10
       fi
 
-      if [ $ic -ge 1080 ]
+      if [ $ic -ge 180 ]
       then
-      err_exit "COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+      err_exit "****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
       fi
    done
 

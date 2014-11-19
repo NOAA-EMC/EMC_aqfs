@@ -44,11 +44,10 @@ export XLFRTEOPTS="unit_vars=yes"
 
     if [ $ic -ge 180 ]
     then
-        err_exit "COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc.ncf"
+        err_exit "****FATAL ERROR**** - COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc.ncf"
     fi
   done
 
-#export pgm=aqm_post_AKozconnmmb
 export pgm=aqm_post_cb05
 . prep_step
 
@@ -180,15 +179,13 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
    $utilexec/cnvgrib -g12 -m -p32 tmpfile2.8hr aqm.t${cyc}z.grib2_AK_8ho3.198
    export err=$?;err_chk
 
-#   cp -p aqm.t${cyc}z.grib2_AK_1hr.198 aqm.t${cyc}z.grib2_AK_8hr.198 $COMOUT
    cp -p aqm.t${cyc}z.grib2_AK_1ho3.198  $COMOUT/aqm.t${cyc}z.1ho3.198.grib2
    cp -p aqm.t${cyc}z.grib2_AK_8ho3.198  $COMOUT/aqm.t${cyc}z.8ho3.198.grib2
 
    
    if [ "$SENDDBN" = 'YES' ] ; then
-#    $DBNROOT/bin/dbn_alert MODEL AQM_03CONC_AK_GB2 $job  $COMOUT/aqm.t${cyc}z.grib2_AKozconnmmb.198
-    $DBNROOT/bin/dbn_alert MODEL AQM_1Hr_03CONC_AK_GB2 $job $COMOUT/aqm.t${cyc}z.1ho3.198.grib2
-    $DBNROOT/bin/dbn_alert MODEL AQM_8Hr_03CONC_AK_GB2 $job $COMOUT/aqm.t${cyc}z.8ho3.198.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.1ho3.198.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.8ho3.198.grib2
    fi
    
    ##############################
@@ -220,18 +217,17 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        # Post Files to PCOM
        ##############################
 
-       if test "$SENDPCOM" = 'YES'
+       if test "$SENDDBN_NTC" = 'YES'
        then
 #           cp grib2.t${cyc}z.awpAKozconnmmb_aqm_${hr}.198  $pcom/grib2.t${cyc}z.awpAKozconnmmb_aqm_${hr}.198.$job
-           cp grib2.t${cyc}z.awpAKozconnmmb_aqm_${hr}.198  $pcom/grib2.awpaqm.t${cyc}z.${hr}ho3.198
+           cp grib2.t${cyc}z.awpAKozconnmmb_aqm_${hr}.198  $pcom/awpaqm.t${cyc}z.${hr}ho3.198.grib2
 
           ##############################
           # Distribute Data
           ##############################
 
-          if [ "$SENDDBN" = 'YES' ] ; then
-#             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.t${cyc}z.awpAKozconnmmb_aqm_${hr}.198.$job
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/grib2.awpaqm.t${cyc}z.${hr}ho3.198
+          if [ "$SENDDBN_NTC" = 'YES' ] ; then
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.t${cyc}z.${hr}ho3.198.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"

@@ -1,13 +1,8 @@
-#envir    =prod
-#model_ver=v4.6.3
-#EMC
-#usrdir   =/naqfc/save/${USER}
-
 # NCO
 #usrdir=
 #
 
-DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR      =${fdir}/nw$(envir)/cmaq.$(model_ver)
 CMD      = aqm_rdgrbwt_aot_CHA
 SRCS     = rdgrbwt_aot_CHA.f 
 

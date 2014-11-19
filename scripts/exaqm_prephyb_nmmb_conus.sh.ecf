@@ -63,7 +63,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
     fi
   done
  let "fhr9=fhr9+1"

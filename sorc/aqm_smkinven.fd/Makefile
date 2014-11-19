@@ -2,10 +2,7 @@
 # Path    $Source: /afs/isis/depts/cep/emc/apps/archive/smoke/smoke/src/smkinven/Makefile,v $
 # Date    $Date: 2005/08/01 01:54:09 $ 
 #
-#usrdir     = /naqfc/save/$(USER)
-#envir      = para
-#model_ver  = v4.6.3
-DIR        = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR        = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 LIB_LOC    = $(DIR)/lib
 
 mydir      =$(PWD)

@@ -1,5 +1,6 @@
 
-DIR       = $(usrdir)/nw$(envir)/cmaq.$(model_ver)
+#fdir      = ${fdir:-}
+DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 CMD       = aqm_fcst_nmmb_v46
 
 LIB_LOC = $(DIR)/lib

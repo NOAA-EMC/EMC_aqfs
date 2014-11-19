@@ -1,12 +1,5 @@
-#envir    =para
-#model_ver=v4.6.3
-#EMC
-#usrdir   =/naqfc/save/${USER}
 
-# NCO
-#usrdir=
-
-DIR      =$(usrdir)/nw$(envir)/cmaq.$(model_ver)
+DIR      =${fdir}/nw$(envir)/cmaq.$(model_ver)
 CMD      = aqm_post_maxi_CHA
 SRCS     = cmaq-maxi2grib.f90 
 

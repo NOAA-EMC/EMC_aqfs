@@ -37,17 +37,6 @@ case $cyc in
  18) export n_durhr=6;;
 esac
 
-#export mysdate=-99
-#export mystime=-99
-#export mynsteps=-99
-#export spc=N    ##T,F,Y, or N
-#export display=N
-#export tol=0.
-#export info=N
-#export notcdf=Y
-#export NOTCDF_FATAL=F
-#export RESEARCH=N
-
 # convert to grib and extract Mie 
 cat >cmaq2grib.ini <<EOF5
 &control

@@ -1,7 +1,10 @@
 #!/bin/ksh
 
-#set -ax
+set -ax
+export model_ver=v4.6.9
+export envir=dev 
 export wrkdir=$(pwd)
+export mydir=/naqfc/save/${USER}
 echo $wrkdir
 
 for src in ioapi

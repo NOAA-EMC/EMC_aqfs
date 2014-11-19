@@ -38,7 +38,10 @@ if [[ $PX_RA = "T" ]]; then
     export CANOPY_IN=${CANOPY_H}
   else
     print Could not find input canopy height file, ${CANOPY_H}
-    exit 111
+    #exit 111
+    echo "*****FATAL ERROR***** - Could not find input canopy height file, $CANOPY_H"
+    postmsg "$jlogfile" "*****FATAL ERROR***** - Could not find input canopy height file, $CANOPY_H"
+    err_exit 111
   fi
 fi
 
@@ -86,19 +89,19 @@ case $cyc in
  00) export endfhr=06
      export endday=$PDY
      export soil_input=$COMINm1/aqm.t18z.soil06.ncf
-     export nmm_00=$COMNAMm1/aqm.t18z.nmm06.tm00;;
+     export nmm_00=$COMINm1/aqm.t18z.nmm06.tm00;;
  06) export endfhr=48
      export endday=$PDYp2
      export soil_input=$COMIN/aqm.t00z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t00z.nmm06.tm00;;
+     export nmm_00=$COMIN/aqm.t00z.nmm06.tm00;;
  12) export endfhr=48
      export endday=$PDYp2
      export soil_input=$COMIN/aqm.t06z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t06z.nmm06.tm00;;
+     export nmm_00=$COMIN/aqm.t06z.nmm06.tm00;;
  18) export endfhr=06
      export endday=$PDYp1
      export soil_input=$COMIN/aqm.t12z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t12z.nmm06.tm00;;
+     export nmm_00=$COMIN/aqm.t12z.nmm06.tm00;;
 esac
  
 let "endcyc=cyc+endfhr"
@@ -107,6 +110,27 @@ while [ $endcyc -ge 24 ]; do
 done
 typeset -Z2 endcyc
 echo $endcyc 
+
+#--------------------------------------------------------
+ic=1
+  while [ $ic -lt 1080 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.nmm${endfhr}.tm00 ]
+    then
+      echo "PREPHYB outoupts are available" 
+    break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 180 ]
+      then
+      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.nmm${endfhr}.tm00"
+      fi
+   done
+#-------------------------------------------------------
+
 
 if [ -s $soil_input ]; then
    echo "=====>  The Previous Cycle Ran Successfully"
@@ -125,7 +149,7 @@ else
 fi
 
  while [ $fhr -le $endfhr ]; do
-   ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
+   ln -s $COMIN/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
    let "fhr=fhr+1"
    typeset -Z2 fhr
  done
@@ -193,7 +217,10 @@ elif [[ $OUTGRID = 'AK' ]]; then
 else
   print Unexpected output grid specified
   print OUTGRID is $OUTGRID
-  exit 111
+  #exit 111
+  echo "*****FATAL ERROR***** - Invalid OUTGRID - $OUTGRID."
+  postmsg "$jlogfile" "*****FATAL ERROR***** - Invalid OUTGRID - $OUTGRID."
+  err_exit 111
 fi
 
 EQSIGMA=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
@@ -219,7 +246,10 @@ if [ $NLAYS = 22 ]; then
 else
    print Unexpected ctmlay layers specified
    print NLAYS is $NLAYS
-   exit 111
+   #exit 111
+   echo "*****FATAL ERROR***** - Invalid NLAYS - $NLAYS."
+   postmsg "$jlogfile" "*****FATAL ERROR***** - Invalid NLAYS - $NLAYS."
+   err_exit 111
 fi
 
 #-------------------------------------------------------------------
@@ -460,7 +490,8 @@ export PTPRO=$FIXaqm/aqm_static_ptpro.m3.default.us+can.txt
 export HOLIDAYS=$FIXaqm/aqm_static_holidays.txt
 
 
-export PGMAT=$INPPLTDRY/aqm_static_pgmat_${OUTGRID}_${SYYYY}.ncf
+#jp export PGMAT=$INPPLTDRY/aqm_static_pgmat_${OUTGRID}_${SYYYY}.ncf
+export PGMAT=$INPPLTDRY/aqm_static_pgmat_${OUTGRID}.ncf
 export PSMAT=$INPPLTDRY/aqm_static_psmat_${GAS_CHEM}.ncf
 export COSTCY=$FIXaqm/costcy_for_2002_19dec2007_v1.txt
 
@@ -484,6 +515,14 @@ if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
 elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_agts_${INV_BS}.${OUTGRID}.ncf
    export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_mgts_${INV_BS}.${OUTGRID}.ncf
+fi
+
+if [ !  -s "$AGTS_L" -o  ! -s "$CGTS_L" ]; then
+  echo "*****FATAL ERROR***** - anthropogenic emission files are missing"
+  postmsg "$jlogfile" "*****FATAL ERROR***** - anthropogenic emission files are missing"
+  err_exit 1
+else
+  echo " anthropogenic emission files are available"
 fi
 
 export LOGFILE=chkreads.log   # we have to delay to set log file to avoid from the conflict of chgsdate
@@ -574,6 +613,6 @@ echo EXITING $0
 ########################################################
 
 msg='ENDED NORMALLY.'
-#postmsg "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
