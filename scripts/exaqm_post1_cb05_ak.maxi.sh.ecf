@@ -51,7 +51,7 @@ $utilexec/wgrib -s aqm-maxi.198.grib | grep "OZMAX8" | $utilexec/wgrib -i aqm-ma
 #jp0
 cat >cmaq-maxi2grib.ini <<EOF5
 &control
-markutc=04
+markutc=05
 outfile='aqm-pm25_24hr.140.grib'
 varlist='pm25_1hr','pm25_24hr'
 id_gribdomain=140
