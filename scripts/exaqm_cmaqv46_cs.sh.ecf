@@ -221,7 +221,9 @@ else
    export INIT_GASC_1=$FIXaqm/aqm_icon_cmaq46_cb05_conus12.ncf
 fi
 
-export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
+#export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
+#export BNDY_GASC_1=$FIXaqm/bnd.conus-12km.static_geos_2006${SMM}.35L.ncf
+export BNDY_GASC_1=$COMIN/bnd-ngac-dust.${PDY}.5x-35L.ncf
 
 export INIT_AERO_1=$INIT_GASC_1
 export BNDY_AERO_1=$BNDY_GASC_1

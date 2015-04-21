@@ -63,7 +63,7 @@ INPPLTDR=$INPEMIDIR/$year_month
 #---------------------------------------------------
 job="PREMAQ CONUS"
 INGRID=138
-NLAYS=22      # '22' (collapse from 60), '60' (full nmm level)
+NLAYS=35      # '22' (collapse from 60), '60' (full nmm level)
 OUTGRID=CONUS # 'NEUS' (Northeast), 'EASTUS' (3x), or 'CONUS' (5x)
 EXPT=invert
 DDATE=01May
@@ -243,6 +243,15 @@ if [ $NLAYS = 22 ]; then
               0.908404, 0.876814, 0.829314, 0.762114, 0.676614, \
               0.582114, 0.484394, 0.388094, 0.270694, 0.223694, \
               0.169294, 0.127094, 0.089794"
+elif [ $NLAYS = 35 ]; then
+   CTMLAYS="  1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
+              0.975782, 0.970684, 0.960187, 0.954689, 0.936895, \
+	      0.930397, 0.908404, 0.888811, 0.862914, 0.829314, \
+              0.786714, 0.735314, 0.645814, 0.614214, 0.582114, \
+              0.549714, 0.511711, 0.484394, 0.451894, 0.419694, \
+              0.388094, 0.356994, 0.326694, 0.297694, 0.270694, \
+	      0.245894, 0.223694, 0.203594, 0.154394, 0.127094, \
+	      0.089794"		          	      
 else
    print Unexpected ctmlay layers specified
    print NLAYS is $NLAYS
@@ -428,6 +437,9 @@ if [ $NLAYS = 22 ]; then
 elif [ $NLAYS = 29 ]; then
    export SMK_EMLAYS=19
    export REP_LAYER_MAX=19
+elif [ $NLAYS = 35 ]; then
+   export SMK_EMLAYS=20
+   export REP_LAYER_MAX=20    
 elif [ $NLAYS = 56 ]; then
    export SMK_EMLAYS=34
    export REP_LAYER_MAX=34

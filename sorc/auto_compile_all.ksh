@@ -16,7 +16,7 @@ export fdir=${fdir:-}
 export usrdir=${usrdir:-}
 export fdir1=${fdir}/nw${envir}/cmaq.${model_ver}/sorc
 
-for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
+for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking gocart2nc
 
 do
 cd ${fdir1}/aqm_${src}.fd
