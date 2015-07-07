@@ -88,6 +88,25 @@ startmsg
 $EXECaqm/aqm_cmaq2grib   >> $pgmout 2>errfile
 export err=$?;err_chk
 
+## write PM2.5 in Grib2 ---
+
+cat >cmaq2grib2.ini <<EOF5
+&control
+varlist='PM2.5'
+metlist='    '
+outfile='aqm.${cycle}.25pm'
+nlayers=1
+id_gribdomain=140
+ave1hr=.true.
+/
+EOF5
+
+startmsg
+$EXECaqm/aqm_cmaq2grib2_v1   >> $pgmout 2>errfile
+export err=$?;err_chk
+
+
+
 # sigma
 cat >cmaq2grib.ini <<EOF5
 &control
@@ -118,7 +137,8 @@ rm tmpfile
 
 if [ "$SENDCOM" = 'YES' ]
     then
-    cp $DATA/aqm.${cycle}.25pm?? $DATA/aqm.${cycle}.sigma?? $COMOUT/
+#    cp $DATA/aqm.${cycle}.25pm?? $DATA/aqm.${cycle}.sigma?? $COMOUT/
+    cp $DATA/aqm.${cycle}.25pm* $DATA/aqm.${cycle}.sigma?? $COMOUT/
 fi
 
 while [ $fhr -le $endfhr ]

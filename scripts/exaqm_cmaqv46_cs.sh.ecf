@@ -29,8 +29,11 @@
 #    MP_CPU_USE=multiple   # Multi Processors
 #####################################################################
 
-export NPCOL_NPROW="14 9"
-export nprocs=127
+#export NPCOL_NPROW="14 9"
+#export nprocs=127
+ export NPCOL_NPROW="16 16"
+ export nprocs=257
+
 export GRIDDESC=$PARMaqm/aqm_griddesc05
 export GRID_NAME=AQF_CONUS_5x
 export AVG_CONC_SPCS="O3, NO2, NO, NO3, N2O5, HNO3, HONO, PNA, CO, FORM, ALD2, PAN, NTR, XO2N, SO2 ASO4I ASO4J ANH4I ANH4J ANO3I ANO3J AORGAI AORGAJ AORGPAI AORGPAJ AORGBI AORGBJ AECI AECJ A25I A25J NUMATKN NUMACC SRFATKN SRFACC AH2OI AH2OJ ACLI ACLJ ANAI ANAJ"
@@ -218,12 +221,18 @@ export EMIS_1=$DATA/emission.$PDY.ncf
 if [[ $INITIAL_RUN = "N" ]]; then
    export INIT_GASC_1=$DATA/CONC.${RST}.ncf
 else    
-   export INIT_GASC_1=$FIXaqm/aqm_icon_cmaq46_cb05_conus12.ncf
+   export INIT_GASC_1=$FIXaqm/aqm_icon_cmaq46_cb05_conus12_L35.ncf
 fi
 
-#export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
-#export BNDY_GASC_1=$FIXaqm/bnd.conus-12km.static_geos_2006${SMM}.35L.ncf
-export BNDY_GASC_1=$COMIN/bnd-ngac-dust.${PDY}.5x-35L.ncf
+if [[ ${cycle} = 't00z' ]] ; then
+ export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
+else
+ export BNDY_GASC_1=$COMIN/aqm_conus_geos_ngac_dust_${PDY}_35L.ncf
+fi
+
+if [ ! -f ${BNDY_GASC_1}  ] ; then
+  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
+fi
 
 export INIT_AERO_1=$INIT_GASC_1
 export BNDY_AERO_1=$BNDY_GASC_1

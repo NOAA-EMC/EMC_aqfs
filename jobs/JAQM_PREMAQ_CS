@@ -105,7 +105,7 @@ DAYOFYEAR=`$HOMEaqm/util/date2jday.sh $PDY`
 #-----------------------------------------------------------------
 # Maxinum layer for smoke
 #-----------------------------------------------------------------
-export SMKLAY=35 #22
+export SMKLAY=35  #22
 #-----------------------------------------------------------------
 #  critical value for eliminating short life Fire
 #-----------------------------------------------------------------
@@ -184,8 +184,10 @@ ksh $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
 err=$?; err_chk
 $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
 err=$?; err_chk
-$USHaqm/aqm_gocart_bnd_5x_L35_dust.sh $PDY
+if [[  ${cycle} = 't06z'  ]] ; then
+$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
 err=$?; err_chk
+fi
 ##################################################
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."

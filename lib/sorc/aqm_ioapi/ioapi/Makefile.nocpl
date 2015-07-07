@@ -80,7 +80,8 @@ FIXDIR  = $(IODIR)/fixed_src
 
 # Architecture dependent stuff
 
-include /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/ioapi/Makeinclude.Linux2_x86_64ifort
+#include /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/ioapi/Makeinclude.Linux2_x86_64ifort
+include $(BASEDIR)/ioapi/Makeinclude.Linux2_x86_64ifort
 
 DEFINEFLAGS = $(ARCHFLAGS) $(PARFLAGS)
 

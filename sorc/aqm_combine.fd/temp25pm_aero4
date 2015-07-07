@@ -1,0 +1,37 @@
+!
+/
+/-----  file history description  --------
+! subset conc file variables
+! for the CB4_AQ chemical mechanism
+!
+/ the following record fields must fall exactly on the field boundaries as ...
+/2345678901234567890123456789012345678901234567890123456789012345678901234567890
+/|              |x|        |   |      |x^x|              |x|               129->
+/SPECIES          UNITS      =      1.0 1 species          Description
+/
+/       new                           File  from
+/     species       units       factor  #   species         Species Description
+/---------------- ----------   -------- - ---------------- ----------------------------
+/2345678901234567890123456789012345678901234567890123456789012345678901234567890
+/|              |x|        |   |      |x^x|              |x|               129->
+ pm25             micgm/m**  =      1.0 1 ASO4I
+                             +      1.0 1 ASO4J
+                             +      1.0 1 ANH4I
+                             +      1.0 1 ANH4J
+                             +      1.0 1 ANO3I
+                             +      1.0 1 ANO3J
+                             +      1.0 1 AORGAI
+                             +      1.0 1 AORGAJ
+                             +      1.0 1 AORGPAI
+                             +      1.0 1 AORGPAJ
+                             +      1.0 1 AORGBI
+                             +      1.0 1 AORGBJ
+                             +      1.0 1 AECI
+                             +      1.0 1 AECJ
+                             +      1.0 1 A25I
+                             +      1.0 1 A25J
+                             +      1.0 1 ACLI
+                             +      1.0 1 ACLJ
+                             +      1.0 1 ANAI
+                             +      1.0 1 ANAJ
+ O3               ppmV       =      1.0 1 O3

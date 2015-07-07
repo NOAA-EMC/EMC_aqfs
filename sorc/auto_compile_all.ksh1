@@ -5,10 +5,10 @@ if [ ${USER}  = "Jianping.Huang" ]
 then
   export fdir=/naqfc/save/${USER}  
   export usrdir=/naqfc/save/${USER}
-  export model_ver=v4.6.9
+  export model_ver=v4.6.6
   export envir=dev
 else
-  export model_ver=v4.6.9
+  export model_ver=v4.6.6
   export envir=para
 fi
 export fdir=${fdir:-}

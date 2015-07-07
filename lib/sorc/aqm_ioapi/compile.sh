@@ -6,8 +6,8 @@ if [ ${USER} = 'Jianping.Huang' ] ; then
 else
  mydir=
 fi
-# envir=dev
-# model_ver=v4.6.9
+envir=dev
+model_ver=v4.6.6
 export BASEDIR=${mydir}/nw${envir}/cmaq.${model_ver}/lib/sorc/aqm_ioapi
 export BIN=Linux2_x86_64ifort
 rm -rf ${BIN}

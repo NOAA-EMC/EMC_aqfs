@@ -163,8 +163,6 @@
 
 !-----build output file header     
 
-      if(.not.open3('BND2',FSRDWR3,'pathway')) then  ! if not exist, generate it       
-
        nvars3d=noutbnd
        do n=1,noutbnd
         vname3d(n)=bndname(n)
@@ -176,23 +174,14 @@
        sdate3d=nowdate
        stime3d=nowtime
        tstep3d=dtstep*10000
-       if(.not.OPEN3('BND2',FSUNKN3,'pathway')) then	! FSCREA3 FSUNKN3
+!       if(.not.OPEN3('BND2',FCREA3,'pathway')) then	! FSCREA3 FSUNKN3
+       if(.not.OPEN3('BND2',FSCREA3,'pathway')) then	! FSCREA3 FSUNKN3
         print*, 'Error opening output file BND2'
         stop	
        endif 
 
-      else         ! check the consistence
-       if(.not.desc3('BND2')) stop
-       
-       if(imax.ne.ncols3d.or.jmax.ne.nrows3d.or.kmax.ne.nlays3d.or.  &
-        nvars3d.ne.noutbnd) then
-        print*,'dimension does not much, STOP'
-	stop
-       endif
-      endif 	
 
 !----2D sample file
-      if(.not.open3('CHECK2D',FSRDWR3,'pathway')) then  ! if not exist, generate it 
        ftype3d=GRDDED3
        nvars3d=ncheck
        nlays3d=1
@@ -205,20 +194,11 @@
        sdate3d=nowdate
        stime3d=nowtime
        tstep3d=dtstep*10000
-       if(.not.OPEN3('CHECK2D',FSUNKN3,'pathway')) then	! FSCREA3 FSUNKN3
+       if(.not.OPEN3('CHECK2D',FSCREA3,'pathway')) then	! FSCREA3 FSUNKN3
         print*, 'Error opening output file BND2'
         stop	
        endif 
 
-      else         ! check the consistence
-       if(.not.desc3('CHECK2D')) stop
-       
-       if(imax.ne.ncols3d.or.jmax.ne.nrows3d) then
-        print*,'dimension does not much, STOP'
-	stop
-       endif
-      endif 	
-     
       
       call nemsio_init(iret=iret)
 

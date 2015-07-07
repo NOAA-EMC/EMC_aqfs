@@ -1,0 +1,123 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_cmaq_maxi.sh
+# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
+#
+# Author:  Jianping Huang 06/29/2015 
+#
+######################################################################
+set -xa
+
+export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+
+cd $DATA
+
+#-----------------------------------------------------------------------------
+# STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
+ ic=1
+ while [ $ic -lt 100 ]
+ do
+ if [ -s $COMIN/aqm.t${cyc}z.aconc.ncf ]
+ then
+  echo "cycle ${cyc} post1 is done!"
+  break 
+ else
+  let "ic=ic+1"
+   sleep 10
+  fi
+ done
+#
+ if [ $ic -ge 100 ]
+ then
+    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/aqm.${cycle}.aconc.ncf"
+ fi
+
+ $USHaqm/aqm_bicor_prep_cs.sh  
+ err=$?; err_chk
+
+ f1=aqm.${cycle}.O3_pm25.ncf
+ f2=Spec_humid.${cycle}.ncf
+ f3=sfc_met_n_PBL.${cycle}.ncf
+# 
+if [ -e $BICOR_DATA/grid/$Yr/$PDY ] ; then
+ echo " $BICOR_DATA/grid/$Yr/$PDY exits"
+else
+ mkdir -p $BICOR_DATA/grid/$Yr/$PDY
+fi
+ cp $DATA/$f1 $BICOR_DATA/grid/$Yr/$PDY
+ cp $DATA/$f2 $BICOR_DATA/grid/$Yr/$PDY
+ cp $DATA/$f3 $BICOR_DATA/grid/$Yr/$PDY
+#
+#-----------------------------------------------------------------------
+# STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
+
+$USHaqm/aqm_bicor_interp_cs.sh  
+ err=$?; err_chk
+#-----------------------------------------------------------------------
+#  STEP 3:  Performing Bias Correction for PM2.5 
+
+#$USHaqm/aqm_bicor_pm25_cs_new.sh 
+$USHaqm/aqm_bicor_pm25_cs.sh 
+ err=$?; err_chk
+#------------------------------------------------------------------------
+#
+# STEP 4:  converting netcdf to grib format
+$USHaqm/aqm_bicor_post_cs.sh
+err=$?; err_chk
+
+#
+#--------------------------------------------------------------
+# STEP 5: calculating 24-hr ave PM2.5
+if [ $cyc -eq 06 -o  $cyc -eq 12 ] ; then
+$USHaqm/aqm_bicor_post_maxi_cs.sh
+err=$?; err_chk
+
+# interpolate to grid 227
+
+oldgrib2file1=aqm.t${cyc}z.24hpm25-ave.148.bc.grib2
+newgrib2file1=aqm.t${cyc}z.24hpm25-ave.227.bc.grib2
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+$utilexec/copygb2  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1} 
+#$utilexec/wgrib2 ${oldgrib2file1} -set_grib_type same -new_grid_winds grid -new_grid_interpolation neighbor  -new_grid lambert:265.000:25.000:25.000:25.000 226.541:1473:5079 12.190:1025:5079 ${newgrib2file1} 
+
+oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
+newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
+$utilexec/copygb2  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
+#$utilexec/wgrib2 ${oldgrib2file2} -set_grib_type same -new_grid_winds grid -new_grid_interpolation neighbor  -new_grid lambert:265.000:25.000:25.000:25.000 226.541:1473:5079 12.190:1025:5079 ${newgrib2file2}
+
+cp -rp ${newgrib2file1} $COMOUT/
+cp -rp ${newgrib2file2} $COMOUT/
+#done 
+
+fi
+
+       ##############################
+       # Post Files to PCOM
+       ##############################
+
+       if test "$SENDCOM" = 'YES'
+       then
+           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+
+          ##############################
+          # Distribute Data
+          ##############################
+
+          if [ "$SENDDBN_NTC" = 'YES' ] ; then
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+          else
+             msg="File $output_grb.$job not posted to db_net."
+             postmsg "$jlogfile" "$msg"
+          fi
+       fi
+
+#done
+if [ "$SENDCOM" = 'YES' ]; then
+ if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
+  cp aqm-1hr-pm25-daily-max.227.grib $COMOUT/aqm.${cycle}.1hpm25-max.227.grib
+  cp aqm.t${cyc}z.1hpm25-max.227.bc.grib2  $COMOUT/aqm.${cycle}.1hpm25-max.227.bc.grib2
+  cp aqm.t${cyc}z.24hpm25-ave.227.bc.grib2 $COMOUT/aqm.${cycle}.24hpm25-ave.227.bc.grib2
+ fi
+fi
