@@ -1,0 +1,47 @@
+#!/bin/ksh
+
+# notte: please do the folloing module unload nad load
+#module unload ics
+#module load ics/14.0.1
+
+
+set -ax
+if [ ${USER}  = "Jianping.Huang" ]
+then
+  export fdir=/naqfc/save/${USER}  
+  export usrdir=/naqfc/save/${USER}
+  export model_ver=v4.6.6
+  export envir=dev
+else
+  export model_ver=v4.6.6
+  export envir=para
+fi
+export fdir=${fdir:-}
+export fdir1=${fdir}/nw${envir}/cmaq.${model_ver}/sorc
+export usrdir=${usrdir:-}
+
+for src in subset subc combine interpolate_update bias_correct  post_bias_cor 
+do
+cd ${fdir1}/aqm_${src}.fd
+make clean
+make 
+done
+
+
+module switch ics/14.0.1
+
+for src in post_bias_cor post_maxi_bias_cor
+do 
+cd ${fdir1}/aqm_${src}.fd
+compile.ksh
+done
+
+for src in post_maxi_CHA_grib2 cmaq2grib2_v1 ngac_dust_dlbc 
+do
+cd ${fdir1}/aqm_${src}.fd
+make clean
+make 
+done
+
+
+

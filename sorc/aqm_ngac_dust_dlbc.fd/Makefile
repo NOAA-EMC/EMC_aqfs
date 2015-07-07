@@ -3,7 +3,7 @@
  LIB_LOC    = $(DIR)/lib 
  LNTCDF     = /usrx/local/NetCDF/3.6.3/lib
  
- TARGET     = ngac-bnd-nemsio.met1
+ TARGET     =  aqm_ngac_dust_dlbc
  
  FC         = ifort
  
@@ -11,9 +11,10 @@
  
  LIBRARIES = -L$(LIB_LOC) -laqm_ioapi -L$(LNTCDF) -lnetcdf -L/nwprod/lib -lnemsio_v2.2.0 -lbacio_4 -lw3emc_d  -lw3nco_d
  
- OBJECTS = ngac-bnd-nemsio.met1.f 
+ OBJECTS = aqm_ngac_dust_dlbc.f 
  
- INCLUDES = -I/nwprod/cmaq.v4.6.4/lib/sorc/aqm_ioapi/ioapi -I/nwprod/lib/incmod/nemsio_v2.2.0	
+# INCLUDES = -I/nwprod/cmaq.v4.6.4/lib/sorc/aqm_ioapi/ioapi -I/nwprod/lib/incmod/nemsio_v2.2.0	
+ INCLUDES = -I$(DIR)/lib/sorc/aqm_ioapi/ioapi -I/nwprod/lib/incmod/nemsio_v2.2.0	
 
 $(TARGET): $(OBJECTS)
 	$(FC) $(F_FLAGS) -o ../../exec/$@ $(INCLUDES) $(OBJECTS) $(LIBRARIES)

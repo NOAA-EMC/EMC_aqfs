@@ -7,11 +7,13 @@
 
 AR   = ar
 CC   = icc
-FC   = ifort -auto -cm -w90 -w95 -warn notruncated_source -Bstatic
+#FC   = ifort -auto -cm -w90 -w95 -warn notruncated_source -Bstatic
+FC   = ifort -auto  -warn notruncated_source -Bstatic
 M4   = m4
 LINK = $(CC)
 
-MFLAGS    = -mtune core2 -traceback
+#MFLAGS    = -mtune core2 -traceback
+MFLAGS    = 
 
 OMPFLAGS  = #-openmp
 OMPLIBS   = #-openmp

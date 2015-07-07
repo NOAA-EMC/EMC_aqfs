@@ -56,7 +56,8 @@ C........  This module contains the global variables for the 3-d grid
 
 
       USE MODGRID,    ONLY: NGRID, VGLVS, VGTYP, VGTOP
-      USE PREMAQPARM, ONLY: NCOLS, NROWS, NLAYS
+!      USE PREMAQPARM, ONLY: NCOLS, NROWS, NLAYS
+      USE PREMAQPARM, ONLY: NCOLS, NROWS
 
 !      USE MOD_MRGGRID, ONLY: LDEV, JDATE, JTIME, NVOUT, INDXN, OUTNAM,
 !     &                       EOUT,NFILE,MRGDIFF

@@ -26,7 +26,7 @@
 #################################################################################
 #
 # Define the name of the executable
-DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
+#DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
 
 TARGET       = aqm_premaq_nmmb_v46

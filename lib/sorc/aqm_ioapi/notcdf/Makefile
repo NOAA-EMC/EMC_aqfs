@@ -14,7 +14,7 @@
 #
 #BASEDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1
 #INSTDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/Linux2_x86_64ifort
-BASEDIR    = /naqfc/save/${USER}/nwpara/cmaq.v4.6.3/lib/sorc/aqm_ioapi
+#BASEDIR    = /naqfc/save/${USER}/nwpara/cmaq.v4.6.3/lib/sorc/aqm_ioapi
 INSTDIR = $(BASEDIR)/$(BIN)
 
 SRCDIR  = $(BASEDIR)/notcdf
