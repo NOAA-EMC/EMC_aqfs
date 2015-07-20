@@ -32,7 +32,7 @@ nc1    =  -I$(NETCDFPATH)/include  ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 nc2    =  -L/usrx/local/HDF4/4.2.8/lib
 #nc2    = ${HDF4_LDFLAGS} ${HDF4_LDFLAGS_F}
 nc3    = ${HDF5_LDFLAGS}
-nc4    =  ${SZ_LIB}
+#nc4    =  ${SZ_LIB}
 nc5    = -lz -lmfhdf
 
 #setenv  LIB_NETCDF  $(nc1)
