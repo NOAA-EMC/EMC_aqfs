@@ -71,21 +71,21 @@ $EXECaqm/aqm_cmaq2grib >> $pgmout 2>errfile
 export err=$?;err_chk
 
 ###PM2.5
-export CHEM3D=${COMIN}/aqm.${cycle}.aconc.ncf
-cat >cmaq2grib.ini <<EOF5
-&control
-varlist='PM2.5'
-metlist='    '
-outfile='aqm.${cycle}.25pm'
-nlayers=1
-id_gribdomain=148
-ave1hr=.true.
-/
-EOF5
+#export CHEM3D=${COMIN}/aqm.${cycle}.aconc.ncf
+#cat >cmaq2grib.ini <<EOF5
+#&control
+#varlist='PM2.5'
+#metlist='    '
+#outfile='aqm.${cycle}.25pm'
+#nlayers=1
+#id_gribdomain=148
+#ave1hr=.true.
+#/
+#EOF5
 
-startmsg
-$EXECaqm/aqm_cmaq2grib   >> $pgmout 2>errfile
-export err=$?;err_chk
+#startmsg
+#$EXECaqm/aqm_cmaq2grib   >> $pgmout 2>errfile
+#export err=$?;err_chk
 
 # write out pm2.5 in  grib2 format
 

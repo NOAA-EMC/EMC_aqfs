@@ -1,15 +1,15 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_fcst_ak.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_fcst_ak.out 
-#BSUB -J jaqm_fcst_v463_ak
+#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_fcst_ak.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_fcst_ak.out 
+#BSUB -J jaqm_fcst_v466_ak
 #BSUB -n 64 
 #BSUB -x
-#BSUB -R span[ptile=8]
+#BSUB -R span[ptile=16]
 #BSUB -W 00:50
-#BSUB -q devhigh
-##BSUB -q dev
-#BSUB -P naqfc 
+##BSUB -q dev2
+#BSUB -q dev2
+#BSUB -P CMAQ-T2O 
 ##BSUB -R "rusage[mem=1500]"
 #BSUB -a poe
 

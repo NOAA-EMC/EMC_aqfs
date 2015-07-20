@@ -1,30 +1,28 @@
+CMD        = aqm_fcst_nmmb_v46
 
-#fdir      = ${fdir:-}
-DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
-CMD       = aqm_fcst_nmmb_v46
-
-LIB_LOC = $(DIR)/lib
-STENEX = $(LIB_LOC)/sorc/aqm_se-rc4n_2010
-LSTENEX = -L$(LIB_LOC) -laqm_sef90_2010
+LIB_LOC    = ../../lib
+STENEX     = $(LIB_LOC)/sorc/aqm_se-rc4n_2010
+STENEX_LIB = $(LIB_LOC)/libaqm_sef90_2010.a
  
-LPARIO  = -L$(DIR)/lib -laqm_pario
+PARIO_LIB  = $(LIB_LOC)/libaqm_pario.a
 
-LIOAPI  = -L$(LIB_LOC)/ -laqm_ioapi
-LNTCDF  = -L/usrx/local/NetCDF/3.6.3/lib -lnetcdf
+IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS}
 
-MPI     = /opt/ibmhpc/pe1301/mpich2/intel/include64
-FC      = mpfort
-CC      = /usr/bin/mpcc
+MPI        = /opt/ibmhpc/pe1301/mpich2/intel/include64
+FC         = ${COMP_MP} 
+CC         = ${C_COMP_MP} 
 
-FSTD      = -fixed -132 -override-limits -mp1 -fp-model precise
+FSTD       = -fixed -132 -override-limits -mp1 -fp-model precise
 
 # DBG = -g -traceback
- DBG = -g 
+DBG        = -g 
 
 # Compiler Flags
- F_FLAGS = $(FSTD) -O3 -assume byterecl $(DBG) -I$(STENEX) -I .
+F_FLAGS    = $(FSTD) -O3 -assume byterecl $(DBG) -I$(STENEX) -I .
 
- C_FLAGS = -O3 #-O3
+C_FLAGS    = -O3 #-O3
 #LINK_FLAGS =
 #LINK_FLAGS = -bnoquiet
 
@@ -44,13 +42,14 @@ CPP_FLAGS = \
  -DSUBST_DATA_COPY=SE_DATA_COPY
 
 LIBRARIES = \
- $(LSTENEX) \
- $(LIOAPI) \
- $(LNTCDF) \
- $(LPARIO) \
- $(LIOAPI)
+$(STENEX_LIB) \
+$(IOAPI_LIB) \
+$(NETCDF_LIB) \
+$(PARIO_LIB) \
+$(IOAPI_LIB)
+#
 
- INCL1 = $(DIR)/sorc/aqm_fcst_nmmb_v46.fd
+ INCL1 =./
  INCL2 = $(INCL1)
  INCL3 = $(INCL1)
  INCL4 = $(INCL1)

@@ -1,23 +1,31 @@
-fdir=/naqfc/save/Jianping.Huang
-envir=dev
-model_ver=v4.6.6
-
-DIR      =${fdir}/nw$(envir)/cmaq.$(model_ver)
 CMD      = aqm_post_maxi_CHA_grib2
 SRCS     = cmaq_maxi2grib2.f90 
 
-LIB_LOC  = $(DIR)/lib
-IOAPI    = -laqm_ioapi
-NETCDF   = -L/usrx/local/NetCDF/3.6.3/lib -lnetcdf
+LIB_LOC  = ../../lib
+IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
+NETCDF_LIB =  ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 
-LIBS =   -L$(LIB_LOC)  $(IOAPI) \
-	-L/usrx/local/NetCDF/3.6.3/lib -lnetcdf \
-	-L/nwprod/lib -lg2_4 -lw3nco_4 -lmdl_4 -lbacio_4 -ljasper -lpng -lz
+W3_LIB     = ${W3NCO_LIB4} ${W3EMC_LIB4}
+G2_LIB     = ${G2_LIB4}
+PNG_LIB2   = ${PNG_LIB}
+BACIO_LIB  = ${BACIO_LIB4}
+JASPER_LIB2 = ${JASPER_LIB}
+Z_LIB2      = ${Z_LIB}
+#MDL_LIB2    = ${MDL_LIB4}
+MDL_LIB2    = 
 
+LIBS   =  $(IOAPI_LIB) \
+          $(NETCDF_LIB) \
+          $(G2_LIB) \
+	  $(W3_LIB) \
+          $(PNG_LIB2) \
+	  $(BACIO_LIB) \
+	  $(JASPER_LIB2) \
+	  $(Z_LIB2)
 
 INC    = $(LIB_LOC)/sorc/aqm_ioapi/ioapi
 
-FC     = ifort
+FC     = ${COMP} 
 
 FLAGS  = -I$(INC) 
 

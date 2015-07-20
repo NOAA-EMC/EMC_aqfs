@@ -1,25 +1,21 @@
-DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
-LIB_LOC    = $(DIR)/lib
-#
-
-
-mydir      =$(PWD)
+DIR        =$(PWD)
 EDSS_EXE   =Linux2_x86ifort
+LIB_DIR    =../../lib
 
-FILESETAPI =$(DIR)/lib/sorc/aqm_filesetapi
-EDSS_TOOLS =$(DIR)/lib/sorc/aqm_edss_tools
+FILESETAPI =$(LIB_DIR)/sorc/aqm_filesetapi
+EDSS_TOOLS =$(LIB_DIR)/sorc/aqm_edss_tools
 
 
-FC         = ifort
-FFLAGS     = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
+FC         = ${COMP} 
+FFLAGS     = -O2 -save -zero -extend_source -nbs -W0 -I$(DIR)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \
-	 -I$(mydir)/$(EDSS_EXE) \
+	 -I$(DIR)/$(EDSS_EXE) \
 	 -I$(EDSS_TOOLS)/$(EDSS_EXE)
 	 
-MD_SRC =$(mydir)
-INC =$(mydir)/inc
+MD_SRC =$(DIR)
+INC =$(DIR)/inc
 	 
 .f.o:
 	$(FC) $(FFLAGS) -c -o $@ $<     

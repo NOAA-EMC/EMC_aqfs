@@ -1,15 +1,15 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_premaq_ak.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_premaq_ak.out
+#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_premaq_ak.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_premaq_ak.out
 #BSUB -J jaqm_premaq_ak
 #BSUB -n 1 
 #BSUB -x
 #BSUB -R span[ptile=1]
 #BSUB -W 01:50
-#BSUB -q devhigh 
-##BSUB -q dev
-#BSUB -P naqfc 
+##BSUB -q dev2 
+#BSUB -q dev2
+#BSUB -P CMAQ-T2O 
 ##BSUB -a poe
 ##BSUB -a openmpi
 ##

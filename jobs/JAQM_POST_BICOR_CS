@@ -130,9 +130,9 @@ export Mnm1=`echo ${PDYm1}  | cut -c5-6`
 export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-/com/${NET}/${envir}/${RUN}.${PDYm1}}
-export BICOR_DATA=${BICOR_DATA:-/com/${NET}/para/bcdata.${Yrmn}}
-export BICOR_DATA1=${BICOR_DATA1:-/com/${NET}/para/bcdata.${Yrmn1}}
-export BICOR_DATA4w=${BICOR_DATA4w:-/com/${NET}/para/bcdata.${Yrmn4w}}
+export BICOR_DATA=${BICOR_DATA:-/com/${NET}/${envir}/bcdata.${Yrmn}}
+export BICOR_DATA1=${BICOR_DATA1:-/com/${NET}/${envir}/bcdata.${Yrmn1}}
+export BICOR_DATA4w=${BICOR_DATA4w:-/com/${NET}/${envir}/bcdata.${Yrmn4w}}
 export DCOM_DIR=${DCOM_DIR:-}
 
 if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 

@@ -385,7 +385,7 @@ done
 export IOAPI_CHECK_HEADERS=F
 export EXECUTION_ID=PREMAQ
 export NOTCDF_FATAL=F
-export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
+export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
 if [[ $MKGRID = "T" ]]; then
   export GRID_BDY_2D_G1=$DATA/GRIDBDY2D
   export GRID_BDY_3D_G1=$DATA/GRIDBDY3D
@@ -406,7 +406,7 @@ export MET_DOT_3D_G1=$DATA/METDOT3D
 #---------------------------------------------------------------------
 export LANDA_G1=$FIXaqm/aqm_LANDA_${OUTGRID}_igbp2010.ncf
 if [[ $MKBC = "T" ]]; then
-export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf 
+export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
 fi
 
 #---------------------------------------------------------------------
@@ -610,17 +610,6 @@ if [ "$SENDCOM" = 'YES' ]; then
 fi
 
 echo EXITING $0
-
-#cd $DATA
-
-#/nwprod/util/ush/setup.sh
-
-#export LOGFILE=$DATA/chkreads.log
-
-#$USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
-#export err=$?; err_chk
-
-#sh $HOMEaqm/scripts/exaqm_premaq_cb05_extend_cs.sh.ecf
 
 ########################################################
 

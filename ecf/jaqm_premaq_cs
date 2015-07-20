@@ -1,16 +1,16 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_premaq_cs.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_premaq_cs.out
-#BSUB -J jaqm_premaq_cs_v463
+#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_premaq_cs.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_premaq_cs.out
+#BSUB -J jaqm_premaq_cs_v465
 #BSUB -n 1 
 #BSUB -x
 #BSUB -R span[ptile=1]
 #BSUB -W 01:29
-##BSUB -q dev
-#BSUB -q devhigh
+#BSUB -q dev2
+##BSUB -q dev2
 #BSUB -R "rusage[mem=10000]"
-#BSUB -P naqfc
+#BSUB -P CMAQ-T2O
 #BSUB -a poe
 ##BSUB -a openmpi
 ##

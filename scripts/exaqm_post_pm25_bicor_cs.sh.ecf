@@ -58,7 +58,6 @@ $USHaqm/aqm_bicor_interp_cs.sh
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
 
-#$USHaqm/aqm_bicor_pm25_cs_new.sh 
 $USHaqm/aqm_bicor_pm25_cs.sh 
  err=$?; err_chk
 #------------------------------------------------------------------------
@@ -89,7 +88,6 @@ $utilexec/copygb2  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
 
 cp -rp ${newgrib2file1} $COMOUT/
 cp -rp ${newgrib2file2} $COMOUT/
-#done 
 
 fi
 
@@ -99,7 +97,7 @@ fi
 
        if test "$SENDCOM" = 'YES'
        then
-           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+#           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
 
           ##############################
           # Distribute Data
@@ -116,7 +114,6 @@ fi
 #done
 if [ "$SENDCOM" = 'YES' ]; then
  if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
-  cp aqm-1hr-pm25-daily-max.227.grib $COMOUT/aqm.${cycle}.1hpm25-max.227.grib
   cp aqm.t${cyc}z.1hpm25-max.227.bc.grib2  $COMOUT/aqm.${cycle}.1hpm25-max.227.bc.grib2
   cp aqm.t${cyc}z.24hpm25-ave.227.bc.grib2 $COMOUT/aqm.${cycle}.24hpm25-ave.227.bc.grib2
  fi

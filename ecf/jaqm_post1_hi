@@ -1,7 +1,7 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_post1_hi.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_post1_hi.out 
+#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_post1_hi.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_post1_hi.out 
 #BSUB -J jaqm_post1_hi
 #BSUB -n 1 
 #BSUB -x
@@ -9,8 +9,9 @@
 #BSUB -W 00:50
 ##BSUB -R rusage[mem=2500]
 #BSUB -W 00:20
-#BSUB -q devhigh
-#BSUB -P naqfc
+##BSUB -q dev2
+#BSUB -q dev2
+#BSUB -P CMAQ-T2O
 ##BSUB -a poe
 
 module load ics

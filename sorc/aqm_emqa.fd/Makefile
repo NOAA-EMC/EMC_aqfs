@@ -1,28 +1,29 @@
-# Version @(#)$Id: Makefile,v 1.15 2004/06/21 17:17:37 cseppan Exp $ 
-# Path    $Source: /afs/isis/depts/cep/emc/apps/archive/smoke/smoke/src/emqa/Makefile,v $
-# Date    $Date: 2004/06/21 17:17:37 $ 
-#
 
-DIR        = ${fdir}/nw$(envir)/cmaq.$(model_ver)
-LIB_LOC    = $(DIR)/lib
-NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
+LIB_LOC    = ../../lib
 
 mydir      =$(PWD)
 EDSS_EXE   =Linux2_x86ifort
 
 LDIRS      =-L/$(mydir)/$(EDSS_EXE)
 
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 
-LIBS_SYS  = -laqm_smoke -laqm_fileset -laqm_edsstools -laqm_ioapi -lnetcdf
+LIBS_SYS  = $(LIB_LOC)/libaqm_smoke.a \
+            $(LIB_LOC)/libaqm_fileset.a \
+            $(LIB_LOC)/libaqm_edsstools.a \
+            $(LIB_LOC)/libaqm_ioapi.a \
+            $(NETCDF_LIB2)
+
 LIBS_COMPILE =
 
-SMK_BIN   = $(DIR)/exec
+SMK_BIN   = ../../exec
 TOOLS_BIN = $(LIB_LOC)
 
-FILESETAPI=$(DIR)/lib/sorc/aqm_filesetapi
-EDSS_TOOLS=$(DIR)/lib/sorc/aqm_edss_tools
+FILESETAPI=../..//lib/sorc/aqm_filesetapi
+EDSS_TOOLS=../../lib/sorc/aqm_edss_tools
 
-FC = ifort
+FC = ${COMP} 
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \
@@ -37,7 +38,7 @@ ETDSRC =$(mydir)
 FS_ROOT =$(mydir)
 
 
-LIBS       = -L$(LIB_LOC) -L$(NCF_LIB) $(LIBS_SYS) $(LIBS_COMPILE)
+LIBS       =  $(LIBS_SYS) $(LIBS_COMPILE)
 LIBPATH    = $(LIB_LOC)/libaqm_smoke.a $(LIB_LOC)/libaqm_edsstools.a
 
 

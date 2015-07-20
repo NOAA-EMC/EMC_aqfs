@@ -56,7 +56,6 @@ Species converting Factor
 'ASOIL'  0.7586
 EOF
 
-
 export TOPO=$FIXaqm/aqm.grdcro2d_new.ncf
 export METEO3D=$outdir/aqm.t${cyc}z.metcro3d.ncf
 export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf

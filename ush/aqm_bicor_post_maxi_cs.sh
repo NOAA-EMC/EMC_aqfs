@@ -47,28 +47,24 @@ if [ $cyc = '12' ] ; then
 fi
 #-----------------------------------------------------------
 # write out grib1 format
-startmsg  
-$EXECaqm/aqm_post_maxi_bias_cor   pm25 ${PDY} $cyc $chk 
-export err=$?;err_chk
+#startmsg  
+#$EXECaqm/aqm_post_maxi_bias_cor   pm25 ${PDY} $cyc $chk 
+#export err=$?;err_chk
 
 
-if [ $envir = "para1" ] ; then
- if [ -e $COMOUT_grib/$PDY ] ; then
-#  cp $DATA/aqm.t${cyc}z.pm25_24hr_ave.148.grib.bc $COMOUT_grib/$PDY 
-#  cp $DATA/aqm.t${cyc}z.pm25_24hr_max.148.grib.bc $COMOUT_grib/$PDY 
-  cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT_grib/$PDY
-  cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT_grib/$PDY
- else
-  mkdir -p $COMOUT_grib/$PDY
-#  cp $DATA/aqm.t${cyc}z.pm25_24hr_ave.148.grib.bc $COMOUT_grib/$PDY
-#  cp $DATA/aqm.t${cyc}z.pm25_24hr_max.148.grib.bc $COMOUT_grib/$PDY
-  cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT_grib/$PDY
-  cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT_grib/$PDY
+#if [ $envir = "para1" ] ; then
+# if [ -e $COMOUT_grib/$PDY ] ; then
+#  cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT_grib/$PDY
+#  cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT_grib/$PDY
+# else
+#  mkdir -p $COMOUT_grib/$PDY
+#  cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT_grib/$PDY
+#  cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT_grib/$PDY
 
- fi
-fi
- cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT
- cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT
+# fi
+#fi
+# cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib $COMOUT
+# cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib $COMOUT
 
 # write out grib2 format 
 #-------------------------------------------------

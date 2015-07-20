@@ -25,19 +25,19 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc .
 
 ##------------------------
 # convert from netcdf to grib1 format
-startmsg  
-$EXECaqm/aqm_post_bias_cor pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc 
-export err=$?;err_chk
+#startmsg  
+#$EXECaqm/aqm_post_bias_cor pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc 
+#export err=$?;err_chk
 
-cp -rp $DATA/aqm.t${cyc}z.25pm* $COMOUT
+#cp -rp $DATA/aqm.t${cyc}z.25pm* $COMOUT
 
-if [ -e $COMOUT_grib/$PDY ] ; then
- cp $DATA/aqm.t${cyc}z.25pm* $COMOUT_grib/$PDY 
- cp $DATA/aqm.t${cyc}z.25pm* $COMOUT
-else
- mkdir -p $COMOUT_grib/$PDY
- cp $DATA/aqm.t${cyc}z.25pm* $COMOUT_grib/$PDY
-fi
+#if [ -e $COMOUT_grib/$PDY ] ; then
+# cp $DATA/aqm.t${cyc}z.25pm* $COMOUT_grib/$PDY 
+# cp $DATA/aqm.t${cyc}z.25pm* $COMOUT
+#else
+# mkdir -p $COMOUT_grib/$PDY
+# cp $DATA/aqm.t${cyc}z.25pm* $COMOUT_grib/$PDY
+#fi
 
 ##------------------------
 # convert from netcdf to grib2 format

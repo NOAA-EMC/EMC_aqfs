@@ -10,7 +10,7 @@ FILESETAPI=../aqm_filesetapi
 ETDSRC =./modules
 ETINC =./ioapi_includes
 
-FC = ifort
+FC = ${COMP} 
 
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I${FILESETAPI}/${EDSS_EXE} -I${ETINC} -I${ETDSRC}/${EDSS_EXE} -I${FILESETAPI}
 

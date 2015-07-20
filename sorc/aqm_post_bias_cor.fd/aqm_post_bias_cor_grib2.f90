@@ -66,7 +66,7 @@ program aqm_post1_bias_correct_grib2
 !
       real(4),dimension(nx*ny) :: fld
       integer ifilw,i,j,lengrib,lonstt,lonlst,latstt,latlst
-      integer yy,mm,dd,hh,mn,sc
+!      integer yy,mm,dd,hh,mn,sc
       real(4) :: dxval
 
        character*50 gdss(400)

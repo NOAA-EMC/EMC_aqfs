@@ -1,20 +1,28 @@
- DIR       = $(fdir)/nw$(envir)/cmaq.$(model_ver)
+ 
+TARGET     =  aqm_ngac_dust_dlbc
 
- LIB_LOC    = $(DIR)/lib 
- LNTCDF     = /usrx/local/NetCDF/3.6.3/lib
+OBJECTS = aqm_ngac_dust_dlbc.f 
+
+LIB_LOC   =../../lib
+IOAPI_LIB  =../../lib/libaqm_ioapi.a
+
+NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
  
- TARGET     =  aqm_ngac_dust_dlbc
+FC         = ${COMP} 
  
- FC         = ifort
+F_FLAGS    = -O -FR -assume byterec
+
+NEMSIO_LIB9  = ${NEMSIO_LIB} 
+
+BACIO_LIB  = ${BACIO_LIB4}
+
+W3_LIB     = ${W3NCO_LIBd} ${W3EMC_LIBd}
+
+LIBRARIES = $(IOAPI_LIB) $(NETCDF_LIB) $(NEMSIO_LIB9) $(BACIO_LIB) \
+	   $(W3_LIB)
  
- F_FLAGS    = -O -FR -assume byterec
  
- LIBRARIES = -L$(LIB_LOC) -laqm_ioapi -L$(LNTCDF) -lnetcdf -L/nwprod/lib -lnemsio_v2.2.0 -lbacio_4 -lw3emc_d  -lw3nco_d
- 
- OBJECTS = aqm_ngac_dust_dlbc.f 
- 
-# INCLUDES = -I/nwprod/cmaq.v4.6.4/lib/sorc/aqm_ioapi/ioapi -I/nwprod/lib/incmod/nemsio_v2.2.0	
- INCLUDES = -I$(DIR)/lib/sorc/aqm_ioapi/ioapi -I/nwprod/lib/incmod/nemsio_v2.2.0	
+INCLUDES = -I$(LIB_LOC)/sorc/aqm_ioapi/ioapi -I$(NEMSIO_INC)
 
 $(TARGET): $(OBJECTS)
 	$(FC) $(F_FLAGS) -o ../../exec/$@ $(INCLUDES) $(OBJECTS) $(LIBRARIES)

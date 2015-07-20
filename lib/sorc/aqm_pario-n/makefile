@@ -1,17 +1,13 @@
 # RCS file, release, date & time of last delta, author, state, [and locker]
 # $Header: /project/work/rep/STENEX/src/se/Makefile,v 1.7 2000/04/26 19:08:41 yoj Exp $
 
-#mydir=/naqfc/save/${USER}
-#envir=dev
-#model_ver=v4.6.9
-
 SHELL=/bin/sh
 
 LIBNAME = libaqm_pario.a
 
-LIOAPI = ${mydir}/nw${envir}/cmaq.${model_ver}/lib/libaqm_ioapi.a
+LIOAPI = ../../libaqm_ioapi.a
 
-FC = mpfort
+FC = ${COMP_MP} 
 FSTD = -fixed -132 -O2  -fp-model precise 
 
 DEBUG = -g -traceback

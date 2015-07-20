@@ -29,8 +29,6 @@
 #    MP_CPU_USE=multiple   # Multi Processors
 #####################################################################
 
-#export NPCOL_NPROW="14 9"
-#export nprocs=127
  export NPCOL_NPROW="16 16"
  export nprocs=257
 

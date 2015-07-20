@@ -1,12 +1,12 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_hi.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_hi.out
+#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_hi.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_hi.out
 #BSUB -J jcmaq_pregen_hi
 #BSUB -n 4
-#BSUB -q devhigh 
-##BSUB -q dev
-#BSUB -P naqfc
+##BSUB -q dev2 
+#BSUB -q dev2
+#BSUB -P CMAQ-T2O
 #BSUB -x
 #BSUB -R span[ptile=1]
 ##BSUB -R "affinity[core]"

@@ -4,7 +4,7 @@ SRCS    = aqm_fire_checking.f
 
 OBJS    = aqm_fire_checking.o
 
-FC      = ifort 
+FC      = ${COMP} 
 LDFLAGS =	    
 LIBS    =   
         

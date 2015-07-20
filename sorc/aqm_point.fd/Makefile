@@ -3,27 +3,31 @@
 # Date    $Date: 2005/03/30 01:29:49 $ 
 #
 
-DIR        = ${fdir}/nw$(envir)/cmaq.$(model_ver)
-LIB_LOC    = $(DIR)/lib
-
-NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
+LIB_LOC    = ../../lib
 
 mydir      =$(PWD)
 EDSS_EXE   =Linux2_x86ifort
 
 LDIRS      =-L/$(mydir)/$(EDSS_EXE)
 
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 
-LIBS_SYS  = -laqm_smoke -laqm_fileset -laqm_edsstools -laqm_ioapi -lnetcdf
+LIBS_SYS  = $(LIB_LOC)/libaqm_smoke.a \
+               $(LIB_LOC)/libaqm_fileset.a \
+               $(LIB_LOC)/libaqm_edsstools.a \
+               $(LIB_LOC)/libaqm_ioapi.a \
+               $(NETCDF_LIB2)
+
 LIBS_COMPILE =
 
-SMK_BIN   = $(DIR)/exec
+SMK_BIN   = ../../exec
 TOOLS_BIN = $(LIB_LOC)
 
-FILESETAPI=$(DIR)/lib/sorc/aqm_filesetapi
-EDSS_TOOLS=$(DIR)/lib/sorc/aqm_edss_tools
+FILESETAPI=../../lib/sorc/aqm_filesetapi
+EDSS_TOOLS=../../lib/sorc/aqm_edss_tools
 
-FC = ifort
+FC = ${COMP}
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \
@@ -37,7 +41,7 @@ MD_SRC =$(mydir)
 ETDSRC =$(mydir)
 FS_ROOT =$(mydir)
 
-LIBS       = -L$(LIB_LOC) -L$(NCF_LIB) $(LIBS_SYS) $(LIBS_COMPILE)
+LIBS       =  $(LIBS_SYS) $(LIBS_COMPILE)
 LIBS_PVM      = $(LDIRS) -liocpl $(LIBS) -lpvm3 -mp $(LIBS_COMPILE)
 LIBS_PVMDB    = $(LDIRS) -liocpl $(LIBS_DEBUG) -lpvm3 -mp $(LIBS_COMPILE)
 
