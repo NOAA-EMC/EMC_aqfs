@@ -67,9 +67,6 @@
 
 .SUFFIXES: .m4 .c .F .f .mod
 
-#BASEDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1
-#jp BASEDIR    = /naqfc/save/${USER}/nwpara/cmaq.v4.6.3/lib/sorc/aqm_ioapi
-#INSTDIR = /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/Linux2_x86_64ifort
 INSTDIR = $(BASEDIR)/$(BIN)
 
 IODIR  = $(BASEDIR)/ioapi
@@ -82,7 +79,6 @@ FIXDIR  = $(IODIR)/fixed_src
 
 # Architecture dependent stuff
 
-#include /naqfc/noscrub/Li.Pan/LOCAL/src/dwtools/ioapi3.1/ioapi/Makeinclude.Linux2_x86_64ifort
 include $(BASEDIR)/ioapi/Makeinclude.Linux2_x86_64ifort
 
 DEFINEFLAGS = $(ARCHFLAGS) $(PARFLAGS)

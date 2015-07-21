@@ -12,7 +12,6 @@ FSTD = -fixed -132 -O2  -fp-model precise
 
 DEBUG = -g -traceback
 
-#FFLAGS = -132 -O3 -fp-model precise $(DEBUG)
 FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI) . 
 
  OBJS= \
