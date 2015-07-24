@@ -22,16 +22,12 @@ tar -xvf $DATA/files_fires.tar >xxx.list
 #     and can be used for eliminating short life time fore for not
 #     being barried to our 72hr fcst
 #-----------------------------------------------------------------
-#jp cp $FEMIT $DATA/EMITIMES
-#-----------------------------------------------------------------
 # create log directory for information output
 #-----------------------------------------------------------------
 export Bluesky_out=$LOG1/$PDY
 mkdir -p ${Bluesky_out}
 
 cd ${Bluesky_out}
-
-#sh $utilscript/setup.sh
 
 ################################################################
 #
@@ -42,9 +38,9 @@ cd ${Bluesky_out}
 #
 ################################################################
 date1=$PDYm1
-date2=`/nwprod/util/exec/ndate +24 ${date1}00 |cut -c 1-8`
-date3=`/nwprod/util/exec/ndate +48 ${date1}00 |cut -c 1-8` 
-date4=`/nwprod/util/exec/ndate +72 ${date1}00 |cut -c 1-8`
+date2=`$NDATE +24 ${date1}00 |cut -c 1-8`
+date3=`$NDATE +48 ${date1}00 |cut -c 1-8` 
+date4=`$NDATE +72 ${date1}00 |cut -c 1-8`
 date=${date1}
 
 #====================================
@@ -56,7 +52,8 @@ else
 fi
 #====================================
 
-export TMP_DIR=$HYPTMP/tmp/${date}
+#export TMP_DIR=$HYPTMP/tmp/${date}
+export TMP_DIR=$DATA/tmp/${date}
 mkdir -p $TMP_DIR
 #-----------------------------------------------------------------
 # get count of files in tar file
@@ -270,7 +267,8 @@ export PTDAY=ptday.bluesky.$date.ida.txt
 #--------------------------------------------------------
 # Directories used for output data.
 #--------------------------------------------------------
- export STATIC=$HYPTMP/static/$PDY
+# export STATIC=$HYPTMP/static/$PDY
+ export STATIC=$DATA/static/$PDY
  export SCENARIO=$FEMS
 #----- remove existing and create new directory
  if [ -d $STATIC ]; then

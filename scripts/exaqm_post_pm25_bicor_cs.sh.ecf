@@ -78,13 +78,12 @@ err=$?; err_chk
 oldgrib2file1=aqm.t${cyc}z.24hpm25-ave.148.bc.grib2
 newgrib2file1=aqm.t${cyc}z.24hpm25-ave.227.bc.grib2
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$utilexec/copygb2  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1} 
-#$utilexec/wgrib2 ${oldgrib2file1} -set_grib_type same -new_grid_winds grid -new_grid_interpolation neighbor  -new_grid lambert:265.000:25.000:25.000:25.000 226.541:1473:5079 12.190:1025:5079 ${newgrib2file1} 
+${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1} 
+
 
 oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
 newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
-$utilexec/copygb2  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
-#$utilexec/wgrib2 ${oldgrib2file2} -set_grib_type same -new_grid_winds grid -new_grid_interpolation neighbor  -new_grid lambert:265.000:25.000:25.000:25.000 226.541:1473:5079 12.190:1025:5079 ${newgrib2file2}
+${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
 
 cp -rp ${newgrib2file1} $COMOUT/
 cp -rp ${newgrib2file2} $COMOUT/

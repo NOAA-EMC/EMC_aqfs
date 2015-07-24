@@ -1,68 +1,36 @@
-#!/bin/ksh
+#!/bin/sh
 #
-############################################
-# Set up environment for AQM PREGEN 
-############################################
+. /usrx/local/Modules/default/init/ksh
+#
 set -xa
 export PS4='$SECONDS + '
 date -u
-
 ############################################
-export NET=aqm
-export RUN=HI
+# Set up environment for AQM PREGEN 
 ############################################
-
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export COMROOT=${COMROOT:-/com2}
+export NWROOT=${NWROOT:-/nw${envir}2}
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+export KEEPDATA${KEEPDATA:-NO}
+###########################################
+export NET=${NET:-aqm}
+export RUN=${RUN:-HI}
 ############################################
-# obtain unique process id (pid) and make temp directories
-#####################################
+# obtain unique process id (pid) 
+# and make temp directories
+############################################
 export pid=$$
 
-# PATH for working directory
-
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then
-   # NCO
-  if [[ ${envir} == prod ]]; then
-    TMPhome=/tmpnwprd1
-  else
-    TMPhome=/tmpnwprd2
-  fi
-   export DATA=$TMPhome/${job}.${pid}
-fi
-
-export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
+#export DATA=${DATAROOT}/${job}.${pid}
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+export DATA=${DATA:-${DATAROOT}/${job}.${pid}}
 mkdir -p $DATA
-
 cd $DATA
-
 ####################################
 # File To Log Msgs
 ####################################
-if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
-then
-   # NCO
-   if [ ${envir} = "prod" ]
-   then
-     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
-   else
-     export jlogfile=/com/logs/${envir}/jlogfile
-     #export DBNROOT=/nwprod/spa_util/para_dbn
-     export DBNROOT=/nwprod/spa_util/fakedbn
-   fi
-else
-   # DEV
-   export jlogfile=/dev/null
-fi
-
-##############################
-# Define MP variables
-##############################
-export MP_EUILIB=us
-export MP_EUIDEVICE=sn_all
-export MP_MPILIB=mpich2
-export MP_STDOUTMODE=unordered
-export MP_LABELIO=yes
-export MP_HOLDTIME=1000
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 ####################################
 # Determine Job Output Name on System
@@ -71,40 +39,45 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-export cycle=t${cyc}z
+export cycle=${cycle:-t${cyc}z}
 
-export SENDCOM=YES
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
 
 ####################################
 # Path to HOME Directory
 ####################################
-
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export USHaqm=$HOMEaqm/ush
 export PARMaqm=$HOMEaqm/parm
-
 ###################################
 # Set up the UTILITIES
 ###################################
-export utilscript=/nwprod/util/ush
-export utilexec=/nwprod/util/exec
+module load prod_util
+module load grib_util
 
-# Run setup to initialize working directory and utility scripts
-sh $utilscript/setup.sh
+###########################################
+# Run setpdy and initialize PDY variables
+###########################################
+#sh $utilscript/setup.sh
 
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-$utilscript/setpdy.sh
+# Run setpdy and initialize PDY variables
+setpdy.sh
 . PDY
 
-export COM=/com/${NET}/${envir}
-export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export COMNMM=${COMNMM:-/com/nam/prod/nam.${PDY}}
-export COMNMMm1=${COMNMMm1:-/com/nam/prod/nam.${PDYm1}}
-
+##############################################
+# Define COM directories
+##############################################
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMNMM=${COMNMM:-${COMROOT}/com/nam/prod/nam.${PDY}}
+export COMNMMm1=${COMNMMm1:-${COMROOT}/nam/prod/nam.${PDYm1}}
 
 mkdir -p $COMOUT
 
@@ -122,14 +95,9 @@ postmsg "$jlogfile" "$msg"
 ###################################
 # Remove temp directories
 ###################################
-
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then  # NCO
-  cd $TMPhome
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
   rm -rf $DATA
-else # DEV
-  echo "Keeping data directory $DATA"
 fi
-
-date -u
+date
 

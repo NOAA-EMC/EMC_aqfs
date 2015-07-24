@@ -16,7 +16,7 @@
 #####################################################################
 set -xa
 msg="JOB $job HAS BEGUN"
-sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 cd $DATA
 
@@ -294,7 +294,7 @@ echo "\"${InMetFiles[$fhr]}\"," >> $DATA/files_list
 
 idx_file=${InMetFiles[$fhr]}.indx
 if [ ! -s ${idx_file} ]; then
-/nwprod/util/exec/grbindex ${InMetFiles[$fhr]} ${idx_file}
+${GRBINDEX} ${InMetFiles[$fhr]} ${idx_file}
 fi
 
 echo "\"${idx_file}\"," >> index_list
@@ -589,15 +589,14 @@ if [ "$SENDCOM" = 'YES' ]; then
 
 #     sync
 
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grddot2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metdot3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metbdy3d.ncf
-#     $utilexec/fsync_file $COMOUT/aqm.${cycle}.chembdy3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.emission.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+   ${FSYNC}  $COMOUT/aqm.${cycle}.grddot2d.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.metcro2d.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.metcro3d.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.metdot3d.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.metbdy3d.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.emission.ncf
+   ${FSYNC}  $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 
 fi
 

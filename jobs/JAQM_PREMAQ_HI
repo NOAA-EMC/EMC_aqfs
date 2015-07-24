@@ -1,15 +1,20 @@
-#!/bin/ksh
+#!/bin/sh
 #
-############################################
-# Set up environment for AIR QUALITY PREMAQ 
-############################################
+. /usrx/local/Modules/default/init/ksh
+#
 set -xa
 export PS4='$SECONDS + '
 date 
 
+##########################################
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export COMROOT=${COMROOT:-/com2}
+export NWROOT=${NWROOT:-/nw${envir}2}
+export KEEPDATA${KEEPDATA:-NO}
+
 ############################################
-export NET=aqm
-export RUN=HI
+export NET=${NET:-aqm}
+export RUN=${RUN:-HI}
 ############################################
 
 #####################################
@@ -19,18 +24,10 @@ export pid=$$
 
 # PATH for working directory
 
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then
-   # NCO
-  if [[ ${envir} == prod ]]; then
-    TMPhome=/tmpnwprd1
-  else
-    TMPhome=/tmpnwprd2
-  fi
-   export DATA=$TMPhome/${job}.${pid}
-fi
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 
-export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
+export DATA=${DATA:-${DATAROOT}/${job}.${pid}}
+
 mkdir -p $DATA
 
 cd $DATA
@@ -38,32 +35,7 @@ cd $DATA
 ####################################
 # File To Log Msgs
 ####################################
-if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
-then
-   # NCO
-   if [ ${envir} = "prod" ]
-   then
-     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
-   else
-     export jlogfile=/com/logs/${envir}/jlogfile
-     #export DBNROOT=/nwprod/spa_util/para_dbn
-     export DBNROOT=/nwprod/spa_util/fakedbn
-   fi
-else
-   # DEV
-   export jlogfile=/dev/null
-fi
-
-##############################
-# Define MP variables
-##############################
-#export MEMORY_AFFINITY=MCM
-export MP_EUILIB=us
-export MP_EUIDEVICE=sn_all
-export MP_MPILIB=mpich2
-export MP_STDOUTMODE=unordered
-export MP_LABELIO=yes
-export MP_HOLDTIME=1000
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 ####################################
 # Determine Job Output Name on System
@@ -72,42 +44,45 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-export cycle=t${cyc}z
+export cycle=${cycle:-t${cyc}z}
 
-export SENDCOM=YES
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
 
 ####################################
 # Path to HOME Directory
 ####################################
-
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
-export PARMaqm=${HOMEaqm}/parm
+export USHaqm=$HOMEaqm/ush
+export PARMaqm=$HOMEaqm/parm
 
 ###################################
 # Set up the UTILITIES
 ###################################
-export utilscript=/nwprod/util/ush
-export utilexec=/nwprod/util/exec
-export PARMutil=/nwprod/util/parm
+module load prod_util
+module load grib_util
 
 # Run setup to initialize working directory and utility scripts
-sh $utilscript/setup.sh
+#sh $utilscript/setup.sh
 
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
 # Run setpdy and initialize PDY variables
-$utilscript/setpdy.sh
+setpdy.sh
 . PDY
 
-export COM=/com/${NET}/${envir}
-export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-/com/${NET}/${envir}/${RUN}.${PDYm1}}
+##############################################
+# Define COM directories
+##############################################
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 
-export INPEMIDIR=${INPEMIDIR:-/com/${NET}/${envir}/emission}
+export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
 
 mkdir -p $COMOUT
  
@@ -126,14 +101,9 @@ postmsg "$jlogfile" "$msg"
 ###################################
 # Remove temp directories
 ###################################
-
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then  # NCO
-  cd $TMPhome
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
   rm -rf $DATA
-else # DEV
-  echo "Keeping data directory $DATA"
 fi
 
 date
-

@@ -130,7 +130,7 @@ case $cyc in
  18) endfhr=06;;
 esac
 
-rm tmpfile
+rm -rf tmpfile
 
 if [ "$SENDCOM" = 'YES' ]
     then
@@ -157,9 +157,9 @@ do
   if [ $fhr -le 07 ]; then
    cat $COMOUT/aqm.${cycle}.awpozcon${fhr} >> tmpfile.1hr
   else
-   $utilexec/wgrib -d 1 -grib -append $COMOUT/aqm.${cycle}.awpozcon${fhr} -o tmpfile.1hr
+   $WGRIB -d 1 -grib -append $COMOUT/aqm.${cycle}.awpozcon${fhr} -o tmpfile.1hr
    export err=$?;err_chk
-   $utilexec/wgrib -d 2 -grib -append $COMOUT/aqm.${cycle}.awpozcon${fhr} -o tmpfile.8hr
+   $WGRIB -d 2 -grib -append $COMOUT/aqm.${cycle}.awpozcon${fhr} -o tmpfile.8hr
    export err=$?;err_chk
   fi
 
@@ -177,21 +177,21 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 ##################
 
    echo ' &NLCOPYGB IDS(180)=1, /' > ozcon_scale
-   $utilexec/copygb -N ozcon_scale -g 227 -x -i"1 1" tmpfile tmpfile2
+   $COPYGB -N ozcon_scale -g 227 -x -i"1 1" tmpfile tmpfile2
    export err=$?;err_chk
 
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5xozconnmmb.227
+   $CNVGRIB -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5xozconnmmb.227
    export err=$?;err_chk
 #   cp -p aqm.t${cyc}z.grib2_5xozconnmmb.227 $COMOUT/aqm.t${cyc}z.o3.227.grib2
 
-   $utilexec/copygb -N ozcon_scale -g 227 -x -i"1 1" tmpfile.1hr tmpfile2.1hr
+   $COPYGB -N ozcon_scale -g 227 -x -i"1 1" tmpfile.1hr tmpfile2.1hr
    export err=$?;err_chk
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.1hr aqm.t${cyc}z.grib2_1hr.227
+   $CNVGRIB -g12 -m -p32 tmpfile2.1hr aqm.t${cyc}z.grib2_1hr.227
    export err=$?;err_chk
 
-   $utilexec/copygb -N ozcon_scale -g 227 -x -i"1 1" tmpfile.8hr tmpfile2.8hr
+   $COPYGB -N ozcon_scale -g 227 -x -i"1 1" tmpfile.8hr tmpfile2.8hr
    export err=$?;err_chk
-   $utilexec/cnvgrib -g12 -m -p32 tmpfile2.8hr aqm.t${cyc}z.grib2_8hr.227
+   $CNVGRIB -g12 -m -p32 tmpfile2.8hr aqm.t${cyc}z.grib2_8hr.227
    export err=$?;err_chk
 
    cp -p aqm.t${cyc}z.grib2_1hr.227 $COMOUT/aqm.t${cyc}z.1ho3.227.grib2
@@ -215,8 +215,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-#       $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.227
-       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
 #       export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -225,8 +225,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227
-#       $utilexec/tocgrib2super < $PARMutil/grib2_${hr}hr_awpozcon.${cycle}.227
-       $utilexec/tocgrib2super < $PARMutil/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
 #       export err=$?;err_chk
 
 

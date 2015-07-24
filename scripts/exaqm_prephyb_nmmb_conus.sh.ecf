@@ -20,8 +20,6 @@ set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-WGRIB=/nwprod/util/exec/wgrib
-
 cd $DATA
 
 echo "Start of NMMB_prdgen Job"
@@ -51,9 +49,6 @@ do
   do
     if [ -s $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 ]
     then
-#     $WGRIB -s  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 | \
-#     egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-#     $WGRIB -i -grib $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 -o nam.${cycle}.bgrd3d$fhr.tm00
       echo  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
       break
     else

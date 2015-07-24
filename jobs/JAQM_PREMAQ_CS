@@ -1,33 +1,26 @@
-#!/bin/ksh
+#!/bin/ksh 
 #
+. /usrx/local/Modules/default/init/ksh
+
 set -xa
 export PS4='$SECONDS + '
 date -u 
 
+NWROOTp1=${NWROOTp1:-/nwprod}
 ############################################
-export NET=aqm
-export RUN=aqm
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
 ############################################
-
-#####################################
 # obtain unique process id (pid) and make temp directories
-#####################################
+############################################
 export pid=$$
 
 # PATH for working directory
 
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then
-   # NCO
-  if [[ ${envir} == prod ]]; then
-    TMPhome=/tmpnwprd1
-  else
-    TMPhome=/tmpnwprd2
-  fi
-   export DATA=$TMPhome/${job}.${pid}
-fi
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 
-export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
+export DATA=${DATA:-${DATAROOT:-/${job}.${pid}}}
+
 mkdir -p $DATA
 
 cd $DATA
@@ -35,32 +28,7 @@ cd $DATA
 ####################################
 # File To Log Msgs
 ####################################
-if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
-then
-   # NCO
-   if [ ${envir} = "prod" ]
-   then
-     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
-   else
-     export jlogfile=/com/logs/${envir}/jlogfile
-     #export DBNROOT=/nwprod/spa_util/para_dbn
-     export DBNROOT=/nwprod/spa_util/fakedbn
-   fi
-else
-   # DEV
-   export jlogfile=/dev/null
-fi
-
-##############################
-# Define MP variables
-##############################
-export MP_EUILIB=us
-export MP_EUIDEVICE=sn_all
-export MP_MPILIB=mpich2
-export MP_STDOUTMODE=unordered
-export MP_LABELIO=yes
-#export MP_TASK_AFFINITY=core
-#export MP_HOLDTIME=1000
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 ####################################
 # Determine Job Output Name on System
@@ -69,38 +37,34 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-export cycle=t${cyc}z
+export cycle=${cycle:-t${cyc}z}
 
-export SENDCOM=YES
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
 
 ####################################
 # Path to HOME Directory
 ####################################
-
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=${HOMEaqm}/parm
 export USHaqm=${HOMEaqm}/ush
-export PARMutil=$HOMEaqm/util/parm
-
 ###################################
 # Set up the UTILITIES
 ###################################
-export utilscript=/nwprod/util/ush
-export utilexec=/nwprod/util/exec
-
-# Run setup to initialize working directory and utility scripts
-sh $utilscript/setup.sh
+module load prod_util
+module load grib_util
 
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
 # Run setpdy and initialize PDY variables
-$utilscript/setpdy.sh
+setpdy.sh
 . PDY
 
-DAYOFYEAR=`$HOMEaqm/util/date2jday.sh $PDY`
+DAYOFYEAR=`$NWROOTp1/util/ush/date2jday.sh $PDY`
 
 #-----------------------------------------------------------------
 # Maxinum layer for smoke
@@ -114,14 +78,14 @@ export XSFIRE=2400           # 24 hours
 #  temporary store BLUESKY HYSPLIT
 #------------------------------------------------------------------
 # export HYPTMP=${usr_tmp}/aqf_nmm_t/rerun_CONUS_fire-COx3_L22_XS
-export HYPTMP=${DATA}
+# export HYPTMP=${DATA}
 #------------------------------------------------------------------
 # FIRE EMISSION OUTPUT
 #------------------------------------------------------------------
 export FEMS=$HYPTMP/scenario/$PDY
 #------------------------------------------------------------------
 
-export smoke_emis=${smoke_emis:-/com/hysplit/prod}
+export smoke_emis=${smoke_emis:-${COMROOTp1}/hysplit/prod}
 
 export FEMIT=${smoke_emis}/smoke.$PDY/EMITIMES
 
@@ -160,21 +124,21 @@ yesterday=${YYm1}${jjm1}
 
  export METDIR=/ptmpp1/$LOGNAME/tmp/aqm.$PDY
 #=============================================
- export COM=/com/${NET}/${envir}
- export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
- export COMINm1=${COMINm1:-/com/${NET}/${envir}/${RUN}.${PDYm1}}
- export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
+ export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+ export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+ export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 
+ mkdir -p $COMOUT
+
+#############################################
+###  NGAC output dir 
+ export NGAC_DIR=${NGAC_DIR:-${COMROOTp1}/ngac/prod}
 ###############################################
 # Set up the daily emission files directory
 # Those are fix files but use huge disk space.
 ###############################################
 export INPEMIDIR=${INPEMIDIR:-/com/${NET}/${envir}/emission}
 
-export smoke_emis=${smoke_emis:-/com/hysplit/prod}
-
-mkdir -p $COMOUT
- 
 env
 
 ###################################################
@@ -182,28 +146,17 @@ env
 ###################################################
 ksh $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
 err=$?; err_chk
-$USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
-err=$?; err_chk
-if [[  ${cycle} = 't06z'  ]] ; then
-$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-err=$?; err_chk
-fi
 ##################################################
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 
-
 ###################################
 # Remove temp directories
 ###################################
-
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then  # NCO
-  cd $TMPhome
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
   rm -rf $DATA
-else # DEV
-  echo "Keeping data directory $DATA"
 fi
 
 date

@@ -67,7 +67,8 @@ cat > itag  << EOF
 $PDY$cyc
 -24
 EOF
-/nwprod/util/exec/overdate.dgexgrib < itag > errfile
+#/nwprod/util/exec/overdate.dgexgrib < itag > errfile
+/nwprod2/util/exec/overdate.dgexgrib < itag > errfile
 cp -rp nam.t${cyc}z.bgrd3d00.tm00_proxy nam.t${cyc}z.bgrd3d00.tm00
 fi
 #=====================================================

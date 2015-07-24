@@ -13,10 +13,11 @@
 # 2003-07-03    Marina Tsidulko, initial version
 # 2003-07-15    Julia Zhu, modified for production  
 # 2004-03-31    Pius Lee, netcdf independence and gfs ozone blending
+# 2015-07-22    Jianping Huang modified for WCOSS phase 2
 #####################################################################
 set -xa
 msg="JOB $job HAS BEGUN"
-sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 cd $DATA
 
@@ -304,7 +305,7 @@ echo "\"${InMetFiles[$fhr]}\"," >> $DATA/files_list
 
 idx_file=${InMetFiles[$fhr]}.indx
 if [ ! -s ${idx_file} ]; then
-/nwprod/util/exec/grbindex ${InMetFiles[$fhr]} ${idx_file}
+${GRBINDEX} ${InMetFiles[$fhr]} ${idx_file}
 fi
 
 echo "\"${idx_file}\"," >> index_list
@@ -584,35 +585,40 @@ if [ "$SENDCOM" = 'YES' ]; then
      cp $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
      cp $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
      cp $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
-#     cp $DATA/GRIDCRO3D $COMOUT/aqm.${cycle}.grdcro3d.ncf
      cp $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
      cp $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
      cp $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
      cp $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
-#     cp $DATA/CHEMBDY3D $COMOUT/aqm.${cycle}.chembdy3d.ncf
-#     cp $DATA/CHEMCRO3D $COMOUT/aqm.${cycle}.chemcro3d.ncf
-#jp     cp /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
      cp $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
      cp $DATA/soilout.${PDY}.${OUTGRID}.ncf     $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 
 #     sync
 
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grddot2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metdot3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metbdy3d.ncf
-#     $utilexec/fsync_file $COMOUT/aqm.${cycle}.chembdy3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.emission.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+    ${FSYNC} $COMOUT/aqm.${cycle}.grddot2d.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.metcro2d.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.metcro3d.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.metdot3d.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.metbdy3d.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.emission.ncf
+    ${FSYNC} $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 
 fi
 
-echo EXITING $0
+#######################################################
+# below is used for winddust and blueske smoke emission
 
+sh $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
+err=$?; err_chk
 ########################################################
+# below is for getting ngac laterla boundary condition
 
+if [[  ${cycle} = 't06z'  ]] ; then
+$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
+err=$?; err_chk
+fi
+########################################################
+echo EXITING $0
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
 
