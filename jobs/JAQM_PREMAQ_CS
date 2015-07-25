@@ -6,7 +6,12 @@ set -xa
 export PS4='$SECONDS + '
 date -u 
 
-NWROOTp1=${NWROOTp1:-/nwprod}
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export COMROOT=${COMROOT:-/com2}
+export NWROOT=${NWROOT:-/nw${envir}2}
+export KEEPDATA${KEEPDATA:-NO}
+export NWROOTp1=${NWROOTp1:-/nwprod}
+export COMROOTp1=${COMROOTp1:-/com}
 ############################################
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
@@ -77,12 +82,9 @@ export XSFIRE=2400           # 24 hours
 #------------------------------------------------------------------
 #  temporary store BLUESKY HYSPLIT
 #------------------------------------------------------------------
-# export HYPTMP=${usr_tmp}/aqf_nmm_t/rerun_CONUS_fire-COx3_L22_XS
-# export HYPTMP=${DATA}
-#------------------------------------------------------------------
 # FIRE EMISSION OUTPUT
 #------------------------------------------------------------------
-export FEMS=$HYPTMP/scenario/$PDY
+export FEMS=$DATA/scenario/$PDY
 #------------------------------------------------------------------
 
 export smoke_emis=${smoke_emis:-${COMROOTp1}/hysplit/prod}
@@ -116,13 +118,13 @@ yesterday=${YYm1}${jjm1}
 #----------------------------------------------------------
 #---    DIR OF LOG FILES AND SMALL OUTPUTS -----------------
 #-----------------------------------------------------------
- export LOGD=$HYPTMP/logs
- export LOG1=$HYPTMP/logs/Bluesky-A
- export LOG2=$HYPTMP/logs/STEP2-A
- export LSMK=$HYPTMP/logs/SMKINV-A
- export LOG3=$HYPTMP/logs/STEP3-A
+ export LOGD=$DATA/logs
+ export LOG1=$DATA/logs/Bluesky-A
+ export LOG2=$DATA/logs/STEP2-A
+ export LSMK=$DATA/logs/SMKINV-A
+ export LOG3=$DATA/logs/STEP3-A
 
- export METDIR=/ptmpp1/$LOGNAME/tmp/aqm.$PDY
+# export METDIR=/ptmpp1/$LOGNAME/tmp/aqm.$PDY
 #=============================================
  export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
  export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
@@ -137,7 +139,7 @@ yesterday=${YYm1}${jjm1}
 # Set up the daily emission files directory
 # Those are fix files but use huge disk space.
 ###############################################
-export INPEMIDIR=${INPEMIDIR:-/com/${NET}/${envir}/emission}
+export INPEMIDIR=${INPEMIDIR:-/com2/${NET}/${envir}/emission}
 
 env
 

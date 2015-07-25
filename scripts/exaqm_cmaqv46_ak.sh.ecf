@@ -156,7 +156,7 @@ fi
 SYYYY=`echo $PDY |cut -c1-4`
 SMM=`echo $PDY |cut -c5-6`
 SDD=`echo $PDY |cut -c7-8`
-DAYOFYEAR=`$UTILaqm/date2jday.sh $SYYYY$SMM$SDD `
+DAYOFYEAR=`$NWROOTp1/util/ush/date2jday.sh $SYYYY$SMM$SDD `
 typeset -Z3 DAYOFYEAR
 echo $DAYOFYEAR
 

@@ -42,7 +42,7 @@ export err=$?;err_chk
 
 # interpolate to grid 196
 
-$COPYGB 196 -x -i"1 1" aqm-maxi.139.grib aqm-maxi.196.grib
+$COPYGB -g 196 -x -i"1 1" aqm-maxi.139.grib aqm-maxi.196.grib
 
 $WGRIB -s aqm-maxi.196.grib | grep "OZMAX1" | $WGRIB -i aqm-maxi.196.grib -grib -o aqm-1hro3-maxi.196.grib
 $WGRIB -s aqm-maxi.196.grib | grep "OZMAX8" | $WGRIB -i aqm-maxi.196.grib -grib -o aqm-8hro3-maxi.196.grib

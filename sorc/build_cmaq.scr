@@ -8,9 +8,7 @@ sleep 1
 
 BASE=`pwd`
 
-
 ##########################
-
 for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
 do
 cd ${BASE}/aqm_${src}.fd
@@ -18,7 +16,6 @@ make clean
 make
 done
 ##############################
-
 for src in emmod emutil emqa smkinven point temporal grdmat spcmat smkmerge 
 do
 cd ${BASE}/aqm_${src}.fd
@@ -33,8 +30,6 @@ cd ${BASE}/aqm_${src}.fd
 make clean
 make 
 done
-
-
 ##############################
 module unload NetCDF/3.6.3
 module unload ics
@@ -43,7 +38,6 @@ module switch ics/14.0.1
 module  unload HDF4/4.2.8
 module load HDF5/1.8.9/serial
 module load NetCDF/4.2/serial
-
 ###############################
 for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
 do
@@ -51,6 +45,5 @@ cd ${BASE}/aqm_${src}.fd
 make clean
 make
 done
-
 ###############################
 #

@@ -208,7 +208,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
    for hr in 1 8
    do
-   typeset -Z2 hr
+#   typeset -Z2 hr
        echo 0 > filesize
        export XLFRTEOPTS="unit_vars=yes"
        export FORT11=aqm.t${cyc}z.grib2_5xozconnmmb.227

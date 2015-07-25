@@ -22,7 +22,6 @@ export RUN=${RUN:-HI}
 ############################################
 export pid=$$
 
-#export DATA=${DATAROOT}/${job}.${pid}
 export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 export DATA=${DATA:-${DATAROOT}/${job}.${pid}}
 mkdir -p $DATA
@@ -48,7 +47,7 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export USHaqm=$HOMEaqm/ush
@@ -76,7 +75,7 @@ setpdy.sh
 ##############################################
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMNMM=${COMNMM:-${COMROOT}/com/nam/prod/nam.${PDY}}
+export COMNMM=${COMNMM:-${COMROOT}/nam/prod/nam.${PDY}}
 export COMNMMm1=${COMNMMm1:-${COMROOT}/nam/prod/nam.${PDYm1}}
 
 mkdir -p $COMOUT

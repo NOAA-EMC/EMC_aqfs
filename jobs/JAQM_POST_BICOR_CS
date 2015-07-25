@@ -2,6 +2,10 @@
 
 . /usrx/local/Modules/default/init/ksh
 
+module unload NetCDF/3.6.3
+module load NetCDF/4.2/serial
+module load HDF5/1.8.9/serial
+
 set -xa
 export PS4='$SECONDS + '
 date -u
@@ -51,13 +55,12 @@ export SENDECF=${SENDECF:-YES}
 # Path to HOME Directory
 ####################################
 
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm
 export USHaqm=$HOMEaqm/ush
-export PARMutil=$HOMEaqm/util/parm
 
 ###################################
 # Set up the UTILITIES

@@ -53,7 +53,7 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export USHaqm=$HOMEaqm/ush

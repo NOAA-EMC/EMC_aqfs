@@ -216,9 +216,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.temp
-#jp       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_${hr}hr_awpozcon.${cycle}.196
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.196
-#       export err=$?;err_chk
+       export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
@@ -227,7 +226,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT31=
        export FORT51=grib2.t${cyc}z.awpHIozconnmmb_aqm_${hr}.196
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.196
-#       export err=$?;err_chk
+       export err=$?;err_chk
 
 
        ##############################

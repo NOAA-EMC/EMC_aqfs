@@ -156,7 +156,7 @@ fi
 SYYYY=`echo $PDY |cut -c1-4`
 SMM=`echo $PDY |cut -c5-6`
 SDD=`echo $PDY |cut -c7-8`
-DAYOFYEAR=`$UTILaqm/date2jday.sh $SYYYY$SMM$SDD `
+DAYOFYEAR=`$NWROOTp1/util/ush/date2jday.sh $SYYYY$SMM$SDD `
 typeset -Z3 DAYOFYEAR
 echo $DAYOFYEAR
 
@@ -193,13 +193,13 @@ ln -sf $COMIN/aqm.${cycle}.metdot3d.ncf $DATA/METDOT3D
 #ln -sf $COMIN/aqm.${cycle}.chembdy3d.ncf $DATA/CHEMBDY3D
 ln -sf $COMIN/aqm.${cycle}.emission.ncf $DATA/emission.${PDY}.ncf
 
-$COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-$COMIN/aqm.${cycle}.grddot2d.ncf
-$COMIN/aqm.${cycle}.metbdy3d.ncf
-$COMIN/aqm.${cycle}.metcro2d.ncf
-$COMIN/aqm.${cycle}.metcro3d.ncf
-$COMIN/aqm.${cycle}.metdot3d.ncf
-$COMIN/aqm.${cycle}.emission.ncf
+${FSYNC} $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+${FSYNC} $COMIN/aqm.${cycle}.grddot2d.ncf
+${FSYNC} $COMIN/aqm.${cycle}.metbdy3d.ncf
+${FSYNC} $COMIN/aqm.${cycle}.metcro2d.ncf
+${FSYNC} $COMIN/aqm.${cycle}.metcro3d.ncf
+${FSYNC} $COMIN/aqm.${cycle}.metdot3d.ncf
+${FSYNC} $COMIN/aqm.${cycle}.emission.ncf
 
 if [ $INITIAL_RUN = N ]
 then

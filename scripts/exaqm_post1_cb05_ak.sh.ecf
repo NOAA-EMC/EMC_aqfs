@@ -137,7 +137,6 @@ rm  -rf tmpfile
 
 if [ "$SENDCOM" = 'YES' ]
     then
-#    cp $DATA/aqm.${cycle}.25pm?? $DATA/aqm.${cycle}.sigma?? $COMOUT/
     cp $DATA/aqm.${cycle}.25pm* $DATA/aqm.${cycle}.sigma?? $COMOUT/
 fi
 
@@ -148,7 +147,6 @@ do
 
     if [ "$SENDCOM" = 'YES' ]
     then
-#    cp $DATA/${field}_${fhr} $COMOUT/aqm.${cycle}.awp${field}${fhr}
      cp aqm.${cycle}.awp${field}${fhr} $COMOUT
     fi
   done

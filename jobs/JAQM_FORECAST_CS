@@ -11,6 +11,9 @@ export RUN_ENVIR=${RUN_ENVIR:-nco}
 export COMROOT=${COMROOT:-/com2}
 export NWROOT=${NWROOT:-/nw${envir}2}
 export KEEPDATA${KEEPDATA:-NO}
+export NWROOTp1=${NWROOTp1:-/nwprod}
+export COMROOTp1=${COMROOTp1:-/com}
+
 ############################################
 export NET=${NET:-aqm}
 export RUN=${NET:-aqm}
@@ -52,7 +55,7 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${cmaq_ver}}
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm

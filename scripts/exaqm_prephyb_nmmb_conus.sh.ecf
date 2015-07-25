@@ -79,7 +79,7 @@ export MP_LABELIO=YES
 
 mpirun.lsf
 
-export err=$?; ./err_chk
+export err=$?; err_chk
 
 
 if [ "$SENDCOM" = 'YES' ]
