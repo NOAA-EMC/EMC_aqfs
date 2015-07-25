@@ -1,7 +1,7 @@
 #!/bin/ksh
 #
-#BSUB -o /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_ak.out
-#BSUB -e /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_ak.out
+#BSUB -o /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_ak.out
+#BSUB -e /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_ak.out
 #BSUB -J jcmaq_pregen_ak
 #BSUB -n 4
 #BSUB -x
@@ -26,9 +26,21 @@ export MP_TASK_AFFINITY=core
 
 # EXPORT list here
 set -ax
-#export envir=para
+
+# for EMC test
+export RUN_ENVIR=notnco
+export COMROOT=/ptmpp2/${USER}/com2
+export NWROOT=/naqfc/save/${USER}/nwdev
+export cmaq_ver=v4.6.6
+export envir=para1
+export job=aqm_prephy_ak
+
 export PARAFLAG=YES
- 
+export PARAFLAG=YES
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
+
 ${HOMEaqm}/jobs/JAQM_PREPHYB_AK
 
 err=$?

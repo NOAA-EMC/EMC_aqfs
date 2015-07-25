@@ -1,7 +1,7 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_post1_cs.out
-#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_post1_cs.out 
+#BSUB -oo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_post1_cs.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_post1_cs.out 
 #BSUB -J jaqm_post1_cs
 #BSUB -n 1 
 #BSUB -x
@@ -36,7 +36,21 @@ export MPICH_THROTTLE_ALLTOALL=0
 
 # EXPORT list here
 set -ax
-#export envir=para
+
+export RUN_ENVIR=notnco
+export COMROOT=/ptmpp2/${USER}/com2
+export NWROOT=/naqfc/save/${USER}/nwdev
+export cmaq_ver=v4.6.6
+export envir=para1
+export job=aqm_post1_cs
+#
+export PARAFLAG=YES
+
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
+export SENDDBN_NTC=NO
+
 export PARAFLAG=YES
  
 ${HOMEaqm}/jobs/JAQM_POST1_CS

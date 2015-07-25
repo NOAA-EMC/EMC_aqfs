@@ -1,7 +1,7 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_hi.out
-#BSUB -eo /ptmpp2/Jianping.Huang/com/output/para1/today/jaqm_pregen_hi.out
+#BSUB -oo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_hi.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_hi.out
 #BSUB -J jcmaq_pregen_hi
 #BSUB -n 4
 ##BSUB -q dev2 
@@ -23,12 +23,25 @@ export MP_MPILIB=mpich2
 export MP_STDOUTMODE=unordered
 export MP_LABELIO=yes
 export MP_TASK_AFFINITY=core
+export MP_HOLDTIME=1000
+
+# for EMC test
+export RUN_ENVIR=notnco
+export COMROOT=/ptmpp2/${USER}/com2
+export NWROOT=/naqfc/save/${USER}/nwdev
+export cmaq_ver=v4.6.6
+export envir=para1
+export job=aqm_prephy_hi
 #
 
 # EXPORT list here
 set -ax
 #export envir=para
 export PARAFLAG=YES
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
+
  
 ${HOMEaqm}/jobs/JAQM_PREPHYB_HI
 
