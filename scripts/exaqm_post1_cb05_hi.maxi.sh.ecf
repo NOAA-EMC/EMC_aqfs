@@ -144,7 +144,7 @@ done
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
  cp grib2.${envir}.${cycle}.aqm-1hro3-max.196 $COMOUT/aqm.${cycle}.max_1hr_o3.196.grib2
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.196 $COMOUT/aqm.${cycle}.max_ave_8hr_o3.196.grib2
- cp aqm-maxi.139.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.139.grib
+ cp aqm-maxi.139.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.139
 
  cp aqm-1hr-pm25-daily-max.196.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.196.grib2
  cp aqm-24hr-pm25-daily-ave.196.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.196.grib2
