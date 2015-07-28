@@ -73,9 +73,9 @@ program aqm_post1_bias_correct_grib2
       integer GRID, kgdss(200), lengds,im,jm,jf
 !-------------------------------------------------------------------
 
-   integer status
+      integer status
    
-   integer id_gribdomain
+      character id_gribdomain*3
 
 !   integer kpds(200),kgds(200)
 !   integer kpds(25),kgds(25)
@@ -105,13 +105,14 @@ program aqm_post1_bias_correct_grib2
 
 ! Get command arguments as strings.
    diag=5
-   id_gribdomain=148
-   outfile2='aqm.t99z.25pm99.bc.grb2'
+!   id_gribdomain=148
+   outfile2='aqm.t99z.pm25_bc.f99.xxx.grib2'
    ave1hr=.true.
    call get_command_argument (1, infile)
    call get_command_argument (2, varname) 
    call get_command_argument (3, ymd)
    call get_command_argument (4, ch_cyc) 
+   call get_command_argument (5, id_gribdomain) 
  
    
 !
@@ -127,6 +128,8 @@ program aqm_post1_bias_correct_grib2
    else
     write(outfile2(6:7),'(i2)')icyc
    endif
+
+   write(outfile2(22:24),'(a3)')id_gribdomain
 
    print*,"iyear=",iyear,"imonth=",imonth,"iday=",iday,"icyc=",icyc
 
@@ -208,10 +211,10 @@ program aqm_post1_bias_correct_grib2
 !-- set file unit
       ifilw=52
       if (nt .le. 9 ) then
-       write(outfile2(14:14),'(a1)')"0"
-       write(outfile2(15:15),'(i1)')nt
+       write(outfile2(19:19),'(a1)')"0"
+       write(outfile2(20:20),'(i1)')nt
       else
-       write(outfile2(14:15),'(i2)')nt
+       write(outfile2(19:20),'(i2)')nt
       endif
 
        call baopen(ifilw,trim(outfile2),ierr)

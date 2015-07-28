@@ -62,7 +62,7 @@
       integer GRID, kgdss(200), lengds,im,jm,jf
 !
       character*200 outfile,ozonecatfile
-      character chtmp*2
+      character chtmp*2,grib_id*3
       integer kpds(200),kgds(200),gribid(ncmaq),gribtb(ncmaq),  &
           mgribid(nmet),mgribtb(nmet)
       logical i3dvar(ncmaq),mi3dvar(nmet),iflag,ave1hr
@@ -558,18 +558,24 @@
         write(chtmp,'(i2.2)')nt-1
        endif
 
-       call baopen(51,trim(outfile)//chtmp//'.grb2',ierr)
+       write(grib_id,'(i3.3)')id_gribdomain
+!       call baopen(51,trim(outfile)//chtmp//'.grib2',ierr)
+       call baopen(51,trim(outfile)//'.f'//chtmp//'.'//grib_id//&
+                        '.grib2',ierr)
 
        if(ierr.ne.0) then
-        print*,'can not open ',trim(outfile)//chtmp//'.grb2'
+        print*,'can not open ',trim(outfile)//'.f'//chtmp//'.'//&
+                grib_id//'.grib2'
         stop 2001
        endif
 
        if(trim(ozonecatfile).ne.'') then
-        call baopen(52,trim(ozonecatfile)//chtmp//'.grb2',ierr)
+        call baopen(52,trim(ozonecatfile)//'.f'//chtmp//&
+                '.'//grib_id//'.grib2',ierr)
 
         if(ierr.ne.0) then
-         print*,'can not open ',trim(ozonecatfile)//chtmp//'.grb2'
+        print*,'can not open ',trim(ozonecatfile)//'.f'//chtmp//'.'//&
+                        grib_id//'.grib2'
          stop 2002
         endif
        endif

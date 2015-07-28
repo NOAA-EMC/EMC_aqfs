@@ -64,8 +64,8 @@ varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN
 'AORGPAJ','AORGBI','AORGBJ','AECI','AECJ','A25I','A25J','NUMATKN','NUMACC','SRFATKN',
 'SRFACC','AH2OI','AH2OJ'
 metlist='    '
-outfile='$COMOUT/aqm.${cycle}.pm'
-nlayers=22
+outfile='$COMOUT/aqm.${cycle}.chem_sigma.f'
+nlayers=35
 id_gribdomain=148
 ave1hr=.true.
 /

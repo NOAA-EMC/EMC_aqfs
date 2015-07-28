@@ -93,7 +93,7 @@ cat >cmaq2grib2.ini <<EOF5
 &control
 varlist='PM2.5'
 metlist='    '
-outfile='aqm.${cycle}.25pm'
+outfile='aqm.${cycle}.pm25'
 nlayers=1
 id_gribdomain=148
 ave1hr=.true.
@@ -109,7 +109,7 @@ cat >cmaq2grib.ini <<EOF5
 &control
 varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN','NTR','XO2N','SO2','ASO4I','ASO4J','ANH4I','ANH4J','ANO3I','ANO3J','AORGAI','AORGAJ','AORGPAI','AORGPAJ','AORGBI','AORGBJ','AECI','AECJ','A25I','A25J','NUMATKN','NUMACC','SRFATKN','SRFACC','AH2OI','AH2OJ'
 metlist='    '
-outfile='aqm.${cycle}.sigma'
+outfile='aqm.${cycle}.chem_sfc.f'
 nlayers=1
 id_gribdomain=148
 ave1hr=.true.
@@ -134,7 +134,8 @@ rm -rf tmpfile
 
 if [ "$SENDCOM" = 'YES' ]
     then
-    cp $DATA/aqm.${cycle}.25pm* $DATA/aqm.${cycle}.sigma?? $COMOUT/
+#    cp $DATA/aqm.${cycle}.pm25* $DATA/aqm.${cycle}.sigma?? $COMOUT/
+    cp $DATA/aqm.${cycle}.pm25* $DATA/aqm.${cycle}.chem_sfc.f* $COMOUT/
 fi
 
 while [ $fhr -le $endfhr ]
@@ -182,7 +183,6 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
    $CNVGRIB -g12 -m -p32 tmpfile2 aqm.t${cyc}z.grib2_5xozconnmmb.227
    export err=$?;err_chk
-#   cp -p aqm.t${cyc}z.grib2_5xozconnmmb.227 $COMOUT/aqm.t${cyc}z.o3.227.grib2
 
    $COPYGB -N ozcon_scale -g 227 -x -i"1 1" tmpfile.1hr tmpfile2.1hr
    export err=$?;err_chk
@@ -208,16 +208,14 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
    for hr in 1 8
    do
-#   typeset -Z2 hr
        echo 0 > filesize
        export XLFRTEOPTS="unit_vars=yes"
        export FORT11=aqm.t${cyc}z.grib2_5xozconnmmb.227
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
-#       export err=$?;err_chk
+       export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
@@ -225,10 +223,8 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227
-#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_awp5xpmnmmb_aqm_${hr}.227.${cycle}
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
-#       export err=$?;err_chk
-
+       export err=$?;err_chk
 
        ##############################
        # Post Files to PCOM
@@ -251,7 +247,6 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        fi
    done
 fi
-
 
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
