@@ -139,18 +139,18 @@ rm filesize
 done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
- cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.1ho3-max.227.grib2
- cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.8ho3-max.227.grib2
- cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.daily-max.148.grib
+ cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+ cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+ cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.148.grib
 
  cp aqm-1hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
  cp aqm-24hr-pm25-daily-ave.227.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
  cp aqm.${cycle}.1hpm25-max.148.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2
  cp aqm.${cycle}.24hpm25-ave.148.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.148.grib2
  $COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
- $CNVGRIB -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.daily_max_1h_8hr_o3.227.grib2
+ $CNVGRIB -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.max_1h_8hr_o3.227.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
-  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.1ho3-max.227.grib2
-  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.8ho3-max.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
  fi
 fi
