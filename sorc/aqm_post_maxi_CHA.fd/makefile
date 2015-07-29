@@ -1,21 +1,31 @@
 
-DIR      =${fdir}/nw$(envir)/cmaq.$(model_ver)
+
 CMD      = aqm_post_maxi_CHA
 SRCS     = cmaq-maxi2grib.f90 
 
-LIB_LOC  = $(DIR)/lib
-IOAPI    = -laqm_ioapi
-NETCDF   = -L/usrx/local/NetCDF/3.6.3/lib -lnetcdf
+LIB_LOC    = ../../lib
+IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
+NETCDFPATH = /usrx/local/NetCDF/3.6.3/
+NETCDF_LIB = $(NETCDFPATH)/lib/libnetcdf_c++.a $(NETCDFPATH)/lib/libnetcdf.a
 
-LIBS =   -L$(LIB_LOC)  $(IOAPI) \
-	 -L/usrx/local/NetCDF/3.6.3/lib -lnetcdf \
-	 -L/nwprod/lib -lip_4 \
-         -L/nwprod/lib -lw3nco_v2.0.3_4 -lw3emc_v2.0.3_4 \
-         -L/nwprod/lib -lsp_4 -lbacio_4 -ltransutil_4
+IP_LIB     = ${IP_LIB4}
+SP_LIB     = ${SP_LIB4}
+BACIO_LIB  = ${BACIO_LIB4}
+W3_LIB     = ${W3NCO_LIB4} ${W3EMC_LIB4}
+TRANSUTIL  = ${TRANSUTIL_LIB4}
+
+
+LIBS     = $(IOAPI_LIB) \
+           $(NETCDF_LIB) \
+           $(IP_LIB) \
+           $(W3_LIB) \
+           $(SP_LIB) \
+           $(BACIO_LIB) \
+           $(TRANSUTIL)
 
 INC    = $(LIB_LOC)/sorc/aqm_ioapi/ioapi
 
-FC     = ifort
+FC     = ${COMP} 
 
 FLAGS  = -I$(INC) 
 

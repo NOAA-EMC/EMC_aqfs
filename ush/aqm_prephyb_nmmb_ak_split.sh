@@ -66,7 +66,8 @@ cat > itag  << EOF
 $PDY$cyc
 -24
 EOF
-/nwprod/util/exec/overdate.dgexgrib < itag > errfile
+#/nwprod/util/exec/overdate.dgexgrib < itag > errfile
+/nwprod2/util/exec/overdate.dgexgrib < itag > errfile
 cp -rp nam.t${cyc}z.bgrd3d00.tm00_proxy nam.t${cyc}z.bgrd3d00.tm00
 fi
 #=====================================================
@@ -109,13 +110,13 @@ EOF5
 # if the record number is not 848, reran itr;
 # if the number is still not correct, exit and stop
 #
-  nrd_test=`/nwprod/util/exec/wgrib -v meso.AQFNMM${fhr} | wc -l`
+  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
   if [ $nrd_test -ne 848 ]; then
    echo "The record number of file is not correct at " $fhr
   startmsg
   $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.$h_seg 2>errfile
   export err=$?;err_chk
-  nrd_test=`/nwprod/util/exec/wgrib -v meso.AQFNMM${fhr} | wc -l`
+  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
   if [ $nrd_test -ne 848 ]; then
    echo "The file was not completed after rerun"
    exit 999

@@ -14,13 +14,21 @@ OBJS=	ADD_WMO.o PRDGEN.o CTL_RDR.o \
         INTERP_SC.o INTERP_UV.o READ_SORT_CTL.o READ_SORT_GRIB.o TILE_OUT.o
 
 # Tunable parameters
-#FC =		ifort -openmp -convert big_endian -g -traceback
-FC =		ifort -openmp -convert big_endian
+FC        =	${COMP} -openmp -convert big_endian
 LDFLAGS =	    
-LIBS =          -L/nwprod/lib -lip_4 \
-                -L/nwprod/lib -lw3nco_v2.0.5_4 -lw3emc_v2.0.5_4 \
-                -L/nwprod/lib -lsp_4 -lbacio_4 -ltransutil_4
-#                -L/nwprod/lib -lw3nco_v2.0.3_4 -lw3emc_v2.0.3_4 \
+IP_LIB     = ${IP_LIB4}
+SP_LIB     = ${SP_LIB4}
+BACIO_LIB  = ${BACIO_LIB4}
+W3_LIB     = ${W3NCO_LIB4} ${W3EMC_LIB4}
+TRANSUTIL  = ${TRANSUTIL_LIB4} 
+
+
+LIBS =  $(IP_LIB) \
+        $(W3_LIB) \
+        $(SP_LIB) \
+        $(BACIO_LIB) \
+        $(TRANSUTIL)
+
 
 CMD =		aqm_prep_nmmb
 

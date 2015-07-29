@@ -3,18 +3,18 @@ SHELL=/bin/sh
 MODEL      = aqm_subset_x
 
 # Compiler Definitions
-FC         = ifort
+FC         = ${COMP} 
 CC         = cc
 
 # Preprocessor
 FPP         = 
 
-IOAPI_LIB   = ../../lib 
-netCDF      = /usrx/local/NetCDF/3.6.3
+IOAPI_LIB   =../../lib/libaqm_ioapi.a 
 
-NCF_LIB     = $(netCDF)/lib
+NETCDF2      = $(NETCDF)
+NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 
-INCLUDES = -I ../../lib/sorc/aqm_ioapi/ioapi -I $(netCDF)/include -I.
+INCLUDES    = -I ../../lib/sorc/aqm_ioapi/ioapi -I $(NETCDF2)/include -I.
 
 # Compiler Flags
 F_FLAGS = -132 -O3 -free -D_LARGE_FILES
@@ -25,9 +25,8 @@ CPP_FLAGS = \
  -D_LARGE_FILES
 
 # Libraries
-LIBRARIES = \
-  -L$(IOAPI_LIB) -laqm_ioapi \
-  -L$(NCF_LIB) -lnetcdf 
+LIBRARIES =  $(IOAPI_LIB) \
+     $(NETCDF_LIB)
 
 # List of Object files needed for linking
 OBJECTS= \

@@ -1,0 +1,66 @@
+#%Module######################################################################
+##                                                     Jianping.Huang@noaa.gov
+##                                                           NOAA/NWS/NCEP/EMC
+## CMAQ v4.6.6
+##_____________________________________________________
+proc ModulesHelp { } {
+puts stderr "Set environment veriables for CMAQ"
+puts stderr "This module initializes the enviro nment "
+puts stderr "for the Intel Compiler Suite $version\n"
+}
+module-whatis " CMAQ whatis description"
+
+set ver v4.6.6
+set envir dev
+set NCEPLIB /nwprod/lib
+
+set sys [uname sysname]
+set CMAQ /naqfc/save/Jianping.Huang/nwdev/cmaq.v4.6.6/modulefiles/CMAQ 
+set lname CMAQ 
+
+setenv COMP ifort
+setenv COMP_MP mpfort
+setenv COMP_MPI mpiifort
+
+setenv C_COMP icc
+setenv C_COMP_MP mpcc
+
+#
+setenv MDL_LIB4 /nwprod2/mos_shared.v2.4.1/lib/libmdl_4.a 
+setenv SZ_LIB   /usrx/local/szip-2.1/lib/libsz.so.2
+
+# Known conflicts ???
+conflict ics/12.1
+conflict ics/14.0.1
+conflict NetCDF/4.2/serial
+conflict HDF4/4.2.8
+conflict HDF5/1.8.9/serial 
+
+# Loading Intel Compiler Suite
+module load ics/12.1
+
+### is ibmpe needed?  Seems needed for ARW, but kills NMMB build 
+module load ibmpe
+
+# Loading nceplibs modules
+module load ip/v2.0.0
+module load g2/v2.5.0
+module load jasper/v1.900.1
+module load png/v1.2.44
+module load z/v1.2.6
+
+module load bacio/v2.0.1
+module load w3nco/v2.0.5
+module load w3emc/v2.0.5
+module load sp/v2.0.2
+module load transutil/v1.0.0 
+module load NetCDF/3.6.3
+module load nemsio/v2.2.1
+module load bufr/v10.2.5
+
+#module load HDF5/1.8.9/serial 
+#module load HDF4/4.2.8
+
+
+
+

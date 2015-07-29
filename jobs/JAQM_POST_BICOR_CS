@@ -1,14 +1,23 @@
 #!/bin/ksh
 
+. /usrx/local/Modules/default/init/ksh
+
+module unload NetCDF/3.6.3
+module load NetCDF/4.2/serial
+module load HDF5/1.8.9/serial
+
 set -xa
 export PS4='$SECONDS + '
 date -u
 
 ############################################
-# Set up environment for AIR QUALITY FCST
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export COMROOT=${COMROOT:-/com2}
+export NWROOT=${NWROOT:-/nw${envir}2}
+export KEEPDATA${KEEPDATA:-NO}
 ############################################
-export NET=aqm
-export RUN=aqm
+export NET=${NET:-aqm}
+export RUN=${NET:-aqm}
 ############################################
 
 #####################################
@@ -16,18 +25,10 @@ export pid=$$
 
 # PATH for working directory
 
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then
-   # NCO
-  if [[ ${envir} == prod ]]; then
-    TMPhome=/tmpnwprd1
-  else
-    TMPhome=/tmpnwprd2
-  fi
-   export DATA=$TMPhome/${job}.${pid}
-fi
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 
-export DATA=${DATA:-/tmpnwprd2/${job}.${pid}}
+export DATA=${DATA:-${DATAROOT}/${job}.${pid}}
+
 mkdir -p $DATA
 
 cd $DATA
@@ -35,46 +36,7 @@ cd $DATA
 ####################################
 # File To Log Msgs
 ####################################
-if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
-then
-   # NCO
-   export SENDCOM=YES
-   export SENDDBN=YES
-   export SENDDBN_NTC=YES
-   export SENDECF=YES
-   if [ ${envir} = "prod" ]
-   then
-     export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.${job}.${pid}}
-   else
-     export jlogfile=/com/logs/${envir}/jlogfile
-     export DBNROOT=/nwprod/spa_util/para_dbn
-     #export DBNROOT=/nwprod/spa_util/fakedbn
-   fi
-else
-   # DEV
-   export SENDCOM=YES
-   export SENDDBN=NO
-   export SENDDBN_NTC=NO
-   export SENDECF=NO
-
-   export jlogfile=/dev/null
-fi
-
-##############################
-# Define MP variables
-##############################
-ulimit -s unlimited
-export LANG=en_US
-export MP_EAGER_LIMIT=65536
-export MP_COREFILE_FORMAT=core.txt
-export MP_EUIDEVELOP=min
-export MP_EUIDEVICE=sn_all
-export MP_EUILIB=us
-export MP_MPILIB=mpich2
-export MP_LABELIO=yes
-export MP_SINGLE_THREAD=yes
-export MPICH_THROTTLE_ALLTOALL=0
-export MP_HOLDTIME=1000
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 ####################################
 # Determine Job Output Name on System
@@ -83,38 +45,40 @@ export outid="LL$job"
 export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-export cycle=t${cyc}z
+export cycle=${cycle:-t${cyc}z}
+
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
 
 ####################################
 # Path to HOME Directory
 ####################################
 
-export HOMEaqm=${HOMEaqm:-/nw${envir}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+
 export EXECaqm=$HOMEaqm/exec
 export FIXaqm=$HOMEaqm/fix
 export PARMaqm=$HOMEaqm/parm
 export USHaqm=$HOMEaqm/ush
-export PARMutil=$HOMEaqm/util/parm
 
 ###################################
 # Set up the UTILITIES
 ###################################
-export utilscript=/nwprod/util/ush
-export utilexec=/nwprod/util/exec
+module load prod_util
+module load grib_util
 
 # Run setup to initialize working directory and utility scripts
-sh $utilscript/setup.sh
-
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
 # Run setpdy and initialize PDY variables
-$utilscript/setpdy.sh
+setpdy.sh
 . PDY
 
 #-------------------------------------------------------------
 # create an initial date for Bias Correction training (one week) 
-export TMP_STDAY=`/nwprod/util/exec/ndate -672 ${PDY}${cyc}`
+export TMP_STDAY=`${NDATE} -672 ${PDY}${cyc}`
 export BC_STDAY=`echo $TMP_STDAY | cut -c1-8`
 export Yr4w=`echo ${BC_STDAY} | cut -c1-4`
 export Yrmn4w=`echo ${BC_STDAY} | cut -c1-6`
@@ -127,13 +91,13 @@ export Yrmn1=`echo ${PDYm1} | cut -c1-6`
 export Mnm1=`echo ${PDYm1}  | cut -c5-6`
 
 #-------------------------------------------------------------
-export COMIN=${COMIN:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export COMOUT=${COMOUT:-/com/${NET}/${envir}/${RUN}.${PDY}}
-export COMOUTm1=${COMOUTm1:-/com/${NET}/${envir}/${RUN}.${PDYm1}}
-export BICOR_DATA=${BICOR_DATA:-/com/${NET}/para/bcdata.${Yrmn}}
-export BICOR_DATA1=${BICOR_DATA1:-/com/${NET}/para/bcdata.${Yrmn1}}
-export BICOR_DATA4w=${BICOR_DATA4w:-/com/${NET}/para/bcdata.${Yrmn4w}}
-export DCOM_DIR=${DCOM_DIR:-}
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export BICOR_DATA=${BICOR_DATA:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
+export BICOR_DATA1=${BICOR_DATA1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
+export BICOR_DATA4w=${BICOR_DATA4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
+export DCOMROOT=${DCOMROOT:-/dcom/us007003}
 
 if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 
  echo "$BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 exists !"
@@ -141,18 +105,9 @@ else
  mkdir -p $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008
 fi
 
-cp -rp ${DCOM_DIR}/dcom/us007003/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
+cp -rp ${DCOMROOT}/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
 
-if [ "${envir}" = 'prod' ] || [ "${envir}" = 'para' ] || [ "${envir}" = 'test' ]
-then
-   # NCO
-   if [ ${envir} = "prod" ]
-   then
-     export pcom=${pcom:-/pcom/${NET}}
-   else
-     export pcom=${pcom:-/pcom/${envir}/${NET}}
-   fi
-fi
+pcom=${pcom:-/pcom2/${envir}/${NET}}
 
 mkdir -p $COMOUT $pcom
 
@@ -167,12 +122,13 @@ cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 
-if [ "$envir" = 'prod' ] || [ "$envir" = 'para' ] || [ "$envir" = 'test' ]
-then  # NCO
-  cd $TMPhome
+##################################################
+# Remove temp directories
+##################################################
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
   rm -rf $DATA
-else # DEV
-  echo "Keeping data directory $DATA"
 fi
+
 
 date

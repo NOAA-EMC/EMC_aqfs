@@ -25,6 +25,7 @@ export XLFRTEOPTS="unit_vars=yes"
 ##  HI domain size
 export imx=199
 export jmx=163
+export id_grib=140
 
 export CHEM3D=${COMIN}/aqm.${cycle}.vis.ncf
 export METCRO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
@@ -79,13 +80,14 @@ err=$?; err_chk
        while [ $fhr -le $n_durhr ]
        do
          cat ${DATA}/aqm.${cycle}.MIE${fhr} ${DATA}/aqm.${cycle}.ZF${fhr} > aqm.${cycle}.mie$fhr
+         cp  aqm.${cycle}.mie$fhr  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
          let "fhr=fhr+1"
          typeset -Z2 fhr 
          export fhr
        done
     fi
 
-    cp  aqm.${cycle}.mie*  $COMOUT/
+#    cp  aqm.${cycle}.mie*  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
 
 export err=$?;err_chk
 
@@ -125,7 +127,7 @@ EOF5
  startmsg
   $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile
   export err=$?;err_chk
- cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/
+ cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/aqm.${cycle}.aot.f${fhr}.${id_grib}
 
  let "fhr=fhr+1"
  typeset -Z2 fhr

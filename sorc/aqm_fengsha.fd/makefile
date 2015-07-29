@@ -1,22 +1,24 @@
- DIR       = $(fdir)/nw$(envir)/cmaq.$(model_ver)
- 
- LIB_LOC    = $(DIR)/lib 
- LNTCDF     = /usrx/local/NetCDF/3.6.3/lib
 
  TARGET     = aqm_fengsha
 
  BASE       = $(PWD)
 
- FC         = /usr/bin/mpfort
-# FC         = ifort
+ FC         = ${COMP_MP}
+
  CC         = cc
 
  F_FLAGS    = -extend_source 132 -vec-report0 -nodefines -c -O2 
  C_FLAGS    = -v -g -I/opt/ibmhpc/pe1301/mpich2/intel/include64
  LINK_FLAGS = -liomp5 -lpthread
 
- DUST_INC = $(BASE)
- LIBRARIES = -L$(LIB_LOC) -laqm_ioapi -L$(LNTCDF) -lnetcdf
+ DUST_INC   = $(BASE)
+ LIB_LOC    = ../../lib
+ IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
+ NETCDFPATH = ${NETCDF}
+ NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS} 
+
+ LIBRARIES  = $(IOAPI_LIB) \
+             $(NETCDF_LIB2)
 
  INCLUDES = \
  -DSUBST_GRID_ID= \

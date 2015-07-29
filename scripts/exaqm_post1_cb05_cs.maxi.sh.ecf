@@ -42,36 +42,11 @@ export err=$?;err_chk
 
 # interpolate to grid 227
 
-$utilexec/copygb -g 227 -x -i"1 1" aqm-maxi.148.grib aqm-maxi.227.grib
+$COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib aqm-maxi.227.grib
 
-$utilexec/wgrib -s aqm-maxi.227.grib | grep "OZMAX1" | $utilexec/wgrib -i aqm-maxi.227.grib -grib -o aqm-1hro3-maxi.227.grib
-$utilexec/wgrib -s aqm-maxi.227.grib | grep "OZMAX8" | $utilexec/wgrib -i aqm-maxi.227.grib -grib -o aqm-8hro3-maxi.227.grib
+$WGRIB -s aqm-maxi.227.grib | grep "OZMAX1" | $WGRIB -i aqm-maxi.227.grib -grib -o aqm-1hro3-maxi.227.grib
+$WGRIB -s aqm-maxi.227.grib | grep "OZMAX8" | $WGRIB -i aqm-maxi.227.grib -grib -o aqm-8hro3-maxi.227.grib
 
-#  write out in grib1 format
-#cat >cmaq-maxi2grib.ini <<EOF5
-#&control
-#markutc=05
-#outfile='aqm-pm25_24hr.148.grib'
-#varlist='pm25_1hr','pm25_24hr'
-#id_gribdomain=148
-#/
-#EOF5
-
-#startmsg
-#$EXECaqm/aqm_post_maxi_CHA
-#export err=$?;err_chk
-
-#$utilexec/copygb -g 227 -x -i"1 1" aqm-pm25_24hr.148.grib aqm-pm25_24hr.227.grib
-
-#$utilexec/wgrib -s aqm-pm25_24hr.227.grib | grep "PDMAX1" | $utilexec/wgrib -i aqm-pm25_24hr.227.grib -grib -o  aqm-1hr-pm25-daily-max.227.grib
-#$utilexec/wgrib -s aqm-pm25_24hr.227.grib | grep "PDMAX24" | $utilexec/wgrib -i aqm-pm25_24hr.227.grib -grib -o aqm-24hr-pm25-daily-max.227.grib
-#$utilexec/wgrib -s aqm-pm25_24hr.227.grib | grep "PMTF" | $utilexec/wgrib -i aqm-pm25_24hr.227.grib -grib -o    aqm-24hr-pm25-daily-ave.227.grib
-
-#$utilexec/cnvgrib -g12 -m -p32  aqm-1hr-pm25-daily-max.227.grib aqm-1hr-pm25-daily-max.227.grib2
-#$utilexec/cnvgrib -g12 -m -p32  aqm-24hr-pm25-daily-max.227.grib aqm-24hr-pm25-daily-max.227.grib2
-#$utilexec/cnvgrib -g12 -m -p32  aqm-24hr-pm25-daily-ave.227.grib aqm-24hr-pm25-daily-ave.227.grib2
-
-#jp9
 
 # write out pm2.5 in grib2 format
 cat >cmaq-maxi2grib.ini <<EOF5
@@ -88,34 +63,32 @@ $EXECaqm/aqm_post_maxi_CHA_grib2
 export err=$?;err_chk
 
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$utilexec/copygb2  -g "$grid227" -x  -i"2 2" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
+$COPYGB2  -g "$grid227" -x  -i"2 2" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
 
 #-----------------------------------------
-$utilexec/wgrib2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $utilexec/wgrib2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
+$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
 export err=$?;err_chk
 
-$utilexec/wgrib2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $utilexec/wgrib2 -i aqm-pm25_24hr.148.grib2 -grib  aqm.${cycle}.24hpm25-ave.148.grib2
+$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib  aqm.${cycle}.24hpm25-ave.148.grib2
 export err=$?;err_chk
 #-----------------------------------------
-$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 1 -grib aqm-1hr-pm25-daily-max.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 -d 1 -grib aqm-1hr-pm25-daily-max.227.grib2
 export err=$?;err_chk
-$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
 export err=$?;err_chk
 
 if [ -f ${MAQFILE2} ]; then
 #------------
-#$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib  aqm.${cycle}.1hpm25-max.148.grib2
-$utilexec/wgrib2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $utilexec/wgrib2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
+$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
 export err=$?;err_chk
 
-#$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib  aqm.${cycle}.24hpm25-ave.148.grib2
-$utilexec/wgrib2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $utilexec/wgrib2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.24hpm25-ave.148.grib2
+$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.24hpm25-ave.148.grib2
 export err=$?;err_chk
 #-----------
-$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib aqm-1hr-pm25-daily-max.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib aqm-1hr-pm25-daily-max.227.grib2
 export err=$?;err_chk
 
-$utilexec/wgrib2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib aqm-24hr-pm25-daily-ave.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib aqm-24hr-pm25-daily-ave.227.grib2
 export err=$?;err_chk
 
 fi
@@ -123,7 +96,7 @@ fi
 for hr in 1 8
 do
 
-$utilexec/cnvgrib -g12 -m -p32  aqm-${hr}hro3-maxi.227.grib aqm-${hr}hro3-maxi.227.grib2
+$CNVGRIB -g12 -m -p32  aqm-${hr}hro3-maxi.227.grib aqm-${hr}hro3-maxi.227.grib2
 
 echo 0 > filesize
 export XLFRTEOPTS="unit_vars=yes"
@@ -131,7 +104,7 @@ export FORT11=aqm-${hr}hro3-maxi.227.grib2
 export FORT12="filesize"
 export FORT31=
 export FORT51=aqm-${hr}hro3-maxi.227.grib2.temp
-$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
 echo `ls -l  aqm-${hr}hro3-maxi.227.grib2.temp | awk '{print $5} '` > filesize
 export XLFRTEOPTS="unit_vars=yes"
@@ -139,7 +112,7 @@ export FORT11=aqm-${hr}hro3-maxi.227.grib2.temp
 export FORT12="filesize"
 export FORT31=
 export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227
-$utilexec/tocgrib2super < $PARMutil/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
 rm filesize
 
@@ -166,19 +139,18 @@ rm filesize
 done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
- cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.1ho3-max.227.grib2
- cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.8ho3-max.227.grib2
- cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.daily-max.148.grib
- cp aqm-1hr-pm25-daily-max.227.grib $COMOUT/aqm.${cycle}.1hpm25-max.227.grib
- cp aqm-24hr-pm25-daily-ave.227.grib $COMOUT/aqm.${cycle}.24hpm25-ave.227.grib
- cp aqm-1hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.1hpm25-max.227.grib2
- cp aqm-24hr-pm25-daily-ave.227.grib2 $COMOUT/aqm.${cycle}.24hpm25-ave.227.grib2
- cp aqm.${cycle}.1hpm25-max.148.grib2 $COMOUT/
- cp aqm.${cycle}.24hpm25-ave.148.grib2 $COMOUT/
- $utilexec/copygb -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
- $utilexec/cnvgrib -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.daily-max.227.grib2
+ cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+ cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+ cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.148
+
+ cp aqm-1hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
+ cp aqm-24hr-pm25-daily-ave.227.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
+ cp aqm.${cycle}.1hpm25-max.148.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2
+ cp aqm.${cycle}.24hpm25-ave.148.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.148.grib2
+ $COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
+ $CNVGRIB -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.227.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
-  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.1ho3-max.227.grib2
-  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.8ho3-max.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
  fi
 fi

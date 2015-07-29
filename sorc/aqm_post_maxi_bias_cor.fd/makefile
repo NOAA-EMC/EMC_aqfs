@@ -27,20 +27,16 @@ NCEPLib =   /nwprod/lib
 
 # Command argument sequences.
 
-NETCDF =  /usrx/local/NetCDF/4.2/serial
-nc1    =  -I$(NETCDF)/include -L$(NETCDF)/lib
+NETCDFPATH = ${NETCDF}
+nc1    =  -I$(NETCDFPATH)/include  ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 nc2    =  -L/usrx/local/HDF4/4.2.8/lib
-nc3    =  -L/usrx/local/HDF5/1.8.9/serial/lib
-nc31   =  -L/usrx/local/NetCDF/4.2/serial/lib -lnetcdff -lnetcdf
-nc4    =  -L/usrx/local/szip-2.1/lib
-nc5    =  -lz -lmfhdf -ldf -lhdf5_hl -lhdf5 -lsz -ljpeg
-nc6    =  /usrx/local/szip-2.1/lib/libsz.so.2 
+nc3    =  ${HDF5_LDFLAGS}
+#nc4    =  ${SZ_LIB}
+nc5    = -lz -lmfhdf
 
-#setenv  LIB_NETCDF  $(nc1)
+Libraries =  $(nc1) $(nc2)  $(nc3)  $(nc4) $(nc5)
 
-Libraries = $(nc1) $(nc2)  $(nc3) $(nc31)  $(nc4)  $(nc5) $(nc6) 
-
-F90_CMD = /usrx/local/intel/14.0.1/composer_xe_2013_sp1.0.080/bin/intel64/ifort
+F90_CMD =  ${COMP}
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -traceback -check all -check noarg_temp_created
@@ -52,7 +48,6 @@ F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
              $(F90_FLAGS5)
 
-#Libraries =	$(LIB_NETCDF)
 Link.f90 =	$(F90_CMD) $(F90_FLAGS)
 
 F90_CONFIG   =  f90_config.gfortran.f90

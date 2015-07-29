@@ -1,0 +1,33 @@
+module purge
+
+module load ../../modulefiles/CMAQ/v4.6.6 
+
+module list
+
+sleep 1
+
+BASE=`pwd`
+
+
+##########################
+
+cd ${BASE}/aqm_ioapi
+./compile_ioapi
+
+##############################
+
+for src in  pario-n se-rc4n_2010
+do
+cd ${BASE}/aqm_$src
+make clean
+make
+done
+##############################
+
+for src in filesetapi edss_tools smoke
+do
+cd ${BASE}/aqm_$src
+make clean
+make all
+done
+##############################

@@ -1,15 +1,8 @@
-# envir      = test
-# fdir       = ${fdir:-}
- DIR        = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 #
- LIB_LOC    = $(DIR)/lib
- LNTCDF     = /usrx/local/NetCDF/3.6.3/lib
-#
-# TARGET = dust_merge.exe
  TARGET = aqm_fengsha_merge 
  BASE = $(PWD)
 
- FC    = /usr/bin/mpfort
+ FC   = ${COMP}
  CC    = cc
 
  F_FLAGS    = -extend_source 132 -vec-report0 -nodefines -c -O2 
@@ -18,7 +11,13 @@
 
  DUST_INC = $(BASE)
 
- LIBRARIES = -L$(LIB_LOC) -laqm_ioapi -L$(LNTCDF) -lnetcdf
+ LIB_LOC    = ../../lib
+ IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
+ NETCDFPATH = ${NETCDF}
+ NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS} 
+
+ LIBRARIES = $(IOAPI_LIB) \
+             $(NETCDF_LIB2)
 
 
  INCLUDES = \

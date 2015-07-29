@@ -3,17 +3,21 @@ SHELL=/bin/sh
 MODEL        = aqm_combine 
 
 IOAPI        = ../../lib/sorc/aqm_ioapi/ioapi
-netCDF       = /usrx/local/NetCDF/3.6.3
-IOAPI_LIB    = ../../lib
+IOAPI_LIB    = ../../lib/libaqm_ioapi.a
 
-LIB          = -L$(IOAPI_LIB) -laqm_ioapi -L$(netCDF)/lib -lnetcdf
+NETCDF2      = $(NETCDF)
+NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 
-FC           = ifort -132 -O3 -D_LARGE_FILES
-CC           = icc -D_LARGE_FILES -DFLDMN=1
+LIB          =   $(IOAPI_LIB) \
+     $(NETCDF_LIB)
+
+
+FC           = ${COMP} -132 -O3 -D_LARGE_FILES
+CC           = ${C_COMP} -D_LARGE_FILES -DFLDMN=1
 
 INCLUDES     = -I $(IOAPI)
 INCLUDES-h   = -I $(IOAPI)
-INCLUDES-net = -I $(netCDF)/include
+INCLUDES-net = -I $(NETCDF2)/include
 
 # nameval.o 
 

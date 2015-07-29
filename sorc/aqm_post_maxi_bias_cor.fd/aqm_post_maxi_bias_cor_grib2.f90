@@ -29,10 +29,12 @@ program aqm_post_maxi_bias_cor_grib2
    character  infile1*200,infile2*200,infile3*200
    character  varname*10,ymd*8,ch_cyc*2,ch_chk*2
    integer    diag, imax,jmax
-   integer    icyc,iyear,imonth,iday,idate,ihour,base_year,nt,ichk
-   integer    nowdate,nowdate1,nowtime
-   integer    ierr,lb,mday,ier
-   integer    i, j, IRET 
+!   integer    icyc,iyear,imonth,iday,idate,ihour,base_year,nt,ichk
+   integer    icyc,iyear,imonth,iday,ihour,base_year,ichk
+!   integer    nowdate,nowdate1,nowtime
+   integer    nowdate,nowtime
+   integer    ierr,mday,ier
+   integer    i, j 
 ! for grib2 by JP
    integer, parameter   :: max_bytes=20000000
    integer, parameter   :: nx=442,ny=265
@@ -61,7 +63,7 @@ program aqm_post_maxi_bias_cor_grib2
     real(4),dimension(nx*ny) :: fld1
     real(4),dimension(nx*ny) :: fld2
     integer ifilw1,ifilw2,lengrib,lonstt,lonlst,latstt,latlst
-    integer yy,mm,dd,hh,mn,sc
+!    integer yy,mm,dd,hh,mn,sc
     real(4) :: dxval
 
     character*50 gdss(400)
@@ -73,8 +75,7 @@ program aqm_post_maxi_bias_cor_grib2
    integer id_gribdomain
 
 !   integer kpds(200),kgds(200)
-   integer kpds(25),kgds(25)
-!   integer kpds(25),kgds(20)
+!   integer kpds(25),kgds(25)
 !   integer kpds(200),kgds(200),istime(1),ietime(1)  
 
    character(*), parameter :: calendar  = 'gregorian'
@@ -88,14 +89,14 @@ program aqm_post_maxi_bias_cor_grib2
    real(dp), allocatable :: indata1(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
    real(dp), allocatable :: indata2(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
    real(dp), allocatable :: indata3(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
-   real(dp), allocatable :: indata(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
+!   real(dp), allocatable :: indata(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
    real, allocatable :: pm25data(:,:)	! (COL, ROW, LAY, TSTEP)
    real(dp), allocatable :: pm25(:,:,:)	! (COL, ROW, LAY, TSTEP)
    real(dp), allocatable :: pm25_ave(:,:,:),pm25_max(:,:,:)
    real(dp), allocatable :: work(:,:)
    logical, allocatable :: LB1(:)
 
-   real tmp_t1, tmp_t2,tmpmax
+!   real tmp_t1, tmp_t2,tmpmax
 
 ! Get command arguments as strings.
    diag=5

@@ -1,15 +1,15 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_fcst_hi.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_fcst_hi.out 
-#BSUB -J jaqm_fcst_v463_hi
+#BSUB -oo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_fcst_hi.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_fcst_hi.out 
+#BSUB -J jaqm_fcst_v466_hi
 #BSUB -n 16 
 #BSUB -x
 #BSUB -R span[ptile=8]
 #BSUB -W 00:50
-#BSUB -q devhigh
-##BSUB -q dev
-#BSUB -P naqfc 
+##BSUB -q dev2
+#BSUB -q dev2
+#BSUB -P CMAQ-T2O 
 ##BSUB -R "rusage[mem=1500]"
 #BSUB -a poe
 
@@ -32,11 +32,19 @@ export MP_TASK_AFFINITY=cpu
 #export MP_USE_BULK_XFER=yes
 export MPICH_THROTTLE_ALLTOALL=0
 
-
-# EXPORT list here
-set -ax
-#export envir=para
+# for EMC test
+export RUN_ENVIR=notnco
+export COMROOT=/ptmpp2/${USER}/com2
+export NWROOT=/naqfc/save/${USER}/nwdev
+export cmaq_ver=v4.6.6
+export envir=para1
+export job=aqm_cmaq_hi
+#
 export PARAFLAG=YES
+
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
  
 ${HOMEaqm}/jobs/JAQM_FORECAST_HI
 

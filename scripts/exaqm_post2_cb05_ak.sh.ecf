@@ -21,6 +21,7 @@ postmsg "$jlogfile" "$msg"
 cd $DATA
 
 export XLFRTEOPTS="unit_vars=yes"
+export id_grib=140
 
 #########################################################
 # Part I: Convert Machine binary format to Grib format
@@ -64,7 +65,7 @@ varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN
 'AORGPAJ','AORGBI','AORGBJ','AECI','AECJ','A25I','A25J','NUMATKN','NUMACC','SRFATKN',
 'SRFACC','AH2OI','AH2OJ'
 metlist='    '
-outfile='$COMOUT/aqm.${cycle}.pm'
+outfile='aqm.${cycle}.chem_sigma'
 nlayers=22
 id_gribdomain=140
 ave1hr=.true.
@@ -75,6 +76,32 @@ $EXECaqm/aqm_cmaq2grib
 export err=$?;err_chk
 
 ########################################################
+case $cyc in
+ 00) endfhr=06;;
+ 06) endfhr=48;;
+ 12) endfhr=48;;
+ 18) endfhr=06;;
+esac
+
+export fhr=01
+
+
+if [ "$SENDCOM" = 'YES' ]
+then
+
+
+while [ $fhr -le $endfhr ]
+do
+ 
+ typeset -Z2 fhr
+
+ cp $DATA/aqm.${cycle}.chem_sigma${fhr} $COMOUT/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}
+
+ let "fhr=fhr+1"
+
+done
+
+fi
 
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"

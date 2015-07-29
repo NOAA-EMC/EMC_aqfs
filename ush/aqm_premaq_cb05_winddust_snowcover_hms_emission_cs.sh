@@ -1,4 +1,4 @@
-#!/bin/ksh 
+#!/bin/sh 
 
 set -xa
 #-----------------------------------------------------------------
@@ -60,6 +60,10 @@ if [ -e $CTM_DUST ]; then
  rm $CTM_DUST
 fi
 
+if [ -e chkreads.log ] ; then
+ rm -rf chkreads.log
+fi
+
 export pgm=aqm_fengsha
 ${EXECaqm}/aqm_fengsha  
 export err=$?;err_chk
@@ -81,6 +85,10 @@ if [ -e $EMIS_1 ]; then
 fi
 cp ${COMIN}/aqm.${cycle}.emission.ncf $EMIS_1  
     
+if [ -e chkreads.log ] ; then
+ rm -rf chkreads.log
+fi
+
 export pgm=aqm_fengsha
 startmsg
 mpirun.lsf ${EXECaqm}/aqm_fengsha_merge  >>  $pgmout 2>errfile
@@ -101,6 +109,9 @@ emis3d=aqm.${cycle}.emission.${PDY}.windust
 metc2d=aqm.${cycle}.metcro2d
 
 ln -s ${MET_CRO_2D} $DATA 
+if [ -e chkreads.log ] ; then
+ rm -rf chkreads.log
+fi
 
 export EMIS3D=$DATA/${emis3d}.ncf
 export METC2D=$COMIN/${metc2d}.ncf
@@ -116,6 +127,11 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
 #step 3 HMS
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
+
+  if [ -e chkreads.log ] ; then
+   rm -rf chkreads.log
+  fi
+
   if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
   then
    smoke_emis9=${smoke_emis}/smoke.$PDYm1
@@ -154,7 +170,7 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
 ########################################################
 
 msg='ENDED NORMALLY.'
-$DATA/postmsg "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

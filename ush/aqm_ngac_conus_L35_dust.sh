@@ -6,7 +6,7 @@ cd $DATA
 
 cyc=00
 
-nowdate=`/nwprod/util/exec/ndate| cut -c1-8`
+nowdate=`${NDATE}| cut -c1-8`
 
 cycledate=${1:-$nowdate}$cyc
 
@@ -16,7 +16,6 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-#NGACFOLDER=/com/ngac/prod/ngac.$cyear$cmonth$cdate
 NGACFOLDER=${NGAC_DIR}/ngac.$cyear$cmonth$cdate
 if [ ! -s $NGACFOLDER/ngac.t${cyc}z.sigf48 ]; then
  echo " can not find $NGACFOLDER/ngac.t${cyc}z.sigf48 "
@@ -55,7 +54,6 @@ Species converting Factor
 'du004'    1   ## 6-12um
 'ASOIL'  0.7586
 EOF
-
 
 export TOPO=$FIXaqm/aqm.grdcro2d_new.ncf
 export METEO3D=$outdir/aqm.t${cyc}z.metcro3d.ncf

@@ -106,7 +106,7 @@ program aqm_post1_bias_correct_grib2
 ! Get command arguments as strings.
    diag=5
    id_gribdomain=148
-   outfile2='aqm.t99z.25pm99.grib2'
+   outfile2='aqm.t99z.1hr_pm25_bc.f99.xxx.grib2'
    ave1hr=.true.
    call get_command_argument (1, infile)
    call get_command_argument (2, varname) 
@@ -127,6 +127,8 @@ program aqm_post1_bias_correct_grib2
    else
     write(outfile2(6:7),'(i2)')icyc
    endif
+  
+   write(outfile2(26:28),'(i3)')id_gribdomain
 
    print*,"iyear=",iyear,"imonth=",imonth,"iday=",iday,"icyc=",icyc
 
@@ -208,13 +210,14 @@ program aqm_post1_bias_correct_grib2
 !-- set file unit
       ifilw=52
       if (nt .le. 9 ) then
-       write(outfile2(14:14),'(a1)')"0"
-       write(outfile2(15:15),'(i1)')nt
+       write(outfile2(23:23),'(a1)')"0"
+       write(outfile2(24:24),'(i1)')nt
       else
-       write(outfile2(14:15),'(i2)')nt
+       write(outfile2(23:24),'(i2)')nt
       endif
 
        call baopen(ifilw,trim(outfile2),ierr)
+
        if(ierr.ne.0) then
         print*,'can not open ',trim(outfile2)
         stop 2001

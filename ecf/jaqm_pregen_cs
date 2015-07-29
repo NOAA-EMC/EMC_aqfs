@@ -1,13 +1,13 @@
 #!/bin/ksh
 #
-#BSUB -oo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_conus.out
-#BSUB -eo /ptmpp1/Jianping.Huang/com/output/para2/today/jaqm_pregen_conus.out
+#BSUB -oo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_conus.out
+#BSUB -eo /ptmpp2/Jianping.Huang/com2/output/para1/today/jaqm_pregen_conus.out
 #BSUB -J jaqm_pregen_conus
 #BSUB -n 4 
 #BSUB -x
-#BSUB -q "devhigh" 
-##BSUB -q "dev" 
+#BSUB -q "dev2" 
 ##BSUB -q debug
+#BSUB -P CMAQ-T2O
 #BSUB -R span[ptile=1]
 #BSUB -R "affinity[core]"
 #BSUB -R "rusage[mem=2500]"
@@ -16,6 +16,7 @@
 ##BSUB -a openmpi
 ##
 
+set -ax
 #export MP_SHARED_MEMORY=yes
 #export MEMORY_AFFINITY=MCM
 export MP_EUILIB=us
@@ -25,12 +26,25 @@ export MP_STDOUTMODE=unordered
 export MP_LABELIO=yes
 export MP_TASK_AFFINITY=core
 #
+# for EMC test
+export RUN_ENVIR=notnco
+export COMROOT=/ptmpp2/${USER}/com2
+export NWROOT=/naqfc/save/${USER}/nwdev
+export cmaq_ver=v4.6.6
+export envir=para1
+#
 
 # EXPORT list here
-set -ax
 #export envir=para
 export PARAFLAG=YES
- 
+export job=aqm_prephy_cs
+
+export PARAFLAG=YES
+export PARAFLAG=YES
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
+
 ${HOMEaqm}/jobs/JAQM_PREPHYB_CS
 
 err=$?

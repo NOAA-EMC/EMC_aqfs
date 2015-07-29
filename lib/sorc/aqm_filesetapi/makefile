@@ -13,7 +13,7 @@ IOINC = ${mydir}/ioapi_includes
 
 FS_ROOT = ${mydir}
 
-FC = ifort
+FC = ${COMP} 
 
 FFLAGS =  -O2 -save -zero -extend_source -nbs -W0 -I${IOINC} -I${FS_BIN}
 

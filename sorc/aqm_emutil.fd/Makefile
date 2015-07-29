@@ -3,33 +3,39 @@
 # Date    $Date: 2005/07/20 19:08:06 $ 
 #
 
- DIR      = ${fdir}/nw$(envir)/cmaq.$(model_ver)
- LIB_LOC   = $(DIR)/lib
-# #
- mydir=$(PWD)
- EDSS_EXE=Linux2_x86ifort
+ LIB_LOC    = ../../lib
+# 
+ mydir      =$(PWD)
+ EDSS_EXE   =Linux2_x86ifort
 #
  LDIRS = -L/$(mydir)/$(EDSS_EXE)
 
- NCF_LIB   = /usrx/local/NetCDF/3.6.3/lib
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
+
 #
- LIBS_SYS  = -laqm_smoke -laqm_fileset -laqm_edsstools -laqm_ioapi -lnetcdf
+   LIBS_SYS  = $(LIB_LOC)/libaqm_smoke.a \
+               $(LIB_LOC)/libaqm_fileset.a \
+               $(LIB_LOC)/libaqm_edsstools.a \
+               $(LIB_LOC)/libaqm_ioapi.a \
+	       $(NETCDF_LIB2)
+            
 #
  LIBS_COMPILE =
 #
- SMK_BIN   = $(DIR)/exec
+ SMK_BIN   = ../../exec
  TOOLS_BIN = $(LIB_LOC)
 #
- FILESETAPI=$(DIR)/lib/sorc/aqm_filesetapi
- EDSS_TOOLS=$(DIR)/lib/sorc/aqm_edss_tools
- ESMOKE_TOOLS=$(DIR)/lib/sorc/aqm_smoke
- EMMOD=$(DIR)/sorc/aqm_emmod.fd
+ FILESETAPI=../../lib/sorc/aqm_filesetapi
+ EDSS_TOOLS=../../lib/sorc/aqm_edss_tools
+ ESMOKE_TOOLS=../../lib/sorc/aqm_smoke
+ EMMOD=../aqm_emmod.fd
 #
 
 SMK_BIN = $(mydir)/$(EDSS_EXE)
 TOOLS_BIN = $(mydir)/$(EDSS_EXE)
 
-FC = ifort
+FC = ${COMP} 
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \
@@ -38,19 +44,6 @@ FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(ESMOKE_TOOLS)/$(EDSS_EXE) \
 	 -I$(EDSS_TOOLS)/$(EDSS_EXE)
 	 
-#FFLAGS = -O2 -save -zero -extend_source -nbs -W0 \
-        -I/ptmpp1/Li.Pan/tmp_smoke/subsys/ioapi_includes \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/filesetapi/Linux2_x86ifort \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/edss_tools/src/inc  \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/ioapi_includes \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/smoke/src/inc  \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/filesetapi  \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/smoke/src/emmod/Linux2_x86ifort \
-	-I/ptmpp1/Li.Pan/tmp_smoke/subsys/edss_tools/src/modules/Linux2_x86ifort	 
-
-	
-	
-	
 INC =$(mydir)/inc
 IOINC =$(mydir)/inc
 ETINC =$(mydir)/inc
@@ -58,7 +51,7 @@ MD_SRC =$(mydir)
 ETDSRC =$(mydir)
 FS_ROOT =$(mydir)
 
-LIBS       = -L$(LIB_LOC) -L$(NCF_LIB) $(LIBS_SYS) $(LIBS_COMPILE)
+LIBS       =  $(LIBS_SYS) $(LIBS_COMPILE)
 LIBPATH    = $(LIB_LOC)/libaqm_smoke.a $(LIB_LOC)/libaqm_edsstools.a
 
 ##

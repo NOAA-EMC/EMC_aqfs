@@ -5,9 +5,9 @@ SHELL=/bin/sh
 
 LIBNAME = libaqm_sef90_2010.a
 
-FC = mpfort
+#FC = mpfort
+FC = ${COMP_MP} 
 
-#FFLAGS = -132 -O3 -fp-model precise -convert big_endian -assume byterecl -g -traceback ##$(FSTD) -Q -O3 -qstrict
 FFLAGS = -132 -O3 -fp-model precise -assume byterecl  ##$(FSTD) -Q -O3 -qstrict
 
 #> the following order is important

@@ -33,22 +33,22 @@ TARGET       = aqm_premaq_nmmb_v46
 
 #... Location of library
 
-LIB_LOC      = /nwprod/lib
-NCF_LIB      = /usrx/local/NetCDF/3.6.3/lib
-IOAPI_LIB    = ../../lib
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS}
+
+IOAPIPATH    = ../../lib
 #
 #  .. Location of complier
 
- CC          = icc 
+ CC          = ${C_COMP} 
 
 #... Location of complier &  OPTIONS
 
- FC          = ifort
+ FC          = ${COMP} 
  OMPFLAG1    =
  OMPFLAG2    =
  LINK_FLAGS  = #-q64
  DEBUG       = 
- DEBUG       =  -g -traceback  
 
 #... OPTIONS
 
@@ -59,11 +59,10 @@ IOAPI_LIB    = ../../lib
   DEFS       = -DBIT32 -DIBM -DIFORT #-WF,-DBIT32,-DIBM
   INCLUDES   = -Iedss_tools -Ismokelib
 
-  W3LIB      = -lw3nco_v2.0.3_4 -lw3emc_v2.0.3_4
-  IOAPI      = -laqm_ioapi
-  NETCDF     = -lnetcdf
-
-  BALIB      = -lbacio_4
+  W3_LIB     = ${W3NCO_LIB4} ${W3EMC_LIB4}
+  IOAPI_LIB  = $(IOAPIPATH)/libaqm_ioapi.a
+  
+  BACIO_LIB  = ${BACIO_LIB4}
 
 #
 ### Assemble Options
@@ -75,10 +74,10 @@ IOAPI_LIB    = ../../lib
   FFLAGS_FIXED = $(OPTS2) $(TRAPS) $(DEBUG)
   LDFLAGS  = $(MEM) $(MAP) $(SMP) $(PROFILE)
 
-  LIBS    = -L${LIB_LOC} $(BALIB) \
-            -L${IOAPI_LIB} $(IOAPI)\
-            -L${LIB_LOC} $(W3LIB)\
-            -L${NCF_LIB} ${NETCDF}
+  LIBS    =  $(BACIO_LIB) \
+	     $(IOAPI_LIB) \
+             $(W3_LIB) \
+             $(NETCDF_LIB) 
 #
 # object files
 #
