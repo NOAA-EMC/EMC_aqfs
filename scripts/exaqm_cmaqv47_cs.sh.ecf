@@ -29,10 +29,11 @@
 #    MP_CPU_USE=multiple   # Multi Processors
 #####################################################################
 
-export NPCOL_NPROW="9 7"
-export nprocs=63
-export GRIDDESC=$PARMaqm/aqm_griddescAK
-export GRID_NAME=AQF_AK
+ export NPCOL_NPROW="16 16"
+ export nprocs=257
+
+export GRIDDESC=$PARMaqm/aqm_griddesc05
+export GRID_NAME=AQF_CONUS_5x
 export AVG_CONC_SPCS="O3, NO2, NO, NO3, N2O5, HNO3, HONO, PNA, CO, FORM, ALD2, PAN, NTR, XO2N, SO2 ASO4I ASO4J ANH4I ANH4J ANO3I ANO3J AORGAI AORGAJ AORGPAI AORGPAJ AORGBI AORGBJ AECI AECJ A25I A25J NUMATKN NUMACC SRFATKN SRFACC AH2OI AH2OJ ACLI ACLJ ANAI ANAJ"
 export ACONC_BLEV_ELEV="1 1"
 export IOAPI_LOG_WRITE=F
@@ -46,12 +47,11 @@ export PBL_RICH=Y
 # OCEAN FILE FOR THE Aerosol run : Aero4
 #-----------------------------------------------------------------
 
-export OCEAN_1=$FIXaqm/SSMASK_AK12_199X163.ncf
+export OCEAN_1=$FIXaqm/SSMASK_US12_442X265_igbp2010.ncf
 
 export FILE_EDDY=N
 export READEDDY=N
 export NOTCDF_FATAL=F
-
 
 #------------------------------------------------------
 # now using notCDF v3.4
@@ -150,6 +150,9 @@ fi
 #turn on the derived vert. vel. component to conc file
  export CTM_WVEL=Y
 
+#para4 run for NAMx + 2014-real_emission + snow_modulate_pm_emiss + NTR
+ export NTR_FAST=Y
+
 #------------------------------------------------------
 # Convert PDY to day of year
 #-----------------------------------------------------
@@ -181,7 +184,7 @@ TSTEP=010000
 
       if [ $ic -ge 180 ]
       then
-      err_exit "****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
       fi
    done
 
@@ -190,7 +193,6 @@ ln -sf $COMIN/aqm.${cycle}.grddot2d.ncf $DATA/GRIDDOT2D
 ln -sf $COMIN/aqm.${cycle}.metbdy3d.ncf $DATA/METBDY3D
 ln -sf $COMIN/aqm.${cycle}.metcro2d.ncf $DATA/METCRO2D
 ln -sf $COMIN/aqm.${cycle}.metdot3d.ncf $DATA/METDOT3D
-#ln -sf $COMIN/aqm.${cycle}.chembdy3d.ncf $DATA/CHEMBDY3D
 ln -sf $COMIN/aqm.${cycle}.emission.ncf $DATA/emission.${PDY}.ncf
 
 ${FSYNC} $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
@@ -215,10 +217,18 @@ export EMIS_1=$DATA/emission.$PDY.ncf
 if [[ $INITIAL_RUN = "N" ]]; then
    export INIT_GASC_1=$DATA/CONC.${RST}.ncf
 else    
-   export INIT_GASC_1=$FIXaqm/aqm.AK12z.init.conc_2011.ncf
+   export INIT_GASC_1=$FIXaqm/aqm_icon_cmaq47_cb05_conus12_L35.ncf
 fi
 
-export BNDY_GASC_1=$FIXaqm/aqm_AK_cb05_ae4_mean_${SMM}.ncf
+if [[ ${cycle} = 't00z' ]] ; then
+ export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
+else
+ export BNDY_GASC_1=$COMIN/aqm_conus_geos_ngac_dust_${PDY}_35L.ncf
+fi
+
+if [ ! -f ${BNDY_GASC_1}  ] ; then
+  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
+fi
 
 export INIT_AERO_1=$INIT_GASC_1
 export BNDY_AERO_1=$BNDY_GASC_1
@@ -269,7 +279,7 @@ postmsg "$jlogfile" "$msg"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-mpirun.lsf $EXECaqm/aqm_fcst_nmmb_v46 >> $pgmout 2>errfile
+mpirun.lsf $EXECaqm/aqm_fcst_nmmb_v47 >> $pgmout 2>errfile
 export err=$?
 
 #------------------------------------------------------

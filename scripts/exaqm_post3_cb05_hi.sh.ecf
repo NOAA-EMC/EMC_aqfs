@@ -50,7 +50,8 @@ ave1hr=.true.
 /
 EOF5
 
-${EXECaqm}/aqm_cmaq2grib
+startmsg
+${EXECaqm}/aqm_cmaq2grib  >> $pgmout 2>errfile1
 err=$?; err_chk
 
 # convert to grib and extract full layer height above ground 
@@ -65,7 +66,7 @@ ave1hr=.true.
 /
 EOF5
 
-${EXECaqm}/aqm_cmaq2grib
+${EXECaqm}/aqm_cmaq2grib >> $pgmout 2>errfile2
 err=$?; err_chk
 
 #########################################################
@@ -125,7 +126,7 @@ do
 EOF5
 
  startmsg
-  $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile
+  $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile3
   export err=$?;err_chk
  cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/aqm.${cycle}.aot.f${fhr}.${id_grib}
 

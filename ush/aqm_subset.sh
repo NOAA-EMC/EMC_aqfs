@@ -80,7 +80,9 @@ ls -al $inputfile
 
 echo ' '
 
-$EXECaqm/aqm_subset_x
+startmsg
+$EXECaqm/aqm_subset_x >> $pgmout 2>errfile
+export err=$?;err_chk
 
 exit
 

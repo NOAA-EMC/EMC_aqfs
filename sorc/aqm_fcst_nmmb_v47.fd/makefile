@@ -1,4 +1,4 @@
-CMD        = aqm_fcst_nmmb_v46
+CMD        = aqm_fcst_nmmb_v47
 
 LIB_LOC    = ../../lib
 STENEX     = $(LIB_LOC)/sorc/aqm_se-rc4n_2010

@@ -50,7 +50,8 @@ ave1hr=.true.
 /
 EOF5
 
-${EXECaqm}/aqm_cmaq2grib
+startmsg
+${EXECaqm}/aqm_cmaq2grib  >> $pgmout 2>errfile
 err=$?; err_chk
 
 # convert to grib and extract full layer height above ground 
@@ -65,7 +66,7 @@ ave1hr=.true.
 /
 EOF5
 
-${EXECaqm}/aqm_cmaq2grib
+${EXECaqm}/aqm_cmaq2grib >> $pgmout 2>errfile
 err=$?; err_chk
 
 #########################################################

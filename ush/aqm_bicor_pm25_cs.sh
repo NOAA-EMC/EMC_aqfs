@@ -47,7 +47,7 @@ ln -s $BICOR_DATA1/airnow/${Yr1}/*    data/airnow/${Yr1}/
 ln -s $BICOR_DATA4w/airnow/${Yr4w}/*  data/airnow/${Yr4w}/
 
 startmsg  
-$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor  ${cyc}Z  $BC_STDAY $PDY
+$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 

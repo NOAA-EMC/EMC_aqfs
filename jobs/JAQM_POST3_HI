@@ -7,14 +7,6 @@ export PS4='$SECONDS + '
 date -u
 
 ############################################
-# Set up environment for AIR QUALITY FCST
-############################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export KEEPDATA${KEEPDATA:-NO}
-###########################################
 export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
 
@@ -83,7 +75,7 @@ export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 
 export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
 
-export pcom=${pcom:-/pcom/${NET}}
+export pcom=${pcom:-${PCOMROOT}/${NET}}
 
 mkdir -p $COMOUT $pcom
 

@@ -71,7 +71,7 @@ else
    setenv ncf N
 endif
 set Exec = $EXECaqm/aqm_combine
-$EXECaqm/aqm_setup_date_timesp
+$EXECaqm/aqm_setup_date_timesp >> $pgmout 2>errfile1
 
 set HeadDefn = ./header_defn
 set SpecDefn = ./species_defn

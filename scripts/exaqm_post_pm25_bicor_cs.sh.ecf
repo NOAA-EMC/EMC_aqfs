@@ -34,7 +34,8 @@ cd $DATA
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/aqm.${cycle}.aconc.ncf"
  fi
 
- $USHaqm/aqm_bicor_prep_cs.sh  
+ startmsg
+ $USHaqm/aqm_bicor_prep_cs.sh >> $pgmout 2>errfile 
  err=$?; err_chk
 
  f1=aqm.${cycle}.O3_pm25.ncf
@@ -53,24 +54,28 @@ fi
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
-$USHaqm/aqm_bicor_interp_cs.sh  
+startmsg
+$USHaqm/aqm_bicor_interp_cs.sh >> $pgmout 2>errfile 
  err=$?; err_chk
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
 
-$USHaqm/aqm_bicor_pm25_cs.sh 
+startmsg
+	$USHaqm/aqm_bicor_pm25_cs.sh >> $pgmout 2>errfile  
  err=$?; err_chk
 #------------------------------------------------------------------------
 #
 # STEP 4:  converting netcdf to grib format
-$USHaqm/aqm_bicor_post_cs.sh
+startmsg
+$USHaqm/aqm_bicor_post_cs.sh >> $pgmout 2>errfile
 err=$?; err_chk
 
 #
 #--------------------------------------------------------------
 # STEP 5: calculating 24-hr ave PM2.5
 if [ $cyc -eq 06 -o  $cyc -eq 12 ] ; then
-$USHaqm/aqm_bicor_post_maxi_cs.sh
+startmsg
+$USHaqm/aqm_bicor_post_maxi_cs.sh >> $pgmout 2>errfile4
 err=$?; err_chk
 
 # interpolate to grid 227

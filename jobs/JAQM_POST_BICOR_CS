@@ -97,7 +97,6 @@ export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 export BICOR_DATA=${BICOR_DATA:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
 export BICOR_DATA1=${BICOR_DATA1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
 export BICOR_DATA4w=${BICOR_DATA4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
-export DCOMROOT=${DCOMROOT:-/dcom/us007003}
 
 if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 
  echo "$BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 exists !"
@@ -105,9 +104,9 @@ else
  mkdir -p $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008
 fi
 
-cp -rp ${DCOMROOT}/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
+cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
 
-pcom=${pcom:-/pcom2/${envir}/${NET}}
+export pcom=${pcom:-${PCOMROOT}/${NET}}
 
 mkdir -p $COMOUT $pcom
 

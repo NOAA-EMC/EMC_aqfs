@@ -29,10 +29,10 @@
 #    MP_CPU_USE=multiple   # Multi Processors
 #####################################################################
 
-export NPCOL_NPROW="3 5"
-export nprocs=16
-export GRIDDESC=$PARMaqm/aqm_griddescHI
-export GRID_NAME=AQF_HI
+export NPCOL_NPROW="9 7"
+export nprocs=63
+export GRIDDESC=$PARMaqm/aqm_griddescAK
+export GRID_NAME=AQF_AK
 export AVG_CONC_SPCS="O3, NO2, NO, NO3, N2O5, HNO3, HONO, PNA, CO, FORM, ALD2, PAN, NTR, XO2N, SO2 ASO4I ASO4J ANH4I ANH4J ANO3I ANO3J AORGAI AORGAJ AORGPAI AORGPAJ AORGBI AORGBJ AECI AECJ A25I A25J NUMATKN NUMACC SRFATKN SRFACC AH2OI AH2OJ ACLI ACLJ ANAI ANAJ"
 export ACONC_BLEV_ELEV="1 1"
 export IOAPI_LOG_WRITE=F
@@ -46,11 +46,12 @@ export PBL_RICH=Y
 # OCEAN FILE FOR THE Aerosol run : Aero4
 #-----------------------------------------------------------------
 
-export OCEAN_1=$FIXaqm/SSMASK_HI12_80X52.ncf
+export OCEAN_1=$FIXaqm/SSMASK_AK12_199X163.ncf
 
 export FILE_EDDY=N
 export READEDDY=N
 export NOTCDF_FATAL=F
+
 
 #------------------------------------------------------
 # now using notCDF v3.4
@@ -146,7 +147,6 @@ else
   export START=COLD
   export INITIAL_RUN=Y
 fi
-
 #turn on the derived vert. vel. component to conc file
  export CTM_WVEL=Y
 
@@ -215,10 +215,10 @@ export EMIS_1=$DATA/emission.$PDY.ncf
 if [[ $INITIAL_RUN = "N" ]]; then
    export INIT_GASC_1=$DATA/CONC.${RST}.ncf
 else    
-   export INIT_GASC_1=$FIXaqm/aqm.HI12z.init.conc_2011.ncf
+   export INIT_GASC_1=$FIXaqm/aqm.AK12z.init.conc_2011.ncf
 fi
 
-export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-tracer.nmmb.ncf
+export BNDY_GASC_1=$FIXaqm/aqm_AK_cb05_ae4_mean_${SMM}.ncf
 
 export INIT_AERO_1=$INIT_GASC_1
 export BNDY_AERO_1=$BNDY_GASC_1
@@ -269,8 +269,8 @@ postmsg "$jlogfile" "$msg"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-mpirun.lsf $EXECaqm/aqm_fcst_nmmb_v46 >> $pgmout 2>errfile
-export err=$?
+mpirun.lsf $EXECaqm/aqm_fcst_nmmb_v47 >> $pgmout 2>errfile
+export err=$?; err_chk
 
 #------------------------------------------------------
 # copy output to /com
@@ -282,7 +282,6 @@ then
    mv $DATA/DRYDEP.${APPL} $COMOUT/aqm.${cycle}.drydep.ncf
    mv $DATA/WETDEP.${APPL} $COMOUT/aqm.${cycle}.wetdep.ncf
    mv $DATA/VIS.${APPL} $COMOUT/aqm.${cycle}.vis.ncf
-#jp   cp /com/output/${envir}/today/aqm_forecast*hi*${cyc}.* $COMOUT/.  
 fi
 
 if [ $err -ne 0 ]
