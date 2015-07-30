@@ -39,7 +39,7 @@ case $cyc in
  18) export n_durhr=6;;
 esac
 
-. prep_step
+#. prep_step
 
   ic=1
   while [ $ic -lt 1000 ]

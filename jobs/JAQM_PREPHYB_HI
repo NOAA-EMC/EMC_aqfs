@@ -40,10 +40,11 @@ export SENDECF=${SENDECF:-YES}
 # Path to HOME Directory
 ####################################
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export USHaqm=$HOMEaqm/ush
-export PARMaqm=$HOMEaqm/parm
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
+
 ###################################
 # Set up the UTILITIES
 ###################################

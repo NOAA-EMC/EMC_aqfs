@@ -11,11 +11,6 @@ export PS4='$SECONDS + '
 date -u
 
 ############################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export KEEPDATA${KEEPDATA:-NO}
-############################################
 export NET=${NET:-aqm}
 export RUN=${NET:-aqm}
 ############################################
@@ -54,13 +49,11 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export PARMaqm=$HOMEaqm/parm
-export USHaqm=$HOMEaqm/ush
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 
 ###################################
 # Set up the UTILITIES

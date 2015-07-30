@@ -16,7 +16,7 @@ CC         = ${C_COMP_MP}
 
 FSTD       = -fixed -132 -override-limits -mp1 -fp-model precise
 
-# DBG = -g -traceback
+#DBG       = -g -traceback
 DBG        = -g 
 
 # Compiler Flags
