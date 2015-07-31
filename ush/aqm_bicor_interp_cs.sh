@@ -24,7 +24,7 @@ ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data
 ln -s ${BICOR_DATA}/grid   $DATA/data
 
 startmsg
-$EXECaqm/aqm_interpolate_update < ${PARMaqm}/aqm_config.interp ${cyc}z $STARTDAY $ENDDAY >> $pgmout 2>errfile
+$EXECaqm/aqm_interpolate_update  ${PARMaqm}/aqm_config.interp ${cyc}z $STARTDAY $ENDDAY 
 export err=$?;err_chk
 
 if [ -e ${BICOR_DATA}/interpolated/$Yr/$Mn ] 

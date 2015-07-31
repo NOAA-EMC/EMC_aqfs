@@ -49,6 +49,7 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
+
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
 export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
@@ -99,7 +100,7 @@ fi
 
 cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
 
-export pcom=${pcom:-${PCOMROOT}/${NET}}
+pcom=${pcom:-${PCOMROOT}/${envir}/${NET}}
 
 mkdir -p $COMOUT $pcom
 
@@ -107,8 +108,8 @@ env
 ###################################################
 # Execute Script aqm_post
 ###################################################
- $HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
- err=$?; err_chk
+$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
+err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."

@@ -35,7 +35,7 @@ cd $DATA
  fi
 
  startmsg
- $USHaqm/aqm_bicor_prep_cs.sh >> $pgmout 2>errfile 
+ $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
  err=$?; err_chk
 
  f1=aqm.${cycle}.O3_pm25.ncf
@@ -55,19 +55,18 @@ fi
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
 startmsg
-$USHaqm/aqm_bicor_interp_cs.sh >> $pgmout 2>errfile 
+$USHaqm/aqm_bicor_interp_cs.sh  >> $pgmout 2>errfile 
  err=$?; err_chk
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
-
 startmsg
-	$USHaqm/aqm_bicor_pm25_cs.sh >> $pgmout 2>errfile  
+$USHaqm/aqm_bicor_pm25_cs.sh  >> $pgmout 2>errfile 
  err=$?; err_chk
 #------------------------------------------------------------------------
 #
 # STEP 4:  converting netcdf to grib format
 startmsg
-$USHaqm/aqm_bicor_post_cs.sh >> $pgmout 2>errfile
+$USHaqm/aqm_bicor_post_cs.sh   >> $pgmout 2>errfile
 err=$?; err_chk
 
 #
@@ -75,7 +74,7 @@ err=$?; err_chk
 # STEP 5: calculating 24-hr ave PM2.5
 if [ $cyc -eq 06 -o  $cyc -eq 12 ] ; then
 startmsg
-$USHaqm/aqm_bicor_post_maxi_cs.sh >> $pgmout 2>errfile4
+$USHaqm/aqm_bicor_post_maxi_cs.sh   >> $pgmout 2>errfile
 err=$?; err_chk
 
 # interpolate to grid 227
@@ -88,6 +87,11 @@ ${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1}
 oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
 newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
 ${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
+
+if [ "$SENDCOM" = 'YES' ]; then
+   cp aqm.t${cyc}z.1hpm25-max.227.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.227.grib2
+   cp aqm.t${cyc}z.24hpm25-ave.227.bc.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.227.grib2
+fi
 
 fi
 
@@ -112,10 +116,3 @@ fi
 #       fi
 
 #done
-if [ "$SENDCOM" = 'YES' ]; then
-  for id_grib in 227 
-   do
-   cp aqm.t${cyc}z.1hpm25-max.${id_grib}.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.${id_grib}.grib2
-   cp aqm.t${cyc}z.24hpm25-ave.${id_grib}.bc.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.${id_grib}.grib2
-  done
-fi
