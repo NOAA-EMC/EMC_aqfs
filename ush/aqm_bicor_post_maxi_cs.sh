@@ -69,7 +69,7 @@ fi
 # write out grib2 format 
 #-------------------------------------------------
 startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk 
+$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 if [ $envir = "para1" ] ; then

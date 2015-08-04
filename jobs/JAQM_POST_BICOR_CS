@@ -71,7 +71,7 @@ setpdy.sh
 . PDY
 
 #-------------------------------------------------------------
-# create an initial date for Bias Correction training (one week) 
+# create an initial date for Bias Correction training (4 weeks) 
 export TMP_STDAY=`${NDATE} -672 ${PDY}${cyc}`
 export BC_STDAY=`echo $TMP_STDAY | cut -c1-8`
 export Yr4w=`echo ${BC_STDAY} | cut -c1-4`
@@ -88,17 +88,29 @@ export Mnm1=`echo ${PDYm1}  | cut -c5-6`
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
-export BICOR_DATA=${BICOR_DATA:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
-export BICOR_DATA1=${BICOR_DATA1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
-export BICOR_DATA4w=${BICOR_DATA4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
+export COMINbicor=${COMINbicor:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
+export COMINbicorm1=${COMINbicorm1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
+export COMINbicor4w=${COMINbicor4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
 
-if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 
- echo "$BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 exists !"
+#export BICOR_DATA=${BICOR_DATA:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
+#export BICOR_DATA1=${BICOR_DATA1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
+#export BICOR_DATA4w=${BICOR_DATA4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
+
+#if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 
+# echo "$BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 exists !"
+#else
+# mkdir -p $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008
+#fi
+
+#cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
+
+if [ -e  $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 ] ; then
+ echo "$COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 exists !"
 else
- mkdir -p $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008
+ mkdir -p $COMINbicorm1/airnow//$Yr1/${PDYm1}/b008
 fi
 
-cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
+cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
 
 pcom=${pcom:-${PCOMROOT}/${envir}/${NET}}
 
@@ -109,7 +121,7 @@ env
 # Execute Script aqm_post
 ###################################################
 $HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."

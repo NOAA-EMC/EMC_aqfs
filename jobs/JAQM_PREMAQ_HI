@@ -85,7 +85,7 @@ env
 # Execute the Script
 ###################################################
 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 ##################################################
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."

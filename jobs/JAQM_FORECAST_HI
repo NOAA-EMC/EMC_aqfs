@@ -89,7 +89,7 @@ env
 # Execute the Script
 ###################################################
 ${HOMEaqm}/scripts/exaqm_cmaqv47_hi.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 ##################################################
 cat $pgmout
 

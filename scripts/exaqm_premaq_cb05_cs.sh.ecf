@@ -609,13 +609,13 @@ fi
 # below is used for winddust and blueske smoke emission
 
 sh $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
-err=$?; err_chk
+export err=$?; err_chk
 ########################################################
 # below is for getting ngac laterla boundary condition
 
 if [[  ${cycle} = 't06z'  ]] ; then
 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-err=$?; err_chk
+export err=$?; err_chk
 fi
 ########################################################
 echo EXITING $0

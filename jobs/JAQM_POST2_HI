@@ -83,7 +83,7 @@ env
 # Execute Script aqm_post
 ###################################################
 $HOMEaqm/scripts/exaqm_post2_cb05_hi.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
