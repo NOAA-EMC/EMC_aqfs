@@ -564,7 +564,7 @@ export pgm=aqm_premaq
 ##. prep_step
 
 startmsg
-$EXECaqm/aqm_premaq_nmmb_v46  >> $pgmout 2>errfile
+$EXECaqm/aqm_premaq_nmmb_v47  >> $pgmout 2>errfile
 export err=$?;err_chk
 
 let "soilhr=soilhr-1"

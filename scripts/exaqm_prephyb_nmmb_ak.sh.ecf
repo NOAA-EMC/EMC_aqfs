@@ -41,9 +41,9 @@ do
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    if [ -s $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 ]
     then
-      echo  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      echo  $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
       break
     else
       let "ic=ic+1"
@@ -52,7 +52,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMINnam/nam.${cycle}.bgrd3d$fhr.tm00"
     fi
   done
  let "fhr=fhr+1"

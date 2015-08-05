@@ -65,7 +65,9 @@ if [ -e chkreads.log ] ; then
 fi
 
 export pgm=aqm_fengsha
-${EXECaqm}/aqm_fengsha  
+
+startmsg 
+${EXECaqm}/aqm_fengsha >> $pgmout 2>errfile 
 export err=$?;err_chk
   
 if [ -e $CTM_DUST ]; then 
@@ -118,7 +120,7 @@ export METC2D=$COMIN/${metc2d}.ncf
 
 export pgm=aqm_snowdust
 startmsg
-mpirun.lsf  $EXECaqm/aqm_snowdust
+mpirun.lsf  $EXECaqm/aqm_snowdust >> $pgmout 2>errfile
 export err=$?;err_chk
 
 cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
@@ -144,7 +146,8 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
    ln -s ${smoke_emis9}/EMITIMES $DATA 
   test_file=$DATA/FIRE_CHECK
 
-  $EXECaqm/aqm_fire_checking
+  startmsg
+  $EXECaqm/aqm_fire_checking >> $pgmout 2>errfile
   export err=$?;err_chk
 
   sleep 30

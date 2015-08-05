@@ -7,14 +7,6 @@ export PS4='$SECONDS + '
 date -u
 
 ############################################
-# Set up environment for AIR QUALITY FCST
-############################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export KEEPDATA${KEEPDATA:-NO}
-###########################################
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
@@ -53,12 +45,11 @@ export SENDECF==${SENDECF:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export PARMaqm=$HOMEaqm/parm
-export USHaqm=$HOMEaqm/ush
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 
 ###################################
 # Set up the UTILITIES
@@ -94,10 +85,10 @@ env
 # Execute Script aqm_post
 ###################################################
 $HOMEaqm/scripts/exaqm_post1_cb05_cs.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
   $HOMEaqm/scripts/exaqm_post1_cb05_cs.maxi.sh.ecf
-  err=$?; err_chk
+  export err=$?; err_chk
 fi
 
 cat $pgmout

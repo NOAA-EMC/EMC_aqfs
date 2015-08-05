@@ -64,5 +64,5 @@ export BND2=$outdir/aqm_conus_geos_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf  
 export CHECK2D=$outdir/check_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf
 
 startmsg
-$EXECaqm/aqm_ngac_dust_dlbc   # dust only
+$EXECaqm/aqm_ngac_dust_dlbc  >> $pgmout 2>errfile 
 export err=$?;err_chk

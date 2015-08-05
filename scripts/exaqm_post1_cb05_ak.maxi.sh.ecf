@@ -38,7 +38,7 @@ id_gribdomain=140
 EOF5
 
 startmsg
-$EXECaqm/aqm_post_maxi_CHA
+$EXECaqm/aqm_post_maxi_CHA  >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 # interpolate to grid 198
@@ -59,7 +59,7 @@ id_gribdomain=140
 EOF5
 
 startmsg
-$EXECaqm/aqm_post_maxi_CHA_grib2
+$EXECaqm/aqm_post_maxi_CHA_grib2   >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 export  grid198="20 6 0 0 0 0 0 0 825 553 40530000 181429000 8 60000000 210000000 5953000 5953000 0 64" 
@@ -120,7 +120,7 @@ rm filesize
        # Post Files to PCOM
        ##############################
 
-       if test "$SENDCOM" = 'YES'
+       if test "$SENDDBN_NTC" = 'YES'
        then
            cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198  $pcom/awpaqm.${cycle}.${hr}ho3-max.198.grib2
 

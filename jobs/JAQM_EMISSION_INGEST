@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/ksh
 #
 . /usrx/local/Modules/default/init/ksh
 
@@ -7,16 +7,20 @@ export PS4='$SECONDS + '
 date -u
 
 ############################################
-export NET=${NET:-aqm}
-export RUN=${RUN:-AK}
+# Set up environment for AIR QUALITY FCST
 ############################################
+export NET=aqm
+export RUN=aqm
+############################################
+
+#####################################
 export pid=$$
 
 # PATH for working directory
 
 export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+export DATA=${DATA:-${DATAROOT:-/${job}.${pid}}}
 
 mkdir -p $DATA
 
@@ -37,54 +41,52 @@ export pgmout="OUTPUT.${pid}"
 export cycle=${cycle:-t${cyc}z}
 
 export SENDCOM=${SENDCOM:-YES}
-export SENDDBN=${SENDDBN:-YES}
-export SENDDBN_NTC=${SENDDBN_NTC:-YES}
-export SENDECF==${SENDECF:-YES}
+export SENDECF=${SENDECF:-YES}
 
 ####################################
 # Path to HOME Directory
 ####################################
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
-export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
 export USHaqm=${USHaqm:-$HOMEaqm/ush}
-export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 
-####################################
+###################################
 # Set up the UTILITIES
 ###################################
+#export utilscript=/nwprod/util/ush
+#export utilexec=/nwprod/util/exec
 module load prod_util
 module load grib_util
 
 # Run setup to initialize working directory and utility scripts
-
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
 # Run setpdy and initialize PDY variables
+export cycle=t12z
 setpdy.sh
 . PDY
 
-##############################################
-# Define COM directories
-##############################################
-export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export RUN_DAY=${RUN_DAY:-16}
 
-export pcom=${pcom:-${PCOMROOT}/${NET}}
-
-mkdir -p $COMOUT $pcom
-
+export DCOMIN=${DCOMIN:- ${DCOMROOT}/us007003/aqm_emission/${envir}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}
 env
 
-###################################################
-# Execute Script aqm_post
-###################################################
-$HOMEaqm/scripts/exaqm_post2_cb05_ak.sh.ecf
-export err=$?; err_chk
+#############################################################
+# get the current day
+##############################################################
+current_day=`date +%d`
+echo " the current day= $current_day"
 
-cat $pgmout
+#############################################################
+# execute the script
+#############################################################
+if (( ${current_day} == ${RUN_DAY} ))
+then
+   $HOMEaqm/scripts/exaqm_emission_ingest.sh.ecf
+fi
+
+#cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 

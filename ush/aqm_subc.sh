@@ -13,9 +13,6 @@ cont:
 
 set system = `uname -a`
 
-#set Base = /sss/emc/naqfc/shared/Pius.Lee/mytools/subc
-#set Base = $USHaqm
-
 if (`strings $source | head -n 1 | grep TSTEP | wc -l`) then
    set filetype = ncf
 else
@@ -71,7 +68,8 @@ else
    setenv ncf N
 endif
 set Exec = $EXECaqm/aqm_combine
-$EXECaqm/aqm_setup_date_timesp
+
+$EXECaqm/aqm_setup_date_timesp  
 
 set HeadDefn = ./header_defn
 set SpecDefn = ./species_defn

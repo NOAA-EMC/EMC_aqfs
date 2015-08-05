@@ -6,14 +6,6 @@ set -xa
 export PS4='$SECONDS + '
 date -u
 ############################################
-# Set up environment for AQM PREGEN 
-############################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export KEEPDATA${KEEPDATA:-NO}
-###########################################
 export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
 ############################################
@@ -48,10 +40,11 @@ export SENDECF=${SENDECF:-YES}
 # Path to HOME Directory
 ####################################
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export USHaqm=$HOMEaqm/ush
-export PARMaqm=$HOMEaqm/parm
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
+
 ###################################
 # Set up the UTILITIES
 ###################################
@@ -75,8 +68,8 @@ setpdy.sh
 ##############################################
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMNMM=${COMNMM:-${COMROOT}/nam/prod/nam.${PDY}}
-export COMNMMm1=${COMNMMm1:-${COMROOT}/nam/prod/nam.${PDYm1}}
+export COMINnam=${COMINnam:-${COMROOTp1}/nam/prod/nam.${PDY}}
+export COMINnamm1=${COMINnamm1:-${COMROOTp1}/nam/prod/nam.${PDYm1}}
 
 mkdir -p $COMOUT
 
@@ -86,7 +79,7 @@ env
 # Execute the Script
 ###################################################
 ${HOMEaqm}/scripts/exaqm_prephyb_nmmb_hi.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"

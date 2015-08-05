@@ -11,11 +11,6 @@ export PS4='$SECONDS + '
 date -u
 
 ############################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export KEEPDATA${KEEPDATA:-NO}
-############################################
 export NET=${NET:-aqm}
 export RUN=${NET:-aqm}
 ############################################
@@ -56,11 +51,10 @@ export SENDECF=${SENDECF:-YES}
 ####################################
 
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export PARMaqm=$HOMEaqm/parm
-export USHaqm=$HOMEaqm/ush
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 
 ###################################
 # Set up the UTILITIES
@@ -77,7 +71,7 @@ setpdy.sh
 . PDY
 
 #-------------------------------------------------------------
-# create an initial date for Bias Correction training (one week) 
+# create an initial date for Bias Correction training (4 weeks) 
 export TMP_STDAY=`${NDATE} -672 ${PDY}${cyc}`
 export BC_STDAY=`echo $TMP_STDAY | cut -c1-8`
 export Yr4w=`echo ${BC_STDAY} | cut -c1-4`
@@ -94,20 +88,19 @@ export Mnm1=`echo ${PDYm1}  | cut -c5-6`
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
-export BICOR_DATA=${BICOR_DATA:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
-export BICOR_DATA1=${BICOR_DATA1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
-export BICOR_DATA4w=${BICOR_DATA4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
-export DCOMROOT=${DCOMROOT:-/dcom/us007003}
+export COMINbicor=${COMINbicor:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
+export COMINbicorm1=${COMINbicorm1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
+export COMINbicor4w=${COMINbicor4w:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn4w}}
 
-if [ -e  $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 ] ; then 
- echo "$BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008 exists !"
+if [ -e  $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 ] ; then
+ echo "$COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 exists !"
 else
- mkdir -p $BICOR_DATA1/airnow/$Yr1/${PDYm1}/b008
+ mkdir -p $COMINbicorm1/airnow//$Yr1/${PDYm1}/b008
 fi
 
-cp -rp ${DCOMROOT}/${PDYm1}/b008/xx031 $BICOR_DATA1/airnow/${Yr1}/${PDYm1}/b008/
+cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
 
-pcom=${pcom:-/pcom2/${envir}/${NET}}
+pcom=${pcom:-${PCOMROOT}/${envir}/${NET}}
 
 mkdir -p $COMOUT $pcom
 
@@ -115,8 +108,8 @@ env
 ###################################################
 # Execute Script aqm_post
 ###################################################
- $HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
- err=$?; err_chk
+$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
+export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."

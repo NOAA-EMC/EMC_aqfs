@@ -73,7 +73,8 @@ ave1hr=.true.
 /
 EOF5
 
-$EXECaqm/aqm_cmaq2grib 
+startmsg
+$EXECaqm/aqm_cmaq2grib >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 ########################################################

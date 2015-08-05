@@ -1,0 +1,87 @@
+#!/bin/ksh
+#
+. /usrx/local/Modules/default/init/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date -u
+
+#####################################
+export pid=$$
+
+# PATH for working directory
+
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+
+export DATA=${DATA:-${DATAROOT:-/${job}.${pid}}}
+
+mkdir -p $DATA
+
+cd $DATA
+
+############################################
+# Set up environment for AIR QUALITY FCST
+############################################
+export NET=aqm
+export RUN=emission
+export SENDECF=YES
+
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
+
+#  Default is NO: output to HPSS. YES: output to TSM
+export TSM_FLAG=NO
+export HPSSOUT=${HPSSOUT:-/NCEPPROD/hpssprod/runhistory}
+export HPSSOUT_OBS=${HPSSOUT_OBS:-/NCEPOBSERV/hpssprod/runhistory}
+export TSMOUT=${TSMOUT:-/hsmprod/runhistory}
+
+####################################
+# Export variable for TSM write
+####################################
+export SCP=/opt/freeware/bin/scp
+export SCP_CONFIG='-oNoneEnabled=yes -oNoneSwitch=yes -F /home/nwprod/.ossh/ssh_config'
+
+# Define Temporary Directory for writing of HTAR file
+#export TMPDIR=$DATA
+
+####################################
+# Copy Operational Util Scripts to $DATA
+####################################
+module load prod_util
+module load grib_util
+
+####################################
+# Determine Job Output Name on System
+####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
+export pgmout="OUTPUT.${pid}"
+
+export HOMErhist=${HOMErhist:-${NWROOT}/cmaq.${cmaq_ver}}
+export USHrhist=${USHrhist:-$HOMErhist/ush}
+export PARMrhist=${PARMrhist:-$HOMErhist/parm}
+
+export RUN_DAY=${RUN_DAY:-16}
+
+export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
+
+env
+
+#############################################################
+# get the current day
+#############################################################
+current_day=`date +%d`
+echo " the current day= $current_day"
+
+#############################################################
+# execute the script
+if (( ${current_day} == ${RUN_DAY} ))
+then
+    ${HOMErhist}/scripts/exaqm_emission_archive.sh.ecf 
+fi
+#############################################################
+if [ "$KEEPDATA" != "YES" ] ; then
+#  cd $TMPhome
+  rm -rf $DATA
+fi
+
+date

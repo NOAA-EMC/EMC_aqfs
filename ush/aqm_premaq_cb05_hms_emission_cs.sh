@@ -7,9 +7,7 @@ export PROMPTFLAG=F
 #-----------------------------------------------------------------
 #  BLUESKY HYSPLIT AND NAM FILES
 #------------------------------------------------------------------
-#jp if [ -s /com/hysplit/prod/smoke.$PDY/files_fires.tar ] ; then
  if [ -s ${smoke_emis9}/files_fires.tar ] ; then
-#jp cp /com/hysplit/prod/smoke.$PDY/files_fires.tar $DATA
   cp ${smoke_emis9}/files_fires.tar $DATA
  else
  echo "can not locate files_fires.tar in /com "
@@ -195,7 +193,7 @@ done
   fi
   export pgm=aqm_bluesky2inv
   startmsg
-  $EXECaqm/aqm_bluesky2inv       #----- Main Execution file
+  $EXECaqm/aqm_bluesky2inv   >> ${pgmout}.$h_seg 2>errfile     #----- Main Execution file
   export err=$?;err_chk
  done
 ################################################################
@@ -352,7 +350,7 @@ export PTDAY=ptday.bluesky.$date.ida.txt
 
  export pgm=aqm_smkinven
  startmsg
- $EXECaqm/aqm_smkinven
+ $EXECaqm/aqm_smkinven  >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define grid to use for modeling: Grdmat
@@ -372,7 +370,7 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
  fi
  export pgm=aqm_grdmat
  startmsg
- $EXECaqm/aqm_grdmat
+ $EXECaqm/aqm_grdmat  >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define speciation mechanism and input files: Spcmat
@@ -397,7 +395,7 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
  fi
  export pgm=aqm_spcmat
  startmsg 
-$EXECaqm/aqm_spcmat
+$EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define input files for Temporal program: Temporal
@@ -424,7 +422,7 @@ $EXECaqm/aqm_spcmat
  fi
  export pgm=aqm_temporal
  startmsg
- $EXECaqm/aqm_temporal
+ $EXECaqm/aqm_temporal   >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #--------------------------------------------------------------------
 # Plume rise calculation
@@ -449,7 +447,7 @@ $EXECaqm/aqm_spcmat
   fi
   export pgm=aqm_laypoint
   startmsg
-  $EXECaqm/aqm_laypoint
+  $EXECaqm/aqm_laypoint   >> ${pgmout}.$h_seg 2>errfile
    export err=$?;err_chk
  fi
 #--------------------------------------------------------
@@ -496,7 +494,7 @@ $EXECaqm/aqm_spcmat
  fi
  export pgm=aqm_smkmerge
  startmsg
- $EXECaqm/aqm_smkmerge
+ $EXECaqm/aqm_smkmerge   >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #--------------------------------------------------------
 # get inventory reports from Smkreport program
@@ -520,7 +518,7 @@ $EXECaqm/aqm_spcmat
  fi
  export pgm=aqm_smkreport
  startmsg
- $EXECaqm/aqm_smkreport
+ $EXECaqm/aqm_smkreport    >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
 #-----------------------------------------------------------------
 # Location of log3 files, starting merge file
@@ -567,7 +565,7 @@ $EXECaqm/aqm_spcmat
 # Execution mrggrid
 #-----------------------------------------------------------------
  export pgm=aqm_mrggrid
- $EXECaqm/aqm_mrggrid
+ $EXECaqm/aqm_mrggrid    >> ${pgmout}.$h_seg 2>errfile
  export err=$?;err_chk
  
  if [ ! -f $OUTFILE ]; then

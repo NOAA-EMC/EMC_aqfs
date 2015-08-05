@@ -26,10 +26,8 @@
 #################################################################################
 #
 # Define the name of the executable
-#DIR       = ${fdir}/nw$(envir)/cmaq.$(model_ver)
 
-
-TARGET       = aqm_premaq_nmmb_v46
+TARGET       = aqm_premaq_nmmb_v47
 
 #... Location of library
 

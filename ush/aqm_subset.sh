@@ -80,7 +80,7 @@ ls -al $inputfile
 
 echo ' '
 
-$EXECaqm/aqm_subset_x
+$EXECaqm/aqm_subset_x 
 
 exit
 

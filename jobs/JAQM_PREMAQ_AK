@@ -6,12 +6,6 @@ set -xa
 export PS4='$SECONDS + '
 date 
 
-##########################################
-export RUN_ENVIR=${RUN_ENVIR:-nco}
-export COMROOT=${COMROOT:-/com2}
-export NWROOT=${NWROOT:-/nw${envir}2}
-export KEEPDATA${KEEPDATA:-NO}
-
 ############################################
 export NET=${NET:-aqm}
 export RUN=${RUN:-AK}
@@ -54,10 +48,10 @@ export SENDECF=${SENDECF:-YES}
 # Path to HOME Directory
 ####################################
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export USHaqm=$HOMEaqm/ush
-export PARMaqm=$HOMEaqm/parm
+export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
+export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 
 ###################################
 # Set up the UTILITIES
@@ -91,7 +85,7 @@ env
 # Execute the Script
 ###################################################
 $HOMEaqm/scripts/exaqm_premaq_cb05_ak.sh.ecf
-err=$?; err_chk
+export err=$?; err_chk
 ##################################################
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."

@@ -1,6 +1,6 @@
 module purge
 
-module load ../modulefiles/CMAQ/v4.6.6
+module load ../modulefiles/CMAQ/v4.7.0
 #
 module list
 
@@ -9,7 +9,7 @@ sleep 1
 BASE=`pwd`
 
 ##########################
-for src in prep_nmmb premaq_nmmb_v46 fcst_nmmb_v46 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
+for src in prep_nmmb premaq_nmmb_v47 fcst_nmmb_v47 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
 do
 cd ${BASE}/aqm_${src}.fd
 make clean

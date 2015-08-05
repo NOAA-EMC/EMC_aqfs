@@ -573,7 +573,7 @@ export pgm=aqm_premaq
 ##. prep_step
 
 startmsg
-$EXECaqm/aqm_premaq_nmmb_v46  >> $pgmout 2>errfile
+$EXECaqm/aqm_premaq_nmmb_v47  >> $pgmout 2>errfile
 export err=$?;err_chk
 
 let "soilhr=soilhr-1"
@@ -609,13 +609,13 @@ fi
 # below is used for winddust and blueske smoke emission
 
 sh $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
-err=$?; err_chk
+export err=$?; err_chk
 ########################################################
 # below is for getting ngac laterla boundary condition
 
 if [[  ${cycle} = 't06z'  ]] ; then
 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-err=$?; err_chk
+export err=$?; err_chk
 fi
 ########################################################
 echo EXITING $0

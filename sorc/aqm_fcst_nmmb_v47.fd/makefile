@@ -1,4 +1,4 @@
-CMD        = aqm_fcst_nmmb_v46
+CMD        = aqm_fcst_nmmb_v47
 
 LIB_LOC    = ../../lib
 STENEX     = $(LIB_LOC)/sorc/aqm_se-rc4n_2010
@@ -16,7 +16,7 @@ CC         = ${C_COMP_MP}
 
 FSTD       = -fixed -132 -override-limits -mp1 -fp-model precise
 
-# DBG = -g -traceback
+#DBG       = -g -traceback
 DBG        = -g 
 
 # Compiler Flags

@@ -2,8 +2,8 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_cmaq_maxi.sh
-# Script description:  CMAQ post processing for daily surface PM2.5 with bias correction 
+# Script name:         aqm_bicor_post_cs.sh 
+# Script description:  used to post-process bias corrected PM2.5 
 #
 # Author:  
 #
@@ -43,7 +43,7 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc .
 # convert from netcdf to grib2 format
 export id_gribdmn=148
 startmsg
-$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}
+$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 cp -rp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT
@@ -54,4 +54,11 @@ else
  mkdir -p $COMOUT_grib/$PDY
  cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/$PDY
 fi
+
+echo EXITING $0
+
+########################################################
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
 
