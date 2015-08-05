@@ -52,7 +52,7 @@ EOF5
 
 startmsg
 ${EXECaqm}/aqm_cmaq2grib  >> $pgmout 2>errfile1
-err=$?; err_chk
+export err=$?; err_chk
 
 # convert to grib and extract full layer height above ground 
 cat >cmaq2grib.ini <<EOF5
@@ -67,7 +67,7 @@ ave1hr=.true.
 EOF5
 
 ${EXECaqm}/aqm_cmaq2grib >> $pgmout 2>errfile2
-err=$?; err_chk
+export err=$?; err_chk
 
 #########################################################
 # Part II: Concatenate EXT_MIE to INHOUSE grib files

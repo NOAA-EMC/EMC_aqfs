@@ -51,7 +51,6 @@ errsum=0
        tar_dir=${current_year}${next_month}
    fi
 
-#   $USHrhist/aqm_rhist_savedir.sh /com/aqm/${envir}/emission/${tar_dir} ${tar_dir} perm
    $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIR}/${tar_dir} ${tar_dir} perm
    export err=$?;let errsum=errsum+err;$USHrhist/aqm_rhist_errchk.sh monthly
 
@@ -68,7 +67,6 @@ errsum=0
    if (( $next_month == 01 ))
    then
        tar_dir=${next_year}
-#       $USHrhist/aqm_rhist_savedir.sh /com/aqm/${envir}/emission/${tar_dir} ${tar_dir} perm
        $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIR}/${tar_dir} ${tar_dir} perm
        export err=$?;let errsum=errsum+err;$USHrhist/aqm_rhist_errchk.sh yearly
    else
@@ -81,7 +79,6 @@ errsum=0
    if (( $next_month == 01 ))
    then
        tar_dir=${next_year}
-#       $USHrhist/aqm_rhist_savedir.sh /com/aqm/${envir}/emission/cb05_Jtable ${tar_dir} perm
        $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIR}/cb05_Jtable ${tar_dir} perm
        export err=$?;let errsum=errsum+err;$USHrhist/aqm_rhist_errchk.sh jtable
    else
