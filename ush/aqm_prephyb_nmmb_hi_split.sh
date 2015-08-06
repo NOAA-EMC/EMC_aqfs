@@ -20,12 +20,12 @@ if [ ${h_seg} -eq 2 ];  then export hr_list=$hr_list2 ; fi
 if [ ${h_seg} -eq 3 ];  then export hr_list=$hr_list3 ; fi
 if [ ${h_seg} -eq 4 ];  then export hr_list=$hr_list4 ; fi
 
-export fhr
+#export fhr
 for fhr in $hr_list
 do
- $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 | \
+ $WGRIB -s  $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 | \
   egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
- $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 -o nam.t${cyc}z.bgrd3d${fhr}.tm00
+ $WGRIB -i -grib $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 -o nam.t${cyc}z.bgrd3d${fhr}.tm00
 #===============================================
 # using previous 6-hr or -24 hr fsct bgrd3d files as a proxy
 #------------------------------------------------
@@ -41,25 +41,26 @@ esac
  if [ $fhr = 00 ] ; then
  rm -rf nam.t${cyc}z.bgrd3d00.tm00
 
- $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d00.tm00 | \
+ $WGRIB -s  $COMINnam/nam.t${cyc}z.bgrd3d00.tm00 | \
   egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
- $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d00.tm00 -o nam.t${cyc}z.bgrd3d00.tm00
+ $WGRIB -i -grib $COMINnam/nam.t${cyc}z.bgrd3d00.tm00 -o nam.t${cyc}z.bgrd3d00.tm00
 
- $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d01.tm00 | \
+ $WGRIB -s  $COMINnam/nam.t${cyc}z.bgrd3d01.tm00 | \
   egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
- $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d01.tm00 -o nam.t${cyc}z.bgrd3d01.tm00
+ $WGRIB -i -grib $COMINnam/nam.t${cyc}z.bgrd3d01.tm00 -o nam.t${cyc}z.bgrd3d01.tm00
 
  export flnm1=nam.t${cyc}z.bgrd3d00.tm00
  export flnm2=nam.t${cyc}z.bgrd3d01.tm00
  fsz1=`ls -l $flnm1 | awk '{print $5}'`
  fsz2=`ls -l $flnm2 | awk '{print $5}'`
- ((fc=${fsz2}*7/10))
+# ((fc=${fsz2}*7/10))
+ fc=$(( 7 * ${fsz2} / 10 ))
  fi
  if [ $fsz1 -lt $fc ] ; then
  cp -rp $flnm1 nam.t${cyc}z.bgrd3d00.tm00_proxy
- $WGRIB -s  $COMNMMm1/$flnm3 | \
+ $WGRIB -s  $COMINnamm1/$flnm3 | \
   egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-  $WGRIB -i -grib $COMNMMm1/$flnm3 -o $flnm3
+  $WGRIB -i -grib $COMINnamm1/$flnm3 -o $flnm3
  ln -sf $flnm3 fort.11
  ln -sf nam.t${cyc}z.bgrd3d00.tm00_proxy fort.51
 cat > itag  << EOF

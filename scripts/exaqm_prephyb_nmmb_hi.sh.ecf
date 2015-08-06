@@ -16,6 +16,7 @@
 # 2013-05-03    Jianping Huang, modified for transition to WCOSS 
 #                use mpmd instead four J jobs
 ######################################################################
+
 set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
