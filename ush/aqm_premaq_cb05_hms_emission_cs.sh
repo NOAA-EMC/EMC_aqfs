@@ -55,11 +55,14 @@ mkdir -p $TMP_DIR
 #-----------------------------------------------------------------
 # get count of files in tar file
 #-----------------------------------------------------------------
-nfiles=`ls -1 $DATA/NOAA????_${date9}.OUT |wc -l`
+#nfiles=`ls -1 $DATA/NOAA????_${date9}.OUT |wc -l`
+xx9=`head -3 $DATA/EMITIMES | tail -1 | cut -d" " -f6`
+nfiles=`echo $xx9 |bc -l`  # count total file numbe from EMITIMES
 let ct=1
 while [ $ct -le $nfiles ]; do
  num=${ct}
  typeset -Z4 num
+if [ -s $DATA/NOAA${num}_${date9}.OUT ] ; then
 #-----------------------------------------------------------------
 # files in "files_fire.tar" 
 #-----------------------------------------------------------------
@@ -151,6 +154,9 @@ data=`tail -1 $DATA/NOAA${num}_${date9}.OUT`
         > $TMP_DIR/$FILE${num}.dy$day
    done
  fi
+else
+ echo " Warning: $DATA/NOAA${num}_${date9}.OUT  does not exist !"
+fi
  let ct=ct+1
 done
 
