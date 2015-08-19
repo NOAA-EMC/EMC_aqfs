@@ -5,8 +5,8 @@ SRCS     = cmaq-maxi2grib.f90
 
 LIB_LOC    = ../../lib
 IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
-NETCDFPATH = /usrx/local/NetCDF/3.6.3/
-NETCDF_LIB = $(NETCDFPATH)/lib/libnetcdf_c++.a $(NETCDFPATH)/lib/libnetcdf.a
+NETCDFPATH = ${NETCDF}
+NETCDF_LIB = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS}
 
 IP_LIB     = ${IP_LIB4}
 SP_LIB     = ${SP_LIB4}
