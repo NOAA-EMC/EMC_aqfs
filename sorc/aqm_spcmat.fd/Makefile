@@ -29,7 +29,7 @@ TOOLS_BIN = $(LIB_LOC)
 FILESETAPI=../../lib/sorc/aqm_filesetapi
 EDSS_TOOLS=../../lib/sorc/aqm_edss_tools
 
-FC 	= ${COMP} 
+FC 	= ${F_COMP} 
 FFLAGS 	= -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \

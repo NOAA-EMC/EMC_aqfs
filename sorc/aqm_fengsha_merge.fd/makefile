@@ -2,7 +2,7 @@
  TARGET = aqm_fengsha_merge 
  BASE = $(PWD)
 
- FC   = ${COMP}
+ FC   = ${F_COMP}
  CC    = cc
 
  F_FLAGS    = -extend_source 132 -vec-report0 -nodefines -c -O2 

@@ -38,7 +38,7 @@ LIB_BUFR = ${BUFR_LIB4}
 
 Libraries = $(LIB_BUFR) $(LIB_NETCDF)
 
-F90_CMD = ${COMP} 
+F90_CMD = ${F_COMP} 
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -traceback -check all -check noarg_temp_created

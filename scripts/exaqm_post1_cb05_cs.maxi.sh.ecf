@@ -77,7 +77,8 @@ export err=$?;err_chk
 $WGRIB2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
 export err=$?;err_chk
 
-if [ -f ${MAQFILE2} ]; then
+ if [ -f ${MAQFILE2} ]; then
+# if [ -f ${CMAQFILE2} ]; then
 #------------
 $WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
 export err=$?;err_chk

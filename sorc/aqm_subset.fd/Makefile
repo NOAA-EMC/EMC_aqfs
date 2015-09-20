@@ -3,7 +3,7 @@ SHELL=/bin/sh
 MODEL      = aqm_subset_x
 
 # Compiler Definitions
-FC         = ${COMP} 
+FC         = ${F_COMP} 
 CC         = cc
 
 # Preprocessor

@@ -19,7 +19,7 @@ SMK_BIN=$(mydir)/$(EDSS_EXE)
 FILESETAPI=../aqm_filesetapi
 EDSS_TOOLS=../aqm_edss_tools
 
-FC = ${COMP} 
+FC = ${F_COMP} 
 
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
  -I$(FILESETAPI)/$(EDSS_EXE)             \

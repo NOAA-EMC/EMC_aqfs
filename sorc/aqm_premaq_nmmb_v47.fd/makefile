@@ -42,7 +42,7 @@ IOAPIPATH    = ../../lib
 
 #... Location of complier &  OPTIONS
 
- FC          = ${COMP} 
+ FC          = ${F_COMP} 
  OMPFLAG1    =
  OMPFLAG2    =
  LINK_FLAGS  = #-q64

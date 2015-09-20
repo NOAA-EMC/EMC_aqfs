@@ -23,7 +23,7 @@ LIBS     = $(IOAPI_LIB) \
 
 INC    = $(LIB_LOC)/sorc/aqm_ioapi/ioapi
 
-FC     = ${COMP} 
+FC     = ${F_COMP} 
 
 FLAGS  = -I$(INC) 
 

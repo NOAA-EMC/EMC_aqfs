@@ -8,7 +8,7 @@ IOAPI_LIB  =../../lib/libaqm_ioapi.a
 
 NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
  
-FC         = ${COMP} 
+FC         = ${F_COMP} 
  
 F_FLAGS    = -O -FR -assume byterec
 
