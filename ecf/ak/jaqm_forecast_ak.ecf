@@ -1,0 +1,56 @@
+#BSUB -J %E%aqm_forecast_ak_%CYC%
+#BSUB -o /com/output/%ENVIR%/today/aqm_forecast_ak_%CYC%.o%J
+#BSUB -e /com/output/%ENVIR%/today/aqm_forecast_ak_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -q preprod
+#BSUB -n 64
+#BSUB -x
+#BSUB -R span[ptile=16]
+#BSUB -R affinity[core]
+#BSUB -cwd /tmpnwprd
+#BSUB -W 00:50
+#BSUB -P %PROJ%
+#BSUB -a poe
+
+%include <head.h>
+
+set -x
+
+export envir=%ENVIR%
+export job=aqm_forecast_ak_%CYC%
+export cyc=%CYC%
+
+VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+if [ -f $VERSION_FILE ]; then
+  . $VERSION_FILE
+else
+  ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+  ecflow_client --abort
+  exit
+fi
+
+# CALL executable job script here
+/nw${envir}/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_AK
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs CMAQ Forecast for Alaska.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

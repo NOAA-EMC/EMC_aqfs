@@ -14,7 +14,7 @@ OBJS=	ADD_WMO.o PRDGEN.o CTL_RDR.o \
         INTERP_SC.o INTERP_UV.o READ_SORT_CTL.o READ_SORT_GRIB.o TILE_OUT.o
 
 # Tunable parameters
-FC        =	${COMP} -openmp -convert big_endian
+FC        =	${F_COMP} -openmp -convert big_endian
 LDFLAGS =	    
 IP_LIB     = ${IP_LIB4}
 SP_LIB     = ${SP_LIB4}

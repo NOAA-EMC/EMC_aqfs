@@ -39,7 +39,7 @@ nc5    = -lz -lmfhdf
 
 Libraries =  $(nc1) $(nc2)  $(nc3)  $(nc4) $(nc5)
 
-F90_CMD    = ${COMP} 
+F90_CMD    = ${F_COMP} 
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -traceback -check all -check noarg_temp_created

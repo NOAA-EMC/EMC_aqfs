@@ -1,0 +1,68 @@
+#BSUB -J %E%aqm_emission_archive
+#BSUB -o /com/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -e /com/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -L /bin/sh
+#BSUB -q prod_serv
+#BSUB -cwd /tmpnwprd
+#BSUB -W 01:30
+#BSUB -n 1
+#BSUB -R "rusage[mem=1500]" -R "affinity[core]"
+##BSUB -P %PROJ%
+#BSUB -P CMAQ-T2O
+
+%include <head.h>
+
+set -x
+
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#############################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#Note that the HPSS archive dir needs to clean
+#up before the rerun.
+###############################################
+
+export envir=%ENVIR%
+export job=aqm_emission_archive
+
+# versions file for AQM CMAQ  sets $cmaq_ver
+VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+if [ -f $VERSION_FILE ]; then
+  . $VERSION_FILE
+else
+  ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+  ecflow_client --abort
+  exit
+fi
+
+/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_ARCHIVE
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that archive the AQM emission and jtable 
+#  files from /com/aqm/prod/emission to HPSS
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

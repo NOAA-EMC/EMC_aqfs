@@ -12,7 +12,7 @@ LIB =$(IOAPI_LIB) \
      $(NETCDF_LIB)
 
 
-FC           = ${COMP} -132 -O3 -D_LARGE_FILES
+FC           = ${F_COMP} -132 -O3 -D_LARGE_FILES
 CC           = icc -D_LARGE_FILES -DFLDMN=1
 
 INCLUDES     = -I $(IOAPI)

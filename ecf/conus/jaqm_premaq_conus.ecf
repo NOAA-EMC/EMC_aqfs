@@ -1,0 +1,56 @@
+#BSUB -J %E%aqm_premaq_conus_%CYC%
+#BSUB -o /com/output/%ENVIR%/today/aqm_premaq_conus_%CYC%.o%J
+#BSUB -e /com/output/%ENVIR%/today/aqm_premaq_conus_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -q preprod_shared
+#BSUB -cwd /tmpnwprd
+#BSUB -W 01:30
+#BSUB -n 1
+#BSUB -R affinity[core]
+#BSUB -R span[ptile=1]
+#BSUB -R rusage[mem=10000]
+#BSUB -P %PROJ%
+#BSUB -a poe
+
+%include <head.h>
+
+set -x
+
+export envir=%ENVIR%
+export job=aqm_premaq_conus_%CYC%
+export cyc=%CYC%
+
+# versions file for AQM CMAQ conus sets $cmaq_ver
+VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+if [ -f $VERSION_FILE ]; then
+  . $VERSION_FILE
+else
+  ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+  ecflow_client --abort
+  exit
+fi
+
+/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_PREMAQ_CS
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

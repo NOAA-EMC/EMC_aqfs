@@ -168,7 +168,8 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
   apar%start_stat = ndays	! production mode: bias correct only
   				!   the final date in input arrays
 
-  apar%num_an = 10		! Number of best analogs to use for AN
+!jp  apar%num_an = 10		! Number of best analogs to use for AN
+  apar%num_an = 3		! Number of best analogs to use for AN
   apar%weights = 1		! 0: Do not weight analogs
 				! 1: Weight them by the inverse metric
 				! 2: Weight them linearly

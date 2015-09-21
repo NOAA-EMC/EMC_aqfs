@@ -18,7 +18,7 @@ set sys [uname sysname]
 set CMAQ /naqfc/save/Jianping.Huang/nwdev/cmaq.v4.7.0/modulefiles/CMAQ 
 set lname CMAQ 
 
-setenv COMP ifort
+setenv F_COMP ifort
 setenv COMP_MP mpfort
 setenv COMP_MPI mpiifort
 

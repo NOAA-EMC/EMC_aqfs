@@ -35,7 +35,7 @@ NETCDF_LIB2 = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 SMK_BIN = $(mydir)/$(EDSS_EXE)
 TOOLS_BIN = $(mydir)/$(EDSS_EXE)
 
-FC = ${COMP} 
+FC = ${F_COMP} 
 FFLAGS = -O2 -save -zero -extend_source -nbs -W0 -I$(mydir)/inc \
 	 -I$(FILESETAPI)/$(EDSS_EXE) \
 	 -I$(FILESETAPI)      \
