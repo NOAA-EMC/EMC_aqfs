@@ -8,7 +8,7 @@
  CC         = cc
 
  F_FLAGS    = -extend_source 132 -vec-report0 -nodefines -c -O2 
- C_FLAGS    = -v -g -I/opt/ibmhpc/pe1301/mpich2/intel/include64
+ C_FLAGS    = -v -g -I/opt/ibmhpc/pe13010/mpich2/intel/include64
  LINK_FLAGS = -liomp5 -lpthread
 
  DUST_INC   = $(BASE)

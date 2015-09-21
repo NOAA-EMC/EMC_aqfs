@@ -1,0 +1,56 @@
+#BSUB -J %E%aqm_prephyb_conus_%CYC%
+#BSUB -o /com/output/%ENVIR%/today/aqm_prephyb_conus_%CYC%.o%J
+#BSUB -e /com/output/%ENVIR%/today/aqm_prephyb_conus_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -cwd /tmpnwprd
+#BSUB -q preprod
+#BSUB -n 4
+#BSUB -x
+#BSUB -W 01:10
+#BSUB -R span[ptile=4]
+#BSUB -R affinity[core]
+#BSUB -a poe
+#BSUB -P %PROJ%
+
+%include <head.h>
+
+set -x
+
+export envir=%ENVIR%
+export job=aqm_prephyb_conus_%CYC%
+export cyc=%CYC%
+
+# versions file for AQM CMAQ conus sets $cmaq_ver
+VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+if [ -f $VERSION_FILE ]; then
+  . $VERSION_FILE
+else
+  ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
+  ecflow_client --abort
+  exit
+fi
+
+/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_PREPHYB_CS
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job which process CONUS data for cmaq.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

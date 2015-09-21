@@ -12,11 +12,8 @@ export pid=$$
 # PATH for working directory
 
 export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-
-export DATA=${DATA:-${DATAROOT:-/${job}.${pid}}}
-
+export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
-
 cd $DATA
 
 ############################################
@@ -24,7 +21,6 @@ cd $DATA
 ############################################
 export NET=aqm
 export RUN=emission
-export SENDECF=YES
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
@@ -52,8 +48,6 @@ module load grib_util
 ####################################
 # Determine Job Output Name on System
 ####################################
-export outid="LL$job"
-export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
 export HOMErhist=${HOMErhist:-${NWROOT}/cmaq.${cmaq_ver}}
@@ -80,7 +74,6 @@ then
 fi
 #############################################################
 if [ "$KEEPDATA" != "YES" ] ; then
-#  cd $TMPhome
   rm -rf $DATA
 fi
 
