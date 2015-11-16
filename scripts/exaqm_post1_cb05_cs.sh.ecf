@@ -134,8 +134,14 @@ esac
 rm -rf tmpfile
 
 if [ "$SENDCOM" = 'YES' ]
-  then
-    cp $DATA/aqm.${cycle}.pm25* $COMOUT/
+then
+    for pmfile in $DATA/aqm.${cycle}.pm25*;do
+        ifile=$(basename ${pmfile})
+        cp ${ifile} $COMOUT/
+        if [ "$SENDDBN" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
+        fi
+    done
 fi
 
 while [ $fhr -le $endfhr ]
@@ -230,7 +236,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        # Post Files to PCOM
        ##############################
 
-       if test "$SENDDBN_NTC" = 'YES'
+       if test "$SENDCOM" = 'YES'
        then
            cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $pcom/awpaqm.t${cyc}z.${hr}ho3.227.grib2
 

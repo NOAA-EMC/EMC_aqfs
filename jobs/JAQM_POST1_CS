@@ -69,7 +69,7 @@ export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 
 export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
 
-export pcom=${pcom:-/pcom/${NET}}
+export pcom=${pcom:-${PCOMROOT}/${NET}}
 
 mkdir -p $COMOUT $pcom
 

@@ -128,7 +128,10 @@ EOF5
  startmsg
   $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile3
   export err=$?;err_chk
- cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/aqm.${cycle}.aot.f${fhr}.${id_grib}
+    if [ "$SENDCOM" = 'YES' ]
+    then
+        cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/aqm.${cycle}.aot.f${fhr}.${id_grib}
+    fi
 
  let "fhr=fhr+1"
  typeset -Z2 fhr

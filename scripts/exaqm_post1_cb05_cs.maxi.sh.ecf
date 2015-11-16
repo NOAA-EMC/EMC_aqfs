@@ -120,7 +120,7 @@ rm filesize
        # Post Files to PCOM
        ##############################
 
-       if test "$SENDDBN_NTC" = 'YES'
+       if test "$SENDCOM" = 'YES'
        then
            cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
 
@@ -138,7 +138,7 @@ rm filesize
 
 done
 
-if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
  cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
  cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
  cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.148

@@ -46,7 +46,17 @@ startmsg
 $EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
-cp -rp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT
+if [ "$SENDCOM" = 'YES' ]
+then
+    for pmfile in $DATA/aqm.t${cyc}z.pm25*bc*.grib2;do
+        ifile=$(basename ${pmfile})
+        cp -rp ${ifile} $COMOUT/
+        if [ "$SENDDBN" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
+        fi
+    done
+fi
+
 
 if [ -e $COMOUT_grib/$PDY ] ; then
  cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/$PDY
