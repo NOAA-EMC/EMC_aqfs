@@ -12,6 +12,9 @@
 ! 2014-jun-19	Original version.  By Dave Allured, NOAA/ESRL/PSD/CIRES.
 ! 2014-jun-26	Format bug fix, caught by ifort.
 !
+! 2015-jun-13	Quick fix for obs time alignment problem.
+!		Align obs HOUR+1 with model HOUR.  See below.
+!
 ! Primary inputs:
 !
 ! * Obs straight hourly time series for bias correction target variable.
@@ -32,6 +35,16 @@
 ! hour, 00 to 23, of the SAME starting date as the obs data.
 ! E.g. 06Z or 12Z.  This hour is specified in the cycle_time
 ! calling argument.
+!
+! 2015-jun-13:  Quick fix, obs are backward averaged, but model
+! variables are forward averaged per hour, with respect to their
+! internal hourly time labels (TFLAG, etc).
+!
+! Therefore, align each obs HOUR+1 with model HOUR.  Ref. bias
+! correction mailing list:
+!
+! * "Time dimension in model files", messages 2015-mar-16
+! * "Bias correction update", message 2015-mar-31
 !
 ! Output data from this routine are alligned on these assumptions.
 !
@@ -197,10 +210,13 @@ site_loop: &
 
       do iday = 1, ndays		! for each cycle starting date...
          ti_obs_hour0 = (iday * 24) - 23	! obs hour 0 of start date
-!jp         ti1 = ti_obs_hour0 + cycle_time	! forecast start hour, this date
-         ti1 = ti_obs_hour0 + cycle_time + 1
-! Add 1 extra hour to align backward averaged obs
-! to forward averaged model variable.   
+
+! Quick fix for obs time alignment, 2015-jun-13.  See header comments.
+! Add 1 extra hour to align each obs HOUR+1 with model HOUR.
+
+!!       ti1 = ti_obs_hour0 + cycle_time	! forecast start hour, this date
+         ti1 = ti_obs_hour0 + cycle_time + 1	! HOUR+1 obs alignment
+
          ti2 = ti1 + nhours - 1			! last hour of forecast cycle
          ti2 = min (ti2, ntimes_in)		! limit to available obs
 

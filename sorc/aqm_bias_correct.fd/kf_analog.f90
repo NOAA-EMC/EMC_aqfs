@@ -1,4 +1,4 @@
-!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !
 ! Copyright University Corporation for Atmospheric Research (UCAR) 2012
 ! Research Application Laboratory (RAL),
@@ -20,11 +20,15 @@
 !		This removes an unnatural co-indexing dependency between
 !		  obs and ens arrays, via apar%fvar.
 !
+! 2015-oct-29	Add site-specific bias threshold filter for individual analogs.
+!		Fix mis-labeled error messages.
+!		Minor optimization of infrequent diagnostic.
+!
 ! *** To do:
 ! *** After initial proving, convert reallocates to static arrays,
 !     for efficiency.
 !
-!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 
 !-----------------------------------------------------------
 ! Module definitions.
@@ -55,8 +59,9 @@ contains
 !-----------------------------------------------------------
 
 subroutine kf_analog (obs, pred, vmiss, apar, fpar, kpar, ratio, diag, &
-    kfan, ensan, Ianalog, analog_in_an)
+    site_id, kfan, ensan, Ianalog, analog_in_an)
 
+  use bias__threshold_filter
   use config, only : dp
   use find__analog
   use ieee_arithmetic
@@ -71,6 +76,7 @@ subroutine kf_analog (obs, pred, vmiss, apar, fpar, kpar, ratio, diag, &
   type(kpar_type), intent(in ) :: kpar			! Kalman filter params
   real(dp),        intent(in ) :: ratio
   integer,         intent(in ) :: diag			! verbosity, 0=errs only
+  character(*),    intent(in ) :: site_id 		! current site ID
 
   real(dp),        intent(out) :: kfan(:,:)		! DH  - KF/AN raw result
   real(dp),        intent(out) :: ensan(:,:)		! DH  - bias corr result
@@ -103,7 +109,7 @@ subroutine kf_analog (obs, pred, vmiss, apar, fpar, kpar, ratio, diag, &
 
   real(dp), allocatable :: metric(:)	! returned metrics for selected analogs
 
-  logical,  allocatable :: mask1(:), mask2(:)
+  logical,  allocatable :: mask1(:), mask2(:), analog_mask(:)
 
 !-------------------------------------------------
 ! Initialize.
@@ -181,7 +187,7 @@ hour_loop: &
 ! proportional re-weighting after truncation?)
 
       if (size (fpar%trend) /= 3) then
-        print *, '*** find_analog: Abort, selected trend size is not supported.'
+        print *, '*** kf_analog: Abort, selected trend size is not supported.'
         print *, '*** Currently there must be exactly three trend weights.'
         print '(a,i0)', ' *** Number of weights in fpar%trend = ', &
           size (fpar%trend)
@@ -194,9 +200,16 @@ hour_loop: &
         fpar2%trend = fpar%trend	! middle hours: use original trends
       end if
 
-! Find flattened indicies of best analogs.
+!-----------------------------------------------------
+! Find all analogs for the current forecast hour.
+!-----------------------------------------------------
 
       if (diag >= 7) print '(a,99(1x,i0))', '  shape (pred) = ', shape (pred)
+
+! Find flattened indicies of best analogs.
+! Returned indices are sorted, with best matches at the END.
+
+! Note, analogs are based only on model data in "pred", NOT obs.
 
       call find_analog (pred, vmiss, fpar2, fvar, diag, inds, metric, &
             winLower, winUpper)
@@ -242,6 +255,13 @@ hour_loop: &
       nanalogs = size (obstemp)
 
 !-----------------------------------------------------
+! Remove individual analogs that exceed a site-
+! specific threshold for bias value.
+!-----------------------------------------------------
+
+      call bias_threshold_filter (obstemp, predtemp, site_id, diag, analog_mask)
+
+!-----------------------------------------------------
 ! Compute prediction for current day and hour.
 ! Apply Kalman filter to the current analog series.
 !-----------------------------------------------------
@@ -256,6 +276,8 @@ hour_loop: &
 
         mask1 = (obstemp(:) /= vmiss) .and. (predtemp(:) /= vmiss)
 					! mask to exclude missing value pairs
+
+        mask1 = mask1 .and. analog_mask	! also exclude bias threshold rejects
 
         mask1(nanalogs) = .true.	! but keep the final pair, which
         				! includes the current (d,h) prediction
@@ -292,6 +314,9 @@ hour_loop: &
 !        I = I(max(1,length(I)-apar%num_an+1):end)
 
         mask2 = (obstemp /= vmiss .and. predtemp /= vmiss)
+
+        mask2 = mask2 .and. analog_mask		! also exclude threshold rejects
+
         Ian = pack (isequence, mask2)		! indices of non-missing analogs
 
         num_available = size (Ian)			! limit to requested
@@ -307,7 +332,7 @@ hour_loop: &
 ! DEFERRED 2014-mar-11.  This option was not in current use.
 
       else
-        print *,           '*** find_analog: Abort.'
+        print *,           '*** kf_analog: Abort.'
         print '(a,i0,a)', ' *** Option apar%skipMissingAnalogs = ', &
           apar%skipMissingAnalogs, ' is not currently supported.'
         call exit (1)
@@ -335,7 +360,7 @@ hour_loop: &
         nan_count = count (ieee_is_nan (weights(:)))
 
         if (nan_count /= 0) then
-          print *, '*** find_analog: NaNs detected when computing weights' &
+          print *, '*** kf_analog: NaNs detected when computing weights' &
             // ' for metrics.'
           print *, '*** Number of weights = ', ct
           print *, '*** NaN count         = ', nan_count
@@ -346,7 +371,7 @@ hour_loop: &
         weights = (/ (i, i = 1, ct) /)		! 1 through N
 
       else
-        print *, '*** find_analog: Abort, weighting scheme not supported.'
+        print *, '*** kf_analog: Abort, weighting scheme not supported.'
         print '(a,i0)', ' *** Option apar%weights = ', apar%weights
         call exit (1)
       end if
@@ -376,16 +401,20 @@ hour_loop: &
 
 ! Complain about missing values, but do not stop.
 
-      if (diag >= 7) print *, 'count missing:'
+      if (diag >= 6) then
 
-      count_missing = count (obstemp(Ian) == vmiss)
+         if (diag >= 7) print *, 'count missing:'
 
-      if (diag >= 6 .and. count_missing /= 0) then
-        print *, ''
-        print '(a,i0,a,i0,a)', '*** find_analog: obstemp(Ian) contains ', &
-          count_missing, ' missing values, out of a total of ', &
-            size (obstemp(Ian)), ' values.'
-        print '(10f8.2)', obstemp(Ian)
+         count_missing = count (obstemp(Ian) == vmiss)
+
+         if (count_missing /= 0) then
+           print *, ''
+           print '(a,i0,a,i0,a)', '*** kf_analog: obstemp(Ian) contains ', &
+             count_missing, ' missing values, out of a total of ', &
+               size (obstemp(Ian)), ' values.'
+           print '(10f8.2)', obstemp(Ian)
+         end if
+
       end if
 
 !------------------------------------------------------------------

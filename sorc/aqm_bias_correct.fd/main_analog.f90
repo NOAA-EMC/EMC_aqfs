@@ -36,6 +36,22 @@
 ! 2014-jul-02	Add return arg for uncorrected model data on forecast date.
 ! 2014-jul-15	Minor fix to diagnostic prints.
 !
+! 2015-jun-13	Previous versions output AN result, not KF/AN.
+!		Add missing KF/AN code, ref. main_analog_code.m
+!		  version 2013-jul-09, "method{8} = KF-AN".
+!		Add Irina's bug fix, kpar%update = 24 for KF/AN, part 2 only.
+!		For real KF/AN, make analogs for whole training period,
+!		  not just one forecast.
+!		Add method select and multiple filter methods.
+!		Filter name change.  Old KFAN (Matlab method 5) is renamed to
+!		  KFAS, Kalman Filter in Analog Space.  Ref. Irina, June 10.
+!		KFAS is a dummy output that was never used.
+! 2015-jul-02	Two bug fixes for KF/AN, per Irina.
+!		Fix matrix transpose for kf_luca 1-D input and output.
+!		Change kpar%update = nhours = 48 (forecast length) for kf_luca.
+! 2015-oct-27	Pass site ID's into kf_analog, for diagnostics and site
+!		  exception handling.
+!
 ! Notes:
 !
 ! Many diagnostics could be added.
@@ -57,13 +73,13 @@ module main__analog
 contains
 
 subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
-    lower_limits, upper_limits, is_circular, vmiss, diag, uncorrected, &
-    corrected)
+    lower_limits, upper_limits, is_circular, vmiss, diag, site_ids, &
+    site_lats, site_lons, uncorrected, corrected)
 
   use config, only : dp
   use find__analog, only : fpar_type
   use kf__analog
-  use kf__luca, only : kpar_type
+  use kf__luca
   implicit none
 
 ! Input arguments.
@@ -81,6 +97,10 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
 
   real(dp),     intent(in) :: vmiss		! common missing value code
   integer,      intent(in) :: diag		! diag verbosity level, 0-N
+
+  character(*), intent(in) :: site_ids(:)	! site ID's
+  real(dp),     intent(in) :: site_lats(:)	! site coordinates
+  real(dp),     intent(in) :: site_lons(:)
 
 ! Output arguments.
 
@@ -101,7 +121,8 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
   type (kpar_type) :: kpar
 
   character(200) text_dir, out_template, outname
-  character fdate_str*24
+  character(len(site_ids)) site_id
+  character fdate_str*24, method*10
 
   integer j, di, hi, si, vi
   integer ndays, nhours, nvars, nsites
@@ -120,9 +141,15 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
   real(dp), allocatable :: ens(:,:,:)		! subsets for current site
   real(dp), allocatable :: obs(:,:)		! obs subset is single var only
 
+  real(dp), allocatable :: obs_flat(:)		! reshaping temp arrays
+  real(dp), allocatable :: ensan_flat(:)
+  real(dp), allocatable :: result_1d(:)
+
+  real(dp), allocatable :: filter_result(:,:,:)  ! final result array
+
 ! Result arrays from analog filter.  See subroutine docs.
 
-  real(dp), allocatable :: kfan_result(:,:,:)	! Kalman-Analog result
+  real(dp), allocatable :: kfas_result(:,:,:)	! Kalman-Analog space result
   real(dp), allocatable :: ensan_result(:,:,:)	! bias corrected KFAN result
   integer,  allocatable :: Ianalog(:,:,:)	! indices of found analogs
   real(dp), allocatable :: analog_in_an(:,:,:)	! nearest analogs found
@@ -134,6 +161,8 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
 !-------------------------------------------------
 
   print *, 'Start main analog code.'
+
+  j = site_lats(1) + site_lons(1)	! temporary, suppress compiler warnings
 
   if (diag >= 3) print *, 'shape (ens_data) = ', shape (ens_data)
   if (diag >= 3) print *, 'shape (obs_data) = ', shape (obs_data)
@@ -165,11 +194,14 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
 !!  apar%start_stat = 335  	! starting point to compute statistics
 !!  				! (for November or for September only)
 
-  apar%start_stat = ndays	! production mode: bias correct only
-  				!   the final date in input arrays
+!!  apar%start_stat = ndays	! production mode: bias correct only
+!!  				!   the final date in input arrays
 
-!jp  apar%num_an = 10		! Number of best analogs to use for AN
-  apar%num_an = 3		! Number of best analogs to use for AN
+  apar%start_stat = -999	! setting is now managed within each method
+
+!  apar%num_an = 10		! Number of best analogs to use for AN
+  apar%num_an  = 5		! Number of best analogs to use for AN
+!  apar%num_an  = 3		! Number of best analogs to use for AN
   apar%weights = 1		! 0: Do not weight analogs
 				! 1: Weight them by the inverse metric
 				! 2: Weight them linearly
@@ -193,8 +225,9 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
 
   ratio = 0.1			! KF method parameter (sigma_ratio)
 
-  kpar%update = 24		! number of time stamps per forecast
-  				! CMAQ has 24 forecasts per day
+  kpar%update = -999		! number of time steps per forecast cycle
+  				! (array stride for kf_luca)
+				! this setting is now managed within each method
 
   kpar%start = (/ 0,  0 /)	! starting point to compute statistics
   kpar%timeZone = 0
@@ -274,7 +307,7 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
   if (diag >= 2) then
     print *
     print *, 'Samples of model forecast input data, multiple variables:'
-    
+
     ndays_show = min (ndays, 3)
 
     do vi = 1, nvars			! test only
@@ -300,12 +333,13 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
 !-------------------------------------
 
   if (diag >= 2) print *
-  if (diag >= 1) print *, 'Allocate main_analog result arrays.'
+  if (diag >= 2) print *, 'Allocate main_analog result arrays.'
 
-  allocate (kfan_result(ndays, nhours, nsites))		! KFAN output arrays
-  allocate (ensan_result(ndays, nhours, nsites))	! both DHES
+  allocate (kfas_result(ndays, nhours, nsites))		! analog output arrays
+  allocate (ensan_result(ndays, nhours, nsites))	! both DHS
+  allocate (filter_result(ndays, nhours, nsites))	! general result array
 
-! Two dummy output arrays for KFAN.
+! Two dummy output arrays for KFAS.
 ! Not used in this version.  Therefore, skip the site dimension.
 
   allocate (ianalog(ndays, nhours, apar%num_an))	! DHA
@@ -314,20 +348,32 @@ subroutine main_analog (ens_data, obs_data, target_var, analog_vars, &
   if (diag >= 3) print *, 'Main allocate complete.'
 
 !---------------------------------------------------
-! Main site loop for the KF/AN filter method.
+! Main site loop for selected filter method.
 !---------------------------------------------------
 
 ! Note, 2014-feb-17, Dave A:  Removed all methods that were in the
 ! original Matlab code, except for the target KF/AN code.  To recon-
 ! struct other methods, refer to main_analog_code.m version 2013-jul-9.
 
+! 2015-jun-11:  Added method selection structure, and corrected KF/AN method.
+
+  method = "Analog"			! TEST -- select filter method
+!!  method = "KFAN"
+
   call fdate (fdate_str)
   print *
-  print '(2a)', fdate_str, '  main_analog: Run analog filter for each site.'
+  print '(2a)', fdate_str, '  main_analog: Run ' // trim (method) &
+    // ' filter for each site.'
 
 site_loop: &
   do si = 1, nsites
-    if (diag >= 3) print *, '*** site index = ', si
+
+    if (  (diag >= 2 .and. (mod (si, 100) == 0 .or. si == nsites) ) &
+     .or. (diag >= 3) ) then
+      print *, '*** site index = ', si
+    end if
+
+    site_id = site_ids(si)		! current site ID
 
 ! Subset arrays for current site.
 
@@ -337,13 +383,74 @@ site_loop: &
     ens = ens_data(:, :, :,        si)	! (days, hours, vars, sites)
     					! --> (days, hours, vars)
 
+!---------------------------------------------------
 ! Compute Analog result.
+!---------------------------------------------------
 
-    kpar%update = 1
+    if (method == 'Analog') then
+      apar%start_stat = ndays		! production mode: bias correct only
+  					!   the final date in input arrays
+      kpar%update = 1			! KF array stride to find analogs
 
-    call kf_analog (obs, ens, vmiss, apar, fpar, kpar, ratio, diag, &
-      kfan_result(:,:,si), ensan_result(:,:,si), Ianalog, analog_in_an)
-      					! last four are outputs
+      call kf_analog (obs, ens, vmiss, apar, fpar, kpar, ratio, diag, &
+        site_id, kfas_result(:,:,si), ensan_result(:,:,si), Ianalog, &
+        analog_in_an)			! last four are outputs
+					! kfas_result = dummy output,
+					!   not currently used
+
+      filter_result(:,:,si) = ensan_result(:,:,si)	! select Analog output
+
+!---------------------------------------------------
+! Compute KF/AN result.
+!---------------------------------------------------
+
+    else if (method == 'KFAN') then
+
+! KF/AN part 1.  Compute multiple analog forecasts.
+
+!!      apar%start_stat = 2		! compute all forecasts
+      					! except first day in training period
+
+!!      apar%start_stat = max (2, ndays-29)   ! TEST ONLY:  adaptive parameter
+      					    ! for fast test cycle, 30 days max.
+
+      apar%start_stat = 1		! make analogs for all available dates
+
+      kpar%update = 1			! KF array stride to find analogs
+
+      call kf_analog (obs, ens, vmiss, apar, fpar, kpar, ratio, diag, &
+        site_id, kfas_result(:,:,si), ensan_result(:,:,si), Ianalog, &
+        analog_in_an)			! last four are outputs
+
+! KF/AN part 2.  Apply Kalman filter to Analog ensemble.
+
+! Convert 2-D inputs to 1-D.
+! Dimensions must be transposed for kf_luca, to match Matlab.
+
+      obs_flat   = (/ transpose (obs) /)	! (1-D) <-- (HD) <-- (DH)
+      ensan_flat = (/ transpose (ensan_result(:,:,si)) /)
+
+      kpar%update = nhours		! array stride for KF/AN
+
+      call kf_luca (obs_flat, ensan_flat, vmiss, kpar, ratio, diag, result_1d)
+
+      filter_result(:,:,si) &			! (DH) <-- (HD) <-- (1-D)
+        = transpose (reshape (result_1d, (/ nhours, ndays /) ))
+
+      if (diag >= 4) then
+        print '(a,99(1x,i0))', '  filter_result dims = ', shape (filter_result)
+        print '(a,99(1x,i0))', '  kf_luca 1-D size   = ', size (result_1d)
+        print '(a,99(1x,i0))', '  ndays, nhours      = ', ndays, nhours
+      end if
+
+! Trap invalid method.
+
+    else
+      print *
+      print *, '*** Invalid method name is selected.  Abort.'
+      print *, '*** Method name = "' // trim (method) // '"'
+      call exit (1)
+    end if
 
 !-----------------------------------------------------------------
 ! Diagnostic text file output for each site.  Test mode only.
@@ -359,7 +466,7 @@ site_loop: &
       outday2 = ndays
 
       open  (outfile, file=outname, action='write')
-      write (outfile, '(f20.15)') ensan_result(outday1:outday2, :, si)
+      write (outfile, '(f20.15)') filter_result(outday1:outday2, :, si)
       close (outfile)
     end if
 
@@ -396,7 +503,7 @@ site_loop: &
       print *, '  Output: ' // trim (outname)
 
       open  (outfile, file=outname, action='write')
-      write (outfile, '(f20.15)') ensan_result(iday:iday, :, :)
+      write (outfile, '(f20.15)') filter_result(iday:iday, :, :)
       close (outfile)
     end do
 
@@ -419,7 +526,7 @@ site_loop: &
   if (diag >= 2) print '(9a)', ' main_analog: Copy bias corrected ', &
      trim (target_var), ' data to output array.'
 
-  corrected(:,:) = ensan_result(ndays, :, :)		! HS <-- DHS
+  corrected(:,:) = filter_result(ndays, :, :)		! HS <-- DHS
 
 ! Display sample output data.
 

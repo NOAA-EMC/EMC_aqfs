@@ -1,7 +1,7 @@
 *--------------------------------------------------------------------------
 *
 * Configuration file for bias_correct.f90.
-* Current target:  PSD local, Dave's setup on both Mac and Linux.
+* Current target:  PSD or Theia.  Jianping's bcdata structure.
 *
 * 2014-jun-13	Original test version for PM2.5.  By Dave Allured.
 * 2014-jun-18	Version for /data/dallured/bias/interpolated.
@@ -11,6 +11,8 @@
 * 2014-jul-08	Add gridded input file template for raw forecast grids.
 * 2014-jul-16	Add subdirectory for primary output files.
 * 2014-jul-18	Path configuration for Zeus.
+*
+* 2015-oct-28	Jianping's bcdata structure on PSD and Theia.
 *
 * Blank lines and asterisk in column 1 are comment lines.
 * Tables are free format, space delimited.
@@ -28,15 +30,15 @@
 
 * Input and output file templates.
 
-obs file template           = data/airnow/YYYY/YYYYMMDD/b008/xx031
-interp file template        = data/interpolated/YYYY/MM/forecasts.interp.YYYYMMDD.HHz.nc
-gridded input file template = data/grid/YYYY/YYYYMMDD/aqm.tHHz.O3_pm25.ncf
+obs file template           = data/bcdata.YYYYMM/airnow/YYYY/YYYYMMDD/b008/xx031
+interp file template        = data/bcdata.YYYYMM/interpolated/YYYY/MM/forecasts.interp.YYYYMMDD.HHz.nc
+gridded input file template = data/bcdata.YYYYMM/grid/YYYY/YYYYMMDD/aqm.tHHz.O3_pm25.ncf
 output file template        = out/pm2.5.corrected.YYYYMMDD.HHz.nc
 new site list template      = sites/sites.valid.YYYYMMDD.HHz.list
 
 * Grid coordinate file.
 
-grid coordinate file        = data/aqm.t12z.grdcro2d.ncf
+grid coordinate file        = coords/aqm.t12z.grdcro2d.ncf
 
 * Target variable for bias correction.
 * Different var names within obs and model input data sets.

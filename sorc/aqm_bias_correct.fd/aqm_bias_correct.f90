@@ -13,6 +13,13 @@
 !		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 ! 2014-jul-23	Fix program name in error message.
 !
+! 2015-jun-13	Stop reading obs data at the day before current forecast date.
+!		For retrospective testing, this prevents results too perfect,
+!		  due to current day obs that are unavailable in normal
+!		  real-time operation.
+! 2015-oct-27	Pass site ID's and coordinates into main_analog, for
+!		  diagnostics and site exception handling.
+!
 ! Credits:
 !
 ! The filter component is the analog/Kalman filter for forecast
@@ -99,8 +106,8 @@ program bias_correct
    character(60) title_varname
    character fdate_str*24
 
-   integer ndays, nhours, diag
-   integer cycle_time, start_date, forecast_date, base_year
+   integer ndays, nhours, diag, cycle_time
+   integer start_date, training_end_date, forecast_date, base_year
    integer di, hi, vi, ndays_show
 
    real(dp) vmiss, standard_vmiss
@@ -223,9 +230,12 @@ program bias_correct
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  Call read_obs_qc.'
 
+   training_end_date = forecast_date - 1	! read only training period,
+   						! NOT current forecast date
+
    call read_obs_qc (obs_file_template, target_obs_var, start_date, &
-      forecast_date, base_year, standard_vmiss, grid_lats, grid_lons, diag, &
-      obs_ids, obs_lats, obs_lons, obs_in, obs_units)
+      training_end_date, base_year, standard_vmiss, grid_lats, grid_lons, &
+      diag, obs_ids, obs_lats, obs_lons, obs_in, obs_units)
 
 !---------------------------------------------------------------------
 ! Write updated coordinate list for QC validated sites.
@@ -250,7 +260,8 @@ program bias_correct
 !---------------------------------------------------------------------
 !
 ! Read interpolated forecast data (model data) from the start of
-! the training period, through the target forecast date.
+! the training period, through the target forecast date.  Note that
+! the forecast date is included here, but was NOT read for obs data.
 !
 ! Data for the target forecast date must be present for all given
 ! analog variables, to enable the bias correction process.
@@ -303,8 +314,8 @@ program bias_correct
    print '(2a)', fdate_str, '  Call main_analog.'
 
    call main_analog (model_in, obs_reshaped, target_model_var, analog_vars, &
-      lower_limits, upper_limits, is_circular, vmiss, diag, uncorr_sites, &
-      corr_sites)
+      lower_limits, upper_limits, is_circular, vmiss, diag, interp_ids, &
+      interp_lats, interp_lons, uncorr_sites, corr_sites)
 
    if (diag >= 3) print *, 'main_analog returned.'
 

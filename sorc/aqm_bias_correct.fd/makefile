@@ -3,6 +3,7 @@
 # 2014-jul-16	Make file for bias_correct main program.
 #		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 #		Clean version for release.
+# 2015-oct-29	Add support routines for bias threshold filter.
 #
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
@@ -16,12 +17,12 @@
 #
 #---------------------------------------------------------------------------
 
-Prg    =   aqm_bias_correct
+Prg      =	aqm_bias_correct
 
 # Library directories.
 
-Plib   =   ../../lib/sorc/lib.bias
-Lib    =   ../../lib/sorc/lib.f90
+Plib     =   ../../lib/sorc/lib.bias
+Lib      =   ../../lib/sorc/lib.f90
 
 # Command argument sequences.
 NETCDFPATH = ${NETCDF}
@@ -32,13 +33,12 @@ nc3    =  ${HDF5_LDFLAGS}
 #nc4    =  ${SZ_LIB}
 nc5    =  -lz -lmfhdf
 
-LIB_NETCDF =  $(nc1) $(nc2)  $(nc3) $(nc4) $(nc5) 
+LIB_NETCDF =  $(nc1) $(nc2)  $(nc3) $(nc4) $(nc5)
 
-LIB_BUFR = ${BUFR_LIB4} 
+LIB_BUFR = ${BUFR_LIB4}
+Libraries =	$(LIB_BUFR) $(LIB_NETCDF)
 
-Libraries = $(LIB_BUFR) $(LIB_NETCDF)
-
-F90_CMD = ${F_COMP} 
+F90_CMD = ${F_COMP}
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -traceback -check all -check noarg_temp_created
@@ -52,10 +52,10 @@ F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
 
 F03_ALLOCATE = -assume realloc_lhs
 
-Link.f90     =	$(F90_CMD) $(F90_FLAGS) $(F03_ALLOCATE)
+Link.f90 =	$(F90_CMD) $(F90_FLAGS) $(F03_ALLOCATE)
 
 F90_CONFIG   =  f90_config.gfortran.f90
-F90_IEEE_SUP = 
+F90_IEEE_SUP =
 
 # Lib = General fortran support library.
 
@@ -88,10 +88,12 @@ Subs.plib =	$(Plib)/bufrlib_interface.f90	$(Plib)/expand_filename.f90 \
 
 # Local support routines in main program directory.
 
-Analog1 =	stdevTNcirc.f90			wind_dir_error.f90
+Analog1 =	read_exception_list.f90		stdevTNcirc.f90 \
+		wind_dir_error.f90
 
-Analog2 =	find_analog_v1.f90		kf_luca.f90 \
-		kf_analog.f90			main_analog.f90
+Analog2 =	bias_threshold_filter.f90	find_analog_v1.f90 \
+		kf_luca.f90			kf_analog.f90 \
+		main_analog.f90
 
 Local1 =	align_obs_to_forecasts.f90	grid_distances.f90 \
 		qc_single_site.f90		read_config_file_main.f90 \
