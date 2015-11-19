@@ -69,12 +69,11 @@ subroutine qc_single_site (y, vmiss, diag, site_id)
    yhis(:)=badflag
    ycnt(:)=badflag
 
-! comment back to remove "0" obs by jphuang 2/19/2015
-   do i=1,nc
-        if (y(i).eq.0.) then
-          y(i)=badflag
-        end if
-   enddo
+!   do i=1,nc
+!        if (y(i).eq.0.) then
+!          y(i)=badflag
+!        end if
+!   enddo
 
 !---------------------------------------
 ! Find all points over 500 microg/m-3

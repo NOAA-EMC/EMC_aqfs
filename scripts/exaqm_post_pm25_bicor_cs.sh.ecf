@@ -47,11 +47,11 @@ if [ -e $COMINbicor/grid/$Yr/$PDY ] ; then
 else
  mkdir -p $COMINbicor/grid/$Yr/$PDY
 fi
-if [ "$SENDCOM" = 'YES' ]; then
+#if [ "$SENDCOM" = 'YES' ]; then
     cp $DATA/$f1 $COMINbicor/grid/$Yr/$PDY
     cp $DATA/$f2 $COMINbicor/grid/$Yr/$PDY
     cp $DATA/$f3 $COMINbicor/grid/$Yr/$PDY
-fi
+#fi
 
 #
 #-----------------------------------------------------------------------

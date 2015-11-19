@@ -221,8 +221,7 @@ site_loop: &
 
          if (dst >= RAD) cycle site_loop		! skip sites outside
          						!   radius of influence
-!         where (bias_sites(:,isite) /= vmiss)
-         where (bias_sites(:,isite) /= vmiss .and. bias_sites(:,isite) /= 0.00 )
+         where (bias_sites(:,isite) /= vmiss)
 !              PRINT *,isite,PM25(isite),dst
            numerator(:) = numerator(:) + &
              (RAD*RAD-dst*dst) * (bias_sites(:,isite) - bias_grids(i,j,:)) / &
@@ -230,24 +229,12 @@ site_loop: &
            np(:) = np(:) + 1
          end where
 
-!jp0
-!jp       if ( j .eq. 136 .and. i .eq. 311 ) then
-!       if ( j .eq. 158 .and. i .eq. 335 ) then
-!        print*,"HJP999,numerator=",numerator,"RAD=",RAD,"dst=",dst,"isite=",isite, &
-!           "bias_sites=",bias_sites(:,isite),"bias_grids=",bias_grids(i,j,:)
-!       endif
-!jp9
        end do site_loop
 
        where (np(:) > 0)
 !            PRINT *,i,j,numerator,np
 	 bias_grids(i,j,:) = bias_grids(i,j,:) + numerator(:) / np(:)
        end where
-!       if ( j .eq. 158 .and. i .eq. 335 ) then
-!        print*,"HJP999,numerator=",numerator, &
-!               "bias_grids=",bias_grids(i,j,:)
-!       endif
-
 
      ENDDO
      ENDDO
@@ -276,13 +263,12 @@ site_loop: &
     do j=1,YG
      do i=1,XG
         if ( corr_grids(i,j,irun) .le. 0.0001 ) then
-          corr_grids(i,j,irun) = uncorr_grids(i,j,irun)*0.25 ! no bias correction
+          corr_grids(i,j,irun) = uncorr_grids(i,j,irun)*0.25 ! no bias corr.
         endif
       enddo
      enddo
     enddo
 !jp9
-
 
 
 !-------------------------------------------------
