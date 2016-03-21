@@ -1,20 +1,25 @@
 %comment - ecf user variables
+COM = com2
 E = p
 ECF_VERSION = 4.0.3
 ENVIR = para
+KEEPDATA:NO = NO
 MAG_TRANSFER = ON
-PROJ = T2O
+PROJ = CMAQ-T2O
+QUEUE = prod
+SENDDBN:YES = YES
+SENDDBN_NTC:YES = YES
 %end - ecf user variables
 #BSUB -J paqm_emission_ingest
-#BSUB -o /com/output/para/today/aqm_emission_ingest.o%J
-#BSUB -e /com/output/para/today/aqm_emission_ingest.o%J
+#BSUB -o /com2/output/para/today/aqm_emission_ingest.o%J
+#BSUB -e /com2/output/para/today/aqm_emission_ingest.o%J
 #BSUB -L /bin/sh
 #BSUB -q prod_serv
 #BSUB -cwd /tmpnwprd
 #BSUB -W 02:30
 #BSUB -n 1
 #BSUB -R "rusage[mem=2500]" -R "affinity[core]"
-##BSUB -P T2O
+##BSUB -P CMAQ-T2O
 #BSUB -P CMAQ-T2O
 
 #!/bin/ksh
@@ -25,10 +30,10 @@ set -x # echo script lines as they are executed
 
 # Defines the variables that are needed for any communication with ECF
 export ECF_PORT=31415    # The server port number
-export ECF_NODE=t14z1    # The name of ecf host that issued this task
+export ECF_NODE=g14z1    # The name of ecf host that issued this task
 export ECF_NAME=/para12/aqm/emission/jaqm_emission_ingest    # The name of this current task
-export ECF_PASS=5rUx9AS9    # A unique password
-export ECF_TRYNO=1  # Current try number of the task
+export ECF_PASS=SuBBfLOb    # A unique password
+export ECF_TRYNO=2  # Current try number of the task
 export ECF_RID=$$
 export ECF_VERSION=4.0.3
 export MAG_TRANSFER=ON
@@ -66,14 +71,83 @@ trap ERROR 0
 
 # Trap any signal that may cause the script to fail
 trap '{ echo "Killed by a signal"; ERROR ; }' 1 2 3 4 5 6 7 8 9 10 12 13 15
+export job=${job:-$LSB_JOBNAME} #Can't use $job in filenames!
+export jobid=${jobid:-$job.$LSB_JOBID}
+
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export envir=para
+export SENDDBN=${SENDDBN:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+export COMROOTp1=${COMROOTp1:-/com}
+export GESROOTp1=${GESROOTp1:-/nwges}
+export COMROOT=${COMROOT:-/com2}
+export GESROOT=${GESROOT:-/nwges2}
+export DCOMROOT=${DCOMROOT:-/dcom}
+
+#export subhost=`echo ${LSB_SUB_HOST}| cut -c1`
+
+module load prod_util
+
+case $envir in
+  prod)
+    export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
+    export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+    if [ "$SENDDBN" == "YES" ]; then
+       export DBNROOT=/iodprod/dbnet_siphon  # previously set in .bash_profile
+    else
+       export DBNROOT=${UTILROOT}/fakedbn
+    fi
+    ;;
+  eval)
+    export envir=para
+    export jlogfile=${jlogfile:-${COMROOT}/logs/${envir}/jlogfile}
+    export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+    if [ "$SENDDBN" == "YES" ]; then
+       export DBNROOT=${UTILROOT}/para_dbn
+       SENDDBN_NTC=NO
+    else
+       export DBNROOT=${UTILROOT}/fakedbn
+    fi
+    ;;
+  para|test)
+    export jlogfile=${jlogfile:-${COMROOT}/logs/${envir}/jlogfile}
+    export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+    export DBNROOT=${UTILROOT}/fakedbn
+    ;;
+  *)
+    ecflow_client --abort="ENVIR must be prod, para, eval, or test [envir.h]"
+    exit
+    ;;
+esac
+
+export NWROOT=/nw${envir}2
+export NWROOTprod=/nwprod2
+export NWROOTp1=/nwprod
+export PCOMROOT=${PCOMROOT:-/pcom2/${envir}}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+export KEEPDATA=${KEEPDATA:-NO}
 
 set -x
-export RUN_DAY=21
-export envir=para
-export job=aqm_emission_ingest
 
-# versions file for AQM CMAQ sets $model_ver
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#########################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#########################################
+export RUN_DAY=20
+
+export envir=para
+
+# versions file for AQM CMAQ sets $cmaq_ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -82,7 +156,7 @@ else
   exit
 fi
 
-/nw$envir/cmaq.${model_ver}/jobs/JAQM_EMISSION_INGEST
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_INGEST
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

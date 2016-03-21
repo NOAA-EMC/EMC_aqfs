@@ -1,26 +1,27 @@
 %comment - ecf user variables
 COM = com2
+CYC = 12
 E = p
 ECF_VERSION = 4.0.3
-ENVIR = eval
-KEEPDATA:NO = YES
+ENVIR = para
+KEEPDATA:NO = NO
 MAG_TRANSFER = ON
 PROJ = CMAQ-T2O
-QUEUE = prod
 SENDDBN:YES = YES
 SENDDBN_NTC:YES = YES
 %end - ecf user variables
-#BSUB -J paqm_emission_archive
-#BSUB -o /com2/output/eval/today/aqm_emission_archive.o%J
-#BSUB -e /com2/output/eval/today/aqm_emission_archive.o%J
+#BSUB -J paqm_forecast_conus_12
+#BSUB -o /com2/output/para/today/aqm_forecast_conus_12.o%J
+#BSUB -e /com2/output/para/today/aqm_forecast_conus_12.o%J
 #BSUB -L /bin/sh
-#BSUB -q prod_serv
+#BSUB -q preprod
+#BSUB -n 257
+#BSUB -x    
 #BSUB -cwd /tmpnwprd
-#BSUB -W 05:30
-#BSUB -n 1
-#BSUB -R "rusage[mem=1500]" -R "affinity[core]"
-##BSUB -P CMAQ-T2O
+#BSUB -R "span[ptile=12]"
+#BSUB -W 01:50
 #BSUB -P CMAQ-T2O
+#BSUB -a poe
 
 #!/bin/ksh
 set -e # stop the shell on first error
@@ -30,10 +31,10 @@ set -x # echo script lines as they are executed
 
 # Defines the variables that are needed for any communication with ECF
 export ECF_PORT=31415    # The server port number
-export ECF_NODE=g14z1    # The name of ecf host that issued this task
-export ECF_NAME=/para12/aqm/emission/jaqm_emission_archive    # The name of this current task
-export ECF_PASS=CXo/H8Lu    # A unique password
-export ECF_TRYNO=2  # Current try number of the task
+export ECF_NODE=g10z1    # The name of ecf host that issued this task
+export ECF_NAME=/para12/aqm/conus/jaqm_forecast_conus    # The name of this current task
+export ECF_PASS=e0gedUld    # A unique password
+export ECF_TRYNO=4  # Current try number of the task
 export ECF_RID=$$
 export ECF_VERSION=4.0.3
 export MAG_TRANSFER=ON
@@ -75,7 +76,7 @@ export job=${job:-$LSB_JOBNAME} #Can't use $job in filenames!
 export jobid=${jobid:-$job.$LSB_JOBID}
 
 export RUN_ENVIR=${RUN_ENVIR:-nco}
-export envir=eval
+export envir=para
 export SENDDBN=${SENDDBN:-YES}
 export SENDDBN_NTC=${SENDDBN_NTC:-YES}
 
@@ -127,26 +128,15 @@ export NWROOTp1=/nwprod
 export PCOMROOT=${PCOMROOT:-/pcom2/${envir}}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
-export KEEPDATA=${KEEPDATA:-YES}
+export KEEPDATA=${KEEPDATA:-NO}
 
 set -x
 
-##############################################
-# To SOS- please set it complete if it failed
-# DO NOT RERUN.  SPA will take care of failure
-#############################################
+export envir=para
+export job=jaqm_forecast_conus_12
+export cyc=12
 
-#############################################
-#RUN_DAY=16 as the default
-#If rerun is needed, please
-#export RUN_DAY=dd, 
-#where dd is the day of month to be rerun
-#Note that the HPSS archive dir needs to clean
-#up before the rerun.
-###############################################
-
-
-# versions file for AQM CMAQ  sets $cmaq_ver
+# versions file for AQM CMAQ conus sets $cmaq_ver
 VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
@@ -156,7 +146,7 @@ else
   exit
 fi
 
-$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_ARCHIVE
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_CS
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
@@ -164,14 +154,14 @@ if [ $? -ne 0 ]; then
    exit
 fi
 
+
 ecflow_client --complete  # Notify ecFlow of a normal end
 trap 0                    # Remove all traps
 exit 0                    # End the shell
 %manual
 ######################################################################
 #
-#  PURPOSE:  To execute the job that archive the AQM emission and jtable 
-#  files from /com2/aqm/prod/emission to HPSS
+#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
 #
 ######################################################################
 

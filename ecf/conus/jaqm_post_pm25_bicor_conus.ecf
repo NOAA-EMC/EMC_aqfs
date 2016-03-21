@@ -1,8 +1,8 @@
 #BSUB -J %E%aqm_post_pm25_bicor_conus_%CYC%
-#BSUB -o /com/output/%ENVIR%/today/aqm_post_pm25_bicor_conus_%CYC%.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_post_pm25_bicor_conus_%CYC%.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_post_pm25_bicor_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_post_pm25_bicor_conus_%CYC%.o%J
 #BSUB -L /bin/sh
-#BSUB -q prod_shared
+#BSUB -q %QUEUE%_shared
 #BSUB -cwd /tmpnwprd
 #BSUB -W 01:30
 #BSUB -n 1
@@ -12,16 +12,16 @@
 #BSUB -P %PROJ%
 
 %include <head.h>
+%include <envir-p2.h>
 
 
 set -x
 
-export envir=%ENVIR%
-export job=aqm_post_pm25_bicor_conus_%CYC%
+export job=jaqm_post_pm25_bicor_conus_%CYC%
 export cyc=%CYC%
 
 # versions file for AQM CMAQ conus sets $cmaq_ver
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -30,7 +30,7 @@ else
   exit
 fi
 
-/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_POST_PM25_BICOR_CS
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_POST_PM25_BICOR_CS
 
 %include <tail.h>
 %manual

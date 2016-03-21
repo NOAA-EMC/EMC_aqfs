@@ -29,15 +29,15 @@ program aqm_post_maxi_bias_cor_grib2
    character  infile1*200,infile2*200,infile3*200
    character  varname*10,ymd*8,ch_cyc*2,ch_chk*2
    integer    diag, imax,jmax
-!   integer    icyc,iyear,imonth,iday,idate,ihour,base_year,nt,ichk
    integer    icyc,iyear,imonth,iday,ihour,base_year,ichk
-!   integer    nowdate,nowdate1,nowtime
    integer    nowdate,nowtime
    integer    ierr,mday,ier
    integer    i, j 
 ! for grib2 by JP
-   integer, parameter   :: max_bytes=20000000
+!   integer, parameter   :: max_bytes=20000000
    integer, parameter   :: nx=442,ny=265
+   integer, parameter   :: max_bytes=nx*ny*4
+   integer, parameter   :: markutc=05 
 !
    integer listsec0(2)
    integer listsec1(13)
@@ -47,6 +47,7 @@ program aqm_post_maxi_bias_cor_grib2
    integer idrstmpllen
    integer idrsnum,ibmap,numcoord,ipdsnum,idefnum
    integer defnum
+   integer ibin_scl, idec_scl,inumbits
 
     integer,dimension(100) :: igdstmpl
     integer,dimension(100) :: ipdstmpl
@@ -62,12 +63,14 @@ program aqm_post_maxi_bias_cor_grib2
 !
     real(4),dimension(nx*ny) :: fld1
     real(4),dimension(nx*ny) :: fld2
+    logical*1,dimension(nx*ny) :: bmap1 
+
     integer ifilw1,ifilw2,lengrib,lonstt,lonlst,latstt,latlst
 !    integer yy,mm,dd,hh,mn,sc
     real(4) :: dxval
 
     character*50 gdss(400)
-    integer GRID, kgdss(200), lengds,im,jm,jf
+    integer GRID, kgdss(200), lengds,im,jm,jf,ibmap1
 !-------------------------------------------------------------------
 
    integer status
@@ -76,9 +79,13 @@ program aqm_post_maxi_bias_cor_grib2
 
 !   integer kpds(200),kgds(200)
 !   integer kpds(25),kgds(25)
+!   integer kpds(25),kgds(20)
 !   integer kpds(200),kgds(200),istime(1),ietime(1)  
 
    character(*), parameter :: calendar  = 'gregorian'
+
+!   character(len=1),dimension (:) :: cgrib1,cgrib2
+!   integer :: currlen=1000000   
 
     logical  ave1hr
 
@@ -95,24 +102,27 @@ program aqm_post_maxi_bias_cor_grib2
    real(dp), allocatable :: pm25_ave(:,:,:),pm25_max(:,:,:)
    real(dp), allocatable :: work(:,:)
    logical, allocatable :: LB1(:)
+!
+    real(4) :: fldscl
+    real(4),parameter :: SPVAL=9.9e10
+
+!jp   character*1,allocatable :: cgrib1(:),cgrib2(:)
 
 !   real tmp_t1, tmp_t2,tmpmax
 
 ! Get command arguments as strings.
    diag=5
    id_gribdomain=148
-!   outfile1='aqm.t99z.pm25_24hr_ave.148.bc.grib2'
-!   outfile2='aqm.t99z.pm25_24hr_max.148.bc.grib2'
    outfile1='aqm.t99z.24hpm25-ave.148.bc.grib2'
    outfile2='aqm.t99z.1hpm25-max.148.bc.grib2'
-
    ave1hr=.true.
    print*,"it is testing"
    call get_command_argument (1, varname) 
    call get_command_argument (2, ymd)
    call get_command_argument (3, ch_cyc)
    call get_command_argument (4, ch_chk)
-   
+
+
 !
    read(ymd(1:4),*)iyear
    read(ymd(5:6),*)imonth
@@ -175,6 +185,7 @@ program aqm_post_maxi_bias_cor_grib2
    imax       = dims_in4(1)
    jmax       = dims_in4(2)
 
+
 ! Transfer data to the output array.
 ! Truncate the extra hour, if needed (MET).
 ! Omit the vestigial LAY dimension.
@@ -229,6 +240,9 @@ program aqm_post_maxi_bias_cor_grib2
        print*,'can not open ',trim(outfile2)
        stop 2001
       endif
+
+!     cgrib1=' '
+!     cgrib2=' '
 
    do mday = 1, nhours/24 
        do i = 1, imax
@@ -289,14 +303,13 @@ program aqm_post_maxi_bias_cor_grib2
 !    listsec1(8)=iday      ! Reference time - Day
 !    listsec1(9)=icyc      ! Reference time - Hour
 !    listsec1(9)=INT(nowtime/10000)      ! Reference time - Hour
-     listsec1(10)=00     ! Reference time - Minute
-     listsec1(11)=00     ! Reference time - Second
+     listsec1(10)=0     ! Reference time - Minute
+     listsec1(11)=0     ! Reference time - Second
      listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
      listsec1(13)=1      ! Type of processed data (Table 1.4) (0:ana products 1:fcst products 2:ana & fcst 3: cntl fcst)
 
      call gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
      call gribcreate(cgrib2,max_bytes,listsec0,listsec1,ierr)
-     print*,'gribcreate status=',ierr
 !
 !-- section 3: grid definition section
      igds(1)=0           ! Source of grid definition (Table 3.0) (0:specified in the code)
@@ -316,7 +329,8 @@ program aqm_post_maxi_bias_cor_grib2
      igdstmpl(9)=ny      ! Nj . number of points along a meridian
      igdstmpl(10)=21821000      ! Basic angle of the initial production domain
      igdstmpl(11)=239372000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
-     latstt=56
+!jp     latstt=56
+     latstt=8
      lonstt=33000000
      latlst=-88541961
      lonlst=358125000
@@ -332,35 +346,25 @@ program aqm_post_maxi_bias_cor_grib2
      igdstmpl(20)=45000000
      igdstmpl(21)=0
      igdstmpl(22)=0
-!    igdstmpl(14)=48     ! Resolution and component flags (Table 3.3)
-!    igdstmpl(15)=latlst ! La2 - latitude of last grid point
-!    igdstmpl(16)=lonlst ! Lo2 - longitude of last grid point
-!    igdstmpl(17)=dxval  ! Di - i direction increment
-!    igdstmpl(18)=ny/2   ! N - number of paralells between a pole and the
-!    equator
-!    igdstmpl(19)=0      ! Scanning mode (Table 3.4) (0:Points in the first
-!    row or column scan in the +i (+x) direction)
     endif
      defnum=1             ! Used if igds(3) .ne. 0. The number of entries in array ideflist
      ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
      call addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
      call addgrid(cgrib2,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
-      print*,'addgrid status=',ierr,"cgrib1=",trim(cgrib1(1))
+!      print*,'addgrid status=',ierr,"cgrib1=",trim(cgrib1(1))
 !
 !-- section 4: product definition section
      ipdstmpl=0
      ipdsnum=8             ! Product Definition Template Number (Table 4.0) (0:Analysis or forecast at a horizontal level or in a horizontal layer at a point in time)
      ipdstmpllen=29        ! pdt template length
-     ipdstmpl(1)=13        ! catogory
-     ipdstmpl(2)=193       ! parameter
+!    ipdstmpl(1)=13        ! catogory
+!    ipdstmpl(2)=193       ! parameter
      ipdstmpl(3)=2         ! Type of generating process (Table 4.3) (0:ana, 1:ic, 2:fcst)
      ipdstmpl(4)=0         ! Background generating process identifier
      ipdstmpl(5)=211        ! Analysis or forecast generating process identified (ON388TableA)
      ipdstmpl(6)=0         ! Hours of observational data cutoff after reference time
      ipdstmpl(7)=0         ! Minutes of observational data cutoff after reference time
      ipdstmpl(8)=1         ! Indicator of unit of time range (Table 4.4) (0:minute, 1:hour 2:day)
-!     ipdstmpl(9)=nt-1         ! Forecast time in units defined by ipdstmpl(8)
-!     ipdstmpl(9)=-7         ! Forecast time in units defined by ipdstmpl(8)
      ipdstmpl(9)=(5-icyc)+(mday-1)*24         ! Forecast time in units defined by ipdstmpl(8)
      ipdstmpl(10)=104      ! Type of first fixed surface (see Code table 4.5)(100:isobaric leve)
      ipdstmpl(11)=4        ! Scale factor of first fixed surface
@@ -371,8 +375,6 @@ program aqm_post_maxi_bias_cor_grib2
      ipdstmpl(16)=iyear    !  Year
      ipdstmpl(17)=imonth   !  Month
      ipdstmpl(18)=iday+mday     !  Date
-!     ipdstmpl(19)=INT(nowtime/10000)        !  Forecast hour
-!     ipdstmpl(19)=mday*23 + ipdstmpl(9)        !  Forecast hour
      ipdstmpl(19)=4        !  Forecast hour
      ipdstmpl(20)=0        !
      ipdstmpl(21)=0        !
@@ -381,7 +383,6 @@ program aqm_post_maxi_bias_cor_grib2
      ipdstmpl(24)=0        !
      ipdstmpl(25)=2        !
      ipdstmpl(26)=1        !
-!     ipdstmpl(27)=1        !
      ipdstmpl(27)=23        !
      ipdstmpl(28)=255      !
      ipdstmpl(29)=0        !
@@ -394,77 +395,302 @@ program aqm_post_maxi_bias_cor_grib2
      idrstmpl=0
      idrsnum=3             ! Data representation section template number (Table5.0) (3:Grid Point Data - Complex Packing and Spatial Differencing)
      idrstmpllen=18        ! Length of Data representation section
-     idrstmpl(1)=1212562560  ! Binary scale factor
-     idrstmpl(2)=0         ! Binary scale factor
-     idrstmpl(3)=6         ! Decimal scale factor
-     idrstmpl(4)=27        ! Decimal scale factor
+!     idrstmpl(1)=1212562560  ! Binary scale factor
+     idrstmpl(3)=3         ! Binary scale factor
+!     idrstmpl(3)=6         ! Decimal scale factor
+!     idrstmpl(4)=27        ! Decimal scale factor
      idrstmpl(5)=0         !
      idrstmpl(6)=1         !
-     idrstmpl(7)=0         ! Missing value management used (see Code Table 5.5)
-     idrstmpl(8)=0         ! Primary missing value substitute
+     idrstmpl(7)=1         ! Missing value management used (see Code Table 5.5)
+!     idrstmpl(8)=0         ! Primary missing value substitute
      idrstmpl(9)=0         ! Secondary missing value substitute
-     idrstmpl(10)=8782     !
+!     idrstmpl(10)=8782     !
      idrstmpl(11)=0        !
-     idrstmpl(12)=5        !
+     idrstmpl(12)=4        !
      idrstmpl(13)=1        !
      idrstmpl(14)=1        !
-     idrstmpl(15)=11       !
-     idrstmpl(16)=6        !
+     idrstmpl(15)=255       !
+     idrstmpl(16)=8        !
      idrstmpl(17)=2
-     idrstmpl(18)=4
+     idrstmpl(18)=2
 !
 !-- section 6:
      ibmap=255             ! Bit-map indicator (Table 6.0) (0:A bit map applies, 255:A bit map does not apply)
-     pm25data(:,:)=pm25_ave(:,:,mday)
 
      do j=1,ny
       do i=1,nx
-        fld1(i+(j-1)*nx)=pm25_ave(i,j,mday)
-        fld2(i+(j-1)*nx)=pm25_max(i,j,mday)
+         fld1(i+(j-1)*nx)=pm25_ave(i,j,mday)
       enddo
      enddo
+
+     ipdstmpl(1)=13       ! catogory
+     ipdstmpl(2)=193      ! pm2.5 parameter
+     ipdstmpl(24)=0       ! 24_hr average pm2.5 parameter
+     ipdstmpl(27)=23      ! 24_hr average 
+     ipdstmpl(9)=(markutc-icyc)+(mday-1)*24
+     ipdstmpl(19)=markutc-1
+
+! below is used for get bits for grib2
+      if (maxval(fld1)==minval(fld1))then
+         idrsnum=0
+          print*,' changing to simple packing for constant fields'
+       end if
+       ibmap1=255
+       bmap1=.true.
+       if(any(fld1>=SPVAL))then
+         ibmap1=0
+         where(abs(fld1)>=SPVAL)bmap1=.false.
+       endif
+
+       fldscl=5.0
+
+       call g2getbits(ibmap1,fldscl,size(fld1),bmap1,fld1,ibin_scl,idec_scl,inumbits)
+!       print
+!       *,'idec_scl=',idec_scl,'ibin_scl=',ibin_scl,'number_bits=',inumbits
+
+       idrstmpl(2)=ibin_scl   !
+       idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
+       idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
 
      call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
                           coordlist,numcoord,idrsnum,idrstmpl, &
                           idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
+     call gribend(cgrib1,max_bytes,lengrib,ierr)
 
-!     idrstmpl(3)=5         ! Decimal scale factor
-     idrstmpl(4)=24        ! Decimal scale facto
-     idrstmpl(10)=8908        ! Decimal scale facto
-     idrstmpl(15)=12        ! Decimal scale facto
-     idrstmpl(16)=6        ! Decimal scale facto
+      call wryte(ifilw1, lengrib, cgrib1)
 
-
-
-     ipdstmpl(1)=14       ! catogory
+     ipdstmpl(1)=14        ! catogory
      ipdstmpl(2)=202       ! daily maxi 1hr pm2.5 parameter
+     ipdstmpl(24)=0        ! 
+     ipdstmpl(27)=23       ! daily maxi 1hr pm2.5 parameter
+     ipdstmpl(9)=(5-icyc)+(mday-1)*24
+     ipdstmpl(19)=markutc-1
+
+
+     do j=1,ny
+      do i=1,nx
+        fld2(i+(j-1)*nx)=pm25_max(i,j,mday)
+      enddo
+     enddo
+
+! below is used for get bits for grib2
+      if (maxval(fld2)==minval(fld2))then
+         idrsnum=0
+          print*,' changing to simple packing for constant fields'
+       end if
+       ibmap1=255
+       bmap1=.true.
+       if(any(fld2>=SPVAL))then
+         ibmap1=0
+         where(abs(fld2)>=SPVAL)bmap1=.false.
+       endif
+
+       fldscl=5.0
+
+       call g2getbits(ibmap1,fldscl,size(fld2),bmap1,fld2,ibin_scl,idec_scl,inumbits)
+!       print
+!       *,'idec_scl=',idec_scl,'ibin_scl=',ibin_scl,'number_bits=',inumbits
+            
+       idrstmpl(2)=ibin_scl   !
+       idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
+       idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
 
      call addfield(cgrib2,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
                           coordlist,numcoord,idrsnum,idrstmpl, &
                           idrstmpllen,fld2,nx*ny,ibmap,bmap,ierr)
+     call gribend(cgrib2,max_bytes,lengrib,ierr)
 
-     print*,'addfield status=',ierr
+     call wryte(ifilw2, lengrib, cgrib2)
 
      nowdate=date_index(iyear, imonth, iday, base_year, calendar)
 
-     print*,"hjp111a,nowdate:",nowdate,"nowtime=",nowtime
      call next_time(nowdate,nowtime,10000)
-     print*,"hjp111b,nowdate:",nowdate,"nowtime=",nowtime
      call index_to_date(nowdate,iyear, imonth, iday, base_year, calendar)
-     print*,"hjp111c,iyear,imn,iday=",iyear, imonth, iday
 
-     call gribend(cgrib1,max_bytes,lengrib,ierr)
-     call gribend(cgrib2,max_bytes,lengrib,ierr)
-
-     print*,'gribend status=',ierr
-     print*,'length of the final GRIB2 message in octets =',lengrib
-!
-      call wryte(ifilw1, lengrib, cgrib1)
-      call wryte(ifilw2, lengrib, cgrib2)
-
-    end do
+     end do
          
-end program aqm_post_maxi_bias_cor_grib2 
+     end program aqm_post_maxi_bias_cor_grib2 
+
+!-----------------------------------------------------------------------
+       subroutine g2getbits(ibm,scl,len,bmap,g,ibs,ids,nbits)
+!$$$
+!   This subroutine is changed from w3 lib getbit to compute the total
+!   number of bits,
+!   The argument list is modified to have
+!   ibm,scl,len,bmap,g,ibs,ids,nbits
+!
+!  Progrma log:
+!    Jun Wang  Apr, 2010
+!
+! INPUT
+!   ibm: integer, bitmap flag (grib2 table 6.0)
+!   scl: real, significant digits,OR binary precision if < 0
+!   len: integer, field and bitmap length
+!   bmap: logical(len), bitmap (.true.: keep, bitmap (.true.: keep,
+!   .false. skip)
+!   fld: real(len), datafield
+! OUTPUT
+!   ibs: integer, binary scale factor
+!   ids: integer, decimal scale factor
+!   nbits: integer, number of bits to pack
+!
+      IMPLICIT NONE
+!
+      INTEGER,INTENT(IN)   :: IBM,LEN
+      LOGICAL*1,INTENT(IN) :: BMAP(LEN)
+      REAL,INTENT(IN)      :: scl,G(LEN)
+      INTEGER,INTENT(OUT)  :: IBS,IDS,NBITS
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      INTEGER,PARAMETER    :: MXBIT=16
+!
+!  NATURAL LOGARITHM OF 2 AND 0.5 PLUS NOMINAL SAFE EPSILON
+      real,PARAMETER :: ALOG2=0.69314718056,HPEPS=0.500001
+!
+!local vars
+      INTEGER :: I,I1,icnt,ipo
+      REAL    :: GROUND,GMIN,GMAX,s,range,rr,rng2,po,rln2
+!
+      DATA       rln2/0.69314718/
+
+
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!  ROUND FIELD AND DETERMINE EXTREMES WHERE BITMAP IS ON
+      IF(IBM == 255) THEN
+        GMAX = G(1)
+        GMIN = G(1)
+        DO I=2,LEN
+          GMAX = MAX(GMAX,G(I))
+          GMIN = MIN(GMIN,G(I))
+        ENDDO
+      ELSE
+        do i1=1,len
+          if (bmap(i1)) exit
+        enddo
+!       I1 = 1
+!       DO WHILE(I1 <= LEN .AND. .not. BMAP(I1))
+!         I1=I1+1
+!       ENDDO
+        IF(I1 <= LEN) THEN
+          GMAX = G(I1)
+          GMIN = G(I1)
+          DO I=I1+1,LEN
+            IF(BMAP(I)) THEN
+              GMAX = MAX(GMAX,G(I))
+              GMIN = MIN(GMIN,G(I))
+            ENDIF
+          ENDDO
+        ELSE
+          GMAX = 0.
+          GMIN = 0.
+        ENDIF
+      ENDIF
+
+!     write(0,*)' GMIN=',GMIN,' GMAX=',GMAX
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+!  COMPUTE NUMBER OF BITS
+      icnt = 0
+      ibs = 0
+      ids = 0
+      range = GMAX - GMIN
+!      IF ( range .le. 0.00 ) THEN
+      IF ( range .le. 1.e-30 ) THEN
+        nbits = 8
+        return
+      END IF
+!*
+      IF ( scl .eq. 0.0 ) THEN
+          nbits = 8
+          RETURN
+      ELSE IF ( scl  >  0.0 ) THEN
+          ipo = INT (ALOG10 ( range ))
+!jw: if range is smaller than computer precision, set nbits=8
+          if(ipo<0.and.ipo+scl<-20) then
+            print *,'for small range,ipo=',ipo,'ipo+scl=',ipo+scl,'scl=',scl
+            nbits=8
+            return
+          endif
+
+          IF ( range .lt. 1.00 ) ipo = ipo - 1
+          po = float(ipo) - scl + 1.
+          ids = - INT ( po )
+          rr = range * 10. ** ( -po )
+          nbits = INT ( ALOG ( rr ) / rln2 ) + 1
+      ELSE
+          ibs = -NINT ( -scl )
+          rng2 = range * 2. ** (-ibs)
+          nbits = INT ( ALOG ( rng2 ) / rln2 ) + 1
+      END IF
+!     write(0,*)'in g2getnits,ibs=',ibs,'ids=',ids,'nbits=',nbits,'range=',range
+
+!*
+      IF(nbits <= 0) THEN
+        nbits = 0
+        IF(ABS(GMIN) >= 1.) THEN
+          ids = -int(alog10(abs(gmin)))
+        ELSE IF (ABS(GMIN) < 1.0.AND.ABS(GMIN) > 0.0) THEN
+          ids = -int(alog10(abs(gmin)))+1
+        ELSE
+          ids = 0
+        ENDIF
+      ENDIF
+      nbits = min(nbits,MXBIT)
+!     write(0,*)'in g2getnits ibs=',ibs,'ids=',ids,'nbits=',nbits
+!
+      IF ( scl > 0.0 ) THEN
+        s=10.0 ** ids
+        IF(IBM == 255) THEN
+          GROUND = G(1)*s
+          GMAX   = GROUND
+          GMIN   = GROUND
+          DO I=2,LEN
+            GMAX = MAX(GMAX,G(I)*s)
+            GMIN = MIN(GMIN,G(I)*s)
+          ENDDO
+        ELSE
+          do i1=1,len
+            if (bmap(i1)) exit
+          enddo
+!        I1=1
+!        DO WHILE(I1.LE.LEN.AND..not.BMAP(I1))
+!          I1=I1+1
+!        ENDDO
+          IF(I1 <= LEN) THEN
+            GROUND = G(I1)*s
+            GMAX   = GROUND
+            GMIN   = GROUND
+            DO I=I1+1,LEN
+              IF(BMAP(I)) THEN
+                GMAX = MAX(GMAX,G(I)*S)
+                GMIN = MIN(GMIN,G(I)*S)
+              ENDIF
+            ENDDO
+          ELSE
+            GMAX = 0.
+            GMIN = 0.
+          ENDIF
+        ENDIF
+
+        range = GMAX-GMIN
+        if(GMAX == GMIN) then
+          ibs = 0
+        else
+          ibs = nint(alog(range/(2.**NBITS-0.5))/ALOG2+HPEPS)
+        endif
+!
+      endif
+!     write(0,*)'in
+!     g2getnits,2ibs=',ibs,'ids=',ids,'nbits=',nbits,'range=',&
+!                range, 'scl=',scl,'data=',maxval(g),minval(g)
+! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END subroutine g2getbits
+
+
+
+
+
+
+
 
 
                   

@@ -1,26 +1,26 @@
 #BSUB -J %E%aqm_forecast_conus_%CYC%
-#BSUB -o /com/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q preprod
 #BSUB -n 257
 #BSUB -x    
 #BSUB -cwd /tmpnwprd
-#BSUB -R "span[ptile=24]"
+#BSUB -R "span[ptile=12]"
 #BSUB -W 01:50
 #BSUB -P %PROJ%
 #BSUB -a poe
 
 %include <head.h>
+%include <envir-p2.h>
 
 set -x
 
-export envir=%ENVIR%
-export job=aqm_forecast_conus_%CYC%
+export job=jaqm_forecast_conus_%CYC%
 export cyc=%CYC%
 
 # versions file for AQM CMAQ conus sets $cmaq_ver
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -29,7 +29,7 @@ else
   exit
 fi
 
-/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_CS
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_CS
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
