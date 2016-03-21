@@ -37,6 +37,7 @@ program aqm_post_maxi_bias_cor
    integer status
    
    integer id_gribdomain
+   integer ibin_scl,idec_scl,inumbits
 
 !   integer kpds(200),kgds(200)
    integer kpds(25),kgds(25)

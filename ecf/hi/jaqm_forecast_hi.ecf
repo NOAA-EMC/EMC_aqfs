@@ -1,11 +1,11 @@
 #BSUB -J %E%aqm_forecast_hi_%CYC%
-#BSUB -o /com/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -n 16
 #BSUB -R span[ptile=8]
 #BSUB -R affinity[core]
-#BSUB -q preprod
+#BSUB -q %QUEUE%
 #BSUB -cwd /tmpnwprd
 #BSUB -W 00:50
 #BSUB -P %PROJ%
@@ -13,12 +13,12 @@
 #BSUB -x
 
 %include <head.h>
+%include <envir-p2.h>
 set -x
-export envir=%ENVIR%
 export job=jaqm_forecast_hi_%CYC%
 export cyc=%CYC%
 
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -28,7 +28,7 @@ else
 fi
 
 # CALL executable job script here
-/nw${envir}/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_HI
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_FORECAST_HI
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

@@ -1,6 +1,6 @@
 #BSUB -J %E%aqm_premaq_ak_%CYC%
-#BSUB -o /com/output/%ENVIR%/today/aqm_premaq_ak_%CYC%.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_premaq_ak_%CYC%.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_premaq_ak_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_premaq_ak_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q preprod_shared
 #BSUB -n 1
@@ -12,13 +12,13 @@
 #BSUB -P %PROJ%
 
 %include <head.h>
+%include <envir-p2.h>
 
 set -x
-export envir=%ENVIR%
-export job=aqm_premaq_ak_%CYC%
+export job=jaqm_premaq_ak_%CYC%
 export cyc=%CYC%
 
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -28,7 +28,7 @@ else
 fi
 
 # CALL executable job script here
-/nw${envir}/cmaq.${cmaq_ver}/jobs/JAQM_PREMAQ_AK
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_PREMAQ_AK
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

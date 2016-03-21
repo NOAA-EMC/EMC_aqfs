@@ -1,8 +1,8 @@
 #BSUB -J %E%aqm_emission_archive
-#BSUB -o /com/output/%ENVIR%/today/aqm_emission_archive.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_emission_archive.o%J
 #BSUB -L /bin/sh
-#BSUB -q prod_serv
+#BSUB -q %QUEUE%_serv
 #BSUB -cwd /tmpnwprd
 #BSUB -W 01:30
 #BSUB -n 1
@@ -11,6 +11,7 @@
 #BSUB -P CMAQ-T2O
 
 %include <head.h>
+%include <envir-p2.h>
 
 set -x
 
@@ -28,11 +29,9 @@ set -x
 #up before the rerun.
 ###############################################
 
-export envir=%ENVIR%
-export job=aqm_emission_archive
 
 # versions file for AQM CMAQ  sets $cmaq_ver
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -41,7 +40,7 @@ else
   exit
 fi
 
-/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_ARCHIVE
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_ARCHIVE
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
@@ -54,7 +53,7 @@ fi
 ######################################################################
 #
 #  PURPOSE:  To execute the job that archive the AQM emission and jtable 
-#  files from /com/aqm/prod/emission to HPSS
+#  files from /%COM%/aqm/prod/emission to HPSS
 #
 ######################################################################
 

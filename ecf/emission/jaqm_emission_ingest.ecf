@@ -1,8 +1,8 @@
 #BSUB -J %E%aqm_emission_ingest
-#BSUB -o /com/output/%ENVIR%/today/aqm_emission_ingest.o%J
-#BSUB -e /com/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
 #BSUB -L /bin/sh
-#BSUB -q prod_serv
+#BSUB -q %QUEUE%_serv
 #BSUB -cwd /tmpnwprd
 #BSUB -W 02:30
 #BSUB -n 1
@@ -11,6 +11,7 @@
 #BSUB -P CMAQ-T2O
 
 %include <head.h>
+%include <envir-p2.h>
 
 set -x
 
@@ -26,11 +27,9 @@ set -x
 #where dd is the day of month to be rerun
 #########################################
 
-export envir=%ENVIR%
-export job=aqm_emission_ingest
 
 # versions file for AQM CMAQ sets $cmaq_ver
-VERSION_FILE=/nw${envir}/versions/cmaq_conus.ver
+VERSION_FILE=$NWROOT/versions/cmaq.ver
 if [ -f $VERSION_FILE ]; then
   . $VERSION_FILE
 else
@@ -39,7 +38,7 @@ else
   exit
 fi
 
-/nw$envir/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_INGEST
+$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_INGEST
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
