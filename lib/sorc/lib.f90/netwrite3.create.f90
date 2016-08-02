@@ -7,7 +7,10 @@
 !			  existing file.
 ! 3.14	2010-aug-05	Add optional argument to override write protect.
 ! 3.18	2014-may-12	Suppress extra newline if user history is blank.
-!			Add optianal diag argument, for verbosity control.
+!			Add optional diag argument, for verbosity control.
+! 3.19	2015-feb-18	Bug fix for v3.18.
+!			Switch order of optional arguments, for compatibility
+!			  with previous calls to this routine, e.g. netwrite4.
 !
 ! Usage:
 !
@@ -55,7 +58,7 @@
 !------------------------------------------------------------------------------
 
 subroutine netcreate3 (filename, title, history, reserve_header, ncid, &
-      diag, overwrite)
+      overwrite, diag)
 
    use netwrite3_version
    use netcdf
@@ -70,8 +73,8 @@ subroutine netcreate3 (filename, title, history, reserve_header, ncid, &
    integer,      intent (in ) :: reserve_header	! extra header to reserve: bytes
    integer,      intent (out) :: ncid		! netcdf file ID number, for
    						! direct user calls to Netcdf
-   integer, intent (in), optional :: diag	! verbosity control, 0-N
    logical, intent (in), optional :: overwrite	! T = overwrite allowed
+   integer, intent (in), optional :: diag	! verbosity control, 0-N
 
 ! Local variables.
 
@@ -108,10 +111,9 @@ subroutine netcreate3 (filename, title, history, reserve_header, ncid, &
       print *, '*** netcreate3: Abort: Overwrite protect, previous file exists.'
       print *, '*** File = ', trim (filename)
       call exit (1)
-
-   else if (status /= nf90_noerr) then
-      call check (status)
    end if
+
+   call check (status)				! handle other possible errors
 
    save_reserve_header = reserve_header		! must defer header allocation
    						! until first var definition;

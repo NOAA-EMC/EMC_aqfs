@@ -7,18 +7,22 @@ export PROMPTFLAG=F
 #-----------------------------------------------------------------
 #  BLUESKY HYSPLIT AND NAM FILES
 #------------------------------------------------------------------
- if [ -s ${smoke_emis9}/files_fires.tar ] ; then
-  cp ${smoke_emis9}/files_fires.tar $DATA
+#jp if [ -s /com/hysplit/prod/smoke.$PDY/files_fires.tar ] ; then
+ if [ -s ${smoke_emis9}/files_fires_cs.tar ] ; then
+#jp cp /com/hysplit/prod/smoke.$PDY/files_fires.tar $DATA
+  cp ${smoke_emis9}/files_fires_cs.tar $DATA
  else
- echo "can not locate files_fires.tar in /com "
+ echo "can not locate files_fires_cs.tar in /com "
  exit 1
 fi
-tar -xvf $DATA/files_fires.tar >xxx.list
+tar -xvf $DATA/files_fires_cs.tar >xxx.list
 #-----------------------------------------------------------------
 # Get Hysplit fire data duration record
 #  ** note this file contain information for the duration of fire
 #     and can be used for eliminating short life time fore for not
 #     being barried to our 72hr fcst
+#-----------------------------------------------------------------
+ cp $FEMIT $DATA/EMITIMES
 #-----------------------------------------------------------------
 # create log directory for information output
 #-----------------------------------------------------------------
@@ -26,7 +30,6 @@ export Bluesky_out=$LOG1/$PDY
 mkdir -p ${Bluesky_out}
 
 cd ${Bluesky_out}
-
 ################################################################
 #
 # For  PRODUCTION emission format, the emission file is 72hr
@@ -36,13 +39,13 @@ cd ${Bluesky_out}
 #
 ################################################################
 date1=$PDYm1
-date2=`$NDATE +24 ${date1}00 |cut -c 1-8`
-date3=`$NDATE +48 ${date1}00 |cut -c 1-8` 
-date4=`$NDATE +72 ${date1}00 |cut -c 1-8`
+date2=`/u/arl.aqm/bin/ndate +24 ${date1}00 |cut -c 1-8`
+date3=`/u/arl.aqm/bin/ndate +48 ${date1}00 |cut -c 1-8` 
+date4=`/u/arl.aqm/bin/ndate +72 ${date1}00 |cut -c 1-8`
 date=${date1}
 
 #====================================
-if [ ${cyc} = '00' -o  ${cyc} = '06' ]
+if [ ${CYC} = '00' -o  ${CYC} = '06' ]
 then
  date9=$PDYm2 
 else
@@ -50,19 +53,16 @@ else
 fi
 #====================================
 
-export TMP_DIR=$DATA/tmp/${date}
+export TMP_DIR=$HYPTMP/tmp/${date}
 mkdir -p $TMP_DIR
 #-----------------------------------------------------------------
 # get count of files in tar file
 #-----------------------------------------------------------------
-#nfiles=`ls -1 $DATA/NOAA????_${date9}.OUT |wc -l`
-xx9=`head -3 $DATA/EMITIMES | tail -1 | cut -d" " -f6`
-nfiles=`echo $xx9 |bc -l`  # count total file numbe from EMITIMES
+nfiles=`ls -1 $DATA/NOAA????_${date9}.OUT |wc -l`
 let ct=1
 while [ $ct -le $nfiles ]; do
  num=${ct}
  typeset -Z4 num
-if [ -s $DATA/NOAA${num}_${date9}.OUT ] ; then
 #-----------------------------------------------------------------
 # files in "files_fire.tar" 
 #-----------------------------------------------------------------
@@ -154,9 +154,6 @@ data=`tail -1 $DATA/NOAA${num}_${date9}.OUT`
         > $TMP_DIR/$FILE${num}.dy$day
    done
  fi
-else
- echo " Warning: $DATA/NOAA${num}_${date9}.OUT  does not exist !"
-fi
  let ct=ct+1
 done
 
@@ -197,9 +194,10 @@ done
   if [ -e $LOGFILE ]; then
     rm -f $LOGFILE
   fi
-  export pgm=aqm_bluesky2inv
-  startmsg
-  $EXECaqm/aqm_bluesky2inv   >> ${pgmout}.$h_seg 2>errfile     #----- Main Execution file
+export pgm=aqm_bluesky2inv
+#startmsg
+
+  $EXECaqm/aqm_bluesky2inv       #----- Main Execution file
   export err=$?;err_chk
  done
 ################################################################
@@ -249,18 +247,18 @@ export PTDAY=ptday.bluesky.$date.ida.txt
  #JPexport METDIR=/ptmpp1/$LOGNAME/tmp/aqm.$PDY
  export METDATA_AVAILABLE=Y
 
-#jp if [ METDATA_AVAILABLE='Y' ]; !then
+ if [ METDATA_AVAILABLE='Y' ]; then
 
-#jp    if [ -d $METDIR ]; then
-#jp       rm -rf $METDIR
-#jp    fi
-#jp    mkdir -p $METDIR
+    if [ -d $METDIR ]; then
+       rm -rf $METDIR
+    fi
+    mkdir -p $METDIR
 
-#jp    cd $METDIR
-#jp    ln -s $COMOUT/aqm.$cycle.metcro2d.ncf
-#jp    ln -s $COMOUT/aqm.$cycle.metcro3d.ncf
-#jp    ln -s $COMOUT/aqm.$cycle.metdot3d.ncf
-#jp fi
+    cd $METDIR
+    ln -s $COMOUT/aqm.$cycle.metcro2d.ncf
+    ln -s $COMOUT/aqm.$cycle.metcro3d.ncf
+    ln -s $COMOUT/aqm.$cycle.metdot3d.ncf
+ fi
 #--------------------------------------------------------
 # Directories used for input data.
 #--------------------------------------------------------
@@ -269,7 +267,7 @@ export PTDAY=ptday.bluesky.$date.ida.txt
 #--------------------------------------------------------
 # Directories used for output data.
 #--------------------------------------------------------
- export STATIC=$DATA/static/$PDY
+ export STATIC=$HYPTMP/static/$PDY
  export SCENARIO=$FEMS
 #----- remove existing and create new directory
  if [ -d $STATIC ]; then
@@ -355,8 +353,8 @@ export PTDAY=ptday.bluesky.$date.ida.txt
  fi
 
  export pgm=aqm_smkinven
- startmsg
- $EXECaqm/aqm_smkinven  >> ${pgmout}.$h_seg 2>errfile
+# startmsg
+ $EXECaqm/aqm_smkinven
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define grid to use for modeling: Grdmat
@@ -375,8 +373,8 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
     rm -f $LOGFILE
  fi
  export pgm=aqm_grdmat
- startmsg
- $EXECaqm/aqm_grdmat  >> ${pgmout}.$h_seg 2>errfile
+ #startmsg
+ $EXECaqm/aqm_grdmat
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define speciation mechanism and input files: Spcmat
@@ -400,8 +398,8 @@ export PGMAT=$STATIC/pgmat_raw.$IOAPI_GRIDNAME_1.$PDY.fire.ncf
     rm -f $LOGFILE
  fi
  export pgm=aqm_spcmat
- startmsg 
-$EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
+ # startmsg 
+$EXECaqm/aqm_spcmat
  export err=$?;err_chk
 #--------------------------------------------------------
 # Define input files for Temporal program: Temporal
@@ -412,7 +410,7 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
  export PTPRO=$FIXaqm/amptpro.small-daytime.us+can.txt
  #----- Assume a 48hr forecast (need 49 data from the 1st beginning)
  export G_STDATE=$jday
- export G_STTIME=${cyc}0000
+ export G_STTIME=${CYC}0000
  export G_RUNLEN=${nstep}0000
 #--------------------------------------------------------
 # Output temporal allocation and supplemental files
@@ -427,8 +425,8 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
     rm -f $LOGFILE
  fi
  export pgm=aqm_temporal
- startmsg
- $EXECaqm/aqm_temporal   >> ${pgmout}.$h_seg 2>errfile
+# startmsg
+ $EXECaqm/aqm_temporal
  export err=$?;err_chk
 #--------------------------------------------------------------------
 # Plume rise calculation
@@ -440,10 +438,8 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
   export USE_BLUESKY_DATA=Y
   export SMK_EMLAYS=${SMKLAY:-}
 #----- Met. input files
-#jp  export MET_CRO_3D=$METDIR/aqm.$cycle.metcro3d.ncf
-#jp  export MET_DOT_3D=$METDIR/aqm.$cycle.metdot3d.ncf
-  export MET_CRO_3D=${COMIN}/aqm.$cycle.metcro3d.ncf
-  export MET_DOT_3D=${COMIN}/aqm.$cycle.metdot3d.ncf
+  export MET_CRO_3D=$METDIR/aqm.$cycle.metcro3d.ncf
+  export MET_DOT_3D=$METDIR/aqm.$cycle.metdot3d.ncf
 #----- Output layer fractions file
   export PLAY=$SCENARIO/play_raw.$PDY.$cycle.fire.ncf
 #----- Run Laypoint and write logfile
@@ -452,8 +448,8 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
        rm -f $LOGFILE
   fi
   export pgm=aqm_laypoint
-  startmsg
-  $EXECaqm/aqm_laypoint   >> ${pgmout}.$h_seg 2>errfile
+  #startmsg
+  $EXECaqm/aqm_laypoint
    export err=$?;err_chk
  fi
 #--------------------------------------------------------
@@ -499,8 +495,8 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
     rm -f $LOGFILE
  fi
  export pgm=aqm_smkmerge
- startmsg
- $EXECaqm/aqm_smkmerge   >> ${pgmout}.$h_seg 2>errfile
+# startmsg
+ $EXECaqm/aqm_smkmerge
  export err=$?;err_chk
 #--------------------------------------------------------
 # get inventory reports from Smkreport program
@@ -523,8 +519,8 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
     rm -f $LOGFILE
  fi
  export pgm=aqm_smkreport
- startmsg
- $EXECaqm/aqm_smkreport    >> ${pgmout}.$h_seg 2>errfile
+# startmsg
+ $EXECaqm/aqm_smkreport
  export err=$?;err_chk
 #-----------------------------------------------------------------
 # Location of log3 files, starting merge file
@@ -571,7 +567,7 @@ $EXECaqm/aqm_spcmat   >> ${pgmout}.$h_seg 2>errfile
 # Execution mrggrid
 #-----------------------------------------------------------------
  export pgm=aqm_mrggrid
- $EXECaqm/aqm_mrggrid    >> ${pgmout}.$h_seg 2>errfile
+ $EXECaqm/aqm_mrggrid
  export err=$?;err_chk
  
  if [ ! -f $OUTFILE ]; then
@@ -588,7 +584,7 @@ cp -rp $COMOUT/aqm.${cycle}.$PDY.emis+fire_HYSPLIT.ncf $COMOUT/aqm.${cycle}.emis
 ########################################################
 
 msg='ENDED NORMALLY.'
-postmsg "$jlogfile" "$msg"
+#postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

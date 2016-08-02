@@ -1,0 +1,71 @@
+#%Module######################################################################
+##                                                     Jianping.Huang@noaa.gov
+##                                                          IMSG@NOAA/NWS/NCEP/EMC
+## CMAQ v5.0.2
+##_____________________________________________________
+proc ModulesHelp { } {
+puts stderr "Set environment veriables for compileing or running CMAQ"
+puts stderr "This module initializes the enviro nment "
+puts stderr "for the Intel Compiler Suite $version\n"
+}
+module-whatis " CMAQ whatis description"
+
+set ver v5.0.2
+#set envir dev
+#set NCEPLIB /nwprod/lib
+
+#set sys [uname sysname]
+#set CMAQ /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/modulefiles/CMAQ 
+#set lname CMAQ 
+
+# These get unset by the module purge:
+#module use /opt/cray/ari/modulefiles/
+#module use /gpfs/hps/nco/ops/nwprod/lib/modulefiles/
+
+#setenv F_COMP ifort
+#setenv COMP_MP mpfort
+#setenv COMP_MPI mpiifort
+
+#setenv C_COMP icc
+#setenv C_COMP_MP mpcc
+
+#
+#setenv MDL_LIB4 /nwprod2/mos_shared.v2.4.1/lib/libmdl_4.a 
+#setenv SZ_LIB   /usrx/local/szip-2.1/lib/libsz.so.2
+
+# Known conflicts ???
+#conflict ics/12.1
+#conflict ics/14.0.1
+#conflict NetCDF/4.2/serial
+#conflict HDF4/4.2.8
+#conflict HDF5/1.8.9/serial 
+
+# Loading Intel Compiler Suite
+#module load ics/12.1
+
+### is ibmpe needed?  Seems needed for ARW, but kills NMMB build 
+#module load ibmpe
+
+# modules loaded
+module load PrgEnv-intel cray-mpich hpss
+module load NetCDF-intel-haswell/3.6.3
+module load imagemagick-intel-haswell/6.8.3
+module load png-intel-sandybridge
+module load subversion
+module load ESMF-intel-haswell/6_3_0rp1
+module load bufr-intel
+module load bacio-intel
+module load zlib-intel-haswell
+module load grib_util/1.0.3
+module load nemsio-intel
+module load nemsiogfs-intel
+module load w3emc-intel  w3nco-intel
+module load nemsio-intel/2.2.2
+module load atp
+module load g2-intel/2.5.0
+module load sp-intel/2.0.2
+module load ip-intel/3.0.0
+module load jasper-gnu-haswell/1.900.1
+module load iobuf
+
+

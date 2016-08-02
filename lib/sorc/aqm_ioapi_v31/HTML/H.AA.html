@@ -1,0 +1,1183 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<!-- @(#)$Header$ -->
+<META NAME="MSSmartTagsPreventParsing" CONTENT="TRUE"> 
+<TITLE>  The EDSS/Models-3 I/O API </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" 
+      TOPMARGIN="15" 
+      MARGINHEIGHT="15" 
+      LEFTMARGIN="15" 
+      MARGINWIDTH="15">
+
+<!--#include virtual="/INCLUDES/header.html" -->
+
+<H1>  The EDSS/Models-3  I/O API:  User Manual </H1>
+
+<H2><A NAME = "contents">
+Contents 
+</A></H2>
+
+    <UL>
+        <LI>  <A HREF = "index.html">      Back to the IOAPI Home Page </A>
+        <!--
+        <LI>  <A HREF = "#note" >          Note on the 2002 
+                                           <CODE>CMAQ</CODE>
+                                           Code Fork</A>
+        -->
+        <LI>  <A HREF = "AVAIL.html" >     Availability/Download </A>
+        <LI>  <A HREF = "TUTORIAL.html" >  Tutorial </A>
+        <LI>  <A HREF = "NEWSTUFF.html" >  
+              Research Directions / &quot;What's New&quot;</A>
+        <LI>  <A HREF = "CHANGES.html" >  
+              Changes from I/O&nbsp;API Version&nbsp;1 to Version&nbsp;2</A>
+        <LI>  <A HREF = "#conventions">      Conventions </A>
+              <UL>
+                  <LI><A HREF = "LOGICALS.html"   >Logical Names</A>
+                  <LI><A HREF = "ENVIRONMENT.html">Standard
+                                                     environment variables</A>
+                  <LI><A HREF = "GRIDS.html"      >Grids and Coordinates</A>
+                  <LI><A HREF = "FORTRAN.html"    >Calling from Fortran</A>
+                  <LI><A HREF = "C.html"          >Calling from C</A>
+                  <LI><A HREF = "VBLE.html"       >Files, Variables, 
+                                                     Layers, Time Steps</A>
+                  <LI><A HREF = "BUFFERED.html"    >Files:  
+                                                     netCDF disk files and
+                                                     PVM virtual files</A>
+              </UL>
+        <LI>  <A HREF = "DATATYPES.html" > Data Types </A>
+        <LI>  <A HREF = "LIBS.html">       Object Libraries and 
+                                             Executables</A>
+        <LI>  <A HREF = "INCLUDE.html">    Public INCLUDE FILES </A>
+        <LI>  <A HREF = "#ioapi">            Public I/O Routines </A>
+        <LI>  <A HREF = "#coordstuff">       Coordinate and Grid
+                                             Related Routines </A>
+        <LI>  <A HREF = "#datestuff">        Date-Time Manipulation 
+                                             Routines </A>
+        <LI>  <A HREF = "#utility">          Utility Routines </A>
+        <LI>  <A HREF = "#tools">            Related Programs; Examples </A>
+        <LI>  <A HREF = "ERRORS.html" >
+                                             I/O API Troubleshooting </A>
+        <LI>  <A HREF = "REQUIREMENTS.html" >
+                                             Requirements Document  </A>
+        <LI>  <A HREF = "NOTICES.html" >     Notices:  Copyright,
+                                             Acknowledgements</A>
+                                             <P>
+        <LI>  <A HREF = 
+	      "http://www.unidata.ucar.edu/packages/netcdf/index.html" >       
+                                             netCDF User's Guide </A>
+                                             (at NCAR's netCDF home
+                                             web-site)
+        <LI>  <A HREF = "http://www.netlib.org/pvm3/book/pvm-book.html" >
+                                             PVM: Parallel Virtual
+                                             Machine <BR>
+                                             A Users' Guide and Tutorial
+                                             for Networked Parallel
+                                             Computing</A>
+                                             (at Oak Ridge's web site)
+    </UL>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<BLOCKQUOTE>
+    <STRONG>
+    This web page is under construction. <BR>
+    As a matter of fact ALL web pages are under construction 
+    whether they admit it or not. <BR>
+    </STRONG>
+    --Found on the web page of Do Wong Chu<P> 
+    
+    <H2 ALIGN="CENTER">
+    <A HREF = "http://www.anybrowser.org/campaign/">
+    Best Viewed With Any Browser
+    </A></H2>
+
+    These pages are <STRONG>All Browser Enhanced<SUP>tm</SUP></STRONG>.  
+    There are absolutely no &lt;<CODE>BLINK</CODE>&gt;ing text, 
+    unnecessary and ill-considered &lt;<CODE>TABLE</CODE>&gt;s nor
+    &lt;<CODE>FRAME</CODE>&gt;s, nor obnoxious &lt;<CODE>FONT</CODE>&gt; 
+    <CODE>COLOR</CODE>s, <CODE>SIZE</CODE>s, or <CODE>FACE</CODE>s 
+    at this &lt;<CODE>CENTER</CODE>&gt;, nor are there in-line 
+    &lt;<CODE>IMAGE</CODE>&gt;s that take forever to load.<P>
+ 
+    Please report any problems to the
+    <A HREF = "mailto:carlie.coats@baronams.com">author Carlie Coats
+    (carlie.coats@baronams.com)</A>.
+
+</BLOCKQUOTE>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+
+This hyperdocument describes the current (second) working edition of 
+the  I/O API.  Both the original working prototype and this version
+are implemented on top of <A HREF = 
+"http://www.unidata.ucar.edu/packages/netcdf/index.hltml"> netCDF </A>,
+(c)1993 <A HREF = "http://ucarwww.ucar.edu:8080/"> University Corporation 
+for Atmospheric Research </A>.  NetCDF provides an application- and 
+machine-independent interface to self-describing, multidimensional 
+scientific data.  It supports an abstract view of scientific data as 
+a collection of named variables and their attributes, and provides 
+access to data that is faithful to the abstraction.
+<P>
+    
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<!-- 
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "note" >
+    NOTE</A> on the 2002 <STRONG><CODE>CMAQ</CODE></STRONG>
+    Code Fork
+</H2>
+
+    The 2002 <CODE>CMAQ</CODE> release contains a fork
+    of the I/O&nbsp;API.  There are performance and data integrity
+    problems associated with this <CODE>CMAQ</CODE> fork.  These
+    problems are the responsibility of EPA and <STRONG>are not the
+    responsibility of the original author/maintainer of the
+    I/O&nbsp;API.</STRONG>
+    <P>
+    In particular, the following are known problems:
+    <UL>
+        <LI> <CODE>INTERPX</CODE> has serious data integrity issues and
+             performance issues.  The <CODE>CMAQ</CODE> implementation
+             will operate correctly only in the context of single-patch
+             fixed-decomposition executables (as found in the 2002
+             <CODE>CMAQ</CODE> release).  Other uses will lead to
+             silent data corruption problems. The version of
+             <CODE>INTERPX</CODE> found in Version&nbsp;2.2 of the
+             I/O&nbsp;API does not suffer from the integrity problem,
+             and only suffers from a moderate (rather than massive)
+             performance penalty caused by the extra extraction
+             overhead.
+             <P>
+        <LI> <CODE>WRITEX</CODE> has serious data integrity problems.
+             It can corrupt I/O&nbsp;API internal and on-disk data
+             structures (violating I/O&nbsp;API  integrity checks),
+             and will only  generate correct results if all of the
+             following are true:
+             <OL>
+                 <LI>  if the hardware works flawlessly;
+                 <LI>  if the model software works flawlessly; and
+                 <LI>  if the model in question is running stand-alone
+                       (i.e., if no other model is examining outputs
+                       at the same time <CODE>CMAQ</CODE> is
+                       executing).
+             </OL>
+             This problem is inherent to the concept of
+             <CODE>WRITEX</CODE>, and is the result of the way
+             the 2002 <CODE>CMAQ</CODE> release violates the Models-3
+             architectural analysis.
+    </UL>
+    <BLOCKQUOTE><EM>
+    Carlie J. Coats, Jr., Ph.D.<BR>
+    I/O&nbsp;API Author
+    </EM></BLOCKQUOTE>
+    <P>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+-->
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "TUTORIAL.html" >
+     I/O API Tutorial    
+     </A></H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "AVAIL.html" >
+     Availability/Download of the EDSS/Models-3 I/O&nbsp;API
+     </A></H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "CHANGES.html"> 
+Changes from the Previous I/O API Version 
+</A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "conventions"> Conventions </A> </H2>
+
+    <DL>
+        <DT> <A HREF = "LOGICALS.html"> 
+             <STRONG>Logical Names</STRONG>:
+             </A>
+             environment variables and &quot;setenv&quot;
+        <DT> <A HREF = "ENVIRONMENT.html" >
+             <STRONG>Standard environment variables</STRONG>:
+             </A>
+             LOGFILE, SCENFILE, EXECUTION_ID, GRIDDESC, PROMPTFLAG
+        <DT> <A HREF = "GRIDS.html">
+             <STRONG>Grids and Coordinate Systems</STRONG>:
+             </A>
+             both horizontal and vertical
+        <DT> <A HREF = "DATETIME.html">
+             <STRONG>Dates and Times and Time-increments</STRONG>:
+             </A>  
+             integers YYYYDDD:HHMMSS
+        <DT> <A HREF = "FORTRAN.html">
+             <STRONG>Calling from Fortran</STRONG>:
+             </A>
+             Just <EM>do</EM> it.
+        <DT> <A HREF = "C.html">
+             <STRONG>Calling from C</STRONG>:
+             </A>
+             (but use <VAR>f77</VAR> to link the &quot;.o&quot; files)
+        <DT> <A HREF = "VBLE.html">
+             <STRONG>Files</STRONG>:
+             </A>                             
+             Variables, Layers, and Time Steps
+        <DT> <A HREF = "BUFFERED.html">
+             <STRONG>Files</STRONG>:
+             </A>                             
+             NetCDF disk files, PVM-mailbox <STRONG>virtual</STRONG> 
+             &quot;files&quot, and <STRONG>buffered</STRONG> 
+             memory-resident &quot;files&quot
+    </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "DATATYPES.html" > Data Types Supported </A> </H2>
+
+    <DL>
+        <DT> <A HREF = "DATATYPES.html#dctnry">
+             <STRONG>DICTIONARY</STRONG>:
+             </A>
+             file structure repository
+        <DT> <A HREF = "DATATYPES.html#custom">
+             <STRONG>CUSTOM</STRONG>:
+             </A>
+             user-defined structure
+        <DT> <A HREF = "DATATYPES.html#grdded">
+             <STRONG>GRIDDED</STRONG>:
+             </A>
+             2D or 3D gridded data
+        <DT> <A HREF = "DATATYPES.html#bndary">
+             <STRONG>BOUNDARY</STRONG>:
+             </A>
+             boundary values for 2D or 3D gridded data
+        <DT> <A HREF = "DATATYPES.html#iddata">
+             <STRONG>ID-REFERENCED</STRONG>:
+             </A>
+             e.g., observations, county-aggregations,...
+        <DT> <A HREF = "DATATYPES.html#profil">
+             <STRONG>PROFILE</STRONG>:
+             </A>
+             special type for rawinsonde data
+        <DT> <A HREF = "DATATYPES.html#grnest">
+             <STRONG>GRID-NEST</STRONG>:
+             </A>
+             nest of 2D or 3D grids of data
+        <DT> <A HREF = "DATATYPES.html#smatrx">
+             <STRONG>SPARSE MATRIX</STRONG>:
+             </A>
+             uses &quot;skyline-transpose&quot; representation
+    </DL>
+   
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "LIBS.html"> Object Libraries and Supported Machines</A> </H2>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "INCLUDE.html"> Public INCLUDE FILES </A> </H2>
+
+    <DL>
+        <DT> <A HREF = "INCLUDE.html#fdesc">
+             <STRONG>FDESC3</STRONG>:
+             </A>
+             file description data structures
+        <DT> <A HREF = "INCLUDE.html#iodecl">
+             <STRONG>IODECL3</STRONG>:   
+             </A>
+             declarations and usage comments for I/O routines
+        <DT> <A HREF = "INCLUDE.html#parms">
+             <STRONG>PARMS3</STRONG>:
+             </A>
+             &quot;magic number &quot;tokens and dimensioning parameters
+    </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "ioapi"> I/O API:  Public Routines </A> </H2>
+
+    <DL>
+        <DT> <A HREF = "CHECK3.html" >
+             <STRONG>CHECK3</STRONG>:
+             </A>
+             is <VAR>&lt;timestep&gt;</VAR> available for 
+             <VAR>&lt;variable&gt;</VAR> from <VAR>&lt;file&gt;</VAR>?
+        <DT> <A HREF = "CLOSE3.html" >
+             <STRONG>CLOSE3</STRONG>:
+             </A>
+             close and flush <VAR>&lt;file&gt;</VAR>
+        <DT> <A HREF = "DDTVAR3.html" >
+             <STRONG>DDTVAR3</STRONG>:
+             </A>
+             compute time derivative of <VAR>&lt;variable&gt;</VAR> from 
+             <VAR>&lt;file&gt;</VAR>
+        <DT> <A HREF = "DESC3.html" >
+             <STRONG>DESC3</STRONG>:     
+             </A>
+             describe <VAR>&lt;file&gt;</VAR>
+        <DT> <A HREF = "FILCHK3.html" >
+             <STRONG>FILCHK3</STRONG>:
+             </A>
+             check a file for  consistency with user-supplied
+             set of file type and dimensions
+        <DT> <A HREF = "INIT3.html" >
+             <STRONG>INIT3</STRONG>:
+             </A>
+             start up I/O API; return log-file unit
+        <DT> <A HREF = "INTERP3.html" >
+             <STRONG>INTERP3</STRONG> and <STRONG>INTERPX</STRONG>:
+             </A>
+             interpolate <VAR>&lt;variable&gt;</VAR> from 
+	     <VAR>&lt;file&gt;</VAR> to <VAR>&lt;time&gt;</VAR>,
+             with windowing to user-selected column, row, and layer
+             ranges for <CODE>INTERPX()</CODE>
+        <DT> <A HREF = "KFINDX.html" >
+             <STRONG>KFINDX</STRONG>:
+             </A>
+             reads the event index for the indicated cell from the
+             indicated <VAR><A HREF="DATATYPES.html#kfevnt">&lt;KF 
+             event file&gt;</A></VAR>.
+        <DT> <A HREF = "KFOPEN.html" >
+             <STRONG>KFOPEN</STRONG>:
+             </A>
+             open the indicated
+             <VAR><A HREF="DATATYPES.html#kfevnt">&lt;KF event 
+             file&gt;</A></VAR> for <VAR>&lt;mode / status&gt;</VAR>,
+             using <VAR><A HREF="INCLUDE.html#fdesc">&lt;file
+             description&gt;</A></VAR> to create it, if necessary.
+        <DT> <A HREF = "KFREAD.html" >
+             <STRONG>KFREAD</STRONG>:
+             </A>
+             reads data for the specified variable at the specified
+             event, along with its grid location, starting date, 
+             starting time, and duration from the indicated 
+             <VAR><A HREF="DATATYPES.html#kfevnt">&lt;KF 
+             event file&gt;</A></VAR>.
+        <DT> <A HREF = "KFWRITE.html" >
+             <STRONG>KFWRITE</STRONG>:
+             </A>
+             writes the specified event data for the specified cell,
+             starting date, starting time, and duration to the specified 
+             <VAR><A HREF="DATATYPES.html#kfevnt">&lt;KF 
+             event file&gt;</A></VAR>, and return the corresponding
+             event number.
+        <DT> <A HREF = "OPEN3.html" >
+             <STRONG>OPEN3</STRONG>:
+             </A>
+             open <VAR>&lt;file&gt;</VAR> for <VAR>&lt;mode / status&gt;</VAR>,
+             using <VAR><A HREF="INCLUDE.html#fdesc">&lt;file
+             description&gt;</A></VAR> to create it, if necessary
+        <DT> <A HREF = "READ3.html" >
+             <STRONG>READ3</STRONG>:
+             </A>
+             read <VAR>&lt;timestep&gt;</VAR> of <VAR>&lt;layer&gt;</VAR> 
+             of <VAR>&lt;variable&gt;</VAR> from <VAR>&lt;file&gt;</VAR> 
+        <DT> <A HREF = "READ4D.html" >
+             <STRONG>READ4D</STRONG>:
+             </A>
+             read <VAR>&lt;time step sequence &gt;</VAR> of 
+             <VAR>&lt;layer&gt;</VAR> of <VAR>&lt;variable&gt;</VAR> 
+             from <VAR>&lt;file&gt;</VAR> 
+        <DT> <A HREF = "SHUT3.html" >
+             <STRONG>SHUT3</STRONG>:
+             </A>
+             shut down I/O API; flush files to disk
+        <DT> <A HREF = "WRITE3.html" >
+             <STRONG>WRITE3</STRONG>:
+             </A>
+             write <VAR>&lt;timestep&gt;</VAR> of 
+             <VAR>&lt;variable&gt;</VAR> to <VAR>&lt;file&gt;</VAR>
+        <DT> <A HREF = "WRITE4D.html" >
+             <STRONG>WRITE4D</STRONG>:
+             </A>
+             write <VAR>&lt;time step sequence &gt;</VAR> of 
+             <VAR>&lt;variable&gt;</VAR> to <VAR>&lt;file&gt;</VAR>
+        <DT> <A HREF = "XTRACT3.html" >
+             <STRONG>XTRACT3</STRONG>:
+             </A>
+             read <VAR>&lt;window&gt;</VAR> of <VAR>&lt;timestep&gt;</VAR> of 
+             <VAR>&lt;variable&gt;</VAR> from <VAR>&lt;file&gt;</VAR> 
+        <P>
+        <DT> <A HREF = "FILCHK3.html" >
+             <STRONG>FILCHK3</STRONG>:
+             </A>
+             Check that <VAR>&lt;file&gt;</VAR> has the expected
+             (user-supplied-argument) file-type and dimensions.
+        <DT> <A HREF = "SYNC3.html" >
+             <STRONG>SYNC3</STRONG>:
+             </A>
+             Synchronize <VAR>&lt;file&gt;</VAR> with disk:  flush
+             output; re-read header from disk.
+        <DT> <A HREF = "INQATT3.html" >
+             <STRONG>INQATT3</STRONG>:
+             </A>
+             Inquire the names, types, and sizes of netCDF attributes
+             for <VAR>&lt;variable&gt;</VAR> in <VAR>&lt;file&gt;</VAR>.
+        <DT> <A HREF = "RDATT3.html" >
+             <STRONG>RDATT3 and RDATTC</STRONG>:
+             </A>
+             Read value of <VAR>&lt;attribute&gt;</VAR> of
+             <VAR>&lt;variable&gt;</VAR> in <VAR>&lt;file&gt;</VAR>.
+             Numeric attributes use <CODE>RDATT3()</CODE> and
+             character-string attributes use <CODE>RDATTC()</CODE>
+        <DT> <A HREF = "WRATT3.html" >
+             <STRONG>RDATT3 and RDATTC</STRONG>:
+             </A>
+             write value of <VAR>&lt;attribute&gt;</VAR> for
+             <VAR>&lt;variable&gt;</VAR> in <VAR>&lt;file&gt;</VAR>.
+             Numeric attributes use <CODE>WRATT3()</CODE> and
+             character-string attributes use <CODE>WRATTC()</CODE>
+        <P>
+   </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "coordstuff"> Coordinate and Grid Related Routines </A> </H2>
+
+    See also programs <A HREF = "BCWNDW.html" >bcwndw</A>, 
+    <A HREF = "M3WNDW.html" >m3wndw</A>, and 
+    <A HREF = "UTMTOOL.html">utmtool</A>.
+
+    <DL>
+        <DT> <A HREF = "BMATVEC.html">
+             <STRONG>BILIN</STRONG> and <STRONG>BMATVEC</STRONG>:
+             </A>
+             apply 4-band sparse matrix to vector (e.g., for bilinear
+             interpolation; BMATVEC also does horizontal::vertical
+             transpose).
+        <DT> <A HREF = "CBARNES.html" >
+             <STRONG>CBARNES1 and CBARNESN</STRONG>:
+             </A>
+             Use Barnes analysis to interpolate scattered data to a grid
+        <DT> <A HREF = "DSCGRID.html" >
+             <STRONG>DSCOORD</STRONG>:
+             </A>
+             get description of <VAR>&lt;named coordinate system&gt;</VAR>
+        <DT> <A HREF = "DSCGRID.html" >
+             <STRONG>DSCGRID</STRONG>:
+             </A>
+             get description of <VAR>&lt;named grid&gt;</VAR>
+        <DT> <A HREF = "GCTP.html" >
+             <STRONG>GTP0</STRONG>:
+             </A>
+             driver routine <STRONG>GTPZ0</STRONG> from US Geological 
+             Survey's official <STRONG>GCTP</STRONG> coordinate system 
+             manipulation library.
+        <DT> <A HREF = "LAMBERT.html
+        " >
+             <STRONG>LAMBERT</STRONG>:
+             </A>
+             convert among various map projections:
+             <UL> 
+                  <LI> LAMBERT( CNAME, A, B, C, XC, YV ):  Initialize by name
+                  <LI> POLSTE( CNAME, A, B, C, X, Y ):	Initialize by name
+                  <LI> TRMERC( CNAME, A, B, C, X, Y ):	Initialize by name
+                  <LI> EQMERC( CNAME, A, B, C, X, Y ):	Initialize by name
+                  <LI> SETLAM( A, B, C, X, Y ):	        Initialize by angles
+                  <LI> SETPOL( A, B, C, X, Y ):	        Initialize by angles
+                  <LI> SETTRM( A, B, C, X, Y ):	        Initialize by angles
+                  <LI> SETEQM( A, B, C, X, Y ):	        Initialize by angles
+                  <LI> LAM2LL( X, Y, LON, LAT ):	Perform conversion
+                  <LI> LL2LAM( LON, LAT, X, Y ):	Perform conversion
+                  <LI> LAM2UTM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> UTM2LAM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> POL2LL ( X, Y, LON, LAT ):	Perform conversion
+                  <LI> LL2POL ( LON, LAT, X, Y ):	Perform conversion
+                  <LI> LAM2POL( X, Y, U, V ):	        Perform conversion
+                  <LI> POL2LAM( X, Y, U, V ):	        Perform conversion
+                  <LI> POL2UTM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> UTM2POL( X, Y, Z, U, V ):	Perform conversion
+                  <LI> TRM2LL( X, Y, LON, LAT ):	Perform conversion
+                  <LI> LL2TRM( LON, LAT, X, Y ):	Perform conversion
+                  <LI> TRM2LAM( X, Y, U, V ):	        Perform conversion
+                  <LI> LAM2TRM( X, Y, U, V ):	        Perform conversion
+                  <LI> TRM2UTM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> UTM2TRM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> TRM2POL( X, Y, U, V ):	        Perform conversion
+                  <LI> POL2TRM( X, Y, U, V ):	        Perform conversion
+                  <LI> EQM2LL( X, Y, LON, LAT ):	Perform conversion
+                  <LI> LL2EQM( LON, LAT, X, Y ):	Perform conversion
+                  <LI> EQM2LAM( X, Y, U, V ):	        Perform conversion
+                  <LI> LAM2EQM( X, Y, U, V ):	        Perform conversion
+                  <LI> EQM2UTM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> UTM2EQM( X, Y, Z, U, V ):	Perform conversion
+                  <LI> EQM2TRM( X, Y, U, V ):	        Perform conversion
+                  <LI> TRM2EQM( X, Y, U, V ):	        Perform conversion
+                  <LI> EQM2POL( X, Y, U, V ):	        Perform conversion
+                  <LI> POL2EQM( X, Y, U, V ):	        Perform conversion
+                  <P>
+             </UL>
+        <DT> <A HREF = "LL2UTM.html" >
+             <STRONG>LL2UTM and UTM2LL</STRONG>:
+             </A>
+             convert between LAT-LON and UTM coordinates
+        <DT> <A HREF = "SETSPHERE.html" >
+             <STRONG>SETSPHERE and SPHEREDAT</STRONG>:
+             </A>
+             select non-default geodetic spheroids for LAMBERT, LL2UT
+             etc.
+        <DT> <A HREF = "UNGRIDB.html" >
+             <STRONG>UNGRIDB</STRONG>:
+             </A>
+             computes &quot;ungridding&quot;matrices for bilinear
+             interpolation (e.g., with <A HREF = "BMATVEC.html">BILIN 
+             or BMATVEC)</A>
+    </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "datestuff"> Date-Time Manipulation Routines </A> </H2>
+
+    See also programs <A HREF = "DATSHIFT.html">DATSHIFT</A>,
+    <A HREF = "GREGDATE.html">gregdate</A> and 
+    <A HREF = "JULDATE.html">juldate</A> for date-related
+    calculations, and <A HREF = "M3TPROC.html">m3tproc</A> and 
+    <A HREF = "M3TSHIFT">m3tshift</A> for time-related file
+    operations.
+
+    <DL>
+        <DT> <A HREF = "CURRSTEP.html">
+             <STRONG>CURRSTEP</STRONG> and <STRONG>CURREC</STRONG>:
+             </A>
+             find starting date and time, or record-number
+             respectively, of the timestep containing 
+            <VAR>&lt;jdate-&amp;-time&gt;</VAR>
+        <DT> <A HREF = "DAYMON.html" >
+             <STRONG>DAYMON</STRONG>:
+             </A>
+             find month and day-of-month for <VAR>&lt;jdate&gt;</VAR>
+        <DT> <A HREF = "DT2STR.html" >
+             <STRONG>DT2STR</STRONG>:
+             </A>
+             Construct string &quot;HH:MM:SS Month DD, YYYY&quot; for 
+             <VAR>&lt;jdate-&amp;-time&gt;</VAR>
+        <DT> <A HREF = "GETDATE.html" >
+             <STRONG>GETDATE</STRONG>:
+             </A>
+             Prompt the user for a date; return the result according to
+             <A HREF = "DATETIME.html">EDSS/Models3 standard 
+             conventions for dates and times</A>
+        <DT> <A HREF = "GETDTTIME.html" >
+             <STRONG>GETDTTIME</STRONG>:
+             </A>
+             get current wall-clock date and time
+        <DT> <A HREF = "HHMMSS.html" >
+             <STRONG>HHMMSS</STRONG>:
+             </A>
+             construct string &quot;HH:MM:SS&quot; for 
+             <VAR>&lt;time&gt;</VAR>
+        <DT> <A HREF = "ISDSTIME.html" >
+             <STRONG>ISDSTIME</STRONG>:
+             </A>
+             TRUE if Daylight Savings Time in effect for 
+             <VAR>&lt;jdate&gt;</VAR>
+        <DT> <A HREF = "JSTEP3.html" >
+             <STRONG>JSTEP3</STRONG>:
+             </A>
+             Compute record number (1,2,...) for  
+             <VAR>&lt;jdate:jtime&gt;</VAR> with respect to the
+             time step sequence  <VAR>&lt;sdate:stime:tstep&gt;</VAR>,
+             or (-1) if <VAR>&lt;jdate:jtime&gt;</VAR> is not on that
+             sequence.
+        <DT> <A HREF = "JULIAN.html" >
+             <STRONG>JULIAN</STRONG>:
+             </A>
+             find Julian day number (1...365,366) for 
+             <VAR>&lt;month&gt; &lt;day&gt; &lt;year&gt;</VAR>
+        <DT> <A HREF = "MMDDYY.html" >
+             <STRONG>MMDDYY</STRONG>:
+             </A>
+             construct string &quot;Month DD, YYYY&quot; for 
+             <VAR>&lt;jdate&gt;</VAR>
+        <DT> <A HREF = "NEXTIME.html" >
+             <STRONG>NEXTIME</STRONG>:
+             </A>
+             update <VAR>&lt;jdate-&amp;-time&gt;</VAR> by 
+             <VAR>&lt;timestep&gt;</VAR>
+        <DT> <A HREF = "SEC2TIME.html" >
+             <STRONG>SEC2TIME</STRONG>:
+             </A>
+             get Models-3 time representation for <VAR>&lt;seconds&gt;</VAR>
+        <DT> <A HREF = "SECSDIFF.html" >
+             <STRONG>SECSDIFF</STRONG>:
+             </A>
+             find time difference (seconds) between two 
+             <VAR>&lt;jdate-&amp;-time&gt;</VAR> pairs 
+        <DT> <A HREF = "TIME2SEC.html" >
+             <STRONG>TIME2SEC</STRONG>:
+             </A>
+             get number of seconds for <VAR>&lt;time&gt;</VAR>
+        <DT> <A HREF = "WKDAY.html" >
+             <STRONG>WKDAY</STRONG>:
+             </A>
+             get day-of-week (1...7) for <VAR>&lt;jdate&gt;</VAR>
+        <DT> <A HREF = "YEAR4.html" >
+             <STRONG>YEAR4</STRONG>:
+             </A>
+             Return 4-digit year for the given 2-digit year (e.g., 
+             YEAR4(97)==1997)
+        <DT> <A HREF = "YR2DAY.html" >
+             <STRONG>YR2DAY</STRONG>:
+             </A>
+             get the year-to-day conversion factor (1/365 or 1/366)
+             for the given year.
+    </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "utility"> Utility Routines </A> </H2>
+
+    <DL>
+        <DT> <A HREF = "BMATVEC.html" >
+             <STRONG>BILIN and BMATVEC</STRONG>:
+             </A>
+             apply 4-band sparse matrix to vector (e.g., for bilinear
+             interpolation).  For layered data, BMATVEC performs
+             interpolate-and-transpose, transforming data from 
+             I/O&nbsp;API layer order to (e.g.) SMOKE LAYPOINT 
+             computational order.
+        <DT> <A HREF = "CBARNES.html" >
+             <STRONG>CBARNES1 and CBARNESN</STRONG>:
+             </A>
+             Use Barnes analysis to interpolate scattered data to a grid
+        <DT> <STRONG>CHARACTER*2 FUNCTION CRLF()</STRONG>:
+             returns character string &quot;&lt;CR&gt;&lt;LF&gt;&quot;
+             (DOS/Windows line terminator)
+        <DT> <A HREF = "DMATVEC.html" >
+             <STRONG>DMATVEC</STRONG>:
+             </A>
+             applies diagonal (sparse) matrix to vector
+        <DT> <A HREF = "DSCGRID.html" >
+             <STRONG>DSCOORD</STRONG>:
+             </A>
+             get description of <VAR>&lt;named coordinate system&gt;</VAR>
+        <DT> <A HREF = "DSCGRID.html" >
+             <STRONG>DSCGRID</STRONG>:
+             </A>
+             get description of <VAR>&lt;named grid&gt;</VAR>
+        <DT> <A HREF = "ENVDBLE.html" >
+             <STRONG>ENVDBLE</STRONG>:
+             </A>
+             get DOUBLE PRECISION <VAR>&lt;value of logical name&gt;</VAR> 
+             from the environment
+        <DT> <A HREF = "ENVINT.html" >
+             <STRONG>ENVINT</STRONG>:
+             </A>
+             get INTEGER <VAR>&lt;value of logical name&gt;</VAR> from 
+	     the environment
+        <DT> <A HREF = "ENVREAL.html" >
+             <STRONG>ENVREAL</STRONG>:
+             </A>
+             get REAL <VAR>&lt;value of logical name&gt;</VAR> from 
+	     the environment
+        <DT> <A HREF = "ENVSTR.html" >
+             <STRONG>ENVSTR</STRONG>:
+             </A>
+             get CHARACTER-STRING <VAR>&lt;value of logical name&gt;</VAR> 
+             from the environment
+        <DT> <A HREF = "ENVYN.html" >
+             <STRONG>ENVYN</STRONG>:
+             </A>
+             get LOGICAL <VAR>&lt;value of logical name&gt;</VAR> 
+	     from the environment
+        <DT> <A HREF = "FINDS.html" >
+             <STRONG>FINDC, FIND1, FIND2, FIND3, FIND4,
+             FINDR1, FINDR2, FINDR3, FINDR4</STRONG>:
+             </A>
+             find character-string <VAR>&lt;key&gt;</VAR>, INTEGER, or
+             REAL <VAR>&lt;key-tuple&gt;</VAR> in sorted
+             <VAR>&lt;key-table&gt;</VAR> or 
+             <VAR>&lt;keytuple-table&gt;</VAR>
+        <DT> <A HREF = "GCD.html" >
+             <STRONG>GCD</STRONG>:
+             </A>
+             greatest common divisor function
+        <DT> <A HREF = "GETDFILE.html" >
+             <STRONG>GETDFILE</STRONG>:
+             </A>
+             open direct access Fortran file with 
+	     <VAR>&lt;logical name&gt;</VAR> 
+             and <VAR>&lt;record length&gt;</VAR>, 
+             <VAR>&lt;formatting&gt;</VAR> and  <VAR>&lt;read-write 
+             status&gt;</VAR>
+        <DT> <A HREF = "GETEFILE.html" >
+             <STRONG>GETEFILE</STRONG>:
+             </A>
+             open sequential Fortran file with 
+             <VAR>&lt;logical name&gt;</VAR>,  <VAR>&lt;formatting&gt;</VAR>
+             and  <VAR>&lt;read-write status&gt;</VAR>
+        <DT> <A HREF = "GETDBLE.html" >
+             <STRONG>GETDBLE</STRONG>:
+             </A>
+             prompt user for DOUBLE and get response, with default and
+             range checking
+        <DT> <A HREF = "GETMENU.html" >
+             <STRONG>GETMENU</STRONG>:
+             </A>
+             prompt user for menu choice, etc.
+        <DT> <A HREF = "GETNUM.html" >
+             <STRONG>GETNUM</STRONG>:
+             </A>
+             prompt user for INTEGER, etc.
+        <DT> <A HREF = "GETREAL.html" >
+             <STRONG>GETREAL</STRONG>:
+             </A>
+             prompt user for REAL, etc.
+        <DT> <A HREF = "GETSTR.html" >
+             <STRONG>GETSTR</STRONG>:
+             </A>
+             prompt user for CHARACTER STRING, etc.
+        <DT> <A HREF = "GETYN.html" >
+             <STRONG>GETYN</STRONG>:
+             </A>
+             prompt user for &quot;Yes-No&quot; answer, etc.
+        <DT> <A HREF = "GRIDOPS.html" >
+             <STRONG>GRIDOPS</STRONG>:
+             </A>
+             select and compute various comparison operations
+        <DT> <A HREF = "INDEX1.html" >
+             <STRONG>INDEX1</STRONG>:
+             </A>
+             <VAR>&lt;unsorted-name-table&gt;</VAR> lookup for 
+             <VAR>&lt;character-string key&gt;</VAR>
+        <DT> <A HREF = "JUNIT.html" >
+             <STRONG>JUNIT</STRONG>:
+             </A>
+             return a &quot;safe&quot; 
+             <VAR>&lt;Fortran unit number&gt;</VAR>
+        <DT> <A HREF = "LBLANK.html" >
+             <STRONG>LBLANK</STRONG>:
+             </A>
+             number of leading blanks in <VAR>&lt;string&gt;</VAR>
+        <DT> <A HREF = "LEN2.html">
+             <STRONG>LEN2</STRONG>:
+             </A>
+             number of leading blanks in <VAR>&lt;string&gt;</VAR>; 
+             superseded by (more-generic) LBLANK().
+        <DT> <A HREF = "LISTS.html">
+             <STRONG>INTLIST</STRONG>, <STRONG>REALIST</STRONG>, and
+             <STRONG>STRLIST</STRONG>:
+             </A>
+             Read in (and count) environment variables that are comma
+             delimited lists of the indicated type.
+        <DT> <A HREF = "LOCATS.html" >
+             <STRONG>LOCATC, LOCAT1, LOCAT2, LOCAT3, LOCAT4,
+             LOCATR1, LOCATR2, LOCATR3, LOCATR4</STRONG>:
+             </A>
+             find insertion-point for character-string 
+             <VAR>&lt;key&gt;</VAR> or INTEGER or
+             REAL <VAR>&lt;key-tuple&gt;</VAR> into sorted
+             <VAR>&lt;key-table&gt;</VAR> or 
+             <VAR>&lt;keytuple-table&gt;</VAR>, or -1 if the 
+             key is already present
+        <DT> <A HREF = "LUSTR.html" >
+             <STRONG>LUSTR</STRONG>:
+             </A>
+             left-justify and upcase contents of <VAR>&lt;string&gt;</VAR>; 
+        <DT> <A HREF = "M3ERR.html" >
+             <STRONG>M3ERR</STRONG>:
+             </A>
+             <VAR>&lt;warning or error message&gt;</VAR>; 
+             with SHUT3() and EXIT(2) if fatal error; 
+             <STRONG>deprecated:</STRONG>  superseded by 
+	     M3EXIT() and M3WARN()             
+        <DT> <A HREF = "M3EXIT.html" >
+             <STRONG>M3EXIT</STRONG>:
+             </A>
+             <VAR>&lt;exit message&gt;</VAR> with 
+             <VAR>&lt;date and time&gt;</VAR>, 
+             SHUT3() and EXIT(<VAR>&lt;status&gt;</VAR>)
+        <DT> <A HREF = "M3MESG.html" >
+             <STRONG>M3MESG</STRONG> and <STRONG>M3MSG2</STRONG>:
+             </A>
+             Write 1-line <VAR>&lt;message&gt;</VAR> to Fortran-program log.
+        <DT> <A HREF = "M3WARN.html" >
+             <STRONG>M3WARN</STRONG>:
+             </A>
+             <VAR>&lt;warning message&gt;</VAR> with 
+             <VAR>&lt;date and time&gt;</VAR>
+        <DT> <A HREF = "NAMEVAL.html" >
+             <STRONG>NAMEVAL</STRONG>:
+             </A>
+             get (CHARACTER-STRING) value of 
+             <VAR>&lt;environment variable&gt;</VAR> (for Fortran)
+        <DT> <A HREF = "PCOEF.html" >
+             <STRONG>PCOEF</STRONG>:
+             </A>
+             coefficients for the polynomial fitting given data
+        <DT> <A HREF = "PMATVEC.html" >
+             <STRONG>PMATVEC</STRONG>:
+             </A>
+             applies sparse incidence matrix to vector
+        <DT> <A HREF = "POLY.html" >
+             <STRONG>POLY</STRONG>:
+             </A>
+             <VAR>degree-&lt;d&gt;</VAR> polynomial interpolation
+        <DT> <A HREF = "PROMPTDFILE.html" >
+             <STRONG>PROMPTDFILE</STRONG>:
+             </A>
+             Prompt user for <VAR>&lt;logical name&gt;</VAR>
+             and open the corresponding file for Fortran direct
+             access with the indicated  <VAR>&lt;read-write 
+             status&gt;</VAR>, <VAR>&lt;formatting&gt;</VAR>, and
+             <VAR>&lt;record length&gt;</VAR>
+        <DT> <A HREF = "PROMPTFFILE.html" >
+             <STRONG>PROMPTFFILE</STRONG>:
+             </A>
+             Prompt user for <VAR>&lt;logical name&gt;</VAR>
+             and open the corresponding file for Fortran
+             sequential access with the indicated  <VAR>&lt;read-write 
+             status&gt;</VAR> and <VAR>&lt;formatting&gt;</VAR>
+        <DT> <A HREF = "PROMPTMFILE.html" >
+             <STRONG>PROMPTMFILE</STRONG>:
+             </A>
+             Prompt user for <VAR>&lt;logical name&gt;</VAR>
+             and open the corresponding I/O API file for 
+             sequential access with the indicated  <VAR>&lt;read-write 
+             status&gt;</VAR> and <VAR>&lt;formatting&gt;</VAR>
+        <DT> <A HREF = "READSMET.html" >
+             <STRONG>READSMET</STRONG>:
+             </A>
+             read 1 hour's data window from surface met file.
+        <DT> <A HREF = "SETENV.html" >
+             <STRONG>SETENVVAR</STRONG>:
+             </A>
+             Subroutine-call equivalent to <VAR>csh</VAR> command
+             <CODE>setenv&nbsp;name&nbsp;value</CODE>
+        <DT> <A HREF = "SMATVEC.html" >
+             <STRONG>SMATVEC</STRONG>:
+             </A>
+             applies sparse matrix to vector
+        <DT> <A HREF = "SORTI.html" >
+             <STRONG>SORTC, SORTI1, SORTI2, SORTI3, SORTI4,
+             SORTR1, SORTR2, SORTR3, SORTR4 </STRONG>:
+             </A>
+             sort <VAR>&lt;index table&gt;</VAR> acording to a 
+             character string key-table, or a  
+             <VAR>&lt;keytuple-table&gt;</VAR> of INTEGERs or REALs.
+        <DT> <A HREF = "STR2S.html" >
+             <STRONG>SCANINT, STR2INT, and STR2REAL</STRONG>:
+             </A>         
+             Convert a numeric <VAR>&lt;string&gt;</VAR> into an INTEGER
+             or REAL value
+        <DT> <A HREF = "SYSTEMF.html" >
+             <STRONG>SYSTEMF()</STRONG></A>:
+             Fortran wrapper around standard <VAR>system()</VAR> C-library 
+             call:  execute shell-commands and other programs from within 
+             Fortran code.
+        <DT> <A HREF = "TRIMLEN.html" >
+             <STRONG>TRIMLEN</STRONG>:
+             </A>         
+             length of <VAR>&lt;string&gt;</VAR>, not counting trailing blanks
+        <DT> <A HREF = "UNGRIDB.html" >
+             <STRONG>UNGRIDB</STRONG>:
+             </A>
+             computes &quot;ungridding&quot;matrices for bilinear
+             interpolation
+        <DT> <A HREF = "UPCASE.html" >
+             <STRONG>UPCASE</STRONG>:
+             </A>
+             make <VAR>&lt;string&gt;</VAR> into ALL CAPS
+    </DL>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A NAME = "tools"> 
+     I/O API Related Programs and Examples
+</A> </H2>
+
+    <DL>
+        <DT> <A HREF = "SAMPLE.html" >
+             <STRONG>Some Sample Programs</STRONG></A> using the I/O API:
+        <P>
+        <DT> <A HREF = "NCDUMP.html" >
+             <STRONG>ncdump</STRONG>:
+             </A>
+             print file as structured ASCII;  from NCAR
+        <P>
+        <DT> <A HREF = "/projects/ppar/mcpl.html" >
+             <STRONG>MCPL I/O&nbsp;API output module for MM5</STRONG>:
+             </A>
+             Generate I/O&nbsp;API output files directly from within
+             MM5, for analysis, emissions modeling, air quality
+             modeling, and model coupling.
+        <P>
+        <DT> <A HREF = "AIRS2M3.html" >
+             <STRONG>airs2m3</STRONG>: 
+             </A>
+             Import air quality monitor data from an AIRS AMP350-format
+             ASCII file and put it into an I/O&nbsp;API
+             &quot;observational data&quot; file.
+        <P>
+        <DT> <A HREF = "BCWNDW.html" >
+             <STRONG>bcwndw</STRONG>: 
+             </A>
+             extract data data from a gridded file to the boundary of
+             a subgrid window (see <STRONG>m3wndw</STRONG> for extracting
+             to the window itself)
+        <P>
+        <DT> <A HREF = "M3CPLE.html" >
+             <STRONG>m3cple</STRONG>:
+             </A>
+             copy to the same grid, or interpolate to another grid
+             a time sequence of all variables from a source file to 
+             a target file, under the optional control of an
+             <A HREF="BUFFERED.html#pvm">I/O&nbsp;API coupling-mode 
+             &quot;synch file&quot;</A>.
+        <DT> <A HREF = "M3COMBO.html" >
+             <STRONG>m3combo</STRONG>:
+             </A>
+             Compute linear combinations of sets of variables from 
+             an I/O&nbsp;API input file, and write the resulting
+             variables to an I/O&nbsp;API output file.
+        <DT> <A HREF = "M3DIFF.html" >
+             <STRONG>m3diff</STRONG>:
+             </A>
+             compute statistics for pairs of variables and for the results 
+             of applying various comparison  (&quot;differencing&quot;) 
+             operations to those variables in a pair of files.
+       <DT> <A HREF = "M3EDHDR.html" >
+             <STRONG>m3edhdr</STRONG>:
+             </A>
+             edit header attributes/file descriptive parameters
+        <DT> <A HREF = "M3MERGE.html" >
+             <STRONG>m3merge</STRONG>:
+             </A>
+             Merges selected variables from a set of input files for a
+             specified time period, and writes them to a single output
+             file, with optional variable-renaming in the process.
+        <DT> <A HREF = "M3PAIR.html" >
+             <STRONG>m3pair</STRONG>:
+             </A>
+             build ASCII file of paired values for two variables from
+             two files, within a user-selected window into the grid, 
+             according to user specifications,
+        <DT> <A HREF = "M3STAT.html" >
+             <STRONG>m3stat</STRONG>:
+             </A>
+             compute statistics for variables in a file
+        <DT> <A HREF = "M3TPROC.html" >
+             <STRONG>m3tproc</STRONG>:
+             </A>
+             compute time period aggregates (e.g., 08:00-16:00 
+             gridded daily maxima) and write them to an output file
+        <DT> <A HREF = "M3TSHIFT.html" >
+             <STRONG>m3tshift</STRONG>:
+             </A>
+             copy/time shift data from a file
+        <DT> <A HREF = "M3WNDW.html" >
+             <STRONG>m3wndw</STRONG>: 
+             </A>
+             window data from a gridded file to a subgrid (see 
+             <STRONG>bcwndw</STRONG> for extracting
+             to the boundary of the subgrdi window)
+        <DT> <A HREF = "M3XTRACT.html" >
+             <STRONG>m3xtract</STRONG>:
+             </A>
+             extract a subset of variables from a file for 
+             <VAR>&lt;time interval&gt;</VAR>
+        <DT> <A HREF = "M3FAKE.html" >
+             <STRONG>m3fake</STRONG>:
+             </A>
+             build a file according to user specifications,
+             filled with dummy data, or data read in from a
+             set of user-supplied files.
+        <DT> <A HREF = "M4FILTER.html" >
+             <STRONG>m4filter</STRONG>:
+             </A>
+             convert first-edition Models-3 files to current version
+        <DT> <A HREF = "MTXBLEND.html" >
+             <STRONG>mtxblend</STRONG>:
+             </A>
+             Use a sparse-matrix file to interpolate/transform data
+             from an input file to the grid of a &quot;base&quot; file
+             and to merge it with data from the &quot;base&quot; file.
+        <DT> <A HREF = "MTXBUILD.html" >
+             <STRONG>mtxbuild</STRONG>:
+             </A>
+             Build a sparse-matrix transform file from user-supplied
+             ASCII coefficient inputs.
+        <DT> <A HREF = "MTXCALC.html" >
+             <STRONG>mtxcalc</STRONG>:
+             </A>
+             Build a grid-to-grid sparse-matrix transform file using
+             a sub-sampling algorithm.
+        <DT> <A HREF = "MTXCPLE.html" >
+             <STRONG>mtxcple</STRONG>:
+             </A>
+             Use a sparse-matrix file to interpolate a time sequence of
+             all variables from a source file to  a target file, under
+             the optional control of an
+             <A HREF="BUFFERED.html#pvm">I/O&nbsp;API coupling-mode 
+             &quot;synch file&quot;</A>.
+        <DT> <A HREF = "PRESTERP.html" >
+             <STRONG>presterp</STRONG>:
+             </A>                    
+             Interpolate from a 3-D sigma-coordinate file to a 
+             new 3-D pressure-coordinate file, using coefficients
+             from <A HREF = "/projects/ppar/mcpl.files.html#pc3">
+             PRES_CRO_3D</A>.
+        <DT> <A HREF = "SELMRG2D.html" >
+             <STRONG>selmrg2d</STRONG>:
+             </A>                    
+             select multiple 2D layer/variable combinations from multiple
+             gridded input files, and write result to merged 2D gridded
+             output file
+        <P>
+        <DT> <A HREF = "VERTOT.html" >
+             <STRONG>vertot</STRONG>:
+             </A>                    
+             compute vertical-column totals of variables in a file
+        <P>
+        <DT> <A HREF = "DATSHIFT.html" >
+             <STRONG>datshift</STRONG>:
+             </A>
+             Takes calendar date (form YYYYMMDD) and a number of days D,
+             and reports the date D days later.
+        <DT> <A HREF = "GREGDATE.html" >
+             <STRONG>gregdate</STRONG>:
+             </A>                    
+             compute calendar style date &quot;Month DD, YYYY&quot;,
+             day-of-week (Sunday, Monday, ..., Saturday) and whether
+             or not daylight savings time is in effect from  Julian 
+             date YYYYDDD, or &quot;yesterday&quot;,
+             &quot;today&quot;, or &quot;tomorrow&quot;.
+        <DT> <A HREF = "JULDATE.html" >
+             <STRONG>juldate</STRONG>:
+             </A>                    
+             compute Julian date YYYYDDD and day-of-week (Sunday,
+             Monday, ..., Saturday) and whether or not daylight savings
+             time is in effect from calendar style date 
+             &quot;Month DD, YYYY&quot;, or &quot;yesterday&quot;, 
+             &quot;today&quot;, or &quot;tomorrow&quot;.
+        <P>
+        <DT> <A HREF = "UTMTOOL.html" >
+             <STRONG>utmtool</STRONG>:
+             </A>                    
+             Perform coordinate conversions and grid-related
+             computations for Lat-Lon, Lambert, and UTM coordinate
+             systems.
+    </DL>
+   
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "ERRORS.html" >
+     I/O&nbsp;API Troubleshooting
+     </A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "REQUIREMENTS.html" >
+     I/O&nbsp;API Requirements Document 
+     </A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF = "NOTICES.html" > 
+     Notices and Acknowledgements 
+     </A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF =
+        "http://www.unidata.ucar.edu/packages/netcdf/docs.html" >
+     netCDF User's Guide (at NCAR)
+     </A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2> <A HREF ="http://www.netlib.org/pvm3/book/pvm-book.html" >
+     PVM: Parallel VirtualMachine (at Oak Ridge)
+     </A> </H2>
+
+    Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+    <P>
+
+<HR> <!- -------------------------------------------------------------- -->
+
+<STRONG><A HREF = "/products/ioapi/index.html">
+UP:  I/O&nbsp;API home page
+<P>
+</A></STRONG>
+
+<STRONG><A HREF = "/">
+UP:  BAMS Environmental Modeling Center home page
+<P>
+</A></STRONG>
+
+<STRONG><A HREF = "/EDSS/EDSSPage.html">
+UP:  The Environmental Decision Support System Pages
+<P>
+</A></STRONG>
+
+Back to <STRONG><EM><A HREF = "#contents">Contents</A></EM></STRONG>
+<P>
+
+Send comments to 
+<A HREF = "mailto:carlie.coats@baronams.com"> <ADDRESS> 
+          Carlie J. Coats, Jr. <br> 
+          carlie.coats@baronams.com  </ADDRESS> </A><P> 
+
+<!--#include virtual="/INCLUDES/footer.html" -->
+
+</BODY>
+</HTML>
+

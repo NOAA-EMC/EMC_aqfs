@@ -38,59 +38,59 @@ case $cyc in
  18) export n_durhr=6;;
 esac
 
-# convert to grib and extract Mie 
-cat >cmaq2grib.ini <<EOF5
-&control
-varlist='EXT_Mie'
-metlist='    '
-outfile='$DATA/aqm.${cycle}.MIE'
-nlayers=22
-id_gribdomain=148
-ave1hr=.true.
-/
-EOF5
+## convert to grib and extract Mie 
+#cat >cmaq2grib.ini <<EOF5
+#&control
+#varlist='EXT_Mie'
+#metlist='    '
+#outfile='$DATA/aqm.${cycle}.MIE'
+#nlayers=22
+#id_gribdomain=148
+#ave1hr=.true.
+#/
+#EOF5
 
-startmsg
-${EXECaqm}/aqm_cmaq2grib  >> $pgmout 2>errfile
-export err=$?; err_chk
+#startmsg
+#${EXECaqm}/aqm_cmaq2grib  >> $pgmout 2>errfile
+#export err=$?; err_chk
 
-# convert to grib and extract full layer height above ground 
-cat >cmaq2grib.ini <<EOF5
-&control
-varlist='    '
-metlist='ZF'
-outfile='$DATA/aqm.${cycle}.ZF'
-nlayers=22
-id_gribdomain=148
-ave1hr=.true.
-/
-EOF5
+## convert to grib and extract full layer height above ground 
+#cat >cmaq2grib.ini <<EOF5
+#&control
+#varlist='    '
+#metlist='ZF'
+#outfile='$DATA/aqm.${cycle}.ZF'
+#nlayers=22
+#id_gribdomain=148
+#ave1hr=.true.
+#/
+#EOF5
 
-${EXECaqm}/aqm_cmaq2grib >> $pgmout 2>errfile
-export err=$?; err_chk
+#${EXECaqm}/aqm_cmaq2grib >> $pgmout 2>errfile
+#export err=$?; err_chk
 
 #########################################################
 # Part II: Concatenate EXT_MIE to INHOUSE grib files
 #	   and cp the resultant file to $DATA
 #########################################################
 
-    if [ "$SENDCOM" = 'YES' ]
-    then
-       export fhr=01
-       typeset -Z2 fhr 
-       while [ $fhr -le $n_durhr ]
-       do
-         cat ${DATA}/aqm.${cycle}.MIE${fhr} ${DATA}/aqm.${cycle}.ZF${fhr} > aqm.${cycle}.mie$fhr
-         cp  aqm.${cycle}.mie$fhr  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
-         let "fhr=fhr+1"
-         typeset -Z2 fhr 
-         export fhr
-       done
-    fi
+#    if [ "$SENDCOM" = 'YES' ]
+#    then
+#       export fhr=01
+#       typeset -Z2 fhr 
+#       while [ $fhr -le $n_durhr ]
+#       do
+#         cat ${DATA}/aqm.${cycle}.MIE${fhr} ${DATA}/aqm.${cycle}.ZF${fhr} > aqm.${cycle}.mie$fhr
+#         cp  aqm.${cycle}.mie$fhr  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
+#         let "fhr=fhr+1"
+#         typeset -Z2 fhr 
+#         export fhr
+#       done
+#    fi
+#
+##    cp  aqm.${cycle}.mie$fhr  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
 
-#    cp  aqm.${cycle}.mie$fhr  $COMOUT/aqm.${cycle}.mie.f$fhr.${id_grib}
-
-export err=$?;err_chk
+#export err=$?;err_chk
 
 ########################################################################
 ###### below is used to calcuate aot(d) ######
@@ -112,30 +112,37 @@ else
    export endfhr=48
 fi
 
-export fhr=01
-typeset -Z2 fhr endfhr
+#export fhr=01
+#typeset -Z2 fhr endfhr
 
-while [ $fhr -le $endfhr ]
-do
+#while [ $fhr -le $endfhr ]
+#do
 
  export pgm=aqm_gfs_aot
  . prep_step
- cat <<EOF5 >input${fhr}.prd
- aqm.${cycle}.mie${fhr}
+# cat <<EOF5 >input${fhr}.prd
+# aqm.${cycle}.mie${fhr}
+#EOF5
+cat >cmaq2grib2_aot.ini <<EOF5
+&control
+outfile='$DATA/aqm.${cycle}.aot'
+nlayers=35
+id_gribdomain=148
+/
 EOF5
 
  startmsg
-  $EXECaqm/aqm_rdgrbwt_aot_CHA ${imx} ${jmx} < input${fhr}.prd >> $pgmout 2>errfile
+  $EXECaqm/aqm_rdgrbwt_aot_CHA_g2 ${imx} ${jmx}  >> $pgmout 2>errfile
   export err=$?;err_chk
     if [ "$SENDCOM" = 'YES' ]
     then
-        cp $DATA/aqm.${cycle}.aot${fhr}  $COMOUT/aqm.${cycle}.aot.f${fhr}.${id_grib}
+        cp $DATA/aqm.${cycle}.aot.f*.${id_grib}.grib2  $COMOUT/
     fi
 
- let "fhr=fhr+1"
- typeset -Z2 fhr
-done
-
+# let "fhr=fhr+1"
+# typeset -Z2 fhr
+#done
+#
 echo EXITING $0
 
 msg='ENDED NORMALLY.'

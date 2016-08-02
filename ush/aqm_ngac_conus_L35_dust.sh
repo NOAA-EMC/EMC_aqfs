@@ -46,7 +46,7 @@ cat > ngac-bnd-nemsio.ini <<EOF
 Species converting Factor
 # Gocart ug/m3 to regional ug/m3
 'du001'    1  ## 0.2-2um (kg/kg)
-'A25J'         1.0 
+'AOTHRJ'        1.0
 'du002'    2  ## 2-4um
 'A25J'        0.4187   'ASOIL'  0.5813
 'du003'    1  ## 4-6um
@@ -56,12 +56,19 @@ Species converting Factor
 EOF
 
 export TOPO=$FIXaqm/aqm.grdcro2d_new.ncf
-export METEO3D=$outdir/aqm.t${cyc}z.metcro3d.ncf
+if [ -s $COMIN/aqm.t${cyc}z.metcro3d.ncf ] ; 
+then
+ export METEO3D=$COMIN/aqm.t${cyc}z.metcro3d.ncf
+else
+ export METEO3D=$COMINm1/aqm.t12z.metcro3d.ncf
+fi
 export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 
 
 export BND2=$outdir/aqm_conus_geos_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
 export CHECK2D=$outdir/check_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf
+
+rm -rf chkreads.log
 
 startmsg
 $EXECaqm/aqm_ngac_dust_dlbc  >> $pgmout 2>errfile 

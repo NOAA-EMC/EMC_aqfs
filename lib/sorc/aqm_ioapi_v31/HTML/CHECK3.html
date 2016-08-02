@@ -1,0 +1,140 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<META NAME="MSSmartTagsPreventParsing" CONTENT="TRUE"> 
+<TITLE> CHECK3() and check3c() </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" 
+      TOPMARGIN="15" 
+      MARGINHEIGHT="15" 
+      LEFTMARGIN="15" 
+      MARGINWIDTH="15">
+<H1>    CHECK3() and check3c() </H1>
+
+<H2> Fortran version: </H2>
+<PRE>
+    LOGICAL FUNCTION  CHECK3( FNAME, VNAME, JDATE, JTIME )
+        CHARACTER*(*)   FNAME   !  file name for query
+        CHARACTER*(*)   VNAME   !  vble name for query
+        INTEGER         JDATE   !  date (YYYYDDD) for query
+        INTEGER         JTIME   !  time (HHMMSS) for query
+</PRE>
+
+<H2> C version: </H2>  <P>
+
+    <PRE>
+        int check3c( const char * fname ,
+                     const char * vname ,
+                     int          jdate ,
+                     int          jtime ) ;
+    </PRE>
+
+    <BLOCKQUOTE>
+    <CODE>check3c()</CODE> is a C wrapper calling the Fortran
+    <CODE>CHECK3()</CODE>
+     </BLOCKQUOTE>
+   
+<H2> Summary: </H2>
+
+    <BLOCKQUOTE>
+    Returns .TRUE. or 1 if the <A HREF = "DATETIME.html"> 
+    time step </A> for (JDATE,JTIME) is available in file with 
+    <A HREF = "LOGICALS.html"> logical name </A> FNAME, or 
+    .FALSE. or 0 otherwise.  If FNAME is 
+    <A HREF = "DATETIME.html"> time-independent </A> or is a 
+    <A HREF = "DATATYPES.html#dctnry"> dictionary </A> 
+    file, JDATE and JTIME are ignored and only VNAME is
+    significant.  If VNAME is the &quot;magic name&quot; ALLVAR3 
+    ( = 'ALL', defined in 
+    <A HREF = "INCLUDE.html#magic"> PARMS3.EXT </A> ), or 
+    "ALL" for check3c() ), then TRUE indicates that <U>all</U> variables 
+    are available for the specified date and time (FALSE signifies
+    that at least one variable is not available; quite possibly,
+    some variables are available and some not).
+    <P> 
+
+    If either FNAME or VNAME is invalid, writes an error message
+    indicating the nature of the problem to the log and returns 
+    a FALSE (or 0).
+    </BLOCKQUOTE>
+
+<H2> Preconditions: </H2>
+
+    <BLOCKQUOTE>
+    <A HREF = "INCLUDE.html#iodecl"> 
+    <CODE>INCLUDE 'IODECL3.EXT'</CODE> </A> 
+    for Fortran, or 
+    <CODE>#include &quot;iodecl3.h&quot;</CODE> for C.
+    <P> 
+
+    FNAME and VNAME must have length at most 16.
+    <P> 
+    
+    JDATE and JTIME must be expressed in terms of Models-3 
+    date and time conventions.
+    <P> 
+    
+    FNAME must already have been opened by 
+    <A HREF = "OPEN3.html"> OPEN3() or open3c() </A> 
+    and the I/O API must have been initialized  with 
+    <A HREF = "INIT3.html"> INIT3() or init3c() </A> ).
+    </BLOCKQUOTE>
+
+<H2> Fortran Usage: </H2>
+<PRE>
+    ...
+    USE M3UTILIO
+    ...
+    ...
+    IF ( CHECK3( 'MYFILE', 'HNO3', 1988021, 123000 ) ) THEN
+C              data-record for variable HNO3, date and time 
+C              12:30 PM Jan. 21, 1988 is available in the file 
+C              with logical name MYFILE.
+        ...
+    END IF
+    ...
+    IF ( CHECK3( 'AFILE', 'ALL', 1988021, 123000 ) ) THEN
+C              data-record for every variable for date and time 
+C              12:30 PM Jan. 21, 1988 is available in the file 
+C              with logical name AFILE.
+        ...
+    END IF
+    ...
+</PRE><P> 
+
+        
+<H2> C Usage: </H2>
+<PRE>
+    ...
+    #include "iodecl3.h"
+    ...
+    if ( check3c( "MYFILE", "HNO3", 1988021, 123000 ) )
+        {
+            /*  data-record for variable HNO3 for date and time
+                12:30 PM Jan. 21, 1988 is available in the file
+                with logical name MYFILE   */
+        ...
+        }
+    ...
+</PRE><P> 
+
+<HR>
+
+<A HREF = "CLOSE3.html" >
+Next:  <STRONG>CLOSE3</STRONG>
+</A><P> 
+
+<A HREF = "AA.html#ioapi"> 
+Up: <STRONG>Public I/O Routines </STRONG> 
+</A><P>
+
+<A HREF = "AA.html"> 
+To: <STRONG>Models-3/EDSS I/O API:   The Help Pages</STRONG> 
+</A><P>
+
+        
+</BODY>
+</HTML>
+

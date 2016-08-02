@@ -1,8 +1,10 @@
 #!/bin/ksh
 
-. /usrx/local/Modules/default/init/ksh
+source /opt/modules/default/init/ksh
 
 set -xa
+export MP_IOAGENT_CNT=all
+export MP_IO_BUFFER_SIZE=8M
 export PS4='$SECONDS + '
 date -u
 
@@ -28,6 +30,22 @@ cd $DATA
 ####################################
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
+##############################
+# Define MP variables
+##############################
+ulimit -s unlimited
+export LANG=en_US
+export MP_EAGER_LIMIT=65536
+export MP_COREFILE_FORMAT=core.txt
+export MP_EUIDEVELOP=min
+export MP_EUIDEVICE=sn_all
+export MP_EUILIB=us
+export MP_MPILIB=mpich2
+export MP_LABELIO=yes
+export MP_SINGLE_THREAD=yes
+#export MP_USE_BULK_XFER=yes
+export MPICH_THROTTLE_ALLTOALL=0
+
 ####################################
 # Determine Job Output Name on System
 ####################################
@@ -46,6 +64,7 @@ export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
 export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
 export USHaqm=${USHaqm:-$HOMEaqm/ush}
 export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
+export UTILaqm=${UTILaqm:-$HOMEaqm/util}
 
 ###################################
 # Set up the UTILITIES
@@ -53,22 +72,11 @@ export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 module load prod_util
 module load grib_util
 
-# Run setup to initialize working directory and utility scripts
-
-msg="JOB $job HAS BEGUN"
-postmsg "$jlogfile" "$msg"
-
-# Run setpdy and initialize PDY variables
-setpdy.sh
-. PDY
-
-#########################################
-# Set up output directories
-#########################################
+#export utilexec=${utilexec:-$NWROOT/util/exec}
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
-export COMINm2=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm2}}
-export COMINm3=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
+export COMINm2=${COMINm2:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm2}}
+export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 
 export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
@@ -80,7 +88,7 @@ env
 ###################################################
 # Execute the Script
 ###################################################
-${HOMEaqm}/scripts/exaqm_cmaqv47_cs.sh.ecf
+${HOMEaqm}/scripts/exaqm_cmaqv502_cs.sh.ecf
 export err=$?; err_chk
 ##################################################
 cat $pgmout

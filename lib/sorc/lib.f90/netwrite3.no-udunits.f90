@@ -74,12 +74,17 @@
 ! 3.17	2013-jul-18	Switch from custom utisinit_f to standard utisopen func.
 ! 3.18	2014-may-12	Add verbosity control to netcreate3.
 !
-! 3.18.1  2014-may-12	*** Side version without udunits.    ***
+! 3.19	2015-feb-18	Bug fix for v3.18.
+!			Switch order of optional arguments in netcreate3,
+!			  for backward compatibility.
+!			Add diagnostic for duplicate variable create error.
+!
+! 3.19.1  2015-feb-18	*** Side version without udunits.    ***
 !			*** Also missing netwrite3.time.f90. ***
 !			*** For bias correction project.     ***
 
 module netwrite3_version
-   character(*), parameter :: version = 'netwrite3.f90 v3.18.1'
+   character(*), parameter :: version = 'netwrite3.f90 v3.19.1'
 end module netwrite3_version
 
 ! Notes:

@@ -1,8 +1,0 @@
-#!/bin/ksh
-
-export BIN=Linux2_x86_64ifort
-export BASEDIR=`pwd`
-rm -rf ${BIN}
-make nocpl
-cp ./${BIN}/libioapi.a  ../../libaqm_ioapi.a
-

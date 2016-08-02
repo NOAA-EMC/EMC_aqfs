@@ -13,6 +13,8 @@
 !		Add data line dump at diag level 7 and higher.
 ! 2014-jul-15	Minor fixes in diagnostic prints.
 !
+! 2016-feb-22	Add diagnostic for missing hours in BUFR file.
+!
 ! Notes:
 !
 ! Primary inputs are a BUFR file name, and the requested BUFR
@@ -50,7 +52,7 @@
 ! This routine will not normally return with any local fortran
 ! file left open, even in the event of a soft error return with
 ! status = fail.  To minimize the chance of a conflict, a file
-! unit number is opened temporarily wihin this routine, then
+! unit number is opened temporarily within this routine, then
 ! always closed before returning.
 !
 ! Error handling:
@@ -67,7 +69,7 @@
 !
 ! Any invalid file detection prints a warning message and
 ! status = fail to the caller.  This should be treated as a
-! soft error, and the returned data arrauy should be ignored.
+! soft error, and the returned data array should be ignored.
 !
 ! The single detected fatal condition (dimension exceeded) halts
 ! the entire program, so a return code is not relevant.
@@ -100,8 +102,8 @@ subroutine read_bufr_var (infile, varname, typo_expect, tphr_expect, &
 
    character(*), intent(in) :: infile			 ! BUFR input file name
    character(*), intent(in) :: varname			 ! requested BUFR var
-   integer,      intent(in) :: typo_expect		 ! epected TYPO value
-   integer,      intent(in) :: tphr_expect		 ! epected TPHR value
+   integer,      intent(in) :: typo_expect		 ! expected TYPO value
+   integer,      intent(in) :: tphr_expect		 ! expected TPHR value
    integer,      intent(in) :: max_sites		 ! max number of sites
    							 !  for temporary arrays
    integer,      intent(in) :: diag			 ! verbosity level, 0-N
@@ -141,8 +143,11 @@ subroutine read_bufr_var (infile, varname, typo_expect, tphr_expect, &
    integer message_num, subset_num
    integer idate, iret, len_id, ncodes
    integer nsubsets, nsubsets_total
-   integer nmessages, ov_count
+   integer nmessages, ov_count, nmissing
    integer ysave, msave, dsave
+
+   integer hour_count(nhours)			! count only non-missing
+   						! individual obs for each hour
 
    logical very_first_subset, found
    logical missing_fields
@@ -174,6 +179,7 @@ subroutine read_bufr_var (infile, varname, typo_expect, tphr_expect, &
    message_num = 0
    nsubsets_total = 0
    very_first_subset = .true.
+   hour_count(:) = 0
 
    si = 0				! init "previously used" site index
    					! needed to suppress possible compiler
@@ -419,7 +425,7 @@ first_time_only: &
 ! needed.  Array positions correspond to code positions in given code list.
 
 !-----------------------------------------------------------
-! STart of each message, extract the embedded date.
+! Start of each message, extract the embedded date.
 !-----------------------------------------------------------
 
 ! Assume the date is global for the current BUFR file, unchanging
@@ -613,7 +619,8 @@ start_of_message: &
             tdata(ihour,si) = vmiss	! set to BUFR missing value
          else
             tdata(ihour,si) = val	! no problems, insert original datum
-         end if
+            hour_count(ihour) = hour_count(ihour) + 1	! count only non-missing
+         end if					! individual obs for each hour
 
       end do subset_loop
 
@@ -662,7 +669,21 @@ start_of_message: &
       print '(2a)',   ' *** File = ' // trim (infile)
       print '(a,i0)', ' *** Expected number of messages = ', nhours
       print '(a,i0)', ' *** Number of messages in file  = ', nmessages
-      print *, '*** Soft warning, will assume available data is correct.'
+      print *, '*** Soft error, will assume available data is correct.'
+      print *
+   end if
+
+! Check for missing hours.
+
+   nmissing = count (hour_count(:) == 0)
+
+   if (nmissing > 0) then
+      print *, '*** read_bufr_var: Warning: Missing hours in this file.'
+      print '(2a)',          ' *** File = ' // trim (infile)
+      print '(a,24(1x,i0))', ' *** List of missing hours =', &
+         pack ( (/ (hour, hour = 1, nhours) /), (hour_count(:) == 0) )
+      print '(a,i0)',        ' *** Number of missing hours = ', nmissing
+      print *, '*** Soft error, will assume available data is correct.'
       print *
    end if
 

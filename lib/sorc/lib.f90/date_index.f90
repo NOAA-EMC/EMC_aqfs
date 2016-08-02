@@ -16,6 +16,7 @@
 !			Retain previous module name, backward compatibility.
 !			Add new function yyyymmdd_to_index to module.
 !			Fix line breaking in error messages.
+! 2.02	2015-feb-08	Library upgrade.  Use date_sup module interface.
 !
 ! Input:   year, month, day = requested date; may be earlier or later
 !	      or the same as the start of the specified base year
@@ -128,13 +129,12 @@ contains
 
 integer function date_index (year, month, day, base_year, calendar)
 
+   use date_sup
    use string_utils
    implicit none
 
    integer,      intent (in) :: year, month, day, base_year
    character(*), intent (in) :: calendar
-
-   logical leap_check				! function def.
 
 ! Parameters.
 

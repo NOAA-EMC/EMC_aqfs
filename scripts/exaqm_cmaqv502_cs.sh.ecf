@@ -1,0 +1,492 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_fcst.sh
+# Script description:  Run CMAQ model:Community Multiscale Air Quality
+#		       chemical transport model.
+#
+#  #Input Environment Variables:
+#    NPCOL_NPROW      	# domain decompositon (#division_Col;Row)
+#    nprocs	      	# number of processors
+#    GRIDDESC		# horizontal grid definitions
+#    GRID_NAME		# grid name
+#    AVG_CONC_SPCS	# Species for integral average conc
+#    ACONC_BLEV_ELEV	# layer range for integral average conc
+#    IOAPI_LOG_WRITE=F	# excessive WEITE3 logging
+#			  default to F (off)
+#    CTM_SYMPROC=N	# symmetric processing [ T | Y | F | N ]
+#    CTM_CKSUM=Y	# cksum report [ T | Y | F | N ]
+#    CTM_MAXSYNC	# max sync time step (sec) [300]
+#    MPI_SM_POOL	# shared memory pool
+#			  increase for many MPI_SEND headers
+#    MP_EAGER_LIMIT	# MPI message passing buffer
+#    MP_SINGLE_THREAD  	# tell mpi threading is not done [yes]
+#    MP_STDOUTMODE	# order stnd out msgs [ordered]
+#    MP_LABELIO		# MP Lable I/O [yes]
+#    MP_SHARED_MEMORY=yes  # Share Memory
+#    MP_ADAPTER_USE=shared # Share Adapter
+#    MP_CPU_USE=multiple   # Multi Processors
+#####################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+cd $DATA
+
+#export FILE_EDDY=N
+#export READEDDY=N
+#export NOTCDF_FATAL=F
+
+#------------------------------------------------------
+# now using notCDF v3.4
+#------------------------------------------------------
+#export NETCDF_FFIOSPEC='cachea:75:3'
+
+
+EXEC=aqm_fcst_v502 #CCTM_D502b_Linux2_x86_64intel
+#CFG=CMAQ-BENCHMARK
+CFG=CMAQ-v502
+MECH=cb05tucl_ae6_aq
+APPL=D502b
+
+export NPCOL_NPROW="24 20"
+export nprocs=480
+#export NPCOL_NPROW="22 22"
+#export nprocs=484
+
+
+#APPL=r6b
+#CFG=r6b
+#RST=rst
+#SEQ=0   
+#LAPPL=${APPL}_${SEQ}
+
+case $cyc in
+ 00) restart_path1=$COMINm1
+     restart_file1=aqm.t18z.cgrid.ncf
+     restart_path2=$COMINm1
+     restart_file2=aqm.t12z.cgrid.ncf
+     restart_path3=$COMINm1
+     restart_file3=aqm.t06z.cgrid.ncf
+     restart_path4=$COMINm2
+     restart_file4=aqm.t12z.cgrid.ncf
+     restart_path5=$COMINm2
+     restart_file5=aqm.t06z.cgrid.ncf
+     soil_path=$COMINm1
+     soil_file=aqm.t18z.soilout.ncf
+     NSTEPS=060000;;
+ 06) restart_path1=$COMIN
+     restart_file1=aqm.t00z.cgrid.ncf
+     restart_path2=$COMINm1
+     restart_file2=aqm.t12z.cgrid.ncf
+     restart_path3=$COMINm1
+     restart_file3=aqm.t06z.cgrid.ncf
+     restart_path4=$COMINm2
+     restart_file4=aqm.t12z.cgrid.ncf
+     restart_path5=$COMINm2
+     restart_file5=aqm.t06z.cgrid.ncf
+     soil_path=$COMIN
+     soil_file=aqm.t00z.soilout.ncf     
+     NSTEPS=480000;;
+ 12) restart_path1=$COMIN
+     restart_file1=aqm.t06z.cgrid.ncf
+     restart_path2=$COMINm1
+     restart_file2=aqm.t12z.cgrid.ncf
+     restart_path3=$COMINm1
+     restart_file3=aqm.t06z.cgrid.ncf
+     restart_path4=$COMINm2
+     restart_file4=aqm.t12z.cgrid.ncf
+     restart_path5=$COMINm2
+     restart_file5=aqm.t12z.cgrid.ncf
+     soil_path=$COMIN
+     soil_file=aqm.t06z.soilout.ncf        
+     NSTEPS=480000;;
+ 18) restart_path1=$COMIN
+     restart_file1=aqm.t12z.cgrid.ncf
+     restart_path2=$COMIN
+     restart_file2=aqm.t06z.cgrid.ncf
+     restart_path3=$COMINm1
+     restart_file3=aqm.t12z.cgrid.ncf
+     restart_path4=$COMINm1
+     restart_file4=aqm.t06z.cgrid.ncf
+     restart_path5=$COMINm2
+     restart_file5=aqm.t06z.cgrid.ncf
+     soil_path=$COMIN
+     soil_file=aqm.12z.soilout.ncf         
+     NSTEPS=060000;;
+esac
+
+if [ -s "${restart_path1}/${restart_file1}" ]
+then
+  ICpath=$restart_path1
+  ICFILE=$restart_file1
+elif [ -s "${restart_path2}/${restart_file2}" ]
+then
+  ICpath=$restart_path2
+  ICFILE=$restart_file2
+elif [ -s "${restart_path3}/${restart_file3}" ]
+then
+  ICpath=$restart_path3
+  ICFILE=$restart_file3
+elif [ -s "${restart_path4}/${restart_file4}" ]
+then
+  ICpath=$restart_path4
+  ICFILE=$restart_file4
+elif [ -s "${restart_path5}/${restart_file5}" ]
+then
+  ICpath=$restart_path5
+  ICFILE=$restart_file5
+fi
+
+##if [ -s "$restart_file" ]
+##then
+##  export START=WARM
+##  export INITIAL_RUN=N
+##else
+##  export START=COLD
+##  export INITIAL_RUN=Y
+#fi
+#turn on the derived vert. vel. component to conc file
+# export CTM_WVEL=Y
+
+#para4 run for NAMx + 2014-real_emission + snow_modulate_pm_emiss + NTR
+# export NTR_FAST=Y
+
+#------------------------------------------------------
+# Convert PDY to day of year
+#-----------------------------------------------------
+SYYYY=`echo $PDY |cut -c1-4`
+SMM=`echo $PDY |cut -c5-6`
+SDD=`echo $PDY |cut -c7-8`
+DAYOFYEAR=`$UTILaqm/date2jday.sh $SYYYY$SMM$SDD `
+typeset -Z3 DAYOFYEAR
+echo $DAYOFYEAR
+
+
+STDATE=$SYYYY$DAYOFYEAR
+STTIME=${cyc}0000
+
+NS=`echo $NSTEPS |cut -c1-2`
+TSTEP=010000
+
+YEAR=$SYYYY
+YR=`echo $PDY |cut -c3-4`
+MONTH=$SMM
+DAY=$SDD
+YMD=${YEAR}${MONTH}${DAY}
+
+export GRIDDESC=$PARMaqm/aqm_griddesc05
+export GRID_NAME=AQF_CONUS_5x
+
+export LOGFIEL=$DATA/$APPL.log
+
+SPCS_1="O3 CO NO NO2 NO3 N2O5 HONO HNO3 PAN PANX PNA NTR CRON CRNO CRN2 CRPX OPAN PAR ETH ETOH OLE TOL FORM XYL ALD2 ISOP ETHA IOLE ALDX TERP"
+SPCS_2="AXYL1J AXYL2J AXYL3J ATOL1J ATOL2J ATOL3J ABNZ1J ABNZ2J ABNZ3J AISO1J AISO2J AISO3J ATRP1J ATRP2J ASQTJ AALKJ AORGCJ AOLGBJ AOLGAJ APOCI APOCJ APNCOMI APNCOMJ"
+SPCS_3="ANO3I ANO3J ANO3K ASO4I ASO4J ASO4K ANH4I ANH4J  ANH4K AECI AECJ AOTHRI AOTHRJ"
+SPCS_4="ANAI ANAJ ACLI ACLJ ACLK AFEJ ASIJ ATIJ ACAJ AMGJ AMNJ AALJ AKJ ASOIL ACORS ASEACAT" 
+export AVG_CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
+export ACONC_BLEV_ELEV="1 1"
+
+export CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
+
+export CTM_MAXSYNC=720       #> max sync time step (sec) [default: 720]
+export CTM_MINSYNC=60       #> min sync time step (sec) [default: 60]
+export CTM_CKSUM=Y           #> write cksum report [ default: Y ]
+export CLD_DIAG=N            #> write cloud diagnostic file [ default: N ]
+export CTM_AERDIAG=Y #N         #> aerosol diagnostic file [ default: N ]
+export CTM_PHOTDIAG=N        #> photolysis diagnostic file [ default: N ]
+export CTM_SSEMDIAG=N        #> sea-salt emissions diagnostic file [ default: N ]
+export CTM_WB_DUST=N #Y         #> use inline windblown dust emissions [ default: Y ]
+export CTM_ERODE_AGLAND=Y    #> use agricultural activity for windblown dust [ default: N ]; ignore if CTM_WB_DUST = N
+export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
+export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
+export CTM_WVEL=Y            #> save derived vertical velocity component to conc file [ default: N ]
+export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
+export CTM_ILDEPV=Y          #> calculate in-line deposition velocities [ default: Y ]
+export CTM_MOSAIC=N          #> landuse specific deposition velocities [ default: N ]
+export CTM_ABFLUX=N          #> Ammonia bi-directional flux for in-line deposition velocities [ default: N ]; ignore if CTM_ILDEPV = N
+export CTM_HGBIDI=N          #> Mercury bi-directional flux for in-line deposition velocities [ default: N ]; ignore if CTM_ILDEPV = N
+export CTM_SFC_HONO=Y        #> Surface HONO interaction [ default: Y ]; ignore if CTM_ILDEPV = N
+export CTM_DEPV_FILE=Y #N       #> write diagnostic file for deposition velocities [ default: N ]
+export CTM_BIOGEMIS=Y        #> calculate in-line biogenic emissions [ default: N ]
+export B3GTS_DIAG=Y          #> write biogenic mass emissions diagnostic file [ default: N ]; ignore if CTM_BIOGEMIS = N
+export CTM_PT3DEMIS=N #Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
+export PT3DDIAG=Y            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
+export PT3DFRAC=N            #> optional layer fractions diagnostic (play) file(s) [ default: N]; ignore if CTM_PT3DEMIS = N
+export IOAPI_LOG_WRITE=F     #> turn on excess WRITE3 logging [ options: T | F ]
+export FL_ERR_STOP=N         #> stop on inconsistent input files
+export PROMPTFLAG=F          #> turn on I/O-API PROMPT*FILE interactive mode [ options: T | F ]
+export IOAPI_OFFSET_64=YES #NO    #> support large timestep records (>2GB/timestep record) [ options: YES | NO ]
+
+DISP=delete
+
+#Input & Output directories
+BCpath=$COMIN
+EMISpath=$COMIN
+METpath=$COMIN
+JVALpath=/u/Jianping.Huang/noscrub/com/aqm/para/emission/cb05_Jtable
+OMIpath=${FIXaqm}/phot
+
+OUTDIR=$COMOUT
+
+#off-line photolysis rates
+JVALfile=JTABLE_${STDATE}
+
+#ozone column data
+OMIfile=OMI.dat
+
+#meterology files
+
+ ic=1
+  while [ $ic -lt 1081 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+    then
+    break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 180 ]
+      then
+      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+      fi
+   done   
+   
+export GRID_CRO_2D=$COMIN/aqm.${cycle}.grdcro2d.ncf
+export GRID_DOT_2D=$COMIN/aqm.${cycle}.grddot2d.ncf
+export MET_CRO_2D=$COMIN/aqm.${cycle}.metcro2d.ncf
+export MET_CRO_3D=$COMIN/aqm.${cycle}.metcro3d.ncf
+export MET_DOT_3D=$COMIN/aqm.${cycle}.metdot3d.ncf
+export MET_BDY_3D=$COMIN/aqm.${cycle}.metbdy3d.ncf
+export EMISfile=$COMIN/aqm.${cycle}.emission.ncf
+
+$utilexec/fsync_file $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+$utilexec/fsync_file $COMIN/aqm.${cycle}.grddot2d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metbdy3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro2d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.metdot3d.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.emission+fire.ncf
+
+
+if [ $INITIAL_RUN = N ]
+then
+    ln -sf $restart_file   $DATA/CONC.${RST}.ncf
+fi
+
+#------------------------------------------------------
+# input files
+#------------------------------------------------------
+
+#export EMIS_1=$DATA/emission.$PDY.ncf
+
+if [[ $INITIAL_RUN = "N" ]]; then
+   export ICFILE=$DATA/CONC.${RST}.ncf
+else    
+   export ICFILE=$FIXaqm/aqm_conus_12km_cgrid_v502_init.ncf
+fi
+
+# In-line biogenic emissions configuration
+
+if [ "$CTM_BIOGEMIS" = 'Y' ] 
+then
+export GSPRO=$FIXaqm/gspro_biog_static_2012_naqfc.txt
+export B3GRD=$FIXaqm/b3grd_CONUS_bv314.ncf
+export BIOG_SPRO=B10C5 
+export BIOSW_YN=N
+export SUMMER_YN=Y
+export PX_VERSION=N
+export B3GTS_DIAG=Y
+export SOILINP=${soil_path}/${soil_file}     #CCTM_D502b_Linux2_x86_64intel.SOILOUT.CMAQ-BENCHMARK_$PDYm1
+ if [ -s "${SOILINP}" ] ; then
+  export INITIAL_RUN=N
+ else
+  export INITIAL_RUN=Y
+ fi
+fi
+
+#-----------------------------------------------------------------
+# OCEAN FILE FOR THE Aerosol run : Aero4
+#-----------------------------------------------------------------
+
+export OCEAN_1=$FIXaqm/SSMASK_US12_442X265_igbp2010.ncf
+
+#------------------------------------------------------
+# output files
+#------------------------------------------------------
+#jpexport CTM_APPL=${CFG}_${YMD}
+export CTM_APPL=${CFG}
+
+# In-line biogenic emissions output files
+if [ "$CTM_BIOGEMIS" = 'Y' ] 
+then
+#export B3GTS_S=$OUTDIR/$EXEC".B3GTS_S".${CTM_APPL}
+export B3GTS_S=$DATA/"B3GTS_S".${CTM_APPL}
+#export SOILOUT=$OUTDIR/$EXEC".SOILOUT".${CTM_APPL}
+export SOILOUT=$DATA/"SOILOUT".${CTM_APPL}
+fi
+
+# set floor file (neg concs)
+export FLOOR_FILE=$DATA/FLOOR_${CTM_APPL}
+
+
+#log files??
+
+test=`ls CTM_LOG_*.${CTM_APPL}`
+if [ "$test" != "" ] ; then
+ if [ "$DISP" = "delete" ] ; then
+    echo "ancillary log files being deleted" 
+    for file in $test
+    do
+       echo "deleting $file"
+       rm $file
+    done
+ else
+    echo "*** Logs exist - run ABORTED ***" 
+    exit 1 
+ fi 
+fi 
+    
+#------------------------------------------------------
+# for the run control 
+#------------------------------------------------------
+export   CTM_STDATE=$STDATE
+export   CTM_STTIME=$STTIME
+export   CTM_RUNLEN=$NSTEPS
+export   CTM_TSTEP=$TSTEP
+export   EMIS_1=$EMISfile
+export   INIT_GASC_1=$ICFILE
+export   INIT_AERO_1=$INIT_GASC_1
+export   INIT_NONR_1=$INIT_GASC_1
+export   INIT_TRAC_1=$INIT_GASC_1
+export   OMI=$OMIpath/$OMIfile
+export   XJ_DATA=$JVALpath/$JVALfile
+
+if [[ ${cycle} = 't00z' ]] ; then
+ export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
+else
+ export BNDY_GASC_1=$COMIN/aqm_conus_geos_ngac_dust_${PDY}_35L.ncf
+fi
+
+if [ ! -f ${BNDY_GASC_1}  ] ; then
+  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
+fi
+
+export   BNDY_AERO_1=$BNDY_GASC_1
+export   BNDY_NONR_1=$BNDY_GASC_1
+export   BNDY_TRAC_1=$BNDY_GASC_1
+
+
+TR_DVpath=$COMIN
+TR_DVfile=$MET_CRO_2D
+
+#export XJ_DATA=$INPEMIDIR/cb05_Jtable/aqm_jtable_${STDATE}
+
+#if [ ! -s $XJ_DATA ]
+#then
+#   err_exit "Missing the JTABLE file"
+#fi
+
+# species defn & photolysis
+export gc_matrix_nml=$FIXaqm/aqm_GC_$MECH.nml
+export ae_matrix_nml=$FIXaqm/aqm_AE_$MECH.nml
+export nr_matrix_nml=$FIXaqm/aqm_NR_$MECH.nml
+export tr_matrix_nml=$FIXaqm/aqm_Species_Table_TR_0.nml
+
+# check for photolysis input data
+export CSQY_DATA=${FIXaqm}/aqm_CSQY_DATA_$MECH
+if [ ! -e $CSQY_DATA ] ; then
+   echo " $CSQY_DATA  not found "
+  exit 1
+fi
+
+############################
+## output files
+###########################
+
+export    CTM_CONC_1=$DATA/CONC.${CTM_APPL} 
+export      A_CONC_1=$DATA/ACONC.${CTM_APPL}
+export       S_CGRID=$DATA/CGRID.${CTM_APPL}
+export CTM_DRY_DEP_1=$DATA/DRYDEP.${CTM_APPL}
+export CTM_WET_DEP_1=$DATA/WETDEP1.${CTM_APPL}
+export CTM_DEPV_DIAG=$DATA/DEPV.${CTM_APPL} 
+export       B3GTS_S=$DATA/B3GTS_S.${CTM_APPL}
+export       SOILOUT=$DATA/SOILOUT.${CTM_APPL}
+export     CTM_VIS_1=$DATA/AEROVIS.${CTM_APPL}
+export    CTM_DIAM_1=$DATA/AERODIAM.${CTM_APPL}
+
+flist1="$CTM_CONC_1 $S_CGRID $A_CONC_1 $CTM_DRY_DEP_1 $CTM_DEPV_DIAG $CTM_PT3D_DIAG"
+flist2="$B3GTS_S $SOILOUT $CTM_WET_DEP_1 $CTM_WET_DEP_2 $CTM_VIS_1 $CTM_DIAM_1 $CTM_RJ_1"
+flist3="$CTM_RJ_2 $CTM_SSEMIS_1 $CTM_DUST_EMIS_1 $CTM_IPR_1 $CTM_IPR_2 $CTM_IPR_3 $CTM_IRR_1"
+flist4="$CTM_IRR_2 $CTM_IRR_3 $CTM_DEPV_FST $CTM_DEPV_MOS $CTM_DRY_DEP_FST $CTM_DRY_DEP_MOS"
+flist="$flist1 $flist2 $flist3 $flist4"
+
+unalias rm
+
+export ff
+
+for ff in $flist
+do 
+ if [ $ff != "-v" ] ; then
+  file=`echo $ff | cut -d' ' -f1`
+  if [ -e $file ] ; then
+    echo " $file already exists "
+    if [ $DISP = "delete" ] ; then
+      echo " $file being deleted "
+      rm -f $file
+    elif [ $DISP = "update" ] ; then
+      echo " $file being updated "
+    else
+      echo " *** RUN ABORTED *** "
+      exit 1
+    fi
+   fi
+  fi
+done
+
+
+msg="Starting CMAQ Forecast at F00 out to F$NS"
+postmsg "$jlogfile" "$msg"
+
+startmsg
+echo "EXECUTE X.u2c"
+export MEMORY_AFFINITY=MCM
+aprun -n480 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+export err=$?
+
+#------------------------------------------------------
+# copy output to /com
+#------------------------------------------------------
+if [ "$SENDCOM" = 'YES' ]
+then
+ mv $DATA/CONC.${CTM_APPL}     $COMOUT/aqm.${cycle}.conc.ncf
+ mv $DATA/ACONC.${CTM_APPL}    $COMOUT/aqm.${cycle}.aconc.ncf
+ mv $DATA/CGRID.${CTM_APPL}    $COMOUT/aqm.${cycle}.cgrid.ncf
+ mv $DATA/DRYDEP.${CTM_APPL}   $COMOUT/aqm.${cycle}.drydep.ncf
+ mv $DATA/WETDEP1.${CTM_APPL}  $COMOUT/aqm.${cycle}.wetdep1.ncf
+ mv $DATA/DEPV.${CTM_APPL}     $COMOUT/aqm.${cycle}.depv.ncf
+ mv $DATA/AEROVIS.${CTM_APPL}  $COMOUT/aqm.${cycle}.vis.ncf
+ mv $DATA/AERODIAM.${CTM_APPL} $COMOUT/aqm.${cycle}.aerodiam.ncf
+ mv $DATA/B3GTS_S.${CTM_APPL}  $COMOUT/aqm.${cycle}.b3gt2.ncf
+ mv $DATA/SOILOUT.${CTM_APPL}  $COMOUT/aqm.${cycle}.soil06.ncf
+fi
+
+if [ $err -ne 0 ]
+then
+   err_chk
+else
+   msg="$pgm completed normally"
+   echo "$PDY" "done" >$COMOUT/aqm.${cycle}.log
+   sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+fi
+
+#${HOMEaqm}/ush/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_r.ncf
+
+#${HOMEaqm}/ush/aqm_csum.sh -kf -kl -sl $FIXaqm/vlist.twoways.5.0.2.v1 $COMOUT/aqm.${cycle}.aconc.ncf $COMOUT/aqm.${cycle}.aerodiam.ncf $COMOUT/aqm.${cycle}.metcro3d.ncf $COMOUT/aqm.${cycle}.aconc_sfc.ncf  
+
+echo Exiting $0
+
+exit

@@ -6,11 +6,22 @@
 ! each included procedure
 !
 ! 1.00	2014-apr-23	Original module container.  By Dave Allured.
+! 1.01	2014-sep-09	Change real_to_string from include to module.
+! 1.02	2014-dec-15	Add includes for routines with their own modules.
 !
 ! Visibility is controlled by each individual routine.
 ! The default is all top-level objects are public.
 !
 !-----------------------------------------------------------------------------
+
+! Include section for routines with their own modules.
+
+   include 'parse_delimited.f90'
+   include 'real_to_compact_string.f90'
+   include 'real_to_string.f90'
+   include 'resolve_env.f90'
+
+! Primary container module.
 
 module string_utils
 
@@ -18,6 +29,7 @@ module string_utils
 
    use parse_delimited_mod
    use real__to_compact_string
+   use real__to_string
    use resolve__env
 
    implicit none
@@ -33,7 +45,6 @@ contains
    include 'count_substrings.f90'
    include 'int_to_string.f90'
    include 'lowercase.f90'
-   include 'real_to_string.f90'
    include 'remove_quotes.f90'
    include 'replace_substring.f90'
    include 'string_to_double_dp.f90'

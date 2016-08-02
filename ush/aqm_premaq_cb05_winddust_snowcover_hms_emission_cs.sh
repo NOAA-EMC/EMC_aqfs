@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/ksh 
 
 set -xa
 #-----------------------------------------------------------------
@@ -20,7 +20,7 @@ export METMOD=NAM		# MM5 or NAM soil types;
 
 sdate=$PDY
 jdate=$DAYOFYEAR
-jtime=${cyc}0000
+jtime=${CYC}0000
 
 cfg=dust.cfg
 year=`echo $sdate | cut -c 1-4`
@@ -60,14 +60,8 @@ if [ -e $CTM_DUST ]; then
  rm $CTM_DUST
 fi
 
-if [ -e chkreads.log ] ; then
- rm -rf chkreads.log
-fi
-
 export pgm=aqm_fengsha
-
-startmsg 
-${EXECaqm}/aqm_fengsha >> $pgmout 2>errfile 
+${EXECaqm}/aqm_fengsha  
 export err=$?;err_chk
   
 if [ -e $CTM_DUST ]; then 
@@ -92,8 +86,8 @@ if [ -e chkreads.log ] ; then
 fi
 
 export pgm=aqm_fengsha
-startmsg
-mpirun.lsf ${EXECaqm}/aqm_fengsha_merge  >>  $pgmout 2>errfile
+#startmsg
+${EXECaqm}/aqm_fengsha_merge_2016  >>  $pgmout 2>errfile
 export err=$?;err_chk
 
 if [ -e $EMIS_1 ]; then
@@ -111,43 +105,44 @@ emis3d=aqm.${cycle}.emission.${PDY}.windust
 metc2d=aqm.${cycle}.metcro2d
 
 ln -s ${MET_CRO_2D} $DATA 
-if [ -e chkreads.log ] ; then
- rm -rf chkreads.log
-fi
 
 export EMIS3D=$DATA/${emis3d}.ncf
 export METC2D=$COMIN/${metc2d}.ncf
 
+if [ -e chkreads.log ] ; then
+ rm -rf chkreads.log
+fi
+
 export pgm=aqm_snowdust
 startmsg
-mpirun.lsf  $EXECaqm/aqm_snowdust >> $pgmout 2>errfile
+$EXECaqm/aqm_snowdust_2016
 export err=$?;err_chk
 
 cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
+cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
 
 #-----------------------------------------------------------------
 #step 3 HMS
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
-
-  if [ -e chkreads.log ] ; then
-   rm -rf chkreads.log
+  if [ ${CYC} = '00' -o  ${CYC} = '06' ]  
+  then
+   smoke_emis9=${smoke_emis}/smokecs.$PDYm1
+  else
+   smoke_emis9=${smoke_emis}/smokecs.$PDY 
   fi
 
-  if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
-  then
-   smoke_emis9=${smoke_emis}/smoke.$PDYm1
-  else
-   smoke_emis9=${smoke_emis}/smoke.$PDY 
+  if [ -e chkreads.log ] ; then
+    rm -rf chkreads.log
   fi
 
   if [ -s ${smoke_emis9}/EMITIMES  ]
   then 
    ln -s ${smoke_emis9}/EMITIMES $DATA 
+   ln -s ${smoke_emis9}/EMITIMES $COMOUT
   test_file=$DATA/FIRE_CHECK
 
-  startmsg
-  $EXECaqm/aqm_fire_checking >> $pgmout 2>errfile
+  $EXECaqm/aqm_fire_checking_2016
   export err=$?;err_chk
 
   sleep 30
@@ -157,7 +152,12 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
     grep -ni "THERE ARE FILES inside the CONUS DOMAIN" ${test_file} > log_fire.log
   fi
   if [[ -s log_fire.log ]] ; then
-    $USHaqm/aqm_premaq_cb05_hms_emission_cs.sh
+
+   if [ ${CYC} = '00' -o  ${CYC} = '06' ] ; then   
+    $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDYm1 
+   else
+    $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDY
+   fi     
   else
    cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
    cp -rp $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old.ncf
@@ -173,7 +173,7 @@ cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
 ########################################################
 
 msg='ENDED NORMALLY.'
-postmsg "$jlogfile" "$msg"
+#postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

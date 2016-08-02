@@ -1,69 +1,83 @@
-#!/bin/ksh 
+#!/bin/ksh
 #
-. /usrx/local/Modules/default/init/ksh
+source /opt/modules/default/init/ksh
 
 set -xa
 export PS4='$SECONDS + '
 date -u 
 
 ############################################
-export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
+export NET=aqm
+export RUN=aqm
 ############################################
+############################################
+export PARAFLAG=${PARAFLAG:-NO}
+#####################################
 # obtain unique process id (pid) and make temp directories
-############################################
+#####################################
 export pid=$$
-
-# PATH for working directory
-
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+export job=aqm_premaq_cs_new
+export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
 mkdir -p $DATA
 cd $DATA
 
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
-
+export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.$$}
 ####################################
 # Determine Job Output Name on System
 ####################################
+export outid="LL$job"
+export jobid="${outid}.o${pid}"
 export pgmout="OUTPUT.${pid}"
 
-export cycle=${cycle:-t${cyc}z}
+export cycle=t${cyc}z
+export MP_HOLDTIME=1000
+export MP_LABELIO=YES
 
-export SENDCOM=${SENDCOM:-YES}
-export SENDDBN=${SENDDBN:-YES}
+export SENDCOM=YES
+export SENDDBN=YES
+export SENDECF=YES
 
-####################################
-# Path to HOME Directory
-####################################
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
-export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
-export USHaqm=${USHaqm:-$HOMEaqm/ush}
-export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
+export HOMEaqm=${HOMEaqm:-/nwprod/cmaq.${model_ver}}
+export EXECaqm=$HOMEaqm/exec
+export FIXaqm=$HOMEaqm/fix
+export PARMaqm=${HOMEaqm}/parm
+export USHaqm=${HOMEaqm}/ush
+export PARMutil=$HOMEaqm/util/parm
 
 ###################################
 # Set up the UTILITIES
 ###################################
 module load prod_util
 module load grib_util
+export utilscript=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
+export utilexec=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
+
+# Run setup to initialize working directory and utility scripts
+#sh $utilscript/setup.sh
 
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
+if [ $PARAFLAG = "YES" ]
+then
+export SENDDBN=NO
+fi
+
 # Run setpdy and initialize PDY variables
+#$utilscript/setpdy.sh
 setpdy.sh
 . PDY
 
-DAYOFYEAR=`$NWROOTp1/util/ush/date2jday.sh $PDY`
+DAYOFYEAR=`$utilscript/date2jday.sh $PDY`
+#DAYOFYEAR=`date2jday.sh $PDY`
 
 #-----------------------------------------------------------------
 # Maxinum layer for smoke
 #-----------------------------------------------------------------
-export SMKLAY=35  #22
+export SMKLAY=35 
 #-----------------------------------------------------------------
 #  critical value for eliminating short life Fire
 #-----------------------------------------------------------------
@@ -71,20 +85,22 @@ export XSFIRE=2400           # 24 hours
 #------------------------------------------------------------------
 #  temporary store BLUESKY HYSPLIT
 #------------------------------------------------------------------
+export HYPTMP=${DATA}
+#------------------------------------------------------------------
 # FIRE EMISSION OUTPUT
 #------------------------------------------------------------------
-export FEMS=$DATA/scenario/$PDY
+export FEMS=$HYPTMP/scenario/$PDY
 #------------------------------------------------------------------
 
-export smoke_emis=${smoke_emis:-${COMROOTp1}/hysplit/prod}
+export smoke_emis=${smoke_emis:-/com/hysplit/prod}
 
-export FEMIT=${smoke_emis}/smoke.$PDY/EMITIMES
+export FEMIT=${smoke_emis}/smokecs.$PDY/EMITIMES
 
-if [ ${cyc} = '00' -o ${cyc} = '18' ]
+if [ ${CYC} = '00' -o ${CYC} = '18' ]
 then
   nstep=7
 else
-  nstep=49
+  nstep=49 #25
 fi
 #------------------------
 #
@@ -107,48 +123,55 @@ yesterday=${YYm1}${jjm1}
 #----------------------------------------------------------
 #---    DIR OF LOG FILES AND SMALL OUTPUTS -----------------
 #-----------------------------------------------------------
- export LOGD=$DATA/logs
- export LOG1=$DATA/logs/Bluesky-A
- export LOG2=$DATA/logs/STEP2-A
- export LSMK=$DATA/logs/SMKINV-A
- export LOG3=$DATA/logs/STEP3-A
+ export LOGD=$HYPTMP/logs
+ export LOG1=$HYPTMP/logs/Bluesky-A
+ export LOG2=$HYPTMP/logs/STEP2-A
+ export LSMK=$HYPTMP/logs/SMKINV-A
+ export LOG3=$HYPTMP/logs/STEP3-A
 
-# export METDIR=/ptmpp1/$LOGNAME/tmp/aqm.$PDY
+ export METDIR=/gpfs/hps/ptmp/$LOGNAME/tmp/aqm.$PDY
 #=============================================
- export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
- export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
- export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+ export COM=/com/${NET}/${envir}
+ export COMIN=${COMIN:-/com/${NET}/prod/${RUN}.${PDY}}
+ export COMINm1=${COMINm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
+ export COMOUT=${COMOUT:-/com/${NET}/prod/${RUN}.${PDY}}
+ export COMNAM=${COMNAM:-/com/${NET}/prod/${RUN}.${PDY}}
+ export COMNAMm1=${COMNAMm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
 
- mkdir -p $COMOUT
-
-#############################################
-###  NGAC output dir 
+###############################################
+###  NGAC output dir
  export NGAC_DIR=${NGAC_DIR:-${COMROOTp1}/ngac/prod}
+
 ###############################################
 # Set up the daily emission files directory
 # Those are fix files but use huge disk space.
 ###############################################
-export INPEMIDIR=${INPEMIDIR:-/com2/${NET}/${envir}/emission}
+export INPEMIDIR=${INPEMIDIR:-/com/${NET}/prod/emission}
 
+export smoke_emis=${smoke_emis:-/com/hysplit/prod}
+
+mkdir -p $COMOUT
+ 
 env
 
 ###################################################
 # Execute the Script
 ###################################################
-ksh $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
-export err=$?; err_chk
+if [ "${FCST}" = "YES" ]
+then
+ $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
+ err=$?; err_chk
+else
+ $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY 
+ err=$?; err_chk
+fi
 ##################################################
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 
-###################################
-# Remove temp directories
-###################################
-if [ "$KEEPDATA" != "YES" ] ; then
-  cd $DATAROOT
-  rm -rf $DATA
-fi
+#cd  /tmpnwprd
+#rm -rf $DATA
 
 date
 
