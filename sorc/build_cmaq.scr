@@ -1,8 +1,10 @@
-module purge
+
+#module purge
+
+module load PrgEnv-intel/5.2.56
 
 module load ../modulefiles/CMAQ/v5.0.2
 #
-module list
 
 sleep 1
 
@@ -18,19 +20,15 @@ done
 ##############################
 #done
 ##############################
-#module unload NetCDF/3.6.3
-#module unload ics
-#module load ics/14.0.1
-#module switch ics/14.0.1
-#module  unload HDF4/4.2.8
-#module load HDF5/1.8.9/serial
-#module load NetCDF/4.2/serial
+module load HDF4-intel-haswell/4.2.8
+module load HDF5-serial-intel-haswell/1.8.9
+module switch  intel/16.3.210 
 ###############################
-#for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
-#do
-#cd ${BASE}/aqm_${src}.fd
-#make clean
-#make
-#done
+for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
+do
+cd ${BASE}/aqm_${src}.fd
+make clean
+make
+done
 ###############################
 #

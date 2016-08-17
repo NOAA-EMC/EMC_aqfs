@@ -64,8 +64,8 @@ endif
 echo ' '
 
 #/naqfc/noscrub/Youhua.Tang/CMAQ/dwtools/chg/chg.x
-/u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/exec/aqm_chg
-#${HOMEaqm}/exec/aqm_chg
+#/u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/exec/aqm_chg
+${HOMEaqm}/exec/aqm_chg
 
 exit
 

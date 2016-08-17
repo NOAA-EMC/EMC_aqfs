@@ -51,9 +51,9 @@ export PARMutil=$HOMEaqm/util/parm
 # Set up the UTILITIES
 ###################################
 module load prod_util
-module load grib_util
-export utilscript=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
-export utilexec=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
+#module load grib_util
+#export utilscript=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
+#export utilexec=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
 
 # Run setup to initialize working directory and utility scripts
 #sh $utilscript/setup.sh
@@ -71,8 +71,8 @@ fi
 setpdy.sh
 . PDY
 
-DAYOFYEAR=`$utilscript/date2jday.sh $PDY`
-#DAYOFYEAR=`date2jday.sh $PDY`
+#DAYOFYEAR=`$utilscript/date2jday.sh $PDY`
+DAYOFYEAR=`date2jday.sh $PDY`
 
 #-----------------------------------------------------------------
 # Maxinum layer for smoke
@@ -85,6 +85,7 @@ export XSFIRE=2400           # 24 hours
 #------------------------------------------------------------------
 #  temporary store BLUESKY HYSPLIT
 #------------------------------------------------------------------
+# export HYPTMP=${usr_tmp}/aqf_nmm_t/rerun_CONUS_fire-COx3_L22_XS
 export HYPTMP=${DATA}
 #------------------------------------------------------------------
 # FIRE EMISSION OUTPUT
@@ -135,10 +136,9 @@ yesterday=${YYm1}${jjm1}
  export COMIN=${COMIN:-/com/${NET}/prod/${RUN}.${PDY}}
  export COMINm1=${COMINm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
  export COMOUT=${COMOUT:-/com/${NET}/prod/${RUN}.${PDY}}
+ export COMOUTm1=${COMOUTm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
  export COMNAM=${COMNAM:-/com/${NET}/prod/${RUN}.${PDY}}
  export COMNAMm1=${COMNAMm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
-
-###############################################
 ###  NGAC output dir
  export NGAC_DIR=${NGAC_DIR:-${COMROOTp1}/ngac/prod}
 
@@ -162,7 +162,7 @@ then
  $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
  err=$?; err_chk
 else
- $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY 
+ $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
  err=$?; err_chk
 fi
 ##################################################

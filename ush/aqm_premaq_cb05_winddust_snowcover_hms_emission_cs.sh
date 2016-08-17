@@ -140,10 +140,13 @@ cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
   then 
    ln -s ${smoke_emis9}/EMITIMES $DATA 
    ln -s ${smoke_emis9}/EMITIMES $COMOUT
-  test_file=$DATA/FIRE_CHECK
+   test_file=$DATA/FIRE_CHECK
 
   $EXECaqm/aqm_fire_checking_2016
   export err=$?;err_chk
+
+  cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
+  cp $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
 
   sleep 30
   rm -rf log_fire.log
@@ -158,16 +161,16 @@ cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
    else
     $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDY
    fi     
-  else
-   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
-   cp -rp $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old.ncf
-   cp -rp $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
+#  else
+#   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
+#   mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old1.ncf
+#   mv $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
   fi
   else
    echo "no HYSPLIT fire emissions availabe for CMAQ"
-   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
-   cp -rp $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old.ncf
-   cp -rp $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
+#   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
+#   mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old1.ncf
+#   mv $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
   fi 
 
 ########################################################

@@ -577,8 +577,8 @@ $EXECaqm/aqm_spcmat
 
 cp $OUTFILE $COMOUT
 
-cp -rp $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old.ncf
-cp -rp $COMOUT/aqm.${cycle}.$PDY.emis+fire_HYSPLIT.ncf $COMOUT/aqm.${cycle}.emission.ncf
+cp -rp $COMOUT/aqm.${cycle}.$PDY.emis+fire_HYSPLIT.ncf $COMOUT/
+mv -rp $COMOUT/aqm.${cycle}.$PDY.emis+fire_HYSPLIT.ncf $COMOUT/aqm.${cycle}.emission.ncf
 
 
 ########################################################

@@ -28,7 +28,7 @@ export id_grib=148
 # Part I: Convert Machine binary format to Grib format
 #########################################################
 
-export CHEM3D=${COMIN}/aqm.${cycle}.conc_r.ncf
+export CHEM3D=${COMIN}/aqm.${cycle}.conc_1.ncf
 export METCRO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
 export METCRO2D=${COMIN}/aqm.${cycle}.metcro2d.ncf
 
@@ -45,9 +45,9 @@ esac
   ic=1
   while [ $ic -lt 1000 ]
   do
-    if [ -s $COMIN/aqm.${cycle}.conc_r.ncf ]
+    if [ -s $COMIN/aqm.${cycle}.conc_1.ncf ]
     then
-     ln -sf $COMIN/aqm.${cycle}.conc_r.ncf $DATA/aqm.${cycle}.conc_r.ncf
+     ln -sf $COMIN/aqm.${cycle}.conc_1.ncf $DATA/aqm.${cycle}.conc_1.ncf
     break
     else
         let "ic=ic+1"
@@ -55,7 +55,7 @@ esac
     fi
     if [ $ic -ge 180 ]
     then
-    err_exit "*****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc_r.ncf"
+    err_exit "*****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc_1.ncf"
     fi
   done
 
@@ -95,7 +95,7 @@ do
 
  typeset -Z2 fhr
 
- cp $DATA/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
+ mv $DATA/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
 
  let "fhr=fhr+1"
 

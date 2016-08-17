@@ -24,8 +24,7 @@ if [ $cyc -eq 06 ]; then
  export CMAQFILE3=${COMIN}/aqm.t00z.aconc_sfc.ncf
 fi
 if [ $cyc -eq 12 ]; then
-# export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
- export CMAQFILE3=${COMIN}/aqm.t12z.aconc_sfc.ncf
+ export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
 fi
 
 cat >cmaq-maxi2grib.ini <<EOF5

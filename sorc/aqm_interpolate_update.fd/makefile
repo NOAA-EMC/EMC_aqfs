@@ -1,7 +1,10 @@
 #---------------------------------------------------------------------------
+#
 # 2014-may-10	Original make file for interpolate_update.f90.
 #		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 # 2014-jul-16	Clean version for new release.
+# 2016-jan-12	Upgrade to Dave's current fortran library structure.
+# 2016-feb-10	Update for get_param_module.
 #
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
@@ -15,56 +18,45 @@
 #
 #---------------------------------------------------------------------------
 
-Prg    =  aqm_interpolate_update
+Prg      =   aqm_interpolate_update
 
 # Library directories.
 
 Plib   =   ../../lib/sorc/lib.bias
 Lib    =   ../../lib/sorc/lib.f90
 
+
 # Command argument sequences.
+LIB_NETCDF = -I$(NETCDF)/include ${NETCDF_LDFLAGS}
 
-NETCDFPATH=${NETCDF}
+F90_CMD   = ifort 
 
-nc1    =  -I$(NETCDFPATH)/include  ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
-nc2    =  -L/usrx/local/HDF4/4.2.8/lib 
-#nc2   = ${HDF4_LDFLAGS} ${HDF4_LDFLAGS_F}
-nc3    = ${HDF5_LDFLAGS}
-#nc4    = ${SZ_LIB}
-nc5    = -lz -lmfhdf 
+F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
+F90_FLAGS2 = -traceback -warn all -warn errors
+F90_FLAGS3 = -fstack-security-check -fpe-all=0
+F90_FLAGS4 = -O3
+F90_FLAGS5 = -openmp
 
-Libraries = $(nc1) $(nc2)  $(nc3)  $(nc4)  $(nc5) 
+F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
+             $(F90_FLAGS3) $(F90_FLAGS4)  \
+             $(F90_FLAGS5)
 
-F90_CMD = ${F_COMP} 
-
-F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc 
-F90_FLAGS2 = -traceback -check all -check noarg_temp_created
-F90_FLAGS3 = -warn all -warn errors 
-F90_FLAGS5 = -fstack-security-check -fpe-all=0 
-F90_FLAGS1 = -O0
-
-
-#Libraries  = 	
-Link.f90   =	$(F90_CMD) $(F90_FLAGS)
+Libraries =	$(LIB_NETCDF)
+Link.f90  =	$(F90_CMD) $(F90_FLAGS)
 
 F90_CONFIG =  f90_config.gfortran.f90
 
 # Lib = General fortran support library.
 
 Lib1 =		$(Lib)/$(F90_CONFIG)		$(Lib)/config.f90 \
-		$(Lib)/stdlit.f90
+		$(Lib)/parse_varexp.f90		$(Lib)/stdlit.f90 \
+		$(Lib)/string_utils.f90
 
-Lib2 =		$(Lib)/get_free_unit.f90	$(Lib)/get_param_string.f90 \
-		$(Lib)/leap_check.f90		$(Lib)/lowercase.f90 \
-		$(Lib)/message_nolog.f90	$(Lib)/parse_delimited.f90 \
-		$(Lib)/parse_varexp.f90		$(Lib)/read_line.f90 \
-		$(Lib)/real_to_compact_string.f90 \
-		$(Lib)/resolve_env.f90		$(Lib)/string_utils.f90
+Lib2 =		$(Lib)/date_utils.f90		$(Lib)/get_free_unit.f90 \
+		$(Lib)/get_param_module.f90	$(Lib)/message_nolog.f90 \
+		$(Lib)/netwrite3.no-udunits.f90	$(Lib)/read_line.f90
 
-Lib3 =		$(Lib)/date_index.f90		$(Lib)/index_to_date.f90 \
-		$(Lib)/netwrite3.no-udunits.f90
-
-Subs.lib =	$(Lib1) $(Lib2) $(Lib3)
+Subs.lib =	$(Lib1) $(Lib2)
 
 # Plib = Shared project support library.
 
@@ -82,8 +74,6 @@ Subs.local =	interpolate.f90			read_config_file.f90 \
 
 Subs.main =	$(Subs.lib) $(Subs.plib) $(Subs.local)
 
-F90_CLEANUP = *.o *.mod *__genmod.f90
-
 # Catch hidden include file dependencies that are not explicitly listed.
 # This is overkill, but it is fast and good assurance.
 
@@ -95,5 +85,5 @@ $(Prg):	$(Prg).f90 $(Subs.main) $(Hidden) makefile
 	@echo Good compile.
 
 clean:
-	@(rm $(F90_CLEANUP) *.o  *.dwarf ../../exec/$(Prg) ; echo) >& /dev/null
+	@(rm $(F90_CLEANUP) *.o *mod *.dwarf $(Prg) ; echo) >& /dev/null
 	@(rm -r *.dSYM ; echo) >& /dev/null

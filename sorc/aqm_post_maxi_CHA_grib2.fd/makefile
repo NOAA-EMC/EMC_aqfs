@@ -23,7 +23,7 @@ LIBS   =  $(IOAPI_LIB) \
 	  $(JASPER_LIB2) \
 	  $(Z_LIB2)
 
-INC    = $(LIB_LOC)/sorc/aqm_ioapi/ioapi
+INC    = $(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
 
 FC     = ${F_COMP} 
 

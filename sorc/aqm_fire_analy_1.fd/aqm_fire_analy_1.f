@@ -8,9 +8,10 @@ c      implicit none
       include 'CONST3.EXT'      ! i/o API
       
       parameter (imax=442,jmax=265,kmax=35,nvars=33)
-      parameter (start=12,numrec=25)
+cjp      parameter (start=12,numrec=25)
+      parameter (numrec=25)
 
-      integer nfire,fhour,syear,smon,sday,jdate,jtime,jstep,
+      integer nfire,fhour,syear,smon,sday,start,jdate,jtime,jstep,
      1 total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,emlays
       integer year(500),mon(500),day(500),hour(500),min(500),
      1 duration(500),intx(500),inty(500),intime(500,numrec),
@@ -130,12 +131,20 @@ cc      data sday/11/
       
       data firespec/'HEAT','PM25','PM10','PM','CO','CO2','CH4','NMHC'/
       
-      namelist/control/syear,smon,sday,dirname
+cjp      namelist/control/syear,smon,sday,dirname
+      namelist/control/syear,smon,sday,start,dirname
       
       open(7,file='fire.ini')
       read(7,control)
       print*, syear,smon,sday,dirname
-      
+cjp1      
+      write(grdfix(6:7),'(i2.2)')start
+      do i = 1,3
+      write(metfix(i)(6:7),'(i2.2)')start
+      enddo
+      write(outfix(1)(10:11),'(i2.2)')start
+cjp9
+
       aline(1)=dirname
       aline(2)=emifix
       

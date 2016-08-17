@@ -35,16 +35,16 @@
 
 .SUFFIXES: .m4 .c .F .f .f90 .F90
 
-BASEDIR = /u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31
+BASEDIR = /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31
 SRCDIR  = ${BASEDIR}/m3tools
 IODIR   = ${BASEDIR}/ioapi
 OBJDIR  = ${BASEDIR}/${BIN}
-INSTDIR = /u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+INSTDIR = /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
 
 # Architecture dependent stuff
 # Assumes FC is an f90
 
-include /u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
+include /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
 
 FFLAGS = -I$(IODIR)  $(ARCHFLAGS) $(PARFLAGS) $(FOPTFLAGS) $(ARCHFLAGS)
 
@@ -105,7 +105,7 @@ all: $(EXE)
 clean:
 	cd ${OBJDIR}; rm $(EXE) $(OBJ)
 
-install: /u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+install: /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
 	echo "Installing M3TOOLS in ${INSTDIR}"
 	cd ${OBJDIR}; cp $(EXE) $(INSTDIR)
 

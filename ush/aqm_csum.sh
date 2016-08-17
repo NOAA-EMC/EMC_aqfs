@@ -36,8 +36,7 @@ echo ' '
 set system = `uname -a`
 set mname = `uname -n | sed 's/\./ /g' ` 
 
-/u/Jianping.Huang/noscrub/nwdev/cmaq.v5.0.2/exec/aqm_csum
-#${HOMEaqm}/exec/aqm_csum
+${HOMEaqm}/exec/aqm_csum
 
 exit
 

@@ -6,6 +6,7 @@
 ! correction program for CMAQ forecast outputs.
 !
 ! 2014-may-01	Original version.  By Dave Allured.
+! 2016-feb-10	Update for get_param_module.
 !
 ! Notes:
 !
@@ -25,6 +26,7 @@ contains
 subroutine read_config_file (config_file, station_file, grid_coord_file, &
       interp_file_template, varnames, reader_codes, infile_templates)
 
+   use get_param_module
    use read__table_lines
    use stdlit
    implicit none

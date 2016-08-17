@@ -2,9 +2,7 @@
 
 set -ax 
 if [ ${USER} = 'Jianping.Huang' ] ; then
-# mydir=/naqfc/save/${USER}
- mydir=/u/${USER}/noscrub
- 
+ mydir=/gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/
 else
  mydir=
 fi

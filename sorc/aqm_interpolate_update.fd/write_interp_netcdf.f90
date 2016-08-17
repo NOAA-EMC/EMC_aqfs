@@ -7,6 +7,7 @@
 !
 ! 2014-may-10	Original version.  By Dave Allured.
 ! 2014-may-12	Adjust verbosity for 2 = sparse progress display.
+! 2016-jan-12	Minor change to argument sequence in a library call.
 !
 ! This routine writes a single Netcdf file for MET and CMAQ
 ! hourly forecast data, interpolated to discrete site locations.
@@ -80,7 +81,7 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
    title   = 'Interpolated CMAQ and MET forecasts'
    history = 'Created by interpolate_update.f90'
 
-   call netcreate3 (outfile, title, history, reserve_header, ncid, diag)
+   call netcreate3 (outfile, title, history, reserve_header, ncid, diag=diag)
    						! history time stamp is added
 
 ! Write site ID's and site coordinates.  Dimensions are added automatically.

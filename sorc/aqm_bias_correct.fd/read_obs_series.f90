@@ -15,6 +15,9 @@
 ! 2014-jun-12	Caller specifies BUFR var name, not symbolic var name.
 ! 2014-jun-19	Minor print adjustments and comment fixes.
 !
+! 2016-feb-10	Reduce coordinate mismatch messages.
+!		Add file summary messages for mismatches, diag level 1 and up.
+!
 ! Input:   infile_template = path template for input data set.  May include
 !		leading environment var, and YYYY MM DD substitution strings.
 !          varname = BUFR name for requested data variable.
@@ -131,8 +134,9 @@ subroutine read_obs_series (infile_template, varname, start_date, end_date, &
    integer ndays_valid, ndays_missing, ndays_error
    integer typo_expect, tphr_expect
    integer all_missing_count
+   integer nsites_coord_mismatch, nfiles_coord_mismatch
 
-   real dist
+   real dist, max_mismatch_distance
    logical ex, found
 
 ! Dynamic arrays.
@@ -179,6 +183,8 @@ subroutine read_obs_series (infile_template, varname, start_date, end_date, &
    ndays_valid   = 0			! init statistics
    ndays_missing = 0
    ndays_error   = 0
+
+   nfiles_coord_mismatch = 0
 
 ! Find requested var in local var table.
 
@@ -238,6 +244,9 @@ subroutine read_obs_series (infile_template, varname, start_date, end_date, &
 
 date_loop: &
    do date_index = start_date, end_date
+
+      nsites_coord_mismatch = 0			! clear mismatch statistics
+      max_mismatch_distance = 0			! for this file
 
       day_offset = date_index - start_date	! compute time insertion
       ti1 = 1 + (nhours * day_offset)		! indices for current date
@@ -376,23 +385,34 @@ site_loop: &
          dist = distance_btw_coords (real (file_lats(si1)), &
             real (file_lons(si1)), real (tlats(si2)), real (tlons(si2)) )
 
-         if (dist > max_coordinate_drift .and. diag >= 1) then
-            print *
-            print *, '*** read_obs_series: Warning:'
-            print *, '*** Difference in coordinates between input files' &
-               // ' files exceeds limit.'
-            print *, '*** Site ID = ' // trim (tids(si2))
-            print '(a,2f12.5)', ' *** Previous coordinates     =', &
-               tlats(si2), tlons(si2)
-            print '(a,2f12.5)', ' *** Current file coordinates =', &
-               file_lats(si1), file_lons(si1)
-            print '(a,f12.3,a)', ' *** Surface offset =', dist, ' Km'
-            print '(a,f12.3,a)', ' *** Limit          =', &
-               max_coordinate_drift, ' Km'
-            print *, '*** The newer coordinates will be used.'
+         if (dist > max_coordinate_drift) then
 
-            tlats(si2) = file_lats(si1)		! replace older coordinates
-            tlons(si2) = file_lons(si1)		! with the newer ones
+            nsites_coord_mismatch = nsites_coord_mismatch + 1
+            				! count each mismatched site in file
+
+            max_mismatch_distance &		   ! find max distance
+               = max (max_mismatch_distance, dist)   ! in entire run
+
+            if (diag >= 3) then
+               print *
+               print *, '*** read_obs_series: Warning:'
+               print *, '*** Difference in coordinates between input files' &
+                  // ' files exceeds limit.'
+               print *, '*** Site ID = ' // trim (tids(si2))
+               print '(a,2f12.5)', ' *** Previous coordinates     =', &
+                  tlats(si2), tlons(si2)
+               print '(a,2f12.5)', ' *** Current file coordinates =', &
+                  file_lats(si1), file_lons(si1)
+               print '(a,f12.3,a)', ' *** Surface offset =', dist, ' Km'
+               print '(a,f12.3,a)', ' *** Limit          =', &
+                  max_coordinate_drift, ' Km'
+               print *, '*** The newer coordinates will be used.'
+            end if
+
+! For mismatches, always replace older coordinates with the newer ones.
+
+            tlats(si2) = file_lats(si1)
+            tlons(si2) = file_lons(si1)
          end if
 
 ! Insert input data for current date into primary time series array.
@@ -400,6 +420,20 @@ site_loop: &
          tdata(ti1:ti2,si2) = file_data(:,si1)
 
       end do site_loop
+
+! Report file summary in case of mismatched coordinates.
+
+      if (nsites_coord_mismatch /= 0) then
+         nfiles_coord_mismatch = nfiles_coord_mismatch + 1
+         				! count files with mismatched coords
+         if (diag >= 1) then
+            print '(2a,i5)',     '  *** Number of sites in this file with', &
+               ' mismatched coordinates =', nsites_coord_mismatch
+            print '(a,f12.2,a)', '  *** Maximum surface mismatch in file =', &
+               max_mismatch_distance, ' Km'
+            print *
+         end if
+      end if
 
       ndays_valid = ndays_valid + 1		! count valid input files
    end do date_loop
@@ -413,10 +447,12 @@ site_loop: &
 
    print *,    '-------------------------------------------------------------'
    print *,    'Input summary, all BUFR files combined:'
-   print fmt1, 'Total number of days in input period  = ', ndays
-   print fmt1, 'Days skipped, missing input files     = ', ndays_missing
-   print fmt1, 'Days skipped, invalid input files     = ', ndays_error
-   print fmt1, 'Number of valid days read             = ', ndays_valid
+   print fmt1, 'Total number of days in input period   = ', ndays
+   print fmt1, 'Days skipped, missing input files      = ', ndays_missing
+   print fmt1, 'Days skipped, invalid input files      = ', ndays_error
+   print fmt1, 'Number of valid days read              = ', ndays_valid
+   print *
+   print fmt1, 'Number of files with mismatched coords = ',nfiles_coord_mismatch
 
 ! Controlled halt if all files missing.
 

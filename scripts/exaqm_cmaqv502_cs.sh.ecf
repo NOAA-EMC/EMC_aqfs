@@ -34,18 +34,10 @@ postmsg "$jlogfile" "$msg"
 
 cd $DATA
 
-#export FILE_EDDY=N
-#export READEDDY=N
-#export NOTCDF_FATAL=F
-
-#------------------------------------------------------
-# now using notCDF v3.4
 #------------------------------------------------------
 #export NETCDF_FFIOSPEC='cachea:75:3'
 
-
 EXEC=aqm_fcst_v502 #CCTM_D502b_Linux2_x86_64intel
-#CFG=CMAQ-BENCHMARK
 CFG=CMAQ-v502
 MECH=cb05tucl_ae6_aq
 APPL=D502b
@@ -55,12 +47,8 @@ export nprocs=480
 #export NPCOL_NPROW="22 22"
 #export nprocs=484
 
-
-#APPL=r6b
-#CFG=r6b
-#RST=rst
-#SEQ=0   
-#LAPPL=${APPL}_${SEQ}
+if [ "${FCST}" = "YES" ]
+then
 
 case $cyc in
  00) restart_path1=$COMINm1
@@ -74,33 +62,35 @@ case $cyc in
      restart_path5=$COMINm2
      restart_file5=aqm.t06z.cgrid.ncf
      soil_path=$COMINm1
-     soil_file=aqm.t18z.soilout.ncf
+     soil_file=aqm.t18z.soil06.ncf
      NSTEPS=060000;;
- 06) restart_path1=$COMIN
-     restart_file1=aqm.t00z.cgrid.ncf
-     restart_path2=$COMINm1
-     restart_file2=aqm.t12z.cgrid.ncf
+ 06) restart_path1=$COMINm1
+     restart_file1=aqm.t06z.cgrid_r.ncf   # using previous day 06z rerun as IC
+     restart_path2=$COMIN
+     restart_file2=aqm.t00z.cgrid.ncf
      restart_path3=$COMINm1
-     restart_file3=aqm.t06z.cgrid.ncf
-     restart_path4=$COMINm2
-     restart_file4=aqm.t12z.cgrid.ncf
-     restart_path5=$COMINm2
-     restart_file5=aqm.t06z.cgrid.ncf
-     soil_path=$COMIN
-     soil_file=aqm.t00z.soilout.ncf     
-     NSTEPS=480000;;
- 12) restart_path1=$COMIN
-     restart_file1=aqm.t06z.cgrid.ncf
-     restart_path2=$COMINm1
-     restart_file2=aqm.t12z.cgrid.ncf
-     restart_path3=$COMINm1
-     restart_file3=aqm.t06z.cgrid.ncf
-     restart_path4=$COMINm2
-     restart_file4=aqm.t12z.cgrid.ncf
+     restart_file3=aqm.t12z.cgrid.ncf
+     restart_path4=$COMINm1
+     restart_file4=aqm.t06z.cgrid.ncf
      restart_path5=$COMINm2
      restart_file5=aqm.t12z.cgrid.ncf
      soil_path=$COMIN
-     soil_file=aqm.t06z.soilout.ncf        
+     soil_file=aqm.t00z.soil06.ncf     
+     NSTEPS=480000;;
+ 12) restart_path1=$COMINm1
+     restart_file1=aqm.t12z.cgrid_r.ncf
+     restart_path2=$COMIN
+     restart_file2=aqm.t06z.cgrid.ncf
+     restart_path3=$COMINm1
+     restart_file3=aqm.t12z.cgrid.ncf
+     restart_path4=$COMINm1
+     restart_file4=aqm.t06z.cgrid.ncf
+     restart_path5=$COMINm2
+     restart_file5=aqm.t12z.cgrid.ncf
+     soil_path=$COMIN
+#     soil_path=$COMINm1
+     soil_file=aqm.t06z.soil06.ncf        
+#     soil_file=aqm.t12z.soil06.ncf        
      NSTEPS=480000;;
  18) restart_path1=$COMIN
      restart_file1=aqm.t12z.cgrid.ncf
@@ -113,9 +103,36 @@ case $cyc in
      restart_path5=$COMINm2
      restart_file5=aqm.t06z.cgrid.ncf
      soil_path=$COMIN
-     soil_file=aqm.12z.soilout.ncf         
+     soil_file=aqm.t12z.soil06.ncf         
      NSTEPS=060000;;
 esac
+
+#######################################################
+## below is prepared for 24-hr backward 
+##  run for using late smoke emissions for previous day
+#######################################################
+else
+case $cyc in
+ 06) restart_path1=$COMINm1
+     restart_file1=aqm.t00z.cgrid.ncf   # using previous day 06z rerun as IC
+     restart_path2=$COMINm2
+     restart_file2=aqm.t12z.cgrid.ncf
+     restart_path3=$COMINm2
+     restart_file3=aqm.t06z.cgrid.ncf
+     soil_path=$COMINm1
+     soil_file=aqm.t00z.soil06.ncf     
+     NSTEPS=240000;;
+ 12) restart_path1=$COMINm1
+     restart_file1=aqm.t06z.cgrid.ncf   # using previous day 06z rerun as IC
+     restart_path2=$COMINm2
+     restart_file2=aqm.t12z.cgrid.ncf
+     restart_path3=$COMINm2
+     restart_file3=aqm.t06z.cgrid.ncf
+     soil_path=$COMINm1
+     soil_file=aqm.t06z.soil06.ncf     
+     NSTEPS=240000;;
+esac
+fi
 
 if [ -s "${restart_path1}/${restart_file1}" ]
 then
@@ -139,14 +156,16 @@ then
   ICFILE=$restart_file5
 fi
 
-##if [ -s "$restart_file" ]
-##then
-##  export START=WARM
-##  export INITIAL_RUN=N
-##else
-##  export START=COLD
-##  export INITIAL_RUN=Y
-#fi
+
+#if [ -s "$restart_file" ]
+if [ -s "$ICpath/$ICFILE" ] 
+then
+ export START=WARM
+ export INITIAL_RUN=N
+else
+  export START=COLD
+  export INITIAL_RUN=Y
+fi
 #turn on the derived vert. vel. component to conc file
 # export CTM_WVEL=Y
 
@@ -159,12 +178,18 @@ fi
 SYYYY=`echo $PDY |cut -c1-4`
 SMM=`echo $PDY |cut -c5-6`
 SDD=`echo $PDY |cut -c7-8`
-DAYOFYEAR=`$UTILaqm/date2jday.sh $SYYYY$SMM$SDD `
+DAYOFYEAR=`date2jday.sh $SYYYY$SMM$SDD `
 typeset -Z3 DAYOFYEAR
 echo $DAYOFYEAR
 
+if [ "${FCST}" = "YES" ]
+then
+ #STDATE=$SYYYY$DAYOFYEAR
+ STDATE=`date2jday.sh $PDY`
+else
+ STDATE=`date2jday.sh $PDYm1`
+fi
 
-STDATE=$SYYYY$DAYOFYEAR
 STTIME=${cyc}0000
 
 NS=`echo $NSTEPS |cut -c1-2`
@@ -225,36 +250,44 @@ DISP=delete
 BCpath=$COMIN
 EMISpath=$COMIN
 METpath=$COMIN
-JVALpath=/u/Jianping.Huang/noscrub/com/aqm/para/emission/cb05_Jtable
+JVALpath=${INPEMIDIR}/cb05_Jtable
 OMIpath=${FIXaqm}/phot
 
 OUTDIR=$COMOUT
 
 #off-line photolysis rates
+#if [ "${FCST}" = "YES" ]
+#then
 JVALfile=JTABLE_${STDATE}
+#else
+#JVALfile=JTABLE_${STDATEm1}
+#fi
+
 
 #ozone column data
 OMIfile=OMI.dat
 
 #meterology files
 
- ic=1
-  while [ $ic -lt 1081 ]
-  do
-    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
-    then
-    break
-    else
-          let "ic=ic+1"
-          sleep 10
-      fi
-
-      if [ $ic -ge 180 ]
-      then
-      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
-      fi
-   done   
+# ic=1
+#  while [ $ic -lt 1081 ]
+#  do
+#    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+#    then
+#    break
+#    else
+#          let "ic=ic+1"
+#          sleep 10
+#      fi
+#
+#      if [ $ic -ge 180 ]
+#      then
+#      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+#      fi
+#   done   
    
+if [ "$FCST" = "YES" ]
+then
 export GRID_CRO_2D=$COMIN/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=$COMIN/aqm.${cycle}.grddot2d.ncf
 export MET_CRO_2D=$COMIN/aqm.${cycle}.metcro2d.ncf
@@ -269,12 +302,31 @@ $utilexec/fsync_file $COMIN/aqm.${cycle}.metbdy3d.ncf
 $utilexec/fsync_file $COMIN/aqm.${cycle}.metcro2d.ncf
 $utilexec/fsync_file $COMIN/aqm.${cycle}.metcro3d.ncf
 $utilexec/fsync_file $COMIN/aqm.${cycle}.metdot3d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.emission+fire.ncf
+$utilexec/fsync_file $COMIN/aqm.${cycle}.emission.ncf
+else
+export GRID_CRO_2D=$COMINm1/aqm.${cycle}.grdcro2d.ncf
+export GRID_DOT_2D=$COMINm1/aqm.${cycle}.grddot2d.ncf
+export MET_CRO_2D=$COMINm1/aqm.${cycle}.metcro2d.ncf
+export MET_CRO_3D=$COMINm1/aqm.${cycle}.metcro3d.ncf
+export MET_DOT_3D=$COMINm1/aqm.${cycle}.metdot3d.ncf
+export MET_BDY_3D=$COMINm1/aqm.${cycle}.metbdy3d.ncf
+export EMISfile=$COMINm1/aqm.${cycle}.emission_r.ncf
+
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.grddot2d.ncf
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.metbdy3d.ncf
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.metcro2d.ncf
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.metcro3d.ncf
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.metdot3d.ncf
+$utilexec/fsync_file $COMINm1/aqm.${cycle}.emission_r.ncf
+
+fi
 
 
-if [ $INITIAL_RUN = N ]
+if [ "$INITIAL_RUN" = "N" ]
 then
-    ln -sf $restart_file   $DATA/CONC.${RST}.ncf
+#    ln -sf $restart_file   $DATA/CONC.${APPL}.ncf
+  ln -sf "$ICpath/$ICFILE"  $DATA/CONC.${APPL}.ncf
 fi
 
 #------------------------------------------------------
@@ -283,8 +335,8 @@ fi
 
 #export EMIS_1=$DATA/emission.$PDY.ncf
 
-if [[ $INITIAL_RUN = "N" ]]; then
-   export ICFILE=$DATA/CONC.${RST}.ncf
+if [[ "$INITIAL_RUN" = "N" ]]; then
+   export ICFILE=$DATA/CONC.${APPL}.ncf
 else    
    export ICFILE=$FIXaqm/aqm_conus_12km_cgrid_v502_init.ncf
 fi
@@ -323,9 +375,7 @@ export CTM_APPL=${CFG}
 # In-line biogenic emissions output files
 if [ "$CTM_BIOGEMIS" = 'Y' ] 
 then
-#export B3GTS_S=$OUTDIR/$EXEC".B3GTS_S".${CTM_APPL}
 export B3GTS_S=$DATA/"B3GTS_S".${CTM_APPL}
-#export SOILOUT=$OUTDIR/$EXEC".SOILOUT".${CTM_APPL}
 export SOILOUT=$DATA/"SOILOUT".${CTM_APPL}
 fi
 
@@ -365,7 +415,7 @@ export   INIT_TRAC_1=$INIT_GASC_1
 export   OMI=$OMIpath/$OMIfile
 export   XJ_DATA=$JVALpath/$JVALfile
 
-if [[ ${cycle} = 't00z' ]] ; then
+if [[ ${cycle} = 't00z'  || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
  export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
 else
  export BNDY_GASC_1=$COMIN/aqm_conus_geos_ngac_dust_${PDY}_35L.ncf
@@ -460,7 +510,7 @@ export err=$?
 #------------------------------------------------------
 # copy output to /com
 #------------------------------------------------------
-if [ "$SENDCOM" = 'YES' ]
+if [ "$SENDCOM" = 'YES' ]  && [ "${FCST}" = "YES" ]
 then
  mv $DATA/CONC.${CTM_APPL}     $COMOUT/aqm.${cycle}.conc.ncf
  mv $DATA/ACONC.${CTM_APPL}    $COMOUT/aqm.${cycle}.aconc.ncf
@@ -472,6 +522,19 @@ then
  mv $DATA/AERODIAM.${CTM_APPL} $COMOUT/aqm.${cycle}.aerodiam.ncf
  mv $DATA/B3GTS_S.${CTM_APPL}  $COMOUT/aqm.${cycle}.b3gt2.ncf
  mv $DATA/SOILOUT.${CTM_APPL}  $COMOUT/aqm.${cycle}.soil06.ncf
+fi
+if [ "$SENDCOM" = 'YES' ] && [ "${FCST}" = "NO" ]
+then
+ mv $DATA/CONC.${CTM_APPL}     $COMOUTm1/aqm.${cycle}.conc_r.ncf
+ mv $DATA/ACONC.${CTM_APPL}    $COMOUTm1/aqm.${cycle}.aconc_r.ncf
+ mv $DATA/CGRID.${CTM_APPL}    $COMOUTm1/aqm.${cycle}.cgrid_r.ncf
+ mv $DATA/DRYDEP.${CTM_APPL}   $COMOUTm1/aqm.${cycle}.drydep_r.ncf
+ mv $DATA/WETDEP1.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.wetdep1_r.ncf
+ mv $DATA/DEPV.${CTM_APPL}     $COMOUTm1/aqm.${cycle}.depv_r.ncf
+ mv $DATA/AEROVIS.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.vis_r.ncf
+ mv $DATA/AERODIAM.${CTM_APPL} $COMOUTm1/aqm.${cycle}.aerodiam_r.ncf
+ mv $DATA/B3GTS_S.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.b3gt2_r.ncf
+ mv $DATA/SOILOUT.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.soil06_r.ncf
 fi
 
 if [ $err -ne 0 ]

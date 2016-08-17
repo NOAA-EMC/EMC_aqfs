@@ -14,7 +14,7 @@ c      parameter (nspe_emis=35,nspe_fire=7)
 c new emission 54 species
       parameter (nspe_emis=54,nspe_fire=7)    
       
-      integer syear,smon,sday,jdate,jtime,jstep
+      integer syear,smon,sday,start,jdate,jtime,jstep
       integer crosindex(nspe_emis)
       
       real vheight(kmax+1),crosratio(nspe_emis),conunit(nspe_fire)
@@ -109,12 +109,18 @@ c for CMAQ502 changing PMFINE to PMOTHR
       allocate(emis2(imax,jmax,kmax,nspe_emis),STAT=ierr)
       if(ierr.ne.0) stop 2003
       
-      namelist/control/syear,smon,sday,dirname
+      namelist/control/syear,smon,sday,start,dirname
       
       open(7,file='cmaq.ini')
       read(7,control)
-      print*, syear,smon,sday,dirname        
-           
+      print*, syear,smon,sday,start,dirname        
+c
+cjp1           
+      write(suffix(2)(6:7),'(i2.2)')start
+      write(suffix(4)(6:7),'(i2.2)')start
+cjp9
+
+
       aline(1)=dirname
       aline(2)=suffix(1)
       aline(3)=suffix(2)

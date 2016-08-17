@@ -24,7 +24,8 @@ fdaym1=`echo $daybefore |cut -c 7-8`
 
 echo $fyearm1 $fmonthm1 $fdaym1
 
-cat > tmp.ini << EOF
+#cat > tmp.ini << EOF
+cat > fire.ini << EOF
  &control
  syear=$fyear
  smon=$fmonth
@@ -38,7 +39,7 @@ cat > tmp.ini << EOF
  &end
 EOF
  
-namecut tmp.ini fire.ini
+#namecut tmp.ini fire.ini
 rm tmp.ini files_fires_cs.tar
 
 if [ -s ${smoke_emis9}/files_fires_cs.tar ] ; then
@@ -69,7 +70,8 @@ export err=$?;
 err_chk
 
 
-cat > tmp.ini << EOF
+#cat > tmp.ini << EOF
+cat > cmaq.ini << EOF
  &control
  syear=$fyear
  smon=$fmonth
@@ -79,8 +81,8 @@ cat > tmp.ini << EOF
  &end
 EOF
  
-namecut tmp.ini cmaq.ini
-rm tmp.ini
+#namecut tmp.ini cmaq.ini
+#rm tmp.ini
 
 export FIRE3D=$DATA/aqm.${PDY}.t${cyc}z.smokefire3d.ncf
 export OEMIS=$DATA/aqm.t${cyc}z.emission.$PDY.windust_snowc.ncf
@@ -94,9 +96,9 @@ $EXECaqm/aqm_fire_fcst_2 > tmpsmoke.out
 export err=$?;
 err_chk
 
-cp $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old.ncf
+mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old2.ncf
 cp $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/
-cp $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/aqm.${cycle}.emission.ncf
+mv $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/aqm.${cycle}.emission.ncf
 
 ########################################################
 
