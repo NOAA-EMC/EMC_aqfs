@@ -61,7 +61,7 @@ IOAPIPATH    = ../../lib
   TRAPS      =
   DEFS       = -DBIT32 -DIBM -DIFORT #-WF,-DBIT32,-DIBM
   INCLUDES   = -I${G2_INC4} -I${IP_INC4} -I${PNG_INC} -I${JASPER_INC} -I${Z_INC} \
-                -Iedss_tools -Ismokelib $(CRAY_IOBUF_INCLUDE_OPTS)
+                -Iedss_tools -Ismokelib ${CRAY_IOBUF_INCLUDE_OPTS}
 
   IOAPI_LIB   = $(IOAPIPATH)/libaqm_ioapi.a
 #
@@ -403,7 +403,7 @@ $(TARGET):  $(MODULES) $(MODULES_E) $(OBJS) $(OBJS_EDSSLIB) $(OBJS_FILESET) \
 	$(FC) $(LDFLAGS) $(LINK_FLAGS) -o  ../../exec/$(TARGET) $(FFLAGS) $(LOPTS) \
 	    $(MODULES) $(MODULES_E) $(OBJS) $(OBJS_EDSSLIB) $(OBJS_FILESET) \
 	    $(OBJS_SMKLIB) $(OBJS_BEIS) $(OBJS_LAYPOINT) $(OBJS_SMKMERGE) \
-	    $(OBJS_TEMPORAL) $(OBJS_MOBILE) $(OBJS_MRGGRID) $(LIBS) -openmp $(CRAY_IOBUF_POST_LINK_OPTS)	    
+	    $(OBJS_TEMPORAL) $(OBJS_MOBILE) $(OBJS_MRGGRID) $(LIBS) -openmp ${CRAY_IOBUF_POST_LINK_OPTS}	    
 
 bcldprc_ak.o:
 	$(FC) $(FFLAGS) $(OMPFLAG1) $(DEFS) $(INCLUDES) -c bcldprc_ak.F
