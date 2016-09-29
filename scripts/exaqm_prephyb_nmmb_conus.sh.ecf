@@ -49,12 +49,12 @@ do
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMNMM/namrr.${cycle}.bgrd3d$fhr.tm00 ]
+    if [ -s $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 ]
     then
 #     $WGRIB -s  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 | \
 #     egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
 #     $WGRIB -i -grib $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 -o nam.${cycle}.bgrd3d$fhr.tm00
-      echo  $COMNMM/namrr.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      echo  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
       break
     else
       let "ic=ic+1"
@@ -63,7 +63,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/namrr.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
     fi
   done
  let "fhr9=fhr9+1"

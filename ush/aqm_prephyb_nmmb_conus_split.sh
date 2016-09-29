@@ -91,7 +91,7 @@ export gridspecs_138="lambert:263:33:45 236.718:468:12000 21.017:288:12000"
   startmsg
 #  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd > ${pgmout}.${fhr}.$h_seg 2>errfile
 
-$WGRIB $COMNMM/namrr.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB -i -grib inputs_${fhr}.grib $COMNMM/namrr.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
+$WGRIB $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB -i -grib inputs_${fhr}.grib $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB inputs_${fhr}.grib -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv inputs_${fhr}.grib.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
     -new_grid_interpolation bilinear -if ":(WEASD|APCP|NCPCP|ACPCP|SNOD):" -new_grid_interpolation budget -fi \

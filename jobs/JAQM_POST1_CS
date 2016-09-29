@@ -1,6 +1,8 @@
 #!/bin/ksh
 
 source /opt/modules/default/init/ksh
+
+module load prod_util
 #
 set -xa
 export PS4='$SECONDS + '
@@ -48,10 +50,8 @@ export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 ###################################
 # Set up the UTILITIES
 ###################################
-module load prod_util
+#module load prod_util
 #module load grib_util
-#export utilscript=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
-#export utilexec=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
 
 # Run setup to initialize working directory and utility scripts
 #sh $utilscript/setup.sh

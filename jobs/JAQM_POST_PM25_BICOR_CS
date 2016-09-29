@@ -1,10 +1,13 @@
 #!/bin/ksh
 
-. /usrx/local/Modules/default/init/ksh
+#. /usrx/local/Modules/default/init/ksh
+source /opt/modules/default/init/ksh
 
-module unload NetCDF/3.6.3
-module load NetCDF/4.2/serial
-module load HDF5/1.8.9/serial
+module load prod_util
+
+#module unload NetCDF/3.6.3
+#module load NetCDF/4.2/serial
+#module load HDF5/1.8.9/serial
 
 set -xa
 export PS4='$SECONDS + '
@@ -53,8 +56,8 @@ export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 ###################################
 # Set up the UTILITIES
 ###################################
-module load prod_util
-module load grib_util
+#module load prod_util
+#module load grib_util
 
 # Run setup to initialize working directory and utility scripts
 msg="JOB $job HAS BEGUN"
@@ -103,7 +106,8 @@ env
 ###################################################
 # Execute Script aqm_post
 ###################################################
-$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
+#$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
+$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs_omp.sh.ecf
 export err=$?; err_chk
 
 cat $pgmout

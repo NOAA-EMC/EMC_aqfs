@@ -2,6 +2,9 @@
 #
 source /opt/modules/default/init/ksh
 
+module load prod_util
+#source ~/.bashrc
+
 set -xa
 export PS4='$SECONDS + '
 date -u 
@@ -163,6 +166,8 @@ then
  err=$?; err_chk
 else
  $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
+ err=$?; err_chk
+ $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
  err=$?; err_chk
 fi
 ##################################################

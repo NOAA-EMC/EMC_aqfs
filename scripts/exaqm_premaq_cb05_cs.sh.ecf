@@ -16,7 +16,7 @@
 #####################################################################
 set -xa
 msg="JOB $job HAS BEGUN"
-sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+#sh $utilscript/postmsg.sh "$jlogfile" "$msg"
 
 cd $DATA
 
@@ -562,6 +562,7 @@ export pgm=aqm_premaq
 
 startmsg
 $EXECaqm/aqm_premaq_v502  >> $pgmout 2>errfile
+#/gpfs/hps/ibm/noscrub/James.R.Taft/TICKETS/PREMAQ/exec/aqm_premaq_v502  >> $pgmout 2>errfile
 export err=$?;err_chk
 
 let "soilhr=soilhr-1"

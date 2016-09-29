@@ -3,6 +3,12 @@
 
 source /opt/modules/default/init/ksh
 
+#source ~/.bashrc
+
+module load prod_util
+
+module list
+
 ############################################
 # Set up environment for AQM PREGEN 
 ############################################
@@ -93,13 +99,13 @@ export USHaqm=$HOMEaqm/ush
 export PARMaqm=$HOMEaqm/parm
 export UTILaqm=$HOMEaqm/util
 
-export USHnam=/gpfs/td1/emc/meso/save/Eric.Rogers/nam.v4.0.0/ush
-export PARMnam=/gpfs/td1/emc/meso/save/Eric.Rogers/nam.v4.0.0/parm
+#export USHnam=/gpfs/td1/emc/meso/save/Eric.Rogers/nam.v4.0.0/ush
+#export PARMnam=/gpfs/td1/emc/meso/save/Eric.Rogers/nam.v4.0.0/parm
 
 ###################################
 # Set up the UTILITIES
 ###################################
-module load prod_util
+#module load prod_util
 #export utilscript=/gpfs/hps/emc/naqfc/noscrub/arl.aqm/cmaq5.0.2/util
 #export utilexec=/gpfs/hps/emc/naqfc/noscrub/arl.aqm/cmaq5.0.2/util
 

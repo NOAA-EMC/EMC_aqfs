@@ -27,15 +27,16 @@ rm -rf data
 
 mkdir -p data sites coords
 
-ln -s $PARMaqm/aqm_site_bias_thresholds.txt .
+#ln -s $PARMaqm/aqm_site_bias_thresholds.txt .
 
 ln -s $PARMaqm/aqm.*grdcro2d.ncf  coords/
 ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list sites/ 
+ln -s $PARMaqm/aqm_bias_thresholds.2015.1030.32-sites.txt ./bias_thresholds.2015.1030.32-sites.txt 
 
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
-$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 

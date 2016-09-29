@@ -2,6 +2,8 @@
 
 source /opt/modules/default/init/ksh
 
+module load prod_util
+
 set -xa
 export MP_IOAGENT_CNT=all
 export MP_IO_BUFFER_SIZE=8M
@@ -69,8 +71,8 @@ export UTILaqm=${UTILaqm:-$HOMEaqm/util}
 ###################################
 # Set up the UTILITIES
 ###################################
-module load prod_util
-module load grib_util
+#module load prod_util
+#module load grib_util
 
 #export utilexec=${utilexec:-$NWROOT/util/exec}
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
