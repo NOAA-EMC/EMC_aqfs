@@ -1,6 +1,5 @@
 #!/bin/ksh
 
-#. /usrx/local/Modules/default/init/ksh
 source /opt/modules/default/init/ksh
 
 module load prod_util
@@ -56,8 +55,7 @@ export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
 ###################################
 # Set up the UTILITIES
 ###################################
-#module load prod_util
-#module load grib_util
+module load prod_util
 
 # Run setup to initialize working directory and utility scripts
 msg="JOB $job HAS BEGUN"

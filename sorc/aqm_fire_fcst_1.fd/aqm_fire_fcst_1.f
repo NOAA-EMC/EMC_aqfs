@@ -183,9 +183,11 @@ c metdot3d variables
                                                     
       allocate(emis(imax,jmax,kmax,7),STAT=ierr)
       if(ierr.ne.0) stop 2001      
-      allocate(femis(imax,jmax,8,kmax),STAT=ierr)
+cjp      allocate(femis(imax,jmax,8,kmax),STAT=ierr)
+      allocate(femis(imax,jmax,8,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2002
-      allocate(lfrac(imax,jmax,kmax,kmax),STAT=ierr)
+cjp      allocate(lfrac(imax,jmax,kmax,kmax),STAT=ierr)
+      allocate(lfrac(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2003          
       
 c metcro2d variables      

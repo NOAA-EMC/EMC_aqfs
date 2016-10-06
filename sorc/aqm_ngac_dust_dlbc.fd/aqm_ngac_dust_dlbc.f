@@ -23,8 +23,8 @@
       real,allocatable  :: glon(:,:), glat(:,:),tmpa(:)
       real,allocatable  :: pgocart(:,:,:),vgocart(:,:,:), press(:,:,:),  &
        work(:), work2(:), work3(:), xlat(:,:), xlon(:,:), bnd(:,:,:),    &
-       bndcoord(:,:,:), checkcoord(:,:,:),checksp(:,:,:),airgocart(:,:,:), &
-       tgocart(:,:,:)
+       tmpbnd(:,:,:),bndcoord(:,:,:), checkcoord(:,:,:),checksp(:,:,:), &
+       airgocart(:,:,:),tgocart(:,:,:)
       
       character bndname(nspecies)*16,gocartname(ngocart)*8,ctmp*16,  &
        echar(nspecies)*16,mofile(2)*200,checkname(nspecies)*16,     &
@@ -136,6 +136,7 @@
       allocate(press(imax,jmax,kmax))
       allocate(bndcoord(lenbnd,kmax,3))
       allocate(bnd(lenbnd,kmax,nspecies))
+      allocate(tmpbnd(lenbnd,kmax,nspecies))      
       
       metstime=sdate3d*100+stime3d/10000                ! met file start time in yyyymmddhh      
       if(.not.read3('METEO3D','PRES',ALLAYS3,sdate3d,   &     ! read in pressure once and use it forever
@@ -163,6 +164,8 @@
 
 !-----build output file header     
 
+      if(.not.open3('BND2',FSRDWR3,'pathway')) then  ! if not exist, generate it       
+
        nvars3d=noutbnd
        do n=1,noutbnd
         vname3d(n)=bndname(n)
@@ -174,14 +177,23 @@
        sdate3d=nowdate
        stime3d=nowtime
        tstep3d=dtstep*10000
-!       if(.not.OPEN3('BND2',FCREA3,'pathway')) then	! FSCREA3 FSUNKN3
-       if(.not.OPEN3('BND2',FSCREA3,'pathway')) then	! FSCREA3 FSUNKN3
+       if(.not.OPEN3('BND2',FSUNKN3,'pathway')) then	! FSCREA3 FSUNKN3
         print*, 'Error opening output file BND2'
         stop	
        endif 
 
+      else         ! check the consistence
+       if(.not.desc3('BND2')) stop
+       
+       if(imax.ne.ncols3d.or.jmax.ne.nrows3d.or.kmax.ne.nlays3d.or.  &
+        nvars3d.ne.noutbnd) then
+        print*,'dimension does not much, STOP'
+	stop
+       endif
+      endif 	
 
 !----2D sample file
+      if(.not.open3('CHECK2D',FSRDWR3,'pathway')) then  ! if not exist, generate it 
        ftype3d=GRDDED3
        nvars3d=ncheck
        nlays3d=1
@@ -194,11 +206,20 @@
        sdate3d=nowdate
        stime3d=nowtime
        tstep3d=dtstep*10000
-       if(.not.OPEN3('CHECK2D',FSCREA3,'pathway')) then	! FSCREA3 FSUNKN3
+       if(.not.OPEN3('CHECK2D',FSUNKN3,'pathway')) then	! FSCREA3 FSUNKN3
         print*, 'Error opening output file BND2'
         stop	
        endif 
 
+      else         ! check the consistence
+       if(.not.desc3('CHECK2D')) stop
+       
+       if(imax.ne.ncols3d.or.jmax.ne.nrows3d) then
+        print*,'dimension does not much, STOP'
+	stop
+       endif
+      endif 	
+     
       
       call nemsio_init(iret=iret)
 
@@ -573,12 +594,12 @@
        
 
        do L=1,noutbnd       ! check if gocart supplies all species, otherwise pickup from BND1 or FIXINIT
-        if(sum(bnd(1:lenbnd,1:kmax,L)).le.1e-20.and.(.not.indexfind(L))) then
+!        if(sum(bnd(1:lenbnd,1:kmax,L)).le.1e-20.and.(.not.indexfind(L))) then
 
-	 if(.not.interp3('BND1',bndname(L),'meteo',nowdate,  &
-          nowtime,lenbnd*kmax*1,bnd(1,1,L))) then
-          print*,bndname(L),'is also not availabe in BND1 (fixed BND)', &
-     	    inowtime,trim(aline)
+!	 if(.not.interp3('BND1',bndname(L),'meteo',nowdate,  &
+!          nowtime,lenbnd*kmax*1,tmpbnd(1,1,L))) then
+!          print*,bndname(L),'is also not availabe in BND1 (fixed BND)', &
+!     	    inowtime,trim(aline)
 !         stop
 
 !-----use fix bnd instead
@@ -602,10 +623,52 @@
 !  	   bnd(j0e+jmax+1,k,L) = fixinit(imax,jmax,k,L)
 !	   bnd(j0w+jmax+1,k,L) = fixinit(1,jmax,k,L)
 !          enddo
-	 else
-	  print*,'use BND1 for ',bndname(L)
-	 endif
-        endif
+!	 else
+!	  print*,'use BND1 for ',bndname(L)
+!	 endif
+!        endif
+
+        if(sum(bnd(1:lenbnd,1:kmax,L)).le.1e-20.and.(.not.indexfind(L))) then
+	 print*, 'use BND1 for ', bndname(L)
+	 if(.not.interp3('BND1',bndname(L),'meteo',nowdate,  &
+          nowtime,lenbnd*kmax*1,bnd(1,1,L))) then
+          print*,bndname(L),'is also not availabe in BND1 (fixed BND)', &
+     	    inowtime,trim(aline)
+	 endif	 
+	else if	(indexfind(L).and.bndname(L).eq.'NUMACC') then
+	 print*, "add numacc together"
+	 if(.not.interp3('BND1',bndname(L),'meteo',nowdate,  &
+          nowtime,lenbnd*kmax*1,tmpbnd(1,1,L))) then
+          print*,bndname(L),'is also not availabe in BND1 (fixed BND)', &
+     	    inowtime,trim(aline)
+	 endif	 	 
+	 do i=1,lenbnd
+	  do k=1,kmax
+	   bnd(i,k,L)=bnd(i,k,L)+tmpbnd(i,k,L)	  
+	  enddo
+	 enddo
+	else if (indexfind(L).and.bndname(L).eq.'NUMCOR') then
+	 print*, "add numcor together"
+	 if(.not.interp3('BND1',bndname(L),'meteo',nowdate,  &
+          nowtime,lenbnd*kmax*1,tmpbnd(1,1,L))) then
+          print*,bndname(L),'is also not availabe in BND1 (fixed BND)', &
+     	    inowtime,trim(aline)
+	 endif	 		 
+	 do i=1,lenbnd
+	  do k=1,kmax
+	   bnd(i,k,L)=bnd(i,k,L)+tmpbnd(i,k,L)	  
+	  enddo
+	 enddo
+	else
+	 print*,'use NGAC bnd for ', bndname(L)	
+	endif
+
+
+
+
+
+
+
        enddo
 
        if(.not.write3('BND2',ALLVAR3,nowdate, &

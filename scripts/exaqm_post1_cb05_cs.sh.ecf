@@ -147,6 +147,7 @@ do
 # Create GRIB file to convert to grid 227 then to GRIB2 for NDFD
 #
   cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile
+  cat $DATA/aqm.${cycle}.pm25.f${fhr}.${id_grib}.grib2 >> tmpfile_pm25
 
   if [ $fhr -le 07 ]; then
    cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile.1hr
@@ -163,7 +164,7 @@ do
   typeset -Z2 fhr
  done
 
-exit 
+#exit 
 
 #################################################
 # Part II:  Insert WMO header to GRIB files
@@ -192,14 +193,14 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 #   export err=$?;err_chk
  
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile aqm.t${cyc}z.grib2_5xozconnmmb.227
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.1hr aqm.t${cyc}z.ave_1hr_o3.227.grib2  
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr aqm.t${cyc}z.ave_8hr_o3.227.grib2  
+$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile      aqm.t${cyc}z.grib2_5xozconnmmb.227
+$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25 aqm.t${cyc}z.grib2_5xpm25nmmb.227
+$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.227.grib2  
+$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.grib2  
 
-#   cp -p aqm.t${cyc}z.grib2_1hr.227 $COMOUT/aqm.t${cyc}z.ave_1hr_o3.227.grib2
-#   cp -p aqm.t${cyc}z.grib2_8hr.227 $COMOUT/aqm.t${cyc}z.ave_8hr_o3.227.grib2
     cp -rp aqm.t${cyc}z.ave_1hr_o3.227.grib2 $COMOUT/
     cp -rp aqm.t${cyc}z.ave_8hr_o3.227.grib2 $COMOUT/
+    cp -rp aqm.t${cyc}z.grib2_5xpm25nmmb.227 $COMOUT/aqm.t${cyc}z.ave_1h_pm25.227.grib2
 
    if [ "$SENDDBN" = 'YES' ] ; then
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_o3.227.grib2
@@ -214,11 +215,11 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr aqm.t${cyc}z.ave_8hr_o3.227.grib
    do
        echo 0 > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export FORT11=aqm.t${cyc}z.grib2_5xozconnmmb.227
+       export FORT11=aqm.t${cyc}z.ave_${hr}hr_o3.227.grib2
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-#jp       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo_new/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -226,8 +227,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr aqm.t${cyc}z.ave_8hr_o3.227.grib
        export FORT11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
        export FORT12="filesize"
        export FORT31=
-       export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227
-#jp       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_${hr}hro3-awpozcon.${cycle}.227
+       export FORT51=awpaqm.t${cyc}z.${hr}ho3.227.grib2
+    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo_new/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        ##############################
@@ -236,7 +237,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr aqm.t${cyc}z.ave_8hr_o3.227.grib
 
        if test "$SENDCOM" = 'YES'
        then
-           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $pcom/awpaqm.t${cyc}z.${hr}ho3.227.grib2
+#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $pcom/awpaqm.t${cyc}z.${hr}ho3.227.grib2
+           cp awpaqm.t${cyc}z.${hr}ho3.227.grib2  $pcom/
 
           ##############################
           # Distribute Data
@@ -250,8 +252,53 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr aqm.t${cyc}z.ave_8hr_o3.227.grib
           fi
        fi
    done
-fi
+#fi
+#########################################
+#  Create AWIPS GRIB2 data for PM2.5
+#########################################
+   cp -rp ${DATA}/aqm.t${cyc}z.grib2_5xpm25nmmb.227  ${COMOUT}/
 
+       echo 0 > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=aqm.t${cyc}z.grib2_5xpm25nmmb.227
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.temp
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo_new/grib2_aqm_5xpm25nmmb.${cycle}.227
+       export err=$?;err_chk
+#
+       echo `ls -l grib2.t${cyc}z.awp5xpm25nmmb.temp  | awk '{print $5} '` > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=grib2.t${cyc}z.awp5xpm25nmmb.temp
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo_new/grib2_aqm_5xpm25nmmb.${cycle}.227
+       export err=$?;err_chk
+
+##############################
+# Post PM2.5 Files to PCOM
+##############################
+      if test "$SENDCOM" = 'YES'
+       then
+         cp grib2.t${cyc}z.awp5xpm25nmmb.227  $pcom/awpaqm.t${cyc}z.1hpm25.227.grib2
+         echo "no files copy"
+
+          ##############################
+          # Distribute Data
+          ##############################
+
+          if [ "$SENDDBN_NTC" = 'YES' ] ; then
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.t${cyc}z.1hpm25.227.grib2
+          else
+             msg="File $output_grb.$job not posted to db_net."
+             postmsg "$jlogfile" "$msg"
+          fi
+       fi
+
+#######################33
+fi
+#######################################################
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
 

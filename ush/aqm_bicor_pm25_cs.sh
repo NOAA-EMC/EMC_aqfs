@@ -36,7 +36,7 @@ ln -s $PARMaqm/aqm_bias_thresholds.2015.1030.32-sites.txt ./bias_thresholds.2015
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
-$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+aprun -n 1 $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 
@@ -47,7 +47,7 @@ fi
 if [ ${envir} = 'para2' ] ;
 then
  cp  $DATA/out/pm2.5.corrected*   $COMOUT_grib
- cp  $DATA/out/pm2.5.corrected* /naqfc/noscrub/${USER}/bias/corrected_v3
+# cp  $DATA/out/pm2.5.corrected* /naqfc/noscrub/${USER}/bias/corrected_v3
 fi
 
  cp $DATA/out/pm2.5*   $COMOUT
