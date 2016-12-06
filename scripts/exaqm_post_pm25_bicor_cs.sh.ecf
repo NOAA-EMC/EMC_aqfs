@@ -19,7 +19,7 @@ cd $DATA
  ic=1
  while [ $ic -lt 100 ]
  do
- if [ -s $COMIN/aqm.t${cyc}z.aconc.ncf ]
+ if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]
  then
   echo "cycle ${cyc} post1 is done!"
   break 
@@ -31,7 +31,7 @@ cd $DATA
 #
  if [ $ic -ge 100 ]
  then
-    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc.ncf"
+    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
  fi
 
  startmsg
@@ -60,10 +60,10 @@ fi
 startmsg
 $USHaqm/aqm_bicor_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
+
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
-#$USHaqm/aqm_bicor_pm25_cs.sh  >> $pgmout 2>errfile 
 $USHaqm/aqm_bicor_pm25_cs.sh 
 export err=$?; err_chk
 #------------------------------------------------------------------------

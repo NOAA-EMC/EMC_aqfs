@@ -23,119 +23,22 @@ if [ ${h_seg} -eq 4 ];  then export hr_list=$hr_list4 ; fi
 export fhr
 for fhr in $hr_list
 do
-# $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 | \
-#  egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-# $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 -o nam.t${cyc}z.bgrd3d${fhr}.tm00
-#===============================================
-#===============================================
-# using previous 6-hr or -24 hr fsct bgrd3d files as a proxy
-#------------------------------------------------
-#case $cyc in
-#00) export flnm3=nam.t00z.bgrd3d24.tm00;;
-#06) export flnm3=nam.t06z.bgrd3d24.tm00;;
-#12) export flnm3=nam.t12z.bgrd3d24.tm00;;
-#18) export flnm3=nam.t18z.bgrd3d24.tm00;;
-#esac
-# fsz1=0
-# fsz2=0
-# fc=0
-# if [ $fhr = 00 ] ; then
-# rm -rf nam.t${cyc}z.bgrd3d00.tm00
-
-# $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d00.tm00 | \
-#  egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-# $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d00.tm00 -o nam.t${cyc}z.bgrd3d00.tm00
-
-# $WGRIB -s  $COMNMM/nam.t${cyc}z.bgrd3d01.tm00 | \
-#  egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-# $WGRIB -i -grib $COMNMM/nam.t${cyc}z.bgrd3d01.tm00 -o nam.t${cyc}z.bgrd3d01.tm00
-
-# export flnm1=nam.t${cyc}z.bgrd3d00.tm00
-# export flnm2=nam.t${cyc}z.bgrd3d01.tm00
-# fsz1=`ls -l $flnm1 | awk '{print $5}'`
-# fsz2=`ls -l $flnm2 | awk '{print $5}'`
-# ((fc=${fsz2}*7/10))
-# fi
-# if [ $fsz1 -lt $fc ] ; then
-# cp -rp $flnm1 nam.t${cyc}z.bgrd3d00.tm00_proxy
-# $WGRIB -s  $COMNMMm1/$flnm3 | \
-#  egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-#  $WGRIB -i -grib $COMNMMm1/$flnm3 -o $flnm3
-# ln -sf $flnm3 fort.11
-# ln -sf nam.t${cyc}z.bgrd3d00.tm00_proxy fort.51
-#cat > itag  << EOF
-#$PDY$cyc
-#-24
-#EOF
-#/nwprod/util/exec/overdate.dgexgrib < itag > errfile
-#cp -rp nam.t${cyc}z.bgrd3d00.tm00_proxy nam.t${cyc}z.bgrd3d00.tm00
-#fi
-#=====================================================
-
-#===============================================
 echo "fhr=$fhr"
 export pgm=aqm_nmm_prep
 # . prep_step
-#export FORT10="master3.ctl"
-#export FORT21="$FIXaqm/aqm_wgt_bgrd12_138"
 export FORT21="$FIXaqm/aqm_grid138.txt"
 export gridspecs_138="lambert:263:33:45 236.718:468:12000 21.017:288:12000"
 
-#cat <<EOF5 >input${fhr}.prd
-#nam.${cycle}.bgrd3d${fhr}.tm00
-#EOF5
-#  echo 'about to cat input'
-#  cat input${fhr}.prd
-
-##  rm -rf ${pgmout}.$h_seg
-  startmsg
-#  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd > ${pgmout}.${fhr}.$h_seg 2>errfile
 
 $WGRIB $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB -i -grib inputs_${fhr}.grib $COMNMM/nam.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB inputs_${fhr}.grib -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv inputs_${fhr}.grib.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
-$WGRIB inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
+$WGRIB inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type s -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
     -new_grid_interpolation bilinear -if ":(WEASD|APCP|NCPCP|ACPCP|SNOD):" -new_grid_interpolation budget -fi \
     -if ":(TMP:surface|VEG|CCOND|SFEXC|PRES:tropopause|LAI|HPBL|HGT:planetary boundary layer):" -new_grid_interpolation neighbor -fi \
     -new_grid ${gridspecs_138} aqm.t${cyc}z.nmm${fhr}.tm00.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB aqm.t${cyc}z.nmm${fhr}.tm00.uv -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv aqm.t${cyc}z.nmm${fhr}.tm00 >> ${pgmout}.${fhr}.$h_seg 2>errfile
 
   export err=$?;err_chk
-
-#   if [ "${PARAFLAG}" = "YES" ]
-#   then
-#    rm -rf log_met_prep_grep_${h_seg}
-#     while [ ! -s log_met_prep_grep_${h_seg} ] ; do
-#      if  [[ -s $DATA/${pgmout}.${fhr}.${h_seg} ]] ; then
-#        grep -ni "COMPLETED PROGRAM aqm_nmm_prep"  $DATA/${pgmout}.${fhr}.${h_seg}  > log_met_prep_grep_${h_seg}
-#        break
-#        sleep 20
-#      else
-#       sleep 20
-#      fi
-#      sleep 20
-#     done
-#   fi
-
-
-# added the following part to check file record number
-# if the record number is not 848, reran itr;
-# if the number is still not correct, exit and stop
-#
-
-#  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
-#  if [ $nrd_test -ne 848 ]; then
-#   echo "WARNING:The record number of file is not correct at " $fhr
-#  startmsg
-#  $EXECaqm/aqm_prep_nmmb < input${fhr}.prd >> ${pgmout}.${fhr}.$h_seg 2>errfile
-#  export err=$?;err_chk
-#  nrd_test=`$WGRIB -v meso.AQFNMM${fhr} | wc -l`
-#  if [ $nrd_test -ne 848 ]; then
-#   echo "ERROR because the file for $fhr was not completed after rerun"
-#   exit 999
-#  fi
-#  fi
-
-#  cat  ${pgmout}.${fhr}.$h_seg >> ${pgmout}.$h_seg
 
   let "fhr=fhr+1"
   typeset -Z2 fhr

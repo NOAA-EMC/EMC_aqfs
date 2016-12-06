@@ -40,17 +40,17 @@ cat > fire.ini << EOF
 EOF
  
 #namecut tmp.ini fire.ini
-rm tmp.ini files_fires_cs.tar
+rm -rf files_fires_cs.tar
 
-if [ -s ${smoke_emis9}/files_fires_cs.tar ] ; then
- cp -rp ${smoke_emis9}/files_fires_cs.tar $DATA
+if [  -s ${file_fire}  ] ; then 
+ cp -rp ${file_fire} $DATA/files_fires_cs.tar
 else
  echo "can not locate files_fires_cs.tar in /com "
  exit 1
 fi
 cd $DATA
 tar -xvf files_fires_cs.tar 
-cd -
+#cd -
 
 export GRID=$COMOUT/aqm.t${cyc}z.grdcro2d.ncf
 export MCRO3=$COMOUT/aqm.t${cyc}z.metcro3d.ncf
@@ -96,10 +96,13 @@ $EXECaqm/aqm_fire_fcst_2 > tmpsmoke.out
 export err=$?;
 err_chk
 
-mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old2.ncf
-cp $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/
-mv $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/aqm.${cycle}.emission.ncf
-
+mv $DATA/aqm.${cycle}.emission+fire.ncf $COMOUT/
+if [ -s $COMOUT/aqm.${cycle}.emission.ncf ] 
+then
+ rm -rf $COMOUT/aqm.${cycle}.emission.ncf
+ ln -s $COMOUT/aqm.${cycle}.emission+fire.ncf $COMOUT/aqm.${cycle}.emission.ncf
+fi
+ 
 ########################################################
 
 msg='ENDED NORMALLY.'

@@ -15,7 +15,7 @@ export FLANDT=$FIXaqm/LAND_TOTALS_US12_442X265
 export CROPMAP01=$FIXaqm/aqm_CROPMAP01_cs
 export CROPMAP04=$FIXaqm/aqm_CROPMAP04_cs
 export CROPMAP08=$FIXaqm/aqm_CROPMAP08_cs
-export METMOD=NAM		# MM5 or NAM soil types;
+export METMOD=NAM	# MM5 or NAM soil types;
 #export RAINMAP          # Not used so far
 
 sdate=$PDY
@@ -79,6 +79,8 @@ export EMIS_2=${DATA}/CCTM_DUST_${sdate}.ncf
 if [ -e $EMIS_1 ]; then
  rm -rf $EMIS_1 
 fi
+mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_0.ncf
+ln -s $COMOUT/aqm.${cycle}.emission_0.ncf $COMOUT/aqm.${cycle}.emission.ncf
 cp ${COMIN}/aqm.${cycle}.emission.ncf $EMIS_1  
     
 if [ -e chkreads.log ] ; then
@@ -118,14 +120,26 @@ startmsg
 $EXECaqm/aqm_snowdust_2016
 export err=$?;err_chk
 
-cp ${DATA}/${emis3d}.ncf ${DATA}/${emis3d}_snowc.ncf
-cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
+mv ${DATA}/${emis3d}.ncf ${COMOUT}/aqm.${cycle}.emission.${PDY}.windust_snowc.ncf
+
+echo "it is done huang99"
+
+if [ -s ${COMOUT}/aqm.${cycle}.emission.ncf  ] 
+then
+
+ rm -rf ${COMOUT}/aqm.${cycle}.emission.ncf
+ ln -s  ${COMOUT}/aqm.${cycle}.emission.${PDY}.windust_snowc.ncf ${COMOUT}/aqm.${cycle}.emission.ncf  
+ ln -s  ${COMOUT}/aqm.${cycle}.emission.${PDY}.windust_snowc.ncf ${DATA}/
+
+fi
+
 
 #-----------------------------------------------------------------
 #step 3 HMS
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
-  if [ ${CYC} = '00' -o  ${CYC} = '06' ]  
+#  if [ ${CYC} = '00' -o  ${CYC} = '06' ]  
+  if [ ${CYC} = '00' ]  
   then
    smoke_emis9=${smoke_emis}/smokecs.$PDYm1
   else
@@ -136,17 +150,26 @@ cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
     rm -rf chkreads.log
   fi
 
-  if [ -s ${smoke_emis9}/EMITIMES  ]
+  if [ ${CYC} = '06' ] 
   then 
-   ln -s ${smoke_emis9}/EMITIMES $DATA 
-   ln -s ${smoke_emis9}/EMITIMES $COMOUT
+   file_emitime=${smoke_emis9}/EMITIMES.t06z
+   file_fire=${smoke_emis9}/files_fires_cs.t06z.tar
+  else
+   file_emitime=${smoke_emis9}/EMITIMES.t12z
+   file_fire=${smoke_emis9}/files_fires_cs.t12z.tar
+  fi 
+
+
+  if [ -s ${file_emitime}  ]
+  then 
+    ln -s ${file_emitime} $DATA/EMITIMES
+    ln -s ${file_emitime} $COMOUT 
+
+  
    test_file=$DATA/FIRE_CHECK
 
   $EXECaqm/aqm_fire_checking_2016
   export err=$?;err_chk
-
-  cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
-  cp $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
 
   sleep 30
   rm -rf log_fire.log
@@ -156,21 +179,14 @@ cp ${DATA}/${emis3d}.ncf ${COMOUT}/${emis3d}_snowc.ncf
   fi
   if [[ -s log_fire.log ]] ; then
 
-   if [ ${CYC} = '00' -o  ${CYC} = '06' ] ; then   
+   if [ ${CYC} = '00' ] ; then   
     $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDYm1 
    else
     $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDY
    fi     
-#  else
-#   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
-#   mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old1.ncf
-#   mv $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
   fi
   else
    echo "no HYSPLIT fire emissions availabe for CMAQ"
-#   cp -rp $DATA/aqm.t${cyc}z.emission.${PDY}.windust_snowc.ncf  $COMOUT/
-#   mv $COMOUT/aqm.${cycle}.emission.ncf $COMOUT/aqm.${cycle}.emission_old1.ncf
-#   mv $DATA/aqm.$cycle.emission.$PDY.windust_snowc.ncf $COMOUT/aqm.${cycle}.emission.ncf
   fi 
 
 ########################################################

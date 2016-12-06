@@ -7,12 +7,12 @@ export PROMPTFLAG=F
 #-----------------------------------------------------------------
 #  BLUESKY HYSPLIT AND NAM FILES
 #------------------------------------------------------------------
-#jp if [ -s /com/hysplit/prod/smoke.$PDY/files_fires.tar ] ; then
- if [ -s ${smoke_emis9}/files_fires_cs.tar ] ; then
-#jp cp /com/hysplit/prod/smoke.$PDY/files_fires.tar $DATA
-  cp ${smoke_emis9}/files_fires_cs.tar $DATA
+# if (  -s ${smoke_emis9}/files_fires_cs.tar  ) ; then
+ if (  -s ${file_fire}  ) ; then
+#  cp ${smoke_emis9}/files_fires_cs.${cycle}.tar $DATA
+  cp ${file_fire} $DATA/files_fires_cs.tar  
  else
- echo "can not locate files_fires_cs.tar in /com "
+  echo "can not locate files_fires_cs.tar in /com "
  exit 1
 fi
 tar -xvf $DATA/files_fires_cs.tar >xxx.list

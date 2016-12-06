@@ -22,15 +22,24 @@ while [ ! -s ${COMIN}/aqm.${cycle}.aconc_sfc.ncf ]; do
 done
 
 export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc_sfc.ncf
-export CMAQFILE2=${COMIN}/aqm.t00z.aconc_sfc.ncf
-#export CMAQFILE2=${COMINm1}/aqm.t06z.aconc_sfc.ncf
+if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then 
+ export CMAQFILE2=${COMIN}/aqm.t00z.aconc_sfc.ncf
+else 
+ export CMAQFILE2=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+fi
 if [ $cyc -eq 06 ]; then
- export CMAQFILE3=${COMIN}/aqm.t00z.aconc_sfc.ncf
-# export CMAQFILE3=${COMINm1}/aqm.t06z.aconc_sfc.ncf
+ if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMIN}/aqm.t00z.aconc_sfc.ncf
+ else
+  export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ fi
 fi
 if [ $cyc -eq 12 ]; then
- export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
-# export CMAQFILE3=${COMINm1}/aqm.t06z.aconc_sfc.ncf
+ if [ -s ${COMIN}/aqm.t06z.aconc_sfc.ncf ] ; then 
+  export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
+ else
+  export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ fi
 fi
 
 cat >cmaq-maxi2grib.ini <<EOF5
