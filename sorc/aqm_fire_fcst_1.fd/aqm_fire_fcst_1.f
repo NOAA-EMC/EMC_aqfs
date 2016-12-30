@@ -536,8 +536,10 @@ c      print*,'mxrec3d=',mxrec3d
       print*, jdate,jtime,jstep,total  
       
 c      emis(1:imax,1:jmax,1:kmax,1:nvars)=0.0
-      femis(1:imax,1:jmax,1:8,1:kmax)=0.0 
-      lfrac(1:imax,1:jmax,1:kmax,1:kmax)=0.0      
+cjp      femis(1:imax,1:jmax,1:8,1:kmax)=0.0 
+      femis(1:imax,1:jmax,1:8,1:numrec)=0.0 
+cjp      lfrac(1:imax,1:jmax,1:kmax,1:kmax)=0.0      
+      lfrac(1:imax,1:jmax,1:kmax,1:numrec)=0.0      
                
       do n=1,nfire       
        write(chftmp,'(i4.4)')n

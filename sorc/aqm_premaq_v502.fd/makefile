@@ -73,12 +73,14 @@ IOAPIPATH    = ../../lib
   FFLAGS       =  $(OPTS) $(OPTS1) $(TRAPS) #$(DEBUG)
   FFLAGS_FIXED = $(OPTS) $(OPTS2) $(TRAPS) #$(DEBUG)
   LDFLAGS      = $(MEM) $(MAP) $(SMP) $(PROFILE)
+#  G2_LIB4_new = /gpfs/gp2/nco/ops/nwprod/lib/g2/v2.5.2/libg2_v2.5.2_4.a
+  G2_LIB4_new = /gpfs/gd1/emc/global/noscrub/Eugene.Mirvis/G2_3.0.0/v2.6.0-bug-fixes/libg2_v2.6.0-bug-fixes_4.a 
 
   LIBS    = $(IOAPI_LIB) \
             $(NETCDF_LIB) \
             ${W3NCO_LIB4} \
             ${W3EMC_LIB4} \
-	    ${G2_LIB4}     \
+ 	    ${G2_LIB4_new} \
 	    ${IP_LIB4}     \
 	    $(SP_LIB4)     \
             ${PNG_LIB}     \

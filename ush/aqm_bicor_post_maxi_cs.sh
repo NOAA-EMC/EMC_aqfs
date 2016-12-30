@@ -68,13 +68,16 @@ fi
 
 # write out grib2 format 
 #-------------------------------------------------
+rm -rf errfile
 startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk  >> $pgmout 2>errfile 
+#$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk  >> $pgmout 2>errfile 
+$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk 
 export err=$?;err_chk
 
+
 if [ $envir = "para" ] ; then
- cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT_grib/$PDY/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2
- cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT_grib/$PDY/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
+ cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT_grib/${RUN}.$PDY/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2
+ cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT_grib/${RUN}.$PDY/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
 
 fi
  cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2

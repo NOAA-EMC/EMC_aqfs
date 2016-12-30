@@ -41,9 +41,11 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc .
 
 ##------------------------
 # convert from netcdf to grib2 format
+
 export id_gribdmn=148
 startmsg
-$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
+#$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
+$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn} 
 export err=$?;err_chk
 
 if [ "$SENDCOM" = 'YES' ]
@@ -58,11 +60,11 @@ then
 fi
 
 
-if [ -e $COMOUT_grib/$PDY ] ; then
- cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/$PDY
+if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then
+ cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/${RUN}.$PDY
 else
- mkdir -p $COMOUT_grib/$PDY
- cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/$PDY
+ mkdir -p $COMOUT_grib/${RUN}.$PDY
+ cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/${RUN}.$PDY
 fi
 
 echo EXITING $0

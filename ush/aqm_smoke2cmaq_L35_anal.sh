@@ -37,7 +37,8 @@ if [ -s ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar ] ; then
  cp ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
 else
  echo "can not locate files_fires_cs.tar in /com "
- exit 1
+# exit 1
+ exit 
 fi
 if [ -s ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z ] ; then
  cp ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z $DATA/EMITIMES

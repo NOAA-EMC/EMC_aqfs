@@ -24,21 +24,28 @@ done
 export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc_sfc.ncf
 if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then 
  export CMAQFILE2=${COMIN}/aqm.t00z.aconc_sfc.ncf
-else 
+elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ];  then 
  export CMAQFILE2=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ];  then
+ export CMAQFILE2=${COMINm2}/aqm.t12z.aconc_sfc.ncf
 fi
+
 if [ $cyc -eq 06 ]; then
  if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then
   export CMAQFILE3=${COMIN}/aqm.t00z.aconc_sfc.ncf
- else
+ elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ] ; then
   export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
  fi
 fi
 if [ $cyc -eq 12 ]; then
  if [ -s ${COMIN}/aqm.t06z.aconc_sfc.ncf ] ; then 
   export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
- else
+ elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ] ; then
   export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
  fi
 fi
 
