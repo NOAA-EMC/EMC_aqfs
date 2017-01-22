@@ -36,7 +36,8 @@ echo ' '
 set system = `uname -a`
 set mname = `uname -n | sed 's/\./ /g' ` 
 
-${HOMEaqm}/exec/aqm_csum
+#${HOMEaqm}/exec/aqm_csum
+${EXECaqm}/aqm_csum
 
 exit
 
