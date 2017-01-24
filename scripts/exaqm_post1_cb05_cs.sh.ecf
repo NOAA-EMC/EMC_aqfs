@@ -130,7 +130,7 @@ export fhr=01
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=48;;
+ 06) endfhr=24;;
  12) endfhr=48;;
  18) endfhr=06;;
 esac
@@ -183,7 +183,7 @@ do
   typeset -Z2 fhr
  done
 
-#exit 
+exit 
 
 #################################################
 # Part III:  Insert WMO header to GRIB files
