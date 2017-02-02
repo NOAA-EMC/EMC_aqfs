@@ -6,7 +6,6 @@ cd $DATA
 
 nowdate=`$NDATE| cut -c1-8`
 
-
 firedate=${1:-$nowdate}
 
 fyear=`echo $PDY | cut -c1-4`

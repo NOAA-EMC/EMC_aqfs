@@ -1,87 +1,50 @@
 #!/bin/ksh
 
 source /opt/modules/default/init/ksh
+#module load prod_util
 
-module load prod_util
-#
-set -xa
-export PS4='$SECONDS + '
-date -u
+date
+export PS4=' $SECONDS + '
+set -x
 
-############################################
-export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
-
-############################################
-export pid=$$
-
-# PATH for working directory
-
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+export DATA=${DATA:-${DATAROOT:?}/$jobid}
 mkdir -p $DATA
 cd $DATA
 
-####################################
-# File To Log Msgs
-####################################
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
-
-####################################
-# Determine Job Output Name on System
-####################################
-export pgmout="OUTPUT.${pid}"
-
 export cycle=${cycle:-t${cyc}z}
-
-export SENDCOM=${SENDCOM:-YES}
-export SENDDBN=${SENDDBN:-YES}
-export SENDDBN_NTC=${SENDDBN_NTC:-YES}
-
-####################################
-# Path to HOME Directory
-####################################
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export EXECaqm=${EXECaqm:-$HOMEaqm/exec}
-export FIXaqm=${FIXaqm:-$HOMEaqm/fix}
-export USHaqm=${USHaqm:-$HOMEaqm/ush}
-export PARMaqm=${PARMaqm:-$HOMEaqm/parm}
-
-###################################
-# Set up the UTILITIES
-###################################
-#module load prod_util
-#module load grib_util
-
-# Run setup to initialize working directory and utility scripts
-#sh $utilscript/setup.sh
-
-msg="JOB $job HAS BEGUN"
-postmsg "$jlogfile" "$msg"
-
-# Run setpdy and initialize PDY variables
-#$utilscript/setpdy.sh
 setpdy.sh
 . PDY
 
-##############################################
-# Define COM directories
-##############################################
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export USHaqm=$HOMEaqm/ush
+export EXECaqm=$HOMEaqm/exec
+export PARMaqm=$HOMEaqm/parm
+export FIXaqm=$HOMEaqm/fix
+export UTILaqm=$HOMEaqm/util
+
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
+
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMINm2=${COMINm2:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm2}}
+export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
+
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
-export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
-export pcom=${pcom:-${PCOMROOT}/${NET}}
+mkdir -p $COMOUT
 
-mkdir -p $COMOUT $pcom
+export pgmout=OUTPUT.$$
 
 env
 
-###################################################
-# Execute Script aqm_post
-###################################################
 $HOMEaqm/scripts/exaqm_post3_cb05_cs.sh.ecf
 export err=$?; err_chk
 
@@ -89,13 +52,9 @@ cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 
-###################################
-# Remove temp directories
-###################################
 if [ "$KEEPDATA" != "YES" ] ; then
   cd $DATAROOT
   rm -rf $DATA
 fi
-
 
 date

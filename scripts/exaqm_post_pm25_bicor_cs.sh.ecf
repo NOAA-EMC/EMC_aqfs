@@ -42,15 +42,15 @@ cd $DATA
  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
 # 
-if [ -e $COMINbicor/grid/$Yr/$PDY ] ; then
- echo " $COMINbicor/grid/$Yr/$PDY exits"
+if [ -e $COMOUTbicor/grid/$Yr/$PDY ] ; then
+ echo " $COMOUTbicor/grid/$Yr/$PDY exits"
 else
- mkdir -p $COMINbicor/grid/$Yr/$PDY
+ mkdir -p $COMOUTbicor/grid/$Yr/$PDY
 fi
 #if [ "$SENDCOM" = 'YES' ]; then
-    cp $DATA/$f1 $COMINbicor/grid/$Yr/$PDY
-    cp $DATA/$f2 $COMINbicor/grid/$Yr/$PDY
-    cp $DATA/$f3 $COMINbicor/grid/$Yr/$PDY
+    cp $DATA/$f1 $COMOUTbicor/grid/$Yr/$PDY
+    cp $DATA/$f2 $COMOUTbicor/grid/$Yr/$PDY
+    cp $DATA/$f3 $COMOUTbicor/grid/$Yr/$PDY
 #fi
 
 #

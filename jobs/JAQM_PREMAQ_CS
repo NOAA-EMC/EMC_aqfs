@@ -1,177 +1,111 @@
 #!/bin/ksh
-#
+
 source /opt/modules/default/init/ksh
-
 module load prod_util
-#source ~/.bashrc
 
-set -xa
-export PS4='$SECONDS + '
-date -u 
+date
+export PS4=' $SECONDS + '
+set -x
 
-############################################
-export NET=aqm
-export RUN=aqm
-############################################
-############################################
-export PARAFLAG=${PARAFLAG:-NO}
-#####################################
-# obtain unique process id (pid) and make temp directories
-#####################################
-export pid=$$
-export job=aqm_premaq_cs_new
-export DATA=${DATA:-/tmpnwprd/${job}.${pid}}
+
+export DATA=${DATA:-${DATAROOT:?}/$jobid}
 mkdir -p $DATA
 cd $DATA
 
-####################################
-# File To Log Msgs
-####################################
-export jlogfile=${jlogfile:-/com/logs/jlogfiles/jlogfile.$$}
-####################################
-# Determine Job Output Name on System
-####################################
-export outid="LL$job"
-export jobid="${outid}.o${pid}"
-export pgmout="OUTPUT.${pid}"
-
-export cycle=t${cyc}z
-export MP_HOLDTIME=1000
-export MP_LABELIO=YES
-
-export SENDCOM=YES
-export SENDDBN=YES
-export SENDECF=YES
-
-export HOMEaqm=${HOMEaqm:-/nwprod/cmaq.${model_ver}}
-export EXECaqm=$HOMEaqm/exec
-export FIXaqm=$HOMEaqm/fix
-export PARMaqm=${HOMEaqm}/parm
-export USHaqm=${HOMEaqm}/ush
-export PARMutil=$HOMEaqm/util/parm
-
-###################################
-# Set up the UTILITIES
-###################################
-module load prod_util
-#module load grib_util
-#export utilscript=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
-#export utilexec=/gpfs/hps/emc/naqfc/noscrub/${USER}/nwdev/cmaq.${cmaq_ver}/util
-
-# Run setup to initialize working directory and utility scripts
-#sh $utilscript/setup.sh
-
-msg="JOB $job HAS BEGUN"
-postmsg "$jlogfile" "$msg"
-
-if [ $PARAFLAG = "YES" ]
-then
-export SENDDBN=NO
-fi
-
-# Run setpdy and initialize PDY variables
-#$utilscript/setpdy.sh
+export cycle=${cycle:-t${cyc}z}
 setpdy.sh
 . PDY
 
-#DAYOFYEAR=`$utilscript/date2jday.sh $PDY`
-DAYOFYEAR=`date2jday.sh $PDY`
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
 
-#-----------------------------------------------------------------
-# Maxinum layer for smoke
-#-----------------------------------------------------------------
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export EXECaqm=$HOMEaqm/exec
+
+export USHaqm=$HOMEaqm/ush
+export PARMaqm=$HOMEaqm/parm
+export FIXaqm=$HOMEaqm/fix
+export UTILaqm=$HOMEaqm/util
+
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
+
+
+export DAYOFYEAR=`date2jday.sh $PDY`
 export SMKLAY=35 
-#-----------------------------------------------------------------
-#  critical value for eliminating short life Fire
-#-----------------------------------------------------------------
 export XSFIRE=2400           # 24 hours
-#------------------------------------------------------------------
-#  temporary store BLUESKY HYSPLIT
-#------------------------------------------------------------------
-# export HYPTMP=${usr_tmp}/aqf_nmm_t/rerun_CONUS_fire-COx3_L22_XS
-export HYPTMP=${DATA}
-#------------------------------------------------------------------
-# FIRE EMISSION OUTPUT
-#------------------------------------------------------------------
-export FEMS=$HYPTMP/scenario/$PDY
-#------------------------------------------------------------------
 
-export smoke_emis=${smoke_emis:-/com/hysplit/prod}
-
-export FEMIT=${smoke_emis}/smokecs.$PDY/EMITIMES
-
-if [ ${CYC} = '00' -o ${CYC} = '18' ]
-then
-  nstep=7
-else
-  nstep=49 #25
-fi
-#------------------------
 #
-export PDY=${PDY:-}
-YY=`echo $PDY | cut -c 1-4`
-MM=`echo $PDY | cut -c 5-6`
-DD=`echo $PDY | cut -c 7-8`
-jj=`/bin/date --date=$YY'/'$MM'/'$DD +%j`
-typeset -Z3 jj       # set Julian day to be 3 digit, ex. 023, 345..
-today=${YY}${jj}
+#export PDY=${PDY:-}
+#YY=`echo $PDY | cut -c 1-4`
+#MM=`echo $PDY | cut -c 5-6`
+#DD=`echo $PDY | cut -c 7-8`
+#jj=`/bin/date --date=$YY'/'$MM'/'$DD +%j`
+#typeset -Z3 jj       # set Julian day to be 3 digit, ex. 023, 345..
+#today=${YY}${jj}
+#export today=`date2jday.sh $PDY`
 #-----------------------------------------------------------------
 # get yesterday's date & Julian
 #-----------------------------------------------------------------
-YYm1=`echo $PDYm1 | cut -c 1-4`
-MMm1=`echo $PDYm1 | cut -c 5-6`
-DDm1=`echo $PDYm1 | cut -c 7-8`
-jjm1=`/bin/date --date=$YYm1'/'$MMm1'/'$DDm1 +%j`
-typeset -Z3 jjm1     # set Julian day to be 3 digit, ex. 023, 345..
-yesterday=${YYm1}${jjm1}
+#YYm1=`echo $PDYm1 | cut -c 1-4`
+#MMm1=`echo $PDYm1 | cut -c 5-6`
+#DDm1=`echo $PDYm1 | cut -c 7-8`
+#jjm1=`/bin/date --date=$YYm1'/'$MMm1'/'$DDm1 +%j`
+#typeset -Z3 jjm1     # set Julian day to be 3 digit, ex. 023, 345..
+#yesterday=${YYm1}${jjm1}
+#export yesterday=`date2jday.sh $PDYm1`
 #----------------------------------------------------------
 #---    DIR OF LOG FILES AND SMALL OUTPUTS -----------------
 #-----------------------------------------------------------
- export LOGD=$HYPTMP/logs
- export LOG1=$HYPTMP/logs/Bluesky-A
- export LOG2=$HYPTMP/logs/STEP2-A
- export LSMK=$HYPTMP/logs/SMKINV-A
- export LOG3=$HYPTMP/logs/STEP3-A
 
- export METDIR=/gpfs/hps/ptmp/$LOGNAME/tmp/aqm.$PDY
-#=============================================
- export COM=/com/${NET}/${envir}
- export COMIN=${COMIN:-/com/${NET}/prod/${RUN}.${PDY}}
- export COMINm1=${COMINm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
- export COMOUT=${COMOUT:-/com/${NET}/prod/${RUN}.${PDY}}
- export COMOUTm1=${COMOUTm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
- export COMNAM=${COMNAM:-/com/${NET}/prod/${RUN}.${PDY}}
- export COMNAMm1=${COMNAMm1:-/com/${NET}/prod/${RUN}.${PDYm1}}
-###  NGAC output dir
- export NGAC_DIR=${NGAC_DIR:-${COMROOTp1}/ngac/prod}
+#export METDIR=/gpfs/hps/ptmp/$LOGNAME/tmp/aqm.$PDY
 
-###############################################
-# Set up the daily emission files directory
-# Those are fix files but use huge disk space.
-###############################################
-export INPEMIDIR=${INPEMIDIR:-/com/${NET}/prod/emission}
+export COMIN=${COMIN:-$COMROOT/$NET/$envir/$RUN.$PDY}
+export COMINm1=${COMINm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
-export smoke_emis=${smoke_emis:-/com/hysplit/prod}
+export COMOUT=${COMOUT:-$COMROOT/$NET/$envir/$RUN.$PDY}
+export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
+
+export NGAC_DIR=${NGAC_DIR:-$COMROOTp1/ngac/prod}
+export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/prod/emission}
+export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/prod}
+
+#export HYPTMP=${DATA}
+#export FEMS=$DATA/scenario/$PDY
+#export FEMIT=${smoke_emis}/smokecs.$PDY/EMITIMES
+
+#export LOGD=$DATA/logs
+#export LOG1=$DATA/logs/Bluesky-A
+#export LOG2=$DATA/logs/STEP2-A
+#export LSMK=$DATA/logs/SMKINV-A
+#export LOG3=$DATA/logs/STEP3-A
 
 mkdir -p $COMOUT
+
+export pgmout=OUTPUT.$$
  
 env
 
-###################################################
-# Execute the Script
-###################################################
-if [ "${FCST}" = "YES" ]
-then
+if [ "${FCST}" = "YES" ]; then
+# $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf.new
  $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
- err=$?; err_chk
-else
- $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
- err=$?; err_chk
- $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
- err=$?; err_chk
+  export  err=$?; err_chk
+ if [ $cycle = "t06z" ] ; then
+  $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
+  err=$?; err_chk
+ fi
 fi
-##################################################
-cat $pgmout
+
+echo "Good 1"
+
+if [ $cycle = "t06z" ] && [ "${FCST}" = "NO" ] ; then
+ $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
+ export err=$?; err_chk
+fi
+
+echo "Good 2"
+
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 

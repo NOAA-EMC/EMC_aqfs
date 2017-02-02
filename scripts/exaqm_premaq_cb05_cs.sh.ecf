@@ -293,10 +293,7 @@ echo "\"${InMetFiles[$fhr]}\"," >> $DATA/files_list
 
 idx_file=${InMetFiles[$fhr]}.indx
 if [ ! -s ${idx_file} ]; then
-#/gpfs/hps/emc/naqfc/noscrub/arl.aqm/cmaq5.0.2/util/grbindex ${InMetFiles[$fhr]} ${idx_file}
-#for grib2
-#/gpfs/hps/emc/naqfc/noscrub/arl.aqm/cmaq5.0.2/util/grb2index ${InMetFiles[$fhr]} ${idx_file}
-/gpfs/hps/nco/ops/nwprod/grib_util.v1.0.3/exec/grb2index ${InMetFiles[$fhr]} ${idx_file}
+ $GRB2INDEX ${InMetFiles[$fhr]} ${idx_file}
 fi
 
 echo "\"${idx_file}\"," >> index_list
@@ -574,28 +571,23 @@ if [ "$SENDCOM" = 'YES' ]; then
      mv $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
      mv $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
      mv $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
-#     cp $DATA/GRIDCRO3D $COMOUT/aqm.${cycle}.grdcro3d.ncf
+
      mv $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
      mv $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
      mv $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
      mv $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
-#     cp $DATA/CHEMBDY3D $COMOUT/aqm.${cycle}.chembdy3d.ncf
-#     cp $DATA/CHEMCRO3D $COMOUT/aqm.${cycle}.chemcro3d.ncf
-#     cp /com/output/${envir}/today/aqm_premaq*conus*${cyc}.* $COMOUT/.
+
      mv $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
-#     cp $DATA/soilout.${PDY}.${OUTGRID}.ncf     $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
 
 #     sync
 
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.grddot2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro2d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metcro3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metdot3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.metbdy3d.ncf
-#     $utilexec/fsync_file $COMOUT/aqm.${cycle}.chembdy3d.ncf
-    $utilexec/fsync_file $COMOUT/aqm.${cycle}.emission.ncf
-#    $utilexec/fsync_file $COMOUT/aqm.${cycle}.soil${soilhr}.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+    $FSYNC $COMOUT/aqm.${cycle}.grddot2d.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.metcro2d.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.metcro3d.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.metdot3d.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.metbdy3d.ncf
+    $FSYNC $COMOUT/aqm.${cycle}.emission.ncf
 
 fi
 
@@ -613,14 +605,13 @@ export LOGFILE=$DATA/chkreads.log
 $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
 export err=$?; err_chk
 #######################################################
-# below is for getting ngac laterla boundary condition
 if [[  ${cycle} = 't06z'  ]] ; then
 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
 export err=$?; err_chk
 fi
 
 ########################################################
-echo EXITING $0
+#echo EXITING $0
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
 

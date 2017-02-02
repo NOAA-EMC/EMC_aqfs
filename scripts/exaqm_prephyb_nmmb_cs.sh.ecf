@@ -14,19 +14,19 @@
 # 2004-03-31    Pius Lee, netcdf independent and append gfs ozone
 # 2004-04-01    Luc, modified for production
 # 2013-05-03    Jianping Huang, modified for transition to WCOSS 
-#                use mpmd instead four J jobs
+#               use mpmd instead four J jobs
+# 2017-01-24    Jianping Huang rewrote for using on Cray 
 ######################################################################
-set -xa
+set -x
+
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-WGRIB=${UTILaqm}/wgrib2new
+export pgm=aqm_cs_pregen
 
 cd $DATA
 
 echo "Start of NMMB_prdgen Job"
-
-#cp $PARMaqm/aqm_255_w60_bgrd12_138.109tables.ctl master3.ctl
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
   hr_max=6
@@ -49,12 +49,9 @@ do
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    if [ -s $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 ]
     then
-#     $WGRIB -s  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 | \
-#     egrep -v "(:PRMSL:|:DZDT:|:FICE:|:TCOND:|:FRAIN:|:FRIME:|:LWHR:|:LRGHR:|:CNVHR:)" | \
-#     $WGRIB -i -grib $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 -o nam.${cycle}.bgrd3d$fhr.tm00
-      echo  $COMNMM/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      echo  $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
       break
     else
       let "ic=ic+1"
@@ -63,7 +60,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMNMM/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINnam/nam.${cycle}.bgrd3d$fhr.tm00"
     fi
   done
  let "fhr9=fhr9+1"
@@ -73,48 +70,33 @@ done
  while [ $NPOE  -le 4 ] 
  do  
  rm -f poescript.$NPOE
- echo "$USHaqm/aqm_prephyb_nmmb_conus_split.sh  \"$NPOE\" &" >>poescript
+ echo "$USHaqm/aqm_prephyb_nmmb_cs_split.sh  \"$NPOE\" &" >>poescript
  let NPOE=${NPOE}+1
  done
  
  echo "wait" >> poescript
  chmod 775 $DATA/poescript 
+
+startmsg
  
- $DATA/poescript
+$DATA/poescript
  
-#chmod 775 $DATA/poescript
-#export MP_CMDFILE=$DATA/poescript
-#export MP_PGMMODEL=mpmd
-#export MP_LABELIO=YES
-
-#mpirun.lsf
-
-export err=$?; ./err_chk
-
+export err=$?; err_chk
 
 if [ "$SENDCOM" = 'YES' ]
 then
-
  fhr=0
  typeset -Z2 fhr
-
  while [ $fhr -le $hr_max ]
  do
-#   mv  $DATA/meso.AQFNMM${fhr} $COMOUT/aqm.${cycle}.nmm$fhr.tm00
-   mv  $DATA/aqm.${cycle}.nmm$fhr.tm00 $COMOUT/aqm.${cycle}.nmm$fhr.tm00   
-   let "fhr=fhr+1"
-   typeset -Z2 fhr
+  mv  $DATA/aqm.${cycle}.nmm$fhr.tm00 $COMOUT/aqm.${cycle}.nmm$fhr.tm00   
+  let "fhr=fhr+1"
+  typeset -Z2 fhr
  done 
-
 fi
 
 echo EXITING $0
 
-exit
-
-########################################################
-
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
 
-################## END OF SCRIPT #######################

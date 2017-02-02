@@ -8,11 +8,13 @@
 # Script history log:
 # 2010-02-01    Jianping Huang 
 ######################################################################
+set -x
+
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-set +x
-set -xa
+export pgm=aqm_cs_post3
+
 cd $DATA
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}

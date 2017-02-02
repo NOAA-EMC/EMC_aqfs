@@ -319,14 +319,16 @@ export MET_DOT_3D=$COMIN/aqm.${cycle}.metdot3d.ncf
 export MET_BDY_3D=$COMIN/aqm.${cycle}.metbdy3d.ncf
 export EMISfile=$COMIN/aqm.${cycle}.emission.ncf
 
-$utilexec/fsync_file $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-$utilexec/fsync_file $COMIN/aqm.${cycle}.grddot2d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.metbdy3d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro2d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.metcro3d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.metdot3d.ncf
-$utilexec/fsync_file $COMIN/aqm.${cycle}.emission.ncf
+$FSYNC $COMIN/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+$FSYNC $COMIN/aqm.${cycle}.grddot2d.ncf
+$FSYNC $COMIN/aqm.${cycle}.metbdy3d.ncf
+$FSYNC $COMIN/aqm.${cycle}.metcro2d.ncf
+$FSYNC $COMIN/aqm.${cycle}.metcro3d.ncf
+$FSYNC $COMIN/aqm.${cycle}.metdot3d.ncf
+$FSYNC $COMIN/aqm.${cycle}.emission.ncf
+
 else
+
 export GRID_CRO_2D=$COMINm1/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=$COMINm1/aqm.${cycle}.grddot2d.ncf
 export MET_CRO_2D=$COMINm1/aqm.${cycle}.metcro2d.ncf
@@ -335,21 +337,19 @@ export MET_DOT_3D=$COMINm1/aqm.${cycle}.metdot3d.ncf
 export MET_BDY_3D=$COMINm1/aqm.${cycle}.metbdy3d.ncf
 export EMISfile=$COMINm1/aqm.${cycle}.emission_r.ncf
 
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.grddot2d.ncf
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.metbdy3d.ncf
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.metcro2d.ncf
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.metcro3d.ncf
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.metdot3d.ncf
-$utilexec/fsync_file $COMINm1/aqm.${cycle}.emission_r.ncf
+$FSYNC $COMINm1/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
+$FSYNC $COMINm1/aqm.${cycle}.grddot2d.ncf
+$FSYNC $COMINm1/aqm.${cycle}.metbdy3d.ncf
+$FSYNC $COMINm1/aqm.${cycle}.metcro2d.ncf
+$FSYNC $COMINm1/aqm.${cycle}.metcro3d.ncf
+$FSYNC $COMINm1/aqm.${cycle}.metdot3d.ncf
+$FSYNC $COMINm1/aqm.${cycle}.emission_r.ncf
 
 fi
-
 
 if [ "$INITIAL_RUN" = "N" ]
 then
     ln -sf $restart_file   $DATA/CONC.${APPL}.ncf
-#  ln -sf "$ICpath/$ICFILE"  $DATA/CONC.${APPL}.ncf
 fi
 
 #------------------------------------------------------

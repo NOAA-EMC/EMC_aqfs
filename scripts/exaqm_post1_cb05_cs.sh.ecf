@@ -21,6 +21,9 @@ set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
+export pgm=aqm_cs_post1
+
+
 cd $DATA
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
@@ -30,7 +33,6 @@ export id_grib=148
 
 #########################################################
 # Part I: Calculate PM2.5 based on CMAQ original output 
-#
 #########################################################
 export JDATE=`date2jday.sh  $PDY`
 let "cyc9=cyc+1"
@@ -41,8 +43,19 @@ ${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $CO
 export err=$?;err_chk
 
 startmsg
-${USHaqm}/aqm_csum.sh -kf -kl -sl ${FIXaqm}/vlist.twoways.5.0.2.v1 $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
+${USHaqm}/aqm_csum.sh -kf -kl -sl ${FIXaqm}/vlist.twoways.5.0.2.v1 $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf >>$pgmout 2>$DATA/errfile1
 export err=$?;err_chk
+
+rm -rf $DATA/check_file.log1
+while [ ! -s $DATA/check_file.log1 ] ; do
+  if [[ -s $DATA/$pgmout ]] ; then
+     grep -ni "Closing file infile03" $DATA/$pgmout > $DATA/check_file.log1
+  else
+    sleep 10
+  fi
+    sleep 10
+done
+
 
 
 #########################################################
@@ -62,7 +75,7 @@ export err=$?;err_chk
       sleep 10
     fi
 
-    if [ $ic -ge 180 ]
+    if [ $ic -ge 100 ]
     then
         err_exit "****FATAL ERROR**** - COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc_sfc.ncf"
     fi
@@ -130,7 +143,7 @@ export fhr=01
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=24;;
+ 06) endfhr=48;;
  12) endfhr=48;;
  18) endfhr=06;;
 esac
@@ -183,7 +196,7 @@ do
   typeset -Z2 fhr
  done
 
-exit 
+#exit 
 
 #################################################
 # Part III:  Insert WMO header to GRIB files
@@ -223,7 +236,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+#   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -232,7 +246,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.227.grib2
-    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+#    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        ##############################
@@ -268,7 +283,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xpm25nmmb.temp  | awk '{print $5} '` > filesize
@@ -277,7 +293,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.227
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+       /gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 
 ##############################

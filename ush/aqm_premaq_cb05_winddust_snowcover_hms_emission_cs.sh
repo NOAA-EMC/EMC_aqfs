@@ -4,9 +4,9 @@ set -xa
 #-----------------------------------------------------------------
 #step 1 fengsha
 #-----------------------------------------------------------------
-if [ ! -d $COMOUT ] ; then
-  mkdir -p $COMOUT
-fi
+#if [ ! -d $COMOUT ] ; then
+#  mkdir -p $COMOUT
+#fi
 
 cd $DATA
 export domainfile=$PARMaqm/aqm_cs_domain
@@ -20,7 +20,15 @@ export METMOD=NAM	# MM5 or NAM soil types;
 
 sdate=$PDY
 jdate=$DAYOFYEAR
-jtime=${CYC}0000
+jtime=${cyc}0000
+
+if [ ${cyc} = '00' -o ${cyc} = '18' ]
+then
+ export nstep=7
+else
+ export nstep=49 #25
+fi
+
 
 cfg=dust.cfg
 year=`echo $sdate | cut -c 1-4`
@@ -138,8 +146,8 @@ fi
 #step 3 HMS
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
-#  if [ ${CYC} = '00' -o  ${CYC} = '06' ]  
-  if [ ${CYC} = '00' ]  
+#  if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
+  if [ ${cyc} = '00' ]  
   then
    smoke_emis9=${smoke_emis}/smokecs.$PDYm1
   else
@@ -150,7 +158,7 @@ fi
     rm -rf chkreads.log
   fi
 
-  if [ ${CYC} = '06' ] 
+  if [ ${cyc} = '06' ] 
   then 
    file_emitime=${smoke_emis9}/EMITIMES.t06z
    file_fire=${smoke_emis9}/files_fires_cs.t06z.tar
@@ -179,7 +187,7 @@ fi
   fi
   if [[ -s log_fire.log ]] ; then
 
-   if [ ${CYC} = '00' ] ; then   
+   if [ ${cyc} = '00' ] ; then   
     $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDYm1 
    else
     $USHaqm/aqm_smoke2cmaq_L35_fcst.sh $PDY
@@ -192,7 +200,7 @@ fi
 ########################################################
 
 msg='ENDED NORMALLY.'
-#postmsg "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
 
 ################## END OF SCRIPT #######################
 

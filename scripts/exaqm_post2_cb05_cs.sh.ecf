@@ -19,10 +19,35 @@ set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
+export pgm=aqm_cs_post2
+
 cd $DATA
 
 export XLFRTEOPTS="unit_vars=yes"
 export id_grib=148
+
+#########################################################
+#
+#
+########################################################
+let "cyc9=cyc+1"
+export JDATE=`date2jday.sh  $PDY`
+
+rm -rf $COMOUT/aqm.t${cyc}z.conc_1.ncf
+
+startmsg
+${USHaqm}/aqm_csum.sh -rf 1 ${FIXaqm}/vlist.twoways.5.0.2.v1 $COMOUT/aqm.t${cyc}z.conc.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.conc_1.ncf >> $pgmout 2>$DATA/errfile2 
+export err=$?;err_chk
+
+rm -rf $DATA/check_file.log2
+while [ ! -s $DATA/check_file.log2 ] ; do
+  if [[ -s $DATA/$pgmout ]] ; then
+     grep -ni "Closing file infile03" $DATA/$pgmout > $DATA/check_file.log2 
+  else
+    sleep 10
+  fi 
+    sleep 10
+done
 
 #########################################################
 # Part I: Convert Machine binary format to Grib format
@@ -43,7 +68,7 @@ esac
 . prep_step
 
   ic=1
-  while [ $ic -lt 1000 ]
+  while [ $ic -lt 200 ]
   do
     if [ -s $COMIN/aqm.${cycle}.conc_1.ncf ]
     then
