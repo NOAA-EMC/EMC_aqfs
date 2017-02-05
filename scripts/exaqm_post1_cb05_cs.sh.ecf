@@ -38,7 +38,8 @@ export JDATE=`date2jday.sh  $PDY`
 let "cyc9=cyc+1"
 
 startmsg
-rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
+#rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
+if [ ! -s $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ] ; then
 ${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_1.ncf
 export err=$?;err_chk
 
@@ -56,6 +57,10 @@ while [ ! -s $DATA/check_file.log1 ] ; do
     sleep 10
 done
 
+else
+  echo  $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ' exist !'
+
+fi
 
 
 #########################################################
