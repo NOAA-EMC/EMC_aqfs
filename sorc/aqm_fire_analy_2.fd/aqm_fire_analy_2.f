@@ -1,4 +1,6 @@
       program smoke2cmaq_35layer_2
+c      
+c     This program is created by  Li.Pan at NOAA/OAR/ARL      
       
 c      implicit none
 
@@ -11,28 +13,20 @@ c      implicit none
 C      parameter (nspe_emis=33,nspe_fire=7)
 c new emission 35 sepcies, POA NASN
 c      parameter (nspe_emis=35,nspe_fire=7)  
-c new emission 54 species
-      parameter (nspe_emis=54,nspe_fire=7)    
+c new emission 54 species, nwprod
+c      parameter (nspe_emis=54,nspe_fire=7)   
+c 502 emission 53 species, nwpara
+      parameter (nspe_emis=53,nspe_fire=7)       
       
-      integer syear,smon,sday,start,jdate,jtime,jstep
+      integer syear,smon,sday,jdate,jtime,jstep
       integer crosindex(nspe_emis)
       
       real vheight(kmax+1),crosratio(nspe_emis),conunit(nspe_fire)
       
       character*160 FIRE3D,OEMIS,NEMIS
-      character dirname*120,chytmp*4,chmtmp*2,chdtmp*2,suffix(4)*32,
-     1 aline(5)*120,file(3)*160,fire_spe(nspe_fire)*16,
-     2 emis_spe(nspe_emis)*16
-     
-cc      data dirname
-cc     1 /'/data/data04/aqf/lip/OAR-GROUP/for_Daninel/dir_fire/0704/'/
-      data suffix/'.smokefire3d.ncf','aqm.t12z.emission.',
-     1 '.windust_snowc.ncf','aqm.t12z.emission+fire.ncf'/
-     
-     
-cc      data syear/2012/
-cc      data smon/7/
-cc      data sday/4/
+      character dirname*120,fire_spe(nspe_fire)*16,
+     1 emis_spe(nspe_emis)*16    
+          
 
 c PM25 PM10 PM CO CO2 CH4 NMHC
 c convert PM and NMHC from kg/hour to g/s
@@ -56,11 +50,16 @@ c     1 0, 0, 7, 0, 0, 4, 0, 4, 4, 7, 0, 7, 0, 7, 0, 0,
 c     2 1, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,
 c     3 1, 0, 4, 0, 7, 7, 0, 7, 0, 7/ 
 
-c for CMAQ502 changing PMFINE to PMOTHR     
+c for CMAQ502 changing PMFINE to PMOTHR and no POA    
+c      data crosindex/7, 0, 7, 0, 6, 0, 4, 7, 7, 0, 7, 0,
+c     1 0, 0, 7, 0, 0, 4, 0, 4, 4, 7, 0, 7, 0, 7, 0, 0, 
+c     2 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0,
+c     3 1, 0, 4, 0, 7, 7, 0, 7, 0, 7/ 
+     
       data crosindex/7, 0, 7, 0, 6, 0, 4, 7, 7, 0, 7, 0,
      1 0, 0, 7, 0, 0, 4, 0, 4, 4, 7, 0, 7, 0, 7, 0, 0, 
-     2 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0,
-     3 1, 0, 4, 0, 7, 7, 0, 7, 0, 7/      
+     2 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0,
+     3 1, 0, 4, 0, 7, 7, 0, 7, 0, 7/          
 
 c ALD2,ALDX,BENZENE,CH4,CO,ETH,ETHA 
 c ETOH,FORM,HONO,IOLE,ISOP,MEOH,NASN,NH3,NO,
@@ -94,7 +93,7 @@ c for CMAQ502 changing PMFINE to PMOTHR
      1 0.008516, 0.004352, 0.0, 0.000002975, 0.0, 0.0, 0.0, 0.00011577,
      2 0.0, 0.0, 0.00659, 0.0, 0.0115, 0.00271, 0.01872, 0.0, 0.002167,
      3 0.0, 0.028, 0.0, 0.0, 0.0949, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 
-     4 0.0, 0.3348, 0.0, 0.0, 0.0, 0.0013, 0.0, 0.5564, 0.0, 0.0126,
+     4 0.0, 0.3348, 0.0, 0.0, 0.0, 0.0013, 0.5564, 0.0, 0.0126,
      5 0.0, 0.002625, 0.0, 0.0001591, 0.0003973, 0.0, 0.008133, 0.0, 
      7 0.0003012/      
       
@@ -109,43 +108,12 @@ c for CMAQ502 changing PMFINE to PMOTHR
       allocate(emis2(imax,jmax,kmax,nspe_emis),STAT=ierr)
       if(ierr.ne.0) stop 2003
       
-      namelist/control/syear,smon,sday,start,dirname
+      namelist/control/syear,smon,sday,dirname
       
       open(7,file='cmaq.ini')
       read(7,control)
-      print*, syear,smon,sday,start,dirname        
-c
-cjp1           
-      write(suffix(2)(6:7),'(i2.2)')start
-      write(suffix(4)(6:7),'(i2.2)')start
-cjp9
-
-
-      aline(1)=dirname
-      aline(2)=suffix(1)
-      aline(3)=suffix(2)
-      aline(4)=suffix(3)
-      aline(5)=suffix(4)
-      
-      write(chytmp,'(i4.4)')syear
-      write(chmtmp,'(i2.2)')smon
-      write(chdtmp,'(i2.2)')sday
-      
-      file(1)=aline(1)(:len_trim(aline(1)))//
-     1 chytmp//chmtmp//chdtmp//aline(2)(:len_trim(aline(2)))
-     
-      file(2)=aline(1)(:len_trim(aline(1)))//
-     1 aline(3)(:len_trim(aline(3)))//chytmp//chmtmp//chdtmp//
-     2 aline(4)(:len_trim(aline(4)))      
-      
-      file(3)=aline(1)(:len_trim(aline(1)))//
-     1 aline(5)(:len_trim(aline(5))) 
-     
-      print*,file(1),file(2),file(3)           
-      
-      iflag=setenvvar('FIRE3D',file(1))
-      iflag=setenvvar('OEMIS',file(2))
-      iflag=setenvvar('NEMIS',file(3))
+      print*, syear,smon,sday,dirname        
+           
       
       if(.not.open3('FIRE3D',FSREAD3,'aq_open')) then
        print*, 'failed to open FIRE3D'
@@ -271,16 +239,6 @@ c       print*,jdate,jtime,jstep
       iflag=close3('FIRE3D')
       iflag=close3('OEMIS')
       iflag=close3('NEMIS')
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       
       
       end program smoke2cmaq_35layer_2

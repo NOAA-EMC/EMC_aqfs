@@ -7,7 +7,7 @@ LIBNAME     = libaqm_pario.a
 
 LIOAPI      = ../../libaqm_ioapi.a
 
-MPI_INC    = /opt/ibmhpc/pe13010/mpich2/intel/include64
+MPI_INC    = ${CRAY_MPICH2_DIR}/include
 IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel 
 IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
 

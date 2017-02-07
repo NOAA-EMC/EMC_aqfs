@@ -16,7 +16,6 @@ FPP  =
   NETCDFPATH = ${NETCDF}
   
   INCLUDES = -I $(IOAPI)/ioapi/fixed_src -I ${NETCDF}/include -I.
-  INCLUDES-h = #-I $(IOAPI)/ioapi
 
 # Compiler Flags
   F_FLAGS =  -extend_source 132 -vec-report0 -nodefines -c -O2

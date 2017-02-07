@@ -6,7 +6,8 @@ SHELL=/bin/sh
 LIBNAME = libaqm_se_snl.a
 
 FC = ftn
-MPI_INC = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include 
+#MPI_INC = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include 
+MPI_INC = ${CRAY_MPICH2_DIR}/include 
 
 FFLAGS = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise -I$(MPI_INC)
 

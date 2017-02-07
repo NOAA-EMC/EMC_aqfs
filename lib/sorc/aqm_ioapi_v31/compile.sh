@@ -3,10 +3,10 @@
 set -ax 
 if [ ${USER} = 'Jianping.Huang' ] ; then
  mydir=/gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/
+ envir=dev
 else
- mydir=
+ mydir=/gpfs/hps/nco/ops
 fi
-envir=dev
 model_ver=v5.0.2
 export BASEDIR=${mydir}/nw${envir}/cmaq.${model_ver}/lib/sorc/aqm_ioapi_v31
 export BIN=Linux3_x86_64intel

@@ -1,4 +1,4 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Sat Feb  4 16:27:27 2017
+        !COMPILER-GENERATED INTERFACE MODULE: Tue Feb  7 18:27:27 2017
         ! This source file is for reference only and may not completely
         ! represent the generated interface used by the compiler.
         MODULE MESSAGE__genmod

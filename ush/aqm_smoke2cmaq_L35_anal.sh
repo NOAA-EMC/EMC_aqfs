@@ -82,7 +82,6 @@ err_chk
  syear=$fyear
  smon=$fmonth
  sday=$fday
- start=$cyc
  dirname='${DATA}/'
  &end
 EOF

@@ -1,4 +1,6 @@
       program smoke2cmaq_35layer_1
+c           
+c     This program is created by Li.Pan at NOAA/OAR/ARL
 
 c      implicit none
 
@@ -7,38 +9,50 @@ c      implicit none
       include 'IODECL3.EXT'     ! i/o API
       include 'CONST3.EXT'      ! i/o API
       
-      parameter (imax=442,jmax=265,kmax=35,nvars=33)
-cjp      parameter (start=12,numrec=25)
-      parameter (numrec=25)
+      parameter (imax=442,jmax=265,kmax=35) !domain
+      parameter (numrec=25,maxnf=500)       !time and fire
 
       integer nfire,fhour,syear,smon,sday,start,jdate,jtime,jstep,
      1 total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,emlays
-      integer year(500),mon(500),day(500),hour(500),min(500),
-     1 duration(500),intx(500),inty(500),intime(500,numrec),
-     2 indomain(500),ftime(500),lstk(500,25),lpbl(500,25),ltop(500,25),
-     3 header(6)
      
-      real lat(500),lon(500),hgt(500),rate(500),area(500),heat(500),
-     1 time(500),heatbtu(500),pm25(500),pm10(500),pm(500),co(500),
-     2 co2(500),ch4(500),nmhc(500),x(500),y(500),latitude(500),
-     3 longitude(500),acres(500),heatflux(500),tmpsum,pm25co(500)
-      real hmix(500,25),psfc(500,25),tsfc(500,25),ddzf(500,25,35),
-     1 qv(500,25,35),ta(500,25,35),zf(500,25,35),zh(500,25,35),
-     2 zstk(500,25,35),pres(500,25,0:35),uw(500,25,35),vw(500,25,35),
-     3 tstk(500,25),wstk(500,25),dthdz(500,25,35),wspd(500,25,35),
-     4 zzf(500,25,0:35),ustmp(500,25),hfx(500,25),tmpbflx(500,25),
-     5 ztop(500,25),zbot(500,25),zplm(500,25),tmpacre(500,25),
-     6 sfract(500,25),tfrac(500,25,35)
+      integer year(maxnf),mon(maxnf),day(maxnf),hour(maxnf),min(maxnf),
+     1 duration(maxnf),intx(maxnf),inty(maxnf),header(6),ftime(maxnf)
+     
+      integer intime(maxnf,numrec),indomain(maxnf),lstk(maxnf,numrec),
+     2 lpbl(maxnf,numrec),ltop(maxnf,numrec)
+     
+      real lat(maxnf),lon(maxnf),hgt(maxnf),rate(maxnf),area(maxnf),
+     1 heat(maxnf),time(maxnf),heatbtu(maxnf),pm25(maxnf),pm10(maxnf),
+     2 pm(maxnf),co(maxnf),co2(maxnf),ch4(maxnf),nmhc(maxnf),x(maxnf),
+     3 y(maxnf),latitude(maxnf),longitude(maxnf),acres(maxnf),
+     4 heatflux(maxnf),pm25co(maxnf)
+     
+      real hmix(maxnf,numrec),psfc(maxnf,numrec),tsfc(maxnf,numrec),
+     1 tstk(maxnf,numrec),wstk(maxnf,numrec), ustmp(maxnf,numrec),
+     2 hfx(maxnf,numrec),tmpbflx(maxnf,numrec),ztop(maxnf,numrec),
+     3 zbot(maxnf,numrec),zplm(maxnf,numrec),tmpacre(maxnf,numrec),
+     4 sfract(maxnf,numrec)
+     
+      real ddzf(maxnf,numrec,kmax),qv(maxnf,numrec,kmax),
+     1 ta(maxnf,numrec,kmax),zf(maxnf,numrec,kmax),
+     2 zh(maxnf,numrec,kmax),zstk(maxnf,numrec,kmax),
+     3 pres(maxnf,numrec,0:kmax),uw(maxnf,numrec,kmax),
+     4 vw(maxnf,numrec,kmax),wspd(maxnf,numrec,kmax),
+     5 zzf(maxnf,numrec,0:kmax),tfrac(maxnf,numrec,kmax),
+     6 dthdz(maxnf,numrec,kmax)
+     
       real xlon(imax,jmax),xlat(imax,jmax),xx(imax,jmax),yy(imax,jmax),
      1 vheight(kmax+1)
-      real truelat1,truelat2,cenlat,cenlon,tlat,tlon,ddx,hts,ptop
+     
+      real truelat1,truelat2,cenlat,cenlon,tlat,tlon,ddx,hts,ptop,
+     1 tmpsum
       
-      character*160 efile,ffile(500),grdcro2d,GRID,metcro3d,MCRO3,
-     1 metdot3d,MDOT3,metcro2d,MCRO2,ofile(3),OUTPUT(3)
-      character hline*300,aline(2)*120,bline(3)*120,cline(2)*120,
-     1 dline(4)*120,eline(4)*120,dirname*120,emifix*16,firefix(3)*16,
-     2 grdfix*32,metfix(3)*32,outfix(3)*32,chftmp*4,chytmp*4,chmtmp*2,
-     3 chdtmp*2,firespec(8)*12 
+      character*160 efile,ffile(maxnf),GRID,MCRO3,MDOT3,MCRO2,
+     1 OUTPUT1,OUTPUT2,OUTPUT3
+     
+      character hline*300,aline(2)*120,bline(3)*120,dirname*120,
+     1 emifix*16,firefix(3)*16,chftmp*4,chytmp*4,chmtmp*2,
+     2 chdtmp*2,firespec(8)*12 
      
       real, allocatable, dimension  (:,:,:,:) :: emis
       real, allocatable, dimension  (:,:,:,:) :: femis  
@@ -66,43 +80,43 @@ c metdot3d variables
                                     
       allocate(emis(imax,jmax,kmax,7),STAT=ierr)
       if(ierr.ne.0) stop 2001      
-      allocate(femis(imax,jmax,8,kmax),STAT=ierr)
+      allocate(femis(imax,jmax,8,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2002
-      allocate(lfrac(imax,jmax,kmax,kmax),STAT=ierr)
+      allocate(lfrac(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2003
       
 c metcro2d variables      
-      allocate(pbl(imax,jmax,25),STAT=ierr)
+      allocate(pbl(imax,jmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2004
-      allocate(prsfc(imax,jmax,25),STAT=ierr)
+      allocate(prsfc(imax,jmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2005
-      allocate(temp2(imax,jmax,25),STAT=ierr)
+      allocate(temp2(imax,jmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2006
-      allocate(ustar(imax,jmax,25),STAT=ierr)
+      allocate(ustar(imax,jmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2007
-      allocate(mhfx(imax,jmax,25),STAT=ierr)
+      allocate(mhfx(imax,jmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2008
             
 c metcro3d variables
-      allocate(mzh(imax,jmax,kmax,25),STAT=ierr)
+      allocate(mzh(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2009 
-      allocate(mzf(imax,jmax,kmax,25),STAT=ierr)
+      allocate(mzf(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2010 
-      allocate(mqv(imax,jmax,kmax,25),STAT=ierr)
+      allocate(mqv(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2011 
-      allocate(mta(imax,jmax,kmax,25),STAT=ierr)
+      allocate(mta(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2012 
-      allocate(mpre(imax,jmax,kmax,25),STAT=ierr)
+      allocate(mpre(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2013         
-      allocate(presf(imax,jmax,kmax,25),STAT=ierr)
+      allocate(presf(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2014
-      allocate(dens(imax,jmax,kmax,25),STAT=ierr)
+      allocate(dens(imax,jmax,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2015
             
 c metdot3d variables      
-      allocate(uwind(imax+1,jmax+1,kmax,25),STAT=ierr)
+      allocate(uwind(imax+1,jmax+1,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2016   
-      allocate(vwind(imax+1,jmax+1,kmax,25),STAT=ierr)
+      allocate(vwind(imax+1,jmax+1,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2017
       
                                         
@@ -112,39 +126,18 @@ c metdot3d variables
       
       data hts/0.0/ !stack height can be set as 100.0
                   
-c      data dirname
-c     1 /'/data/data04/aqf/lip/OAR-GROUP/for_Daninel/dir_fire/0704/'/
-cc      data dirname/'/aquest/lip/FIRE/07112011/'/
       data emifix/'EMITIMES'/
       data firefix/'NOAA','_','.OUT'/
-      data grdfix/'aqm.t12z.grdcro2d.ncf'/
-      data metfix/'aqm.t12z.metcro3d.ncf','aqm.t12z.metdot3d.ncf',
-     1 'aqm.t12z.metcro2d.ncf'/
-cc      data grdfix/'GRIDCRO2D_'/
-cc      data metfix/'METCRO3D_','METDOT3D_','METCRO2D_'/      
-      data outfix/'.play3d.t12z.fire.ncf',
-     1 '.smokefire2d.ncf','.smokefire3d.ncf'/
       
-cc      data syear/2011/
-cc      data smon/7/
-cc      data sday/11/
       
       data firespec/'HEAT','PM25','PM10','PM','CO','CO2','CH4','NMHC'/
       
-cjp      namelist/control/syear,smon,sday,dirname
       namelist/control/syear,smon,sday,start,dirname
       
       open(7,file='fire.ini')
       read(7,control)
-      print*, syear,smon,sday,dirname
-cjp1      
-      write(grdfix(6:7),'(i2.2)')start
-      do i = 1,3
-      write(metfix(i)(6:7),'(i2.2)')start
-      enddo
-      write(outfix(1)(10:11),'(i2.2)')start
-cjp9
-
+      print*, syear,smon,sday,start,dirname
+      
       aline(1)=dirname
       aline(2)=emifix
       
@@ -184,22 +177,6 @@ c      print*,'the number of total detected fires is', nfire
       enddo
       close(10)
 
-
-      cline(1)=dirname
-      cline(2)=grdfix
-      
-      write(chytmp,'(i4.4)')syear
-      write(chmtmp,'(i2.2)')smon
-      write(chdtmp,'(i2.2)')sday       
-           
-c      grdcro2d=cline(1)(:len_trim(cline(1)))//
-c     1 cline(2)(:len_trim(cline(2)))//chytmp//chmtmp//chdtmp
-      grdcro2d=cline(1)(:len_trim(cline(1)))//
-     1 cline(2)(:len_trim(cline(2)))     
-      print*, grdcro2d
-      
-      iflag=setenvvar('GRID',grdcro2d)
-      
       if(.not.open3('GRID',FSREAD3,'aq_open')) then
        print*, 'failed to open GRID'
        stop
@@ -249,19 +226,6 @@ c     1   cenlon,tlat,tlon,xx(i,j),yy(i,j),ddx)
 c        print*, i,j,xlon(i,j),xlat(i,j),xx(i,j),yy(i,j)        	 
 c       enddo
 c      enddo
-
-      dline(1)=dirname
-      dline(2)=metfix(1)
-      dline(3)=metfix(2)
-      dline(4)=metfix(3)
-      
-c      metcro3d=dline(1)(:len_trim(dline(1)))//
-c     1 dline(2)(:len_trim(dline(2)))//chytmp//chmtmp//chdtmp
-      metcro3d=dline(1)(:len_trim(dline(1)))//
-     1 dline(2)(:len_trim(dline(2)))    
-      print*, metcro3d
-      
-      iflag=setenvvar('MCRO3',metcro3d)
       
       if(.not.open3('MCRO3',FSREAD3,'aq_open')) then
        print*, 'failed to open MCRO3'
@@ -287,7 +251,7 @@ c       print*, vheight(k)
       ptop=vgtop3d
 c      print*, "ptop=", ptop
       
-      do m=1,25
+      do m=1,numrec
        if(.not.READ3('MCRO3','ZF',ALLAYS3, jdate, jtime,
      1  mzf(1,1,1,m))) then
         print*, 'Error in reading ZF from MCRO3'
@@ -323,22 +287,9 @@ c      print*, "ptop=", ptop
       enddo      
 
       
-      iflag=close3('MCRO3') 
-      
-      eline(1)=dirname
-      eline(2)=outfix(1)
-      write(chytmp,'(i4.4)')syear
-      write(chmtmp,'(i2.2)')smon
-      write(chdtmp,'(i2.2)')sday  
+      iflag=close3('MCRO3')           
             
-      ofile(1)=eline(1)(:len_trim(eline(1)))//
-     1 chytmp//chmtmp//chdtmp//eline(2)(:len_trim(eline(2)))                       
-     
-      print*, ofile(1)
-      
-      iflag=setenvvar('OUTPUT(1)',ofile(1))       
-            
-      mxrec3d=25
+      mxrec3d=numrec
       nvars3d=1     
 
       do L=1,nvars3d
@@ -349,20 +300,12 @@ c      print*, "ptop=", ptop
       enddo 
       print*,mxrec3d,nvars3d
             
-      if(.not.open3('OUTPUT(1)',FSCREA3,'aq_open')) then
-       print*, 'failed to open OUTPUT(1)'
+      if(.not.open3('OUTPUT1',FSCREA3,'aq_open')) then
+       print*, 'failed to open OUTPUT1'
        stop
       endif
       
-c      print*,'mxrec3d=',mxrec3d
-      
-c      metdot3d=dline(1)(:len_trim(dline(1)))//
-c     1 dline(3)(:len_trim(dline(3)))//chytmp//chmtmp//chdtmp
-      metdot3d=dline(1)(:len_trim(dline(1)))//
-     1 dline(3)(:len_trim(dline(3))) 
-      print*, metdot3d
-      
-      iflag=setenvvar('MDOT3',metdot3d)
+c      print*,'mxrec3d=',mxrec3d      
       
       if(.not.open3('MDOT3',FSREAD3,'aq_open')) then
        print*, 'failed to open MDOT3'
@@ -380,7 +323,7 @@ c     1 dline(3)(:len_trim(dline(3)))//chytmp//chmtmp//chdtmp
       
       print*, jdate,jtime,jstep
       
-      do m=1,25
+      do m=1,numrec
        if(.not.READ3('MDOT3','UWIND',ALLAYS3, jdate, jtime,
      1  uwind(1,1,1,m))) then
         print*, 'Error in reading UWIND from MDOT3'
@@ -397,14 +340,6 @@ c     1 dline(3)(:len_trim(dline(3)))//chytmp//chmtmp//chdtmp
 
       
       iflag=close3('MDOT3') 
-      
-c      metcro2d=dline(1)(:len_trim(dline(1)))//
-c     1 dline(4)(:len_trim(dline(4)))//chytmp//chmtmp//chdtmp
-      metcro2d=dline(1)(:len_trim(dline(1)))//
-     1 dline(4)(:len_trim(dline(4)))   
-      print*, metcro2d
-      
-      iflag=setenvvar('MCRO2',metcro2d)
       
       if(.not.open3('MCRO2',FSREAD3,'aq_open')) then
        print*, 'failed to open MCRO2'
@@ -427,7 +362,7 @@ c     1 dline(4)(:len_trim(dline(4)))//chytmp//chmtmp//chdtmp
       
       print*, jdate,jtime,jstep
       
-      do m=1,25
+      do m=1,numrec
        if(.not.READ3('MCRO2','PBL',ALLAYS3, jdate, jtime,
      1  pbl(1,1,m))) then
         print*, 'Error in reading pbl from MCRO2'
@@ -466,25 +401,10 @@ c     1 dline(4)(:len_trim(dline(4)))//chytmp//chmtmp//chdtmp
        call nextime(jdate,jtime,jstep)
       enddo      
       
-      iflag=close3('MCRO2') 
+      iflag=close3('MCRO2')       
       
-      
-      eline(1)=dirname
-      eline(3)=outfix(2)
-      write(chytmp,'(i4.4)')syear
-      write(chmtmp,'(i2.2)')smon
-      write(chdtmp,'(i2.2)')sday  
-                                 
-      ofile(2)=eline(1)(:len_trim(eline(1)))//
-     1 chytmp//chmtmp//chdtmp//eline(3)(:len_trim(eline(3)))
-     
-      print*, ofile(2)
-      
-      iflag=setenvvar('OUTPUT(2)',ofile(2))
-            
-      mxrec3d=25
+      mxrec3d=numrec
       nvars3d=8
-c      sdate3d=2012113
 
       do L=1,nvars3d
        vname3d(L)=firespec(L)
@@ -498,13 +418,13 @@ c      sdate3d=2012113
       enddo 
       print*,mxrec3d,nvars3d
                
-      if(.not.open3('OUTPUT(2)',FSCREA3,'aq_open')) then
-       print*, 'failed to open OUTPUT(2)'
+      if(.not.open3('OUTPUT2',FSCREA3,'aq_open')) then
+       print*, 'failed to open OUTPUT2'
        stop
       endif  
       
-      if(.not. DESC3('OUTPUT(2)') ) then
-       print*, 'Error getting info from OUTPUT(2)'
+      if(.not. DESC3('OUTPUT2') ) then
+       print*, 'Error getting info from OUTPUT2'
        stop
       endif  
       
@@ -516,14 +436,11 @@ c      sdate3d=2012113
       print*, jdate,jtime,jstep,total  
       
 c      emis(1:imax,1:jmax,1:kmax,1:nvars)=0.0
-      femis(1:imax,1:jmax,1:8,1:kmax)=0.0 
-      lfrac(1:imax,1:jmax,1:kmax,1:kmax)=0.0      
+      femis(1:imax,1:jmax,1:8,1:numrec)=0.0 
+      lfrac(1:imax,1:jmax,1:kmax,1:numrec)=0.0      
                
       do n=1,nfire       
        write(chftmp,'(i4.4)')n
-c       write(chytmp,'(i4.4)')year(n)
-c       write(chmtmp,'(i2.2)')mon(n)
-c       write(chdtmp,'(i2.2)')day(n)
        write(chytmp,'(i4.4)')syear
        write(chmtmp,'(i2.2)')smon
        write(chdtmp,'(i2.2)')sday       
@@ -758,11 +675,11 @@ c	 print*,m, intime(n,m),hour(n),fhour,ftime(n)
       enddo !nfire
       
       
-      do n=1,25
+      do n=1,numrec
        do L=1,nvars3d
-        if(.not.WRITE3('OUTPUT(2)',vname3d(L),jdate,jtime,
+        if(.not.WRITE3('OUTPUT2',vname3d(L),jdate,jtime,
      &  femis(1,1,L,n))) then
-         print*,' write error in output(2)', vname3d(L)
+         print*,' write error in output2', vname3d(L)
          stop
         endif
        enddo       
@@ -770,10 +687,10 @@ c	 print*,m, intime(n,m),hour(n),fhour,ftime(n)
 C       print*,jdate,jtime,jstep
       enddo         
       
-      iflag=close3('OUTPUT(2)')
+      iflag=close3('OUTPUT2')
 
-      if(.not. DESC3('OUTPUT(1)') ) then
-       print*, 'Error getting info from OUTPUT(1)'
+      if(.not. DESC3('OUTPUT1') ) then
+       print*, 'Error getting info from OUTPUT1'
        stop
       endif 
       
@@ -783,30 +700,17 @@ C       print*,jdate,jtime,jstep
       
       print*, jdate,jtime,jstep
             
-      do n=1,25
-       if(.not.WRITE3('OUTPUT(1)','LFRAC',jdate,jtime,
+      do n=1,numrec
+       if(.not.WRITE3('OUTPUT1','LFRAC',jdate,jtime,
      & lfrac(1,1,1,n))) then
-        print*,' write error in output(1)', LFRAC
+        print*,' write error in output1', LFRAC
         stop
        endif      
        call nextime(jdate,jtime,jstep)
 C       print*,jdate,jtime,jstep
       enddo      
 
-      iflag=close3('OUTPUT(1)')
-      
-      eline(1)=dirname
-      eline(4)=outfix(3)
-      write(chytmp,'(i4.4)')syear
-      write(chmtmp,'(i2.2)')smon
-      write(chdtmp,'(i2.2)')sday 
-      
-      ofile(3)=eline(1)(:len_trim(eline(1)))//
-     1 chytmp//chmtmp//chdtmp//eline(4)(:len_trim(eline(4)))
-     
-      print*, ofile(3)
-      
-      iflag=setenvvar('OUTPUT(3)',ofile(3))
+      iflag=close3('OUTPUT1')
       
       nvars3d=7
 
@@ -818,13 +722,13 @@ C       print*,jdate,jtime,jstep
       enddo 
       print*,mxrec3d,nvars3d
                
-      if(.not.open3('OUTPUT(3)',FSCREA3,'aq_open')) then
-       print*, 'failed to open OUTPUT(3)'
+      if(.not.open3('OUTPUT3',FSCREA3,'aq_open')) then
+       print*, 'failed to open OUTPUT3'
        stop
       endif  
       
-      if(.not. DESC3('OUTPUT(3)') ) then
-       print*, 'Error getting info from OUTPUT(3)'
+      if(.not. DESC3('OUTPUT3') ) then
+       print*, 'Error getting info from OUTPUT3'
        stop
       endif  
       
@@ -832,7 +736,7 @@ C       print*,jdate,jtime,jstep
       jtime=stime3d
       jstep=tstep3d
       
-      do n=1,25
+      do n=1,numrec
        emis(1:imax,1:jmax,1:kmax,1:7)=0.0
        do L=1,nvars3d
         do i=1,imax
@@ -842,16 +746,16 @@ C       print*,jdate,jtime,jstep
 	  enddo
 	 enddo
 	enddo
-        if(.not.WRITE3('OUTPUT(3)',vname3d(L),jdate,jtime,
+        if(.not.WRITE3('OUTPUT3',vname3d(L),jdate,jtime,
      &   emis(1,1,1,L))) then
-         print*,' write error in output(3)', vname3d(L)
+         print*,' write error in output3', vname3d(L)
          stop
         endif 
        enddo     
        call nextime(jdate,jtime,jstep)
       enddo  
       
-      iflag=close3('OUTPUT(3)')                
+      iflag=close3('OUTPUT3')                
       
       end program smoke2cmaq_35layer_1      
       

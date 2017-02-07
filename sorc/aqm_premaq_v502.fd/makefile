@@ -33,8 +33,7 @@ TARGET       = aqm_premaq_v502
 
 #... Location of library
 
-NETCDFPATH = ${NETCDF}
-NETCDF_LIB = -I$(NETCDFPATH)/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS}
+NETCDF_LIB = -I${NETCDF}/include ${NETCDF_LDFLAGS_CXX} ${NETCDF_LDFLAGS}
 
 IOAPIPATH    = ../../lib
 

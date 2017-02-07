@@ -37,20 +37,23 @@ LIB_LOC    = ../../lib
 STENEX     = $(LIB_LOC)/sorc/aqm_se_snl
 SE_SNL     =  -L$(LIB_LOC) -laqm_se_snl
 PARIO      =  -L$(LIB_LOC) -laqm_pario
-MPICH      =  -L/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/lib -lmpich
-MPI        =  /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include
+#MPICH     =  -L/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/lib -lmpich
+MPICH      =  -L${CRAY_MPICH2_DIR}/lib -lmpich
+#MPI       =  /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include
+MPI_INC    =  ${CRAY_MPICH2_DIR}/include
 IOAPI      =  -L$(LIB_LOC) -laqm_ioapi 
 
 LIBRARIES = $(SE_SNL) $(PARIO) $(MPICH) $(IOAPI) ${NETCDF_LDFLAGS_F}
 
 FSTD       = -fixed -132 -override-limits -fno-alias -mp1 -fp-model precise
 
-F_FLAGS    = $(FSTD) -O3 -I$(LIB_LOC)/include -I$(MPI) -I .
+F_FLAGS    = $(FSTD) -O3 -I$(LIB_LOC)/include -I$(MPI_INC) -I .
 f_FLAGS    = $(F_FLAGS)
 
-F90_FLAGS  = -free -O3 -fno-alias -mp1 -fp-model precise  -I$(LIB_LOC)/include  -I$(MPI) -I .
+F90_FLAGS  = -free -O3 -fno-alias -mp1 -fp-model precise  -I$(LIB_LOC)/include  -I$(MPI_INC) -I .
 
-C_FLAGS    = -O2 -DFLDMN -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include
+#C_FLAGS    = -O2 -DFLDMN -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include
+C_FLAGS    = -O2 -DFLDMN -I$(MPI_INC)
 
 BASE_INC = $(LIB_LOC)/include
 MECH_INC =$(PWD)
@@ -66,7 +69,7 @@ INCLUDES =  \
   -DSUBST_PACTL_ID=\"$(MECH_INC)/PA_CTL.EXT\" \
   -DSUBST_PACMN_ID=\"$(MECH_INC)/PA_CMN.EXT\" \
   -DSUBST_PADAT_ID=\"$(MECH_INC)/PA_DAT.EXT\" \
-  -DSUBST_MPI=\"/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include/mpif.h\"
+  -DSUBST_MPI=\"$(MPI_INC)/mpif.h\"
 
 GLOBAL_MODULES = \
   UTILIO_DEFN.o \
