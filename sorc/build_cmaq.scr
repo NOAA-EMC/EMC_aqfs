@@ -1,5 +1,5 @@
 
-#module purge
+module purge
 
 module load PrgEnv-intel/5.2.56
 
@@ -23,6 +23,7 @@ done
 module load HDF4-intel-haswell/4.2.8
 module load HDF5-serial-intel-haswell/1.8.9
 module switch  intel/16.3.210 
+module switch bufr-intel/11.0.2
 ###############################
 for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
 do
