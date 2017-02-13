@@ -1,3 +1,5 @@
+#!/bin/ksh
+set -ax
 make clean
 make 
-mv *mod ../../include
+cp -rp *mod ../../include

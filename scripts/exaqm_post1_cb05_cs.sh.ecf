@@ -38,8 +38,8 @@ export JDATE=`date2jday.sh  $PDY`
 let "cyc9=cyc+1"
 
 startmsg
-#rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
-if [ ! -s $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ] ; then
+rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
+#if [ ! -s $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ] ; then
 ${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_1.ncf
 export err=$?;err_chk
 
@@ -57,10 +57,10 @@ while [ ! -s $DATA/check_file.log1 ] ; do
     sleep 10
 done
 
-else
-  echo  $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ' exist !'
+#else
+#  echo  $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ' exist !'
 
-fi
+#fi
 
 
 #########################################################
@@ -241,8 +241,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-#   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
-/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -251,8 +251,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.227.grib2
-#    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
-/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        ##############################
@@ -288,8 +288,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.temp
-#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
-/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xpm25nmmb.temp  | awk '{print $5} '` > filesize
@@ -298,8 +298,8 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.227
-#       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
-       /gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
+#       /gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 
 ##############################

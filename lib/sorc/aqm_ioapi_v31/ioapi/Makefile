@@ -176,7 +176,7 @@ mod:  ${MODS}
 
 clean:  ${OBJDIR}
 	cd ${OBJDIR}; rm $(fOBJ); rm $(FOBJ); rm $(MOBJ) $(COBJ) $(OOBJ); rm ${LIB} ${MODS}
-	cd ${SRCDIR}; rm *.o core*
+#	cd ${SRCDIR}; rm *.o core*
 
 install: ${INSTDIR}
 	echo "Installing in ${INSTDIR}" ; cd ${OBJDIR}; cp ${LIB} ${INSTDIR}

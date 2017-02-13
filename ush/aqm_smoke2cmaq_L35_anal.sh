@@ -58,10 +58,10 @@ ln -sf $COMINm1/aqm.t${cyc}z.metdot3d.ncf $DATA/.
 ln -sf $COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf $DATA/.
 ln -sf $COMINm1/aqm.${cycle}.emission.${PDYm1}.windust_snowc.ncf $DATA/.
 
-export GRID=$DATA/aqm.${cycle}z.grdcro2d.ncf
-export MCRO3=$DATA/aqm.${cycle}z.metcro3d.ncf
-export MDOT3=$DATA/aqm.${cycle}z.metdot3d.ncf
-export MCRO2=$DATA/aqm.${cycle}z.metcro2d.ncf
+export GRID=$DATA/aqm.${cycle}.grdcro2d.ncf
+export MCRO3=$DATA/aqm.${cycle}.metcro3d.ncf
+export MDOT3=$DATA/aqm.${cycle}.metdot3d.ncf
+export MCRO2=$DATA/aqm.${cycle}.metcro2d.ncf
 
 export OUTPUT1=$DATA/aqm.${PDYm1}.${cycle}.play3d.fire.ncf
 export OUTPUT2=$DATA/aqm.${PDYm1}.${cycle}.smokefire2d.ncf

@@ -1,7 +1,7 @@
 
-module purge
+#module purge
 
-module load PrgEnv-intel/5.2.56
+#module load PrgEnv-intel/5.2.56
 
 module load ../modulefiles/CMAQ/v5.0.2
 #
