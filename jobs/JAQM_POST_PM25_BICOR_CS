@@ -1,9 +1,5 @@
 #!/bin/ksh
 
-source /opt/modules/default/init/ksh
-module load prod_util
-
-
 date
 export PS4=' $SECONDS + '
 set -x
@@ -65,7 +61,7 @@ fi
 cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
 cp -rp ${DCOMROOT}/us007003/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
 
-export pcom=${pcom:-${PCOMROOT}/${envir}/${NET}}
+export PCOM=${PCOM:-${PCOMROOT}/${envir}/${NET}}
 
 export pgmout=OUTPUT.$$
 
@@ -73,7 +69,7 @@ mkdir -p $COMOUT $pcom $COMOUTbicorm1 $COMOUTbicorm2
 
 env
 
-$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf.new
+$HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
 export err=$?; err_chk
 
 cat $pgmout

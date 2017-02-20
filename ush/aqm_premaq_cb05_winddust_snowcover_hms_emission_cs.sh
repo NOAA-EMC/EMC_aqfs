@@ -4,10 +4,6 @@ set -xa
 #-----------------------------------------------------------------
 #step 1 fengsha
 #-----------------------------------------------------------------
-#if [ ! -d $COMOUT ] ; then
-#  mkdir -p $COMOUT
-#fi
-
 cd $DATA
 export domainfile=$PARMaqm/aqm_cs_domain
 export FLANDA=$FIXaqm/LANDA_US12_442X265
@@ -28,7 +24,6 @@ then
 else
  export nstep=49 #25
 fi
-
 
 cfg=dust.cfg
 year=`echo $sdate | cut -c 1-4`
@@ -171,7 +166,7 @@ fi
   if [ -s ${file_emitime}  ]
   then 
     ln -s ${file_emitime} $DATA/EMITIMES
-    ln -s ${file_emitime} $COMOUT 
+#    ln -s ${file_emitime} $COMOUT 
 
   
    test_file=$DATA/FIRE_CHECK
@@ -198,18 +193,6 @@ fi
   fi 
 
 ########################################################
-
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
-
 ################## END OF SCRIPT #######################
-
-
-
-
-
-
-
-
-
-

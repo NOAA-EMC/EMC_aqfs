@@ -1,9 +1,4 @@
 #!/bin/ksh
-#
-
-source /opt/modules/default/init/ksh
-module load prod_util
-module list
 
 date 
 export PS4=' $SECONDS + '
@@ -54,9 +49,9 @@ if [ -e "$pgmout" ]; then
   cat $pgmout
 fi
 
-#if [ "${KEEPDATA}" != YES ]; then
-#  rm -rf $DATA
-#fi
+if [ "${KEEPDATA}" != YES ]; then
+  rm -rf $DATA
+fi
 
 date
 

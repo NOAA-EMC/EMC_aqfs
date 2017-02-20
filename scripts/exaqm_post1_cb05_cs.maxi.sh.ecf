@@ -145,7 +145,7 @@ export FORT31=
 export FORT51=awpaqm.${cycle}.${hr}ho3-max.227.grib2
 ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
-
+done 
 ########################################################
 # Add WMO header for daily 1h PM2.5 and 24hr_ave PM2.5
 ########################################################
@@ -154,14 +154,11 @@ rm -rf filesize
 echo 0 > filesize
 export XLFRTEOPTS="unit_vars=yes"
 export FORT11=aqm.${cycle}.1hpm25-max.227.grib2
-#export FORT11=aqm.${cycle}.max_1hr_pm25.227.grib2
 export FORT12="filesize"
 export FORT31=
-#export FORT51=aqm.${cycle}.1hpm25-max.227.grib2.temp
 export FORT51=aqm.${cycle}.max_1hr_pm25.227.grib2.temp
 ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25.${cycle}.227
 
-#echo `ls -l  aqm.${cycle}.1hpm25-max.227.grib2.temp | awk '{print $5} '` > filesize
 echo `ls -l  aqm.${cycle}.max_1hr_pm25.227.grib2.temp | awk '{print $5} '` > filesize
 export XLFRTEOPTS="unit_vars=yes"
 export FORT11=aqm.${cycle}.max_1hr_pm25.227.grib2.temp
@@ -197,23 +194,23 @@ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
 
        if test "$SENDCOM" = 'YES'
        then
-           cp awpaqm.${cycle}.*o3-max.227.grib2            $pcom/
-           cp awpaqm.${cycle}.daily-1hr-pm25-max.227.grib2 $pcom/ 
-           cp awpaqm.${cycle}.24hr-pm25-ave.227.grib2      $pcom/ 
+           cp awpaqm.${cycle}.*o3-max.227.grib2            $PCOM/
+           cp awpaqm.${cycle}.daily-1hr-pm25-max.227.grib2 $PCOM/ 
+           cp awpaqm.${cycle}.24hr-pm25-ave.227.grib2      $PCOM/ 
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN_NTC" = 'YES' ] ; then
-            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.${hr}ho3-max.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"
           fi
        fi
 
-done
+#done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
   cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
@@ -223,8 +220,6 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
   cp aqm.${cycle}.24hrpm25-ave.227.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
   cp aqm.${cycle}.1hpm25-max.148.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2
   cp aqm.${cycle}.24hpm25-ave.148.grib2   $COMOUT/aqm.${cycle}.ave_24hr_pm25.148.grib2
-# $COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.para.${cycle}.aqm-daily-max.227
-# $CNVGRIB -g12 -m -p32 grib1.para.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.227.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
   $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2

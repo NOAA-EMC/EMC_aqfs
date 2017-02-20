@@ -40,7 +40,7 @@ aprun -n 1 -d 24 $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_o
 export err=$?;err_chk
 
 
-if [ ${envir} = 'para1' ] ; 
+if [ ${envir} = 'para' ] ; 
 then
  cp  $DATA/out/pm2.5.corrected*  ${COMOUT_grib} 
 fi

@@ -532,7 +532,8 @@
        else
 !        write(chtmp,'(i2.2)')nt-1
         write(chtmp,'(i2.2)')nt
-         ipdstmpl(28)=0
+!jp         ipdstmpl(28)=0
+         ipdstmpl(28)=1
        endif
 
        write(grib_id,'(i3.3)')id_gribdomain

@@ -23,13 +23,11 @@ postmsg "$jlogfile" "$msg"
 
 export pgm=aqm_cs_post1
 
-
 cd $DATA
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export XLFRTEOPTS="unit_vars=yes"
 export id_grib=148
-
 
 #########################################################
 # Part I: Calculate PM2.5 based on CMAQ original output 
@@ -39,7 +37,6 @@ let "cyc9=cyc+1"
 
 startmsg
 rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
-#if [ ! -s $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ] ; then
 ${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_1.ncf
 export err=$?;err_chk
 
@@ -56,12 +53,6 @@ while [ ! -s $DATA/check_file.log1 ] ; do
   fi
     sleep 10
 done
-
-#else
-#  echo  $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf ' exist !'
-
-#fi
-
 
 #########################################################
 # Part II: Convert Machine netcdf format to Grib format
@@ -86,7 +77,7 @@ done
     fi
   done
 
-export pgm=aqm_post1_5xozconnmmb
+#-------------
 . prep_step
 
 export CHEM3D=${COMIN}/aqm.${cycle}.aconc_sfc.ncf
@@ -171,10 +162,8 @@ do
  if [ "$SENDCOM" = 'YES' ]
  then
 
-#  for field in awpozcon awpozcat chem_sfc
   for field in awpozcon awpozcat chem_sfc 
    do
-#    cp $DATA/aqm.${cycle}.${field}${fhr} $COMOUT/aqm.${cycle}.${field}.f${fhr}.${id_grib}
     cp $DATA/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2 $COMOUT/
    done
 
@@ -201,8 +190,6 @@ do
   typeset -Z2 fhr
  done
 
-#exit 
-
 #################################################
 # Part III:  Insert WMO header to GRIB files
 #################################################
@@ -227,6 +214,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
   if [ "$SENDDBN" = 'YES' ] ; then
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_o3.227.grib2
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_8hr_o3.227.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
   fi
    
 ##############################
@@ -241,8 +229,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
-#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -251,8 +238,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.227.grib2
-    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
-#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        ##############################
@@ -261,15 +247,15 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
 
        if test "$SENDCOM" = 'YES'
        then
-#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $pcom/awpaqm.t${cyc}z.${hr}ho3.227.grib2
-           cp awpaqm.t${cyc}z.${hr}ho3.227.grib2  $pcom/
+#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $PCOM/awpaqm.t${cyc}z.${hr}ho3.227.grib2
+           cp awpaqm.t${cyc}z.${hr}ho3.227.grib2  $PCOM/
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN_NTC" = 'YES' ] ; then
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.t${cyc}z.${hr}ho3.227.grib2
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.t${cyc}z.${hr}ho3.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"
@@ -289,7 +275,6 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.temp
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
-#/gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp5xpm25nmmb.temp  | awk '{print $5} '` > filesize
@@ -299,7 +284,6 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.227
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
-#       /gpfs/hps/nco/ops/nwtest/grib_util.v1.0.3/exec/tocgrib2super < ${PARMaqm}/wmo/grib2_aqm_5xpm25nmmb.${cycle}.227
        export err=$?;err_chk
 
 ##############################
@@ -307,7 +291,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
 ##############################
       if test "$SENDCOM" = 'YES'
        then
-         cp grib2.t${cyc}z.awp5xpm25nmmb.227  $pcom/awpaqm.t${cyc}z.1hpm25.227.grib2
+         cp grib2.t${cyc}z.awp5xpm25nmmb.227  $PCOM/awpaqm.t${cyc}z.1hpm25.227.grib2
          echo "no files copy"
 
           ##############################
@@ -315,14 +299,14 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
           ##############################
 
           if [ "$SENDDBN_NTC" = 'YES' ] ; then
-             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.t${cyc}z.1hpm25.227.grib2
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.t${cyc}z.1hpm25.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"
           fi
        fi
 
-#######################33
+#######################
 fi
 #######################################################
 msg='ENDED NORMALLY.'

@@ -13,37 +13,38 @@
 # 2003-07-03    Marina Tsidulko, initial version
 # 2003-07-15    Julia Zhu, modified for production  
 # 2004-03-31    Pius Lee, netcdf independence and gfs ozone blending
+# 2017-02-18    Jianping Huang, modified fori cmaq v5.0.2 on Cray 
 #####################################################################
 set -xa
+
 msg="JOB $job HAS BEGUN"
-#sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+postmsg "$jlogfile" "$msg"
+
+export pgm=aqm_premaq
 
 cd $DATA
 
 #---------------------------------------------------------------------
 ## Environmental variable for PREMAQ
 #---------------------------------------------------------------------
-
-  export AKHI_RUN=F
-  export PX_RA=T        # If F => use NAM calculated aerodynamic resistance
+export AKHI_RUN=F
+export PX_RA=T        # If F => use NAM calculated aerodynamic resistance
                         # T => use Pleim calculated Ra using NAM parameters
-  export PBL_MIN50=T
-  export IGBP_4_USGS=T  # False for AK and HI
-  export VERT_INTERP=T  # vertical interpolation
-  export MIXHT_4_PBL=F
+export PBL_MIN50=T
+export IGBP_4_USGS=T  # False for AK and HI
+export VERT_INTERP=T  # vertical interpolation
+export MIXHT_4_PBL=F
 
 if [[ $PX_RA = "T" ]]; then
   CANOPY_H=$FIXaqm/aqm_canopy_height_CONUS.ncf
-  if [[ -f ${CANOPY_H} && -s ${CANOPY_H} ]]; then
+ if [[ -f ${CANOPY_H} && -s ${CANOPY_H} ]]; then
     export CANOPY_IN=${CANOPY_H}
-  else
+ else
     print Could not find input canopy height file, ${CANOPY_H}
     exit 111
-  fi
+ fi
 fi
-
 #---------------------------------------------------------------------
-
 ## Specify the input pollutant data directory:
 if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
    yyyy=`echo $PDYm1 |cut -c1-4`
@@ -52,7 +53,6 @@ elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    yyyy=`echo $PDY |cut -c1-4`
    year_month=`echo $PDY |cut -c1-6`
 fi
-
 
 #------------------ names for tests ----------------
 INPPLTDRY=$INPEMIDIR/$yyyy
@@ -85,20 +85,20 @@ let "soilhr=soilhr+1"
 case $cyc in 
  00) export endfhr=06
      export endday=$PDY
-     export soil_input=$COMINm1/aqm.t18z.soil06.ncf
-     export nmm_00=$COMNAMm1/aqm.t18z.nmm06.tm00;;
+     export soil_input=$COMINm1/aqm.t18z.soil06.ncf;;
+#     export nmm_00=$COMNAMm1/aqm.t18z.nmm06.tm00;;
  06) export endfhr=48
      export endday=$PDYp2
-     export soil_input=$COMIN/aqm.t00z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t00z.nmm06.tm00;;
+     export soil_input=$COMIN/aqm.t00z.soil06.ncf;;
+#     export nmm_00=$COMNAM/aqm.t00z.nmm06.tm00;;
  12) export endfhr=48 #24
      export endday=$PDYp2 #$PDYp1
-     export soil_input=$COMIN/aqm.t06z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t06z.nmm06.tm00;;
+     export soil_input=$COMIN/aqm.t06z.soil06.ncf;;
+#     export nmm_00=$COMNAM/aqm.t06z.nmm06.tm00;;
  18) export endfhr=06
      export endday=$PDYp1
-     export soil_input=$COMIN/aqm.t12z.soil06.ncf
-     export nmm_00=$COMNAM/aqm.t12z.nmm06.tm00;;
+     export soil_input=$COMIN/aqm.t12z.soil06.ncf;;
+#     export nmm_00=$COMNAM/aqm.t12z.nmm06.tm00;;
 esac
  
 let "endcyc=cyc+endfhr"
@@ -124,11 +124,11 @@ else
    echo 'INITIAL_RUN = ' $INITIAL_RUN
 fi
 
- while [ $fhr -le $endfhr ]; do
-   ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
-   let "fhr=fhr+1"
-   typeset -Z2 fhr
- done
+while [ $fhr -le $endfhr ]; do
+  ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
+  let "fhr=fhr+1"
+  typeset -Z2 fhr
+done
 
 SYYYY=`echo $PDY |cut -c1-4`
 SMM=`echo $PDY |cut -c5-6`
@@ -555,7 +555,6 @@ export OUTFILE=$DATA/emission.${PDY}.m6.ncf
 #---------------------------------------------------------------------
 # Execute PREMAQ.
 #---------------------------------------------------------------------
-export pgm=aqm_premaq
 ##. prep_step
 
 startmsg
@@ -566,20 +565,18 @@ let "soilhr=soilhr-1"
 typeset -Z2 soilhr
 
 if [ "$SENDCOM" = 'YES' ]; then
-     cp $DATA/aqm.${cycle}.nmm00.tm00 $COMOUT/aqm.${cycle}.nmm00.tm00
-     cp $DATA/aqm.${cycle}.nmm06.tm00 $COMOUT/aqm.${cycle}.nmm06.tm00
-     mv $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
-     mv $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
-     mv $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
+    cp $DATA/aqm.${cycle}.nmm00.tm00 $COMOUT/aqm.${cycle}.nmm00.tm00
+    cp $DATA/aqm.${cycle}.nmm06.tm00 $COMOUT/aqm.${cycle}.nmm06.tm00
+    mv $DATA/GRIDDESC  $COMOUT/aqm_griddesc05
+    mv $DATA/GRIDCRO2D $COMOUT/aqm.${cycle}.grdcro2d.ncf
+    mv $DATA/GRIDDOT2D $COMOUT/aqm.${cycle}.grddot2d.ncf
 
-     mv $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
-     mv $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
-     mv $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
-     mv $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
+    mv $DATA/METBDY3D $COMOUT/aqm.${cycle}.metbdy3d.ncf
+    mv $DATA/METCRO2D $COMOUT/aqm.${cycle}.metcro2d.ncf
+    mv $DATA/METCRO3D $COMOUT/aqm.${cycle}.metcro3d.ncf
+    mv $DATA/METDOT3D $COMOUT/aqm.${cycle}.metdot3d.ncf
 
-     mv $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
-
-#     sync
+    mv $DATA/emission.${PDY}.m6.ncf            $COMOUT/aqm.${cycle}.emission.ncf
 
     $FSYNC $COMOUT/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
     $FSYNC $COMOUT/aqm.${cycle}.grddot2d.ncf
@@ -591,12 +588,9 @@ if [ "$SENDCOM" = 'YES' ]; then
 
 fi
 
-#echo EXITING $0
-
 cd $DATA
 
-#$utilexec/setup.sh
-setup.sh
+#setup.sh
 
 rm -rf $DATA/chkreads.log
 
@@ -611,7 +605,6 @@ export err=$?; err_chk
 fi
 
 ########################################################
-#echo EXITING $0
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"
 

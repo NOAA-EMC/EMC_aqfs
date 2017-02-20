@@ -32,6 +32,8 @@ set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
+export pgm=aqm_fcst
+
 cd $DATA
 
 #------------------------------------------------------
@@ -42,17 +44,8 @@ CFG=CMAQ-v502
 MECH=cb05tucl_ae6_aq
 APPL=D502b
 
-#export NPCOL_NPROW="24 22"
-#export nprocs=528
-#export NPCOL_NPROW="24 20"
-#export nprocs=480
-#export NPCOL_NPROW="24 40"
-#export nprocs=960
 export NPCOL_NPROW="24 24"
 export nprocs=576
-#export NPCOL_NPROW="24 28"
-#export nprocs=672
-
 
 if [ "${FCST}" = "YES" ]
 then
@@ -137,27 +130,6 @@ case $cyc in
 esac
 fi
 
-#if [ -s "${restart_path1}/${restart_file1}" ]
-#then
-#  ICpath=$restart_path1
-#  ICFILE=$restart_file1
-#elif [ -s "${restart_path2}/${restart_file2}" ]
-#then
-#  ICpath=$restart_path2
-#  ICFILE=$restart_file2
-#elif [ -s "${restart_path3}/${restart_file3}" ]
-#then
-#  ICpath=$restart_path3
-#  ICFILE=$restart_file3
-#elif [ -s "${restart_path4}/${restart_file4}" ]
-#then
-#  ICpath=$restart_path4
-#  ICFILE=$restart_file4
-#elif [ -s "${restart_path5}/${restart_file5}" ]
-#then
-#  ICpath=$restart_path5
-#  ICFILE=$restart_file5
-#fi
 if [ -s "$restart_file1" ]
 then
   restart_file=$restart_file1
@@ -207,7 +179,6 @@ echo $DAYOFYEAR
 
 if [ "${FCST}" = "YES" ]
 then
- #STDATE=$SYYYY$DAYOFYEAR
  STDATE=`date2jday.sh $PDY`
 else
  STDATE=`date2jday.sh $PDYm1`
@@ -278,14 +249,7 @@ OMIpath=${FIXaqm}/phot
 
 OUTDIR=$COMOUT
 
-#off-line photolysis rates
-#if [ "${FCST}" = "YES" ]
-#then
 JVALfile=JTABLE_${STDATE}
-#else
-#JVALfile=JTABLE_${STDATEm1}
-#fi
-
 
 #ozone column data
 OMIfile=OMI.dat
@@ -456,13 +420,6 @@ export   BNDY_TRAC_1=$BNDY_GASC_1
 TR_DVpath=$COMIN
 TR_DVfile=$MET_CRO_2D
 
-#export XJ_DATA=$INPEMIDIR/cb05_Jtable/aqm_jtable_${STDATE}
-
-#if [ ! -s $XJ_DATA ]
-#then
-#   err_exit "Missing the JTABLE file"
-#fi
-
 # species defn & photolysis
 export gc_matrix_nml=$FIXaqm/aqm_GC_$MECH.nml
 export ae_matrix_nml=$FIXaqm/aqm_AE_$MECH.nml
@@ -527,8 +484,6 @@ postmsg "$jlogfile" "$msg"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-#aprun -n480 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
-#aprun -n960 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
 aprun -n576 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
 export err=$?
 
@@ -570,10 +525,6 @@ else
    echo "$PDY" "done" >$COMOUT/aqm.${cycle}.log
    sh $utilscript/postmsg.sh "$jlogfile" "$msg"
 fi
-
-#${HOMEaqm}/ush/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_r.ncf
-
-#${HOMEaqm}/ush/aqm_csum.sh -kf -kl -sl $FIXaqm/vlist.twoways.5.0.2.v1 $COMOUT/aqm.${cycle}.aconc.ncf $COMOUT/aqm.${cycle}.aerodiam.ncf $COMOUT/aqm.${cycle}.metcro3d.ncf $COMOUT/aqm.${cycle}.aconc_sfc.ncf  
 
 echo Exiting $0
 
