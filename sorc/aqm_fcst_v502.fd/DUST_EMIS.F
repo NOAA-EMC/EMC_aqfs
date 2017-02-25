@@ -645,7 +645,7 @@ C Try to open existing file for update
          if ( .not. open3( ctm_dust_emis_1, fsrdwr3, pname ) ) then
             xmsg = 'Could not open CTM_DUST_EMIS_1 for update - '
      &           // 'try to open new'
-            call m3mesg( xmsg )
+!            call m3mesg( xmsg )
 
 C Set output file characteristics based on COORD.EXT and open diagnostic file
             ftype3d = grdded3

@@ -128,7 +128,7 @@ C Try to open existing file for update
 
             XMSG = 'Could not open ' // TRIM( A_CONC_1 )
      &           // ' file for update - try to open new'
-            CALL M3MESG( XMSG )
+!            CALL M3MESG( XMSG )
 
             IF ( MYPE .EQ. 0 ) THEN
 

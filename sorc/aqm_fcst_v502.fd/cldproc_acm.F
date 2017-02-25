@@ -257,7 +257,7 @@ C Try to open existing wet deposition file for update
 
             XMSG = 'Could not open ' // CTM_WET_DEP_1 // ' file for update - '
      &           // 'try to open new'
-            CALL M3MESG( XMSG )
+!            CALL M3MESG( XMSG )
 
 C...Create wet deposition file:
 C...   copy most of header description from
@@ -387,7 +387,7 @@ C...Try to open existing file for update
 
               XMSG = 'Could not open ' // CTM_WET_DEP_2 // ' file for update - '
      &             // 'try to open new'
-              CALL M3MESG( XMSG )
+!              CALL M3MESG( XMSG )
 
 C...copy most of header description from
 C...CTM_WET_DEP_1 and initialize depositions to zero.

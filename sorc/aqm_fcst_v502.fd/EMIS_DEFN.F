@@ -387,7 +387,7 @@ C                                       vvvvvvv - emis surrogate names
                XMSG = 'Could not read '
      &              // TRIM( GC_EMIS( S ) ) // ' from ' // EMIS_1
 !              CALL M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
-               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
+!               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
             END IF
             CNVTI = CNVTP * GC_EMIS_FAC( S )
 

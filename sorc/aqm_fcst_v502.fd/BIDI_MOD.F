@@ -128,7 +128,7 @@ C--------------------------------------------------------------------------
 !           Write( logdev,* ) 'JTIME', JTIME
             XMSG = 'Could not open ' // MEDIA_CONC // ' file for update - '
      &          // 'try to open new'
-            CALL M3MESG( XMSG )
+!            CALL M3MESG( XMSG )
 
             FTYPE3D = GRDDED3
             SDATE3D = JDATE

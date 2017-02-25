@@ -6,12 +6,6 @@ IOAPI_LIB   = $(LIB_LOC)/libaqm_ioapi.a
 NETCDF_LIB  =  ${NETCDF_LDFLAGS}  ${NETCDF_LDFLAGS_F}
 
 W3_LIB      = ${W3NCO_LIB4} ${W3EMC_LIB4}
-#G2_LIB      = ${G2_LIB4}
-#PNG_LIB2    = ${PNG_LIB}
-#BACIO_LIB   = ${BACIO_LIB4}
-#JASPER_LIB2 = ${JASPER_LIB}
-#Z_LIB2      = ${Z_LIB}
-#MDL_LIB2    = 
 
 LIBS   =  $(IOAPI_LIB) \
           $(NETCDF_LIB) \

@@ -336,7 +336,7 @@ C Test opening existing conc file for update
       IF ( .NOT. OPEN3( CTM_CONC_1, FSRDWR3, PNAME ) ) THEN
          MSG = 'Could not open ' // TRIM( CTM_CONC_1 ) // ' for update - '
      &        // 'try to open new'
-         CALL M3MESG( MSG )
+!         CALL M3MESG( MSG )
          ! Open the file new
          CALL SUBST_BARRIER
          CALL OPCONC ( CGRID, STDATE, STTIME, TSTEP( 1 ) )

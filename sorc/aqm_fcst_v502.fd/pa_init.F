@@ -180,7 +180,7 @@ C..try to open existing file for update
 
                   XMSG = 'Could not open ' // TRIM( OUTFNAME )
      &                 // ' file for update - try to open new'
-                  CALL M3MESG( XMSG )
+!                  CALL M3MESG( XMSG )
 
                   CALL PA_MKHDR ( 'IPR', NFL, OUTFNAME, SDATE, STIME, TSTEP )
 
@@ -279,7 +279,7 @@ C..try to open existing file for update
 
                   XMSG = 'Could not open ' // TRIM( OUTFNAME )
      &                 // ' file for update - try to open new'
-                  CALL M3MESG( XMSG )
+!                  CALL M3MESG( XMSG )
 
                   CALL PA_MKHDR( 'IRR', NFL, OUTFNAME, SDATE, STIME, TSTEP )
 

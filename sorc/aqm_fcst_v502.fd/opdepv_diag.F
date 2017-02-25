@@ -78,7 +78,7 @@ C Try to open existing file for update
 
          XMSG = 'Could not open ' // CTM_DEPV_DIAG // ' file for update - '
      &        // 'try to open new'
-         CALL M3MESG( XMSG )
+!         CALL M3MESG( XMSG )
 
 C Set output file characteristics based on GRIDDESC and open the dep velocity dignostic file
 

@@ -156,11 +156,11 @@ C Open the emissions file (for gas chem, aerosols and non-reactive species)
                XMSG = 'Emissions species '
      &              // TRIM( GC_EMIS( 1 ) )
      &              // ' not found on ' // EMIS_1
-               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
+!               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
             END IF
          END DO
          XMSG = ' No emissions species ' // ' found on ' // EMIS_1
-         CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
+!         CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
 
 101      CONTINUE
 
@@ -182,7 +182,7 @@ C Open the emissions file (for gas chem, aerosols and non-reactive species)
                XMSG = 'Emissions species '
      &              // TRIM( GC_EMIS( N ) )
      &              // ' not found on ' // EMIS_1
-               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
+!               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
             END IF
          END DO
 
@@ -204,7 +204,7 @@ C Open the emissions file (for gas chem, aerosols and non-reactive species)
                XMSG = 'Emissions species '
      &              // TRIM( NR_EMIS( N ) )
      &              // ' not found on ' // EMIS_1
-               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
+!               CALL M3WARN( PNAME, JDATE, JTIME, XMSG )
             END IF
          END DO
 

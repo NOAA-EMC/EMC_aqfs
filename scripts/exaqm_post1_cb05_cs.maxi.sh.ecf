@@ -213,8 +213,8 @@ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
 #done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
-  cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
-  cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+  cp awpaqm.${cycle}.1ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+  cp awpaqm.${cycle}.8ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
   cp aqm.${cycle}.*ho3-max.148.grib2      $COMOUT/
   cp aqm.${cycle}.1hpm25-max.227.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
   cp aqm.${cycle}.24hrpm25-ave.227.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2

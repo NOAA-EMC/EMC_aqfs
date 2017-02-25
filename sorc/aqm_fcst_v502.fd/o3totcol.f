@@ -183,7 +183,7 @@
      &                 * ( tdate_temp - int( tdate_temp ) ) )
           xmsg = 'Requested date is beyond available data on OMI file:  <' 
      &           // dt2str( jenddate, 0 )
-          call m3warn ( pname, jdate, 0, xmsg )
+!          call m3warn ( pname, jdate, 0, xmsg )
           xmsgs( 1 ) = 'Total column ozone will be estimated from the corresponding Julian Day '
           xmsgs( 2 ) = 'of the last available year on the '
      &               // 'OMI input file:' // dt2str( jtdate_temp, 0 ) // '<<---<<'

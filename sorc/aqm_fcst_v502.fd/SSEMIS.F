@@ -496,7 +496,7 @@ C Try to open existing file for update
          IF ( .NOT. OPEN3( CTM_SSEMIS_1, FSRDWR3, PNAME ) ) THEN
             XMSG = 'Could not open CTM_SSEMIS_1 for update - '
      &           // 'try to open new'
-            CALL M3MESG( XMSG )
+!            CALL M3MESG( XMSG )
 
 C Set output file characteristics based on COORD.EXT and open diagnostic file
             FTYPE3D = GRDDED3

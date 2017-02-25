@@ -664,11 +664,6 @@
 	endif
 
 
-
-
-
-
-
        enddo
 
        if(.not.write3('BND2',ALLVAR3,nowdate, &

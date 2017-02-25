@@ -164,7 +164,7 @@ SUBROUTINE rdgribspecs (iunit, gribflnm, gribgrid,  &
 !      print*,'gfld%idrtnum=',gfld%idrtnum
 !      print*,'gfld%idrtmpl=',gfld%idrtmpl
       
-      print*,"iret,kg=",iret,kg
+!      print*,"iret,kg=",iret,kg
       				    				  
 				  
 !    IF ( IRET /= 0 ) THEN

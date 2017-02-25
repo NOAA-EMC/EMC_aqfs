@@ -6,21 +6,26 @@ cd $DATA
 
 nowdate=`$NDATE | cut -c1-8`
 
-#firedate=${1:-$nowdate}
-firedate=$PDYm1
+## waiting for HYSPLIT BlueSky fire emissions about 10 minutes "
+ic=0
+while [ $ic -lt 60 ]
+do
+ if [ -s ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar ]
+  then
+    echo  ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar "exists!"
+     break
+  else
+     let "ic=ic+1"
+      sleep 10
+ fi
+done
 
-fyear=`echo $firedate | cut -c1-4`
-fmonth=`echo $firedate | cut -c5-6`
-fday=`echo $firedate | cut -c7-8`
-#fyear=`echo $PDYm1 | cut -c1-4`
-#fmonth=`echo $PDYm1 | cut -c5-6`
-#fday=`echo $PDYm1 | cut -c7-8`
-
-#typeset -Z2 cyc
+fyear=`echo $PDYm1 | cut -c1-4`
+fmonth=`echo $PDYm1 | cut -c5-6`
+fday=`echo $PDYm1 | cut -c7-8`
 
 echo $fyear $fmonth $fdate $cyc
 
-#cat > tmp.ini << EOF
 cat > fire.ini << EOF
  &control
  syear=$fyear
@@ -36,18 +41,16 @@ export PDYp1=$PDY
 if [ -s ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar ] ; then
  cp ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
 else
- echo "can not locate files_fires_cs.tar in /com "
-# exit 1
+ echo "No files_fires_cs.tar from HYSPLIT/BlueSky"
  exit 
 fi
 if [ -s ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z ] ; then
  cp ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z $DATA/EMITIMES
 else
- echo "can not locate EMITIMES in /com "
+ echo "No EMITIMES from HYSPLIT/BlueSky"
  exit 1
 fi
 
-cd $DATA
 tar -xvf files_fires_cs.tar 
 ln -sf $COMINm1/aqm.t${cyc}z.grdcro2d.ncf $DATA/.
 ln -sf $COMINm1/aqm.t${cyc}z.grddot2d.ncf $DATA/.
@@ -66,7 +69,6 @@ export MCRO2=$DATA/aqm.${cycle}.metcro2d.ncf
 export OUTPUT1=$DATA/aqm.${PDYm1}.${cycle}.play3d.fire.ncf
 export OUTPUT2=$DATA/aqm.${PDYm1}.${cycle}.smokefire2d.ncf
 export OUTPUT3=$DATA/aqm.${PDYm1}.${cycle}.smokefire3d.ncf
-
 
 if [ -e chkreads.log ] ; then
  rm -rf chkreads.log

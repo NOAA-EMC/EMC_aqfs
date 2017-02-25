@@ -74,7 +74,7 @@ C...Try to open existing file for update
 
          XMSG = 'Could not open ' // CTM_RJ_1 // ' file for update - '
      &        // 'try to open new'
-         CALL M3MESG( XMSG )
+!         CALL M3MESG( XMSG )
 
 C...Set output file characteristics based on COORD.EXT and open
 C...  the photolysis diagnostic file
@@ -198,7 +198,7 @@ C...Try to open existing file for update
 
          XMSG = 'Could not open ' // CTM_RJ_2 // ' file for update - '
      &        // 'try to open new'
-         CALL M3MESG ( XMSG )
+!         CALL M3MESG ( XMSG )
 
 C...Set output file characteristics based on COORD.EXT and open
 C...  the photolysis diagnostic file
