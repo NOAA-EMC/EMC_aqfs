@@ -2,18 +2,18 @@ SHELL=/bin/sh
 
 MODEL        = aqm_setup_date_timesp
 
-IOAPI        = ../../lib/sorc/aqm_ioapi/ioapi
+IOAPI        = ../../lib/sorc/aqm_ioapi_v31/ioapi
 IOAPI_LIB    = ../../lib/libaqm_ioapi.a
 
-NETCDF2      = $(NETCDF)
+NETCDF2      = ${NETCDF}
 NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 
 LIB =$(IOAPI_LIB) \
      $(NETCDF_LIB)
 
 
-FC           = ${F_COMP} -132 -O3 -D_LARGE_FILES
-CC           = icc -D_LARGE_FILES -DFLDMN=1
+FC           = ifort -132 -O3 -D_LARGE_FILES
+CC           = cc -D_LARGE_FILES -DFLDMN=1
 
 INCLUDES     = -I $(IOAPI)
 INCLUDES-h   = -I $(IOAPI)
@@ -29,7 +29,7 @@ setup_date_time.o
 .SUFFIXES: .F .f
 
 $(MODEL): $(OBJS)
-	$(FC) $(LINK_FLAGS) $(OBJS) $(LIB) -o ../../exec/$@
+	$(FC) $(LINK_FLAGS) $(OBJS) $(LIB) -qopenmp -o ../../exec/$@
 
 .c.o:
 	$(CC) $(C_FLAGS) $(CPP_FLAGS) $(INCLUDES-h) -c $<

@@ -5,11 +5,16 @@
 ! This is a support routine for the NOAA NCO/ARL/PSD bias correction
 ! program for CMAQ forecast outputs.
 !
-! 2014-oct-27	Original version.  By Dave Allured.
+! 2015-oct-27	Original version.  By Dave Allured.
 !		Adapted from read_station_file.f90 version 2014-apr-24.
-! 2014-oct-29	Add another column for separate positive and negative
+! 2015-oct-29	Add another column for separate positive and negative
 !		  thresholds.
 !		Support missing input file, return nsites = 0.
+!
+! 2016-jan-20	Restructure to one-pass input method.
+!		Add array creation and alignment with primary site indexing.
+!		Improve diagnostics.
+! 2016-feb-09	Require "none" for no exception file.
 !
 ! Input file format:
 !
@@ -29,117 +34,210 @@
 ! primary site list.  The calling program must associate by
 ! site ID's only.
 !
-! CAUTION:  Only the coordinates from the list file will be
-! printed to the console log.  If these coordinates are different
-! than the ones in the primary data files, there will be no
-! warning of a mismatch.  This may be potentially misleading.
+! CAUTION:  Coordinates from the list file are only printed to
+! the console log.  They are not checked against coordinates in
+! primary input data.  If list file coordinates are different
+! than those in the primary data files, there will be no warning
+! of a mismatch.  This may be potentially misleading.
+!
+! Note:  This version assumes there are no duplicate site ID's in
+! either the primary input data set, or the site exception list.
+! However, duplicate site ID's in the exception file will simply
+! overwrite any previous threshold values.
+!
+! Output is bias threshold arrays aligned with current input site
+! arrays, accessed by primary site indexing.  These output arrays
+! will be auto-allocated.
+!
+! Missing threshold values indicate no thresholds set for the
+! corresponding sites.
+!
+!------------------------------------------------------------------------------
+!
+! Error handling:
+!
+! The current version halts the entire run on any read error in
+! the site exception file, including these common errors:
+!
+! * Specified file not found.
+! * Specified file is not a site exception file.
+! * Missing header separator line "----".
+! * Invalid numbers in expected columns.
+!
+! If no site exception list is desired, the file name must be
+! specified as "none".
 !
 !------------------------------------------------------------------------------
 
 module read__exception_list
 contains
 
-subroutine read_exception_list (filename, diag, site_ids, thresh_low, &
-      thresh_high, nsites)
+subroutine read_exception_list (filename, site_ids, vmiss, diag, thresh_low, &
+      thresh_high)
 
    use config, only : dp
    implicit none
 
-   character(*), intent(in )              :: filename	! input file name
-   integer,      intent(in )              :: diag	! verbosity, 0=errs only
+   character(*), intent(in)           :: filename	  ! input file name
+   character(*), intent(in)           :: site_ids(:)	  ! primary site ID's
+   real(dp),     intent(in)           :: vmiss		  ! missing value code
+   integer,      intent(in)           :: diag		  ! verbosity,
+   							  ! 0 = errors only
 
-   character(*), intent(out), allocatable :: site_ids(:)     ! site ID strings
-   real(dp),     intent(out), allocatable :: thresh_low(:)   ! neg. and positive
-   real(dp),     intent(out), allocatable :: thresh_high(:)  ! threshold values
-   integer,      intent(out)              :: nsites	     ! no. of sites read
+   real(dp), intent(out), allocatable :: thresh_low(:)    ! negative & positive
+   real(dp), intent(out), allocatable :: thresh_high(:)   ! threshold values
 
    integer get_free_unit			! function def.
 
 ! Local variables.
 
-   character header*4, errmes*200
-   integer infile, ios, i, lnum, nheaders
+   character header*4, errmes*200, line*100, match_str*3
+   character(len(site_ids)) excep_id
 
-   real(dp), allocatable :: lats(:), lons(:)	! dummy coords from list file,
-						!   DISPLAYED BUT NOT USED
-! Open the site exception file.
+   integer infile, ios, si, lnum
+   integer nsites_primary, isite_list, nsites_matched
+
+   real(dp) lat, lon			! dummy site coordinates from list file
+   real(dp) thresh_low_in, thresh_high_in
+
+   logical match(size(site_ids))	! mark sites matched to primary sites
+
+!--------------------------------------------------------------------
+! Read site exception file in one pass.
+! Set threshold values only for included sites.
+!--------------------------------------------------------------------
 
    print *
-   print *, 'read_exception_list: Read site exception list.'
+   print *, 'read_exception_list: Read site exception list for bias thresholds.'
    print *, '  Input file = ' // trim (filename)
+
+! Initialize output arrays.
+
+   nsites_primary = size (site_ids)
+   allocate (thresh_low(nsites_primary), thresh_high(nsites_primary))
+
+   thresh_low(:)  = vmiss		! default all sites to no thresholds,
+   thresh_high(:) = vmiss		! until sites read from exception file
+
+! Check for no exception file specified (file name is blank).
+
+   if (filename == 'none') then
+      print *, '  *** No exception file is specified.'
+      print *, '  *** Threshold tests disabled, all analogs will be enabled.'
+      print *
+      return			! return defaults (no thresholds) for all sites
+   end if
+
+! Open the site exception file.
 
    infile = get_free_unit ()			! allocate a fortran unit number
    open (infile, file=filename, status='old', action='read', iostat=ios, &
       iomsg=errmes)
 
-! Handle missing file gracefully.
-
    if (ios /= 0) then
-      print '(a,i0)', '   *** File not found, fortran I/O status = ', ios
-      print *,         '  *** Fortran error:'
-      print *,         '  ***   ' // trim (errmes)
-      print *,         '  *** No threshold tests, all analogs will be enabled.'
-      print *
-
-      nsites = 0			! signal missing file, and empty list
-      return				! arrays NOT allocated
+      print '(a)',    '*** read_exception_list: Abort.'
+      print '(a,i0)', '*** Error on file open, I/O status = ', ios
+      print '(a)',    '*** ' // trim (errmes)
+      call exit (1)
    end if
 
-! First pass.  Just count the number of actual site lines in the  file.
+! File open.  Begin exception list for log file.
 
-   nheaders = 0					! count header lines...
+   if (diag >= 2) print *
+   if (diag >= 2) print *, '        Site ID   Valid  Latitude  Longitude' &
+      // '  Low threshold  High threshold'
+
+! Skip lines to end of header.
+
+   lnum       = 0				! track line numbers in file
+   isite_list = 0				! input site counter
+   match(:)   = .false.				! init site match flags
+
    do
-      read (infile, '(a)') header		! read start of header line
-      nheaders = nheaders + 1
+      read (infile, '(a)', iostat=ios, iomsg=errmes) header	! read start of
+      lnum = lnum + 1						! header line
+
+      if (ios /= 0) then
+         print '(a)',    '*** read_exception_list: Abort.'
+         print '(a,i0)', '*** Read error in header on line ', lnum
+         print '(a,i0)', '*** I/O status = ', ios
+         print '(a)',    '*** ' // trim (errmes)
+         call exit (1)
+      end if
+
       if (header(1:4) == '----') exit		! dashes = end of header
    end do
 
-   nsites = 0					! count site lines
-   do						! blank lines are NOT allowed
-      read (infile, *, iostat=ios)
-      if (ios /= 0) exit			! end of file = end of site list
-      nsites = nsites + 1
-   end do
+! Now read all site ID's and threshold values, to end of file.
 
-   print '(a,i0)', '   Number of sites in exception list =   ', nsites
+line_loop: &
+   do
 
-! Second pass.  Read site ID's and threshold values into arrays.
+! First read entire line as text, guard against short lines, etc.
 
-   allocate (site_ids(nsites))			! allocate output arrays
-   allocate (thresh_low(nsites), thresh_high(nsites))
+      read (infile, '(a)', iostat=ios, iomsg=errmes) line
+      lnum = lnum + 1
 
-   allocate (lats(nsites), lons(nsites))	! allocate dummy arrays
+      if (is_iostat_end (ios)) exit line_loop	! check for normal end of file
 
-   rewind (infile)				! go back to start of file
-
-   do i = 1, nheaders				! skip header lines
-      read (infile, '(a)')
-   end do
-
-   do i = 1, nsites				! read all site lines
-      read (infile, *, iostat=ios) site_ids(i), lats(i), lons(i), &
-         thresh_low(i),thresh_high(i)		! free format works here, but
-						!   all columns must be present
       if (ios /= 0) then
-         lnum = nheaders + i
-         print *, '*** read_exception_list: Read error on line ', lnum
+         print '(a)',    '*** read_exception_list: Abort.'
+         print '(a,i0)', '*** Read error 1 on line ', lnum
+         print '(a,i0)', '*** I/O status = ', ios
+         print '(a)',    '*** ' // trim (errmes)
          call exit (1)
       end if
-   end do
+
+! Now read line buffer in free format.  All data columns must be present.
+
+      read (line, *, iostat=ios, iomsg=errmes) excep_id, lat, lon, &
+         thresh_low_in, thresh_high_in
+
+      if (ios /= 0) then
+         print '(a)',    '*** read_exception_list: Abort.'
+         print '(a,i0)', '*** Read error 2 on line ', lnum
+         print '(a,i0)', '*** I/O status = ', ios
+         print '(a)',    '*** ' // trim (errmes)
+         call exit (1)
+      end if
+
+! Input line is valid.  Now find this site ID in the primary site list.
+
+      isite_list = isite_list + 1		! count sites in list file
+      				! caution, duplicate sites will double count
+
+      match_str   = 'no'			! default to site not in list
+
+      do si = 1, nsites_primary
+         if (excep_id == site_ids(si)) then
+            match_str       = "yes"
+            match(si)       = .true.		! indicate matched site
+            thresh_low(si)  = thresh_low_in	! insert site thresholds
+            thresh_high(si) = thresh_high_in
+            exit
+         end if
+      end do
+
+! Print exception site line, for log file.
+
+      if (diag >= 2) &
+         print '(i5, 2x, a, 2x, a, 2f11.4, f12.1, f15.1)', isite_list, &
+            excep_id, match_str, lat, lon, thresh_low_in, thresh_high_in
+
+   end do line_loop
+
+! End of site exception file.
 
    close (infile)				! all done, close input file
    						!   and release unit number
-! Print exception list for log file.
 
-   if (diag >= 2) then
-      print *
-      print *, '        Site ID   Latitude  Longitude  Low threshold' &
-         // '  High threshold'
-      print '(i5, 2x, a, 2f11.4, f12.1, f15.1)', &
-         (i, site_ids(i), lats(i), lons(i), thresh_low(i), thresh_high(i), &
-         i = 1, nsites)
-      print *
-   end if
+   nsites_matched = count (match(:))		! count sites matched to data
+   						! duplicate matches NOT counted
+   if (diag >= 2) print *
+
+   print '(a,i0)', '  Number of sites in exception list =   ', isite_list
+   print '(a,i0)', '  Number of sites matched to data   =   ', nsites_matched
+   print *
 
 end subroutine read_exception_list
 

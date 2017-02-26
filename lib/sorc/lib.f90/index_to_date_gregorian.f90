@@ -21,6 +21,8 @@
 !			Most original code in this routine is preserved exactly.
 !			The calendar string check is moved to the main module.
 !
+! 2.01	2015-feb-08	Library upgrade.  Use date_sup module interface.
+!
 ! Input:   idate = date index, integer day number on the continuous
 !		calendar date line.  Positive or negative, spans
 !		multiple years.  Referenced to January 1 of the base
@@ -163,6 +165,7 @@ subroutine index_to_date_gregorian (idate, year, month, day, base_year, &
       calendar, proleptic)
 
    use date_index_mod				! modules
+   use date_sup
    implicit none
 
    integer,      intent (in ) :: idate
@@ -170,8 +173,6 @@ subroutine index_to_date_gregorian (idate, year, month, day, base_year, &
    integer,      intent (in ) :: base_year
    character(*), intent (in ) :: calendar
    logical,      intent (in ) :: proleptic
-
-   logical leap_check				! function def.
 
 ! Local variables.
 

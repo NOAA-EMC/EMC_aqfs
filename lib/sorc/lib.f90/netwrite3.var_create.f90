@@ -13,6 +13,7 @@
 ! 2010-jul-02	Name change to support the var_create generic interface.
 ! 2010-dec-16	Use F90 conforming declarations for bytes, shorts, and doubles.
 !		Switch to F90 preferred character(*) declarations.
+! 2015-feb-18	Add specific diagnostic for duplicate variable create error.
 !
 ! Usage:
 !
@@ -28,7 +29,7 @@
 ! needed.  Dimensions must be exactly the same size as previously
 ! created dimensions with the same names, if any.
 !
-! To define one dimension as unlimited, give the special code 
+! To define one dimension as unlimited, give the special code
 ! NF90_UNLIMITED in place of the dimension size in vshape.
 !
 ! Creation of the standard attributes "long_name" and "units" are
@@ -44,7 +45,7 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
    use netcdf
    use parse_varexp_mod
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vtype		! NF90 data type code
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
@@ -56,9 +57,9 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
    integer,      intent (out) :: var_id		! return var ID to caller
 
 ! Local variables.
-   
+
    character(max_name) varname, dimnames(size (vshape))
-   
+
    integer ndims_data, ndims, di, status, dimsize
    integer dimids(size (vshape))
 
@@ -89,9 +90,9 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
 !!   print *
 !!   print *, 'Add dimensions for ', trim (var_expr)	! ******* TEST ONLY
 !!   write (*, '(a, 99i7)') ' vshape =', vshape		! ******* TEST ONLY
-   
+
    call ensure_define_mode			! ensure define mode for mods
-   
+
    do di = 1, ndims
       status = nf90_inq_dimid (fid, dimnames(di), dimids(di))
 						! inquire by dim name; get ID
@@ -104,7 +105,7 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
 !!	    trim (dimnames(di)), di, vshape(di)		! ******* TEST ONLY
 
          call check (nf90_def_dim (fid, dimnames(di), vshape(di), dimids(di)))
-      
+
 !!	 write (*,'(a,4i5)') ' ** nf90_def_dim:      name, di, size, dimid, ' &
 !!	    // 'status = ' // trim (dimnames(di)), di, vshape(di), dimids(di), &
 !!	    status
@@ -114,10 +115,10 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
       else
          dstatus = 'old'
          call check (status)			! catch other possible errors
-      
+
          call check (nf90_inquire_dimension (fid, dimids(di), len = dimsize))
 						! get previous dimension size
-         
+
          if (dimsize /= vshape(di)) then	! old and new sizes must match
             print *
             print *, '*** var_create: Abort: Dimension was previously', &
@@ -130,20 +131,30 @@ subroutine var_create_x (var_expr, vtype, vshape, long_name, units, var_id)
             stop 99
          end if
       end if
-      
+
 !!    write (*, '(a,i2,3x, a9,a, i2,i7, 2x,a)') ' dim', di, dimnames(di), &
 !!	 '  dimid =', dimids(di), vshape(di), dstatus	! ******* TEST ONLY
    end do
 
 ! Add the variable definition and standard attributes.
-   
-   call check (nf90_def_var (ncid = fid, name = varname, xtype = vtype, &
-      dimids = dimids, varid = var_id))
+
+   status = nf90_def_var (ncid = fid, name = varname, xtype = vtype, &
+      dimids = dimids, varid = var_id)
+
+   if (status == nf90_enameinuse) then
+      print *
+      print *, '*** var_create: Abort: Can not create a variable twice with' &
+         // ' the same name.'
+      print *, '*** Var name = ' // trim (varname)
+      call exit (1)
+   end if
+
+   call check (status)				! handle other possible errors
 
    if (long_name /= ' ') then			! blank suppresses attribute
       call check (nf90_put_att (fid, var_id, 'long_name', long_name))
    end if
-   
+
    if (units /= ' ') then			! blank suppresses attribute
       call check (nf90_put_att (fid, var_id, 'units', units))
    end if
@@ -174,7 +185,7 @@ subroutine var_create_byte (var_expr, vshape, long_name, units, vmiss, varid)
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
    						! NF90_UNIMITED = unlimited dim.
@@ -189,9 +200,9 @@ subroutine var_create_byte (var_expr, vshape, long_name, units, vmiss, varid)
 ! Create the new variable definition in the Netcdf file, with attributes.
 
    call var_create_x (var_expr, nf90_byte, vshape, long_name, units, varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= 0) then				! zero suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type
@@ -205,7 +216,7 @@ subroutine var_create_dbl (var_expr, vshape, long_name, units, vmiss, varid)
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
    						! NF90_UNIMITED = unlimited dim.
@@ -220,9 +231,9 @@ subroutine var_create_dbl (var_expr, vshape, long_name, units, vmiss, varid)
 ! Create the new variable definition in the Netcdf file, with attributes.
 
    call var_create_x (var_expr, nf90_double, vshape, long_name, units, varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= 0) then				! zero suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type
@@ -236,7 +247,7 @@ subroutine var_create_float (var_expr, vshape, long_name, units, vmiss, varid)
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
       						! NF90_UNIMITED = unlimited dim.
@@ -251,9 +262,9 @@ subroutine var_create_float (var_expr, vshape, long_name, units, vmiss, varid)
 ! Create the new variable definition in the Netcdf file, with attributes.
 
    call var_create_x (var_expr, nf90_float, vshape, long_name, units, varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= 0) then				! zero suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type
@@ -267,7 +278,7 @@ subroutine var_create_int (var_expr, vshape, long_name, units, vmiss, varid)
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
    						! NF90_UNIMITED = unlimited dim.
@@ -282,9 +293,9 @@ subroutine var_create_int (var_expr, vshape, long_name, units, vmiss, varid)
 ! Create the new variable definition in the Netcdf file, with attributes.
 
    call var_create_x (var_expr, nf90_int, vshape, long_name, units, varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= 0) then				! zero suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type
@@ -298,7 +309,7 @@ subroutine var_create_short (var_expr, vshape, long_name, units, vmiss, varid)
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
    						! NF90_UNIMITED = unlimited dim.
@@ -313,9 +324,9 @@ subroutine var_create_short (var_expr, vshape, long_name, units, vmiss, varid)
 ! Create the new variable definition in the Netcdf file, with attributes.
 
    call var_create_x (var_expr, nf90_short, vshape, long_name, units, varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= 0) then				! zero suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type
@@ -335,7 +346,7 @@ subroutine var_create_str (var_expr, strlen, vshape, long_name, units, vmiss, &
 
    use netcdf
    implicit none
-   
+
    character(*), intent (in ) :: var_expr	! name and subscripts of array
    integer,      intent (in ) :: strlen		! allocated string length
    integer,      intent (in ) :: vshape(:)	! shape (list of dim. sizes);
@@ -380,9 +391,9 @@ subroutine var_create_str (var_expr, strlen, vshape, long_name, units, vmiss, &
 
    call var_create_x (var_exp_plus, nf90_char, shape_plus, long_name, units, &
       varid)
- 
+
 ! Add the missing_value attribute, type specific.
-   
+
    if (vmiss /= ' ') then			! blank suppresses the attribute
       call check (nf90_put_att (fid, varid, 'missing_value', vmiss))
    end if					! vmiss type sets attribute type

@@ -1,0 +1,964 @@
+SUBROUTINE getprs
+
+!-------------------------------------------------------------------------------
+! Name:     Get Pressure
+! Purpose:  Calculates 3-D pressure field from hydrostatic sigma and
+!           surface pressure.
+! Revised:  01 Apr 2003  Original version.  (T. Otte)
+!           10 Feb 2005  Parallelized certain loop(s) using OpenMP construct
+!                        (David Wong)
+!           2010      YTang   Add vertical interpolation
+!           Feb, 2016 Ytang   revise  vertical interpolation
+!-------------------------------------------------------------------------------
+
+  USE metinfo
+  USE metvars
+  USE xvars
+  USE premaqparm
+
+!  IMPLICIT NONE
+  real, parameter :: ELOCP=2.72E6/1004.6, P608=461.6/287.04-1.,RLIVWV=2.850e6/2.501e6 ! "latent heat, ice/vapor" / "latent heat, liquid/vapor"
+  INTEGER                      :: i, ntsd
+  INTEGER                      :: ix
+  INTEGER                      :: j
+  INTEGER                      :: jx
+  INTEGER                      :: k, kp
+  INTEGER                      :: kx
+  logical, save                :: first
+  data first/.true./
+  REAL                         :: aeta2, z1, z0_27( 27 ), pres3dp1(nx,ny,nz+1),geohgtp1(nx,ny,nz+1)
+  real, save, allocatable      :: height_hold(:,:,:),z0(:,:),usurface(:,:,:),vsurface(:,:,:), &
+     tsurface(:,:,:), qsurface(:,:,:)
+  DATA (z0_27(i),i=1,27)   /   1.00,   0.07,   0.07,   0.07,   0.07,   0.15,  &
+                               0.08,   0.03,   0.05,   0.86,   0.80,   0.85,  &
+                               2.65,   1.09,   0.80,   0.001,  0.04,   0.05,  &
+                               0.01,   0.04,   0.06,   0.05,   0.03,   0.001, &
+                               0.01,   0.15,   0.01    /
+  DATA nstd/1/
+      
+  EXTERNAL       ENVYN
+
+  LOGICAL        ENVYN, VERT_INTERP
+  INTEGER        ISTAT
+
+  CHARACTER*16,  PARAMETER     :: pname     = 'GETPRS'
+
+!-------------------------------------------------------------------------------
+! Extract domain dimensions.
+!-------------------------------------------------------------------------------
+
+  IF ( SIZE(pres,1) /= SIZE(psfc,1) ) THEN
+    WRITE (6,9000) SIZE(pres,1), SIZE(psfc,1)
+    GOTO 1001
+  ENDIF
+
+  IF ( SIZE(pres,2) /= SIZE(psfc,2) ) THEN
+    WRITE (6,9100) SIZE(pres,2), SIZE(psfc,2)
+    GOTO 1001
+  ENDIF
+
+  IF ( SIZE(pres,3) /= SIZE(sigmah) ) THEN
+    WRITE (6,9200) SIZE(pres,3), SIZE(sigmah)
+    GOTO 1001
+  ENDIF
+
+  ix = SIZE(pres,1)
+  jx = SIZE(pres,2)
+  kx = SIZE(pres,3)
+
+  if(first) then
+   allocate(z0(ix,jx),usurface(ix,jx,5),vsurface(ix,jx,5),tsurface(ix,jx,5),qsurface(ix,jx,5))
+   do i=1,ix
+    do j=1,jx
+    if(vgtyp(i,j).eq.16 ) then
+     z0(i,j)=z0_27(16)
+    else
+     z0(i,j)=z0_27(vgtyp(i,j))
+    endif
+    enddo
+   enddo 
+   first=.false.
+  endif 
+
+!-------------------------------------------------------------------------------
+! Calculate 3-D mid-level pressure from the meteorological input data by using
+! hydrostatic sigma and surface pressure.
+!
+!              sigma = (p-ptop)/(psfc-ptop)
+!              p = sigma*(psfc-ptop) + ptop
+!
+!-------------------------------------------------------------------------------
+
+!$omp parallel do
+
+  DO k = 1, kx
+     aeta2 = sigmah(k)
+     DO j = 1, jx
+        DO i = 1, ix
+          ! pres(i,j,k) = aeta2*pdbot(i,j) + x3top
+	  pres(i,j,k) = aeta2*(psfc(i,j)-x3top) + x3top
+        ENDDO
+     ENDDO
+  ENDDO
+
+!$omp end parallel do
+
+
+! Youhua Tang add the following Dec 2010
+
+  VERT_INTERP = ENVYN ('VERT_INTERP', 'USE VERT_INTERP ?', .TRUE. , ISTAT)
+
+  IF (VERT_INTERP) THEN
+     write(*,*) 'perform vertical interpolation'
+
+     ksurface=0     
+     do i=1,ix
+      do j=1,jx
+       do k=1,kx
+       if(pres(i,j,k).ge.pres3d(i,j,1)) then
+         ksurface=max(ksurface,k)
+	 if(k.gt.3) print*,'ksurface > 3: ',ksurface,i,j,pres(i,j,1:k),pres3d(i,j,1)
+	 endif 
+       enddo
+      enddo
+     enddo       
+     if(ksurface.gt.5) then
+      print*,'error: ksurface > 5  ', ksurface
+      stop
+     endif
+      
+     if(.not.allocated (height_hold) ) allocate(height_hold(ix,jx,nz))
+     height_hold(:,:,:)=geohgt(:,:,:)
+     
+     pres3dp1(:,:,1)=psfc(:,:)
+     pres3dp1(:,:,2:nz+1)=pres3d(:,:,1:nz)
+     geohgtp1(:,:,1)=hgt(:,:)+2.
+     geohgtp1(:,:,2:nz+1)=geohgt(:,:,1:nz)
+     
+     call zinterp(ix,jx,nz+1,kx,pres3dp1,pres,geohgtp1) ! geopotential height
+     geohgt(:,:,1:kx)=geohgtp1(:,:,1:kx)
+     
+     if(ksurface.ge.1) then
+     do i=1,ix
+      do j=1,jx
+       qs=spc_h(i,j,1)
+       qz0=qs
+       uz0=0.
+       tz0=skint(i,j)
+       vz0=0.
+       if(vgtyp(i,j).eq.16 ) then  ! USGS 16=water
+        seamask=1.
+       else
+        seamask=0.
+       endif
+       ths=skint(i,j)/(psfc(i,j)*1.e-5)**(287.04/1004.6)  ! potential temperature
+       thz0=ths
+       ustar=fricv(i,j)
+       z0base=z0(i,j)
+       akms=sfexc(i,j)
+       akhs=akms
+       thlow=tmp(i,j,1)/(pres3d(i,j,1)*1.e-5)**(287.04/1004.6)
+       thelow=(clwmr(i,j,1)*(-ELOCP/tmp(i,j,1))+1.)*thlow
+       zsl=height_hold(i,j,1)-hgt(i,j)
+       
+       do k=1,ksurface
+        ztar=geohgt(i,j,k)-hgt(i,j)
+	
+        call surfacelayer(ntsd,seamask,ths,qs,psfc(i,j), &
+	 uz0,vz0,tz0,thz0,qz0,                           &
+	 ustar,z0(ix,jx),z0base,rlmo,akms,akhs, hpbl(i,j),soilw(i,j), &
+	 chs,hfx,qfx, flx_lh, flhc , flqc, qgh, cpm,  &
+	 u_grda(i,j,1),v_grda(i,j,1),tmp(i,j,1),thlow,thelow,spc_h(i,j,1),clwmr(i,j,1), &
+	 zsl,pres3d(i,j,1),ztar,    &
+         usurface(i,j,k),vsurface(i,j,k),th02,tsurface(i,j,k),q02,qsurface(i,j,k),pshltr, &
+	 rib) 
+       enddo
+      enddo
+     enddo
+     endif
+       
+     call zinterp(ix,jx,nz,kx,pres3d,pres,tmp)    ! temperature, vertical interpolation based on pressure     
+     call zinterp(ix,jx,nz,kx,pres3d,pres,u_grda) ! u wind
+     call zinterp(ix,jx,nz,kx,pres3d,pres,v_grda) ! v wind
+     call zinterp(ix,jx,nz,kx,pres3d,pres,v_vel)  ! vertical wind
+     call zinterp(ix,jx,nz,kx,pres3d,pres,spc_h)  ! specific humidity
+     call zinterp(ix,jx,nz,kx,pres3d,pres,c_ice)  ! cloud ice
+     call zinterp(ix,jx,nz,kx,pres3d,pres,t_cdc)  ! cloud cover
+     call zinterp(ix,jx,nz,kx,pres3d,pres,o3mr)   ! ozone
+     call zinterp(ix,jx,nz,kx,pres3d,pres,tke)    ! TKE
+     call zinterp(ix,jx,nz,kx,pres3d,pres,kth)    ! KH
+     call zinterp(ix,jx,nz,kx,pres3d,pres,clwmr)  ! cloud water mixing ratio
+     call zinterp(ix,jx,nz,kx,pres3d,pres,rwmr)   ! rain water mixing ratio
+     call zinterp(ix,jx,nz,kx,pres3d,pres,snmr)   ! snow mixing ratio
+     
+     if(ksurface.ge.1) then
+      u_grda(:,:,1:ksurface)=usurface(:,:,1:ksurface)
+      v_grda(:,:,1:ksurface)=vsurface(:,:,1:ksurface)
+      spc_h(:,:,1:ksurface)=qsurface(:,:,1:ksurface)
+      tmp(:,:,1:ksurface)=tsurface(:,:,1:ksurface)*(pres*1.e-5)**(287.04/1004.6) ! potential temperature to temperature
+     endif 
+  ENDIF
+
+  RETURN
+
+!-------------------------------------------------------------------------------
+! Error-handling section.
+!-------------------------------------------------------------------------------
+
+ 9000 FORMAT (/, 1x, 70('*'),                                              &
+              /, 1x, '*** SUBROUTINE: GETPRS',                             &
+              /, 1x, '***   ARRAY SIZE MISMATCH IN FIRST DIMENSION',       &
+              /, 1x, '***   1ST DIM OF PRES, PSFC = ', 2(2x, i4),          &
+              /, 1x, 70('*'))
+
+ 9100 FORMAT (/, 1x, 70('*'),                                              &
+              /, 1x, '*** SUBROUTINE: GETPRS',                             &
+              /, 1x, '***   ARRAY SIZE MISMATCH IN SECOND DIMENSION',      &
+              /, 1x, '***   2ND DIM OF PRES, PSFC = ', 2(2x, i4),          &
+              /, 1x, 70('*'))
+
+ 9200 FORMAT (/, 1x, 70('*'),                                              &
+              /, 1x, '*** SUBROUTINE: GETPRS',                             &
+              /, 1x, '***   ARRAY SIZE MISMATCH IN THIRD DIMENSION',       &
+              /, 1x, '***   3RD DIM OF PRES, SIGMAH = ', 2(2x, i4),        &
+              /, 1x, 70('*'))
+
+1001 CALL graceful_stop (pname)
+END SUBROUTINE getprs
+
+  subroutine zinterp(ix,jx,kz_s,kz_t,pres_s,pres_t,source)
+       real pres_s(ix,jx,kz_s),pres_t(ix,jx,kz_t),source(ix,jx,kz_s), &
+           hold(ix,jx,kz_s),zk(kz_t)
+       if(kz_s.lt.kz_t) then
+        print*,'source vertical dimension is smaller that output dimension ', kz_s,kz_t
+	stop
+       endif	  
+       hold(:,:,:)=source(:,:,:)
+
+  DO j = 1, jx
+     DO i = 1, ix
+        DO k = 1, kz_t
+
+           ! --- find index
+
+           DO kp=2,kz_s
+              if ( pres_t(i,j,k) .ge. pres_s(i,j,kp  ) .and.       &
+                   pres_t(i,j,k) .le. pres_s(i,j,kp-1) ) then 
+	       zk(k) = kp - 1 + ( log(pres_t(i,j,k))-log(pres_s(i,j,kp-1)) )   &
+                                 /( log(pres_s(i,j,kp))- log(pres_s(i,j,kp-1)) )
+	       exit
+	    endif
+           ENDDO
+
+           if ( pres_t(i,j,k) .ge. pres_s(i,j,1 ) ) zk(k)=1
+           if ( pres_t(i,j,k) .le. pres_s(i,j,kz_s) ) zk(k)=kz_s
+
+           if ( zk(k) < 1. .or. zk(k) > kz_s ) then
+              write(*,*) 'zk is out of range ',i,j,k,kp,zk
+              write(*,*) 'pres_t=',pres_t(i,j,1:kz_t)
+              write(*,*) 'pres_s=',pres_s(i,j,1:kz_s)
+              stop
+           endif
+	   
+        ENDDO
+
+        ! --- vertical interpolation
+
+        DO k=2, kz_t
+           if(zk(k).ge.kz_s) then
+	    source(i,j,k)=hold(i,j,kz_s)
+	   else 
+            izk =int(zk(k))
+            z1=zk(k)-izk
+            source(i,j,k)=(1-z1)*hold(i,j,izk)+z1*hold(i,j,izk+1)
+	   endif 
+	ENDDO
+     ENDDO
+  ENDDO
+
+  end subroutine zinterp
+
+!--adopted from NAM MYJ surface  
+
+      subroutine surfacelayer(NTSD,SEAMASK,THS,QS,PSFC                       &
+     &                 ,UZ0,VZ0,TZ0,THZ0,QZ0                           &
+     &                 ,USTAR,Z0,Z0BASE,RLMO,AKMS,AKHS,PBLH,WETM    &
+     &                 ,CHS,HFX,QFX,FLX_LH,FLHC,FLQC,QGH,CPM &
+     &                 ,ULOW,VLOW,TLOW,THLOW,THELOW,QLOW,CWMLOW        &
+     &                 ,ZSL,PLOW,ZTAR                                  &  ! ztar is target height above surface
+     &                 ,U10,V10,TH02,TH10,Q02,Q10,PSHLTR               &
+                       ,RIB)
+		       
+      logical, save :: first
+      data first/.true./
+      INTEGER, PARAMETER :: KZTM=10001,KZTM2=KZTM-2
+      INTEGER :: ITRMX=5 ! Iteration count for mixing length computation
+      REAL :: PIHF=3.1415926/2.,EPS=1.E-6
+      
+      REAL,PARAMETER :: VKARMAN=0.4, pq0=379.90516              ! water vapor pressure for tetens formula
+
+      REAL,PARAMETER :: XLV=2.501e6               ! latent heat, liquid/vapor
+      REAL,PARAMETER :: ELOCP=2.72E6/1004.6, P608=461.6/287.04-1.
+      REAL,PARAMETER :: A2S=17.2693882,A3S=273.16,A4S=35.86
+      REAL,PARAMETER :: GLKBR=10.,GLKBS=30.                             &
+                       ,QVISC=2.1E-5,RIC=0.505,SMALL=0.35               &
+                       ,SQPR=0.84,SQSC=0.84,SQVISC=258.2                &
+                       ,TVISC=2.1E-5                                    &
+                       ,USTC=0.7,USTR=0.225,VISC=1.5E-5                 &
+                       ,WWST=1.2,ZTFC=1.
+      REAL,PARAMETER :: SEAFC=0.98,PQ0SEA=PQ0*SEAFC
+
+      REAL,PARAMETER :: CZIV=SMALL*GLKBS,GRRS=GLKBR/GLKBS
+
+      REAL,PARAMETER :: RTVISC=1./TVISC,RVISC=1./VISC                   &
+                       ,ZQRZT=SQSC/SQPR
+
+      REAL,PARAMETER :: G=9.8060226, USTFC=0.018/G                      &
+                       ,FZQ1=RTVISC*QVISC*ZQRZT                         &
+                       ,FZQ2=RTVISC*QVISC*ZQRZT                         &
+                       ,FZT1=RVISC *TVISC*SQPR                          &
+                       ,FZT2=CZIV*GRRS*TVISC*SQPR                       &
+                       ,FZU1=CZIV*VISC
+      REAL,PARAMETER :: WWST2=WWST*WWST                                 &
+                       ,RQVISC=1./QVISC
+
+      REAL,PARAMETER :: CAPPA=287.04/1004.6, RCAP=1./CAPPA
+      REAL,PARAMETER :: CP=1004.6,GOCP02=G/CP*2.,GOCP10=G/CP*10.
+      REAL,PARAMETER :: EPSU2=1.E-6,EPSUST=1.E-9,EPSZT=1.E-28
+      REAL,PARAMETER :: CZIL=0.1,EXCML=0.0001,EXCMS=0.0001              &
+     &                 ,FH=1.10,TOPOFAC=9.0e-6
+
+      REAL,PARAMETER :: ZILFC=-CZIL*VKARMAN*SQVISC
+
+      REAL,SAVE, DIMENSION(KZTM) :: PSIH1,PSIH2,PSIM1,PSIM2
+      REAL, save :: ZTMIN1, ZTMAX1, ZTMIN2, ZTMAX2, FH01, FH02, DZETA1, DZETA2
+      
+      if(first) then ! set up  lookutable for psim1, psih1, psim2 and psih2
+       FH01=1.
+       FH02=1.
+       ZTMIN1=-5.0
+       ZTMAX1=9.0
+       ZTMIN2=-5.0
+       ZTMAX2=9.0
+
+       ZRNG1=ZTMAX1-ZTMIN1
+       ZRNG2=ZTMAX2-ZTMIN2
+       DZETA1=ZRNG1/(KZTM-1)
+       DZETA2=ZRNG2/(KZTM-1)
+      
+       ZETA1=ZTMIN1
+       ZETA2=ZTMIN2
+
+       DO K=1,KZTM
+
+!----------------------------------------------------------------------
+!***  UNSTABLE RANGE
+!----------------------------------------------------------------------
+
+        IF(ZETA1<0.)THEN
+
+!----------------------------------------------------------------------
+!***  PAULSON 1970 FUNCTIONS
+!----------------------------------------------------------------------
+          X=SQRT(SQRT(1.-16.*ZETA1))
+!
+          PSIM1(K)=-2.*LOG((X+1.)/2.)-LOG((X*X+1.)/2.)+2.*ATAN(X)-PIHF
+          PSIH1(K)=-2.*LOG((X*X+1.)/2.)
+!
+!----------------------------------------------------------------------
+!***  STABLE RANGE
+!----------------------------------------------------------------------
+!
+        ELSE
+
+!----------------------------------------------------------------------
+!***   HOLTSLAG AND DE BRUIN 1988
+!----------------------------------------------------------------------
+!
+          PSIM1(K)=0.7*ZETA1+0.75*ZETA1*(6.-0.35*ZETA1)*EXP(-0.35*ZETA1)
+          PSIH1(K)=0.7*ZETA1+0.75*ZETA1*(6.-0.35*ZETA1)*EXP(-0.35*ZETA1)
+!----------------------------------------------------------------------
+!
+        ENDIF
+!
+!----------------------------------------------------------------------
+!***  UNSTABLE RANGE
+!----------------------------------------------------------------------
+!
+        IF(ZETA2<0.)THEN
+!----------------------------------------------------------------------
+!***  PAULSON 1970 FUNCTIONS
+!----------------------------------------------------------------------
+          X=SQRT(SQRT(1.-16.*ZETA2))
+
+          PSIM2(K)=-2.*LOG((X+1.)/2.)-LOG((X*X+1.)/2.)+2.*ATAN(X)-PIHF
+          PSIH2(K)=-2.*LOG((X*X+1.)/2.)
+!----------------------------------------------------------------------
+!***  STABLE RANGE
+!----------------------------------------------------------------------
+
+        ELSE
+
+!----------------------------------------------------------------------
+!***  HOLTSLAG AND DE BRUIN 1988
+!----------------------------------------------------------------------
+
+         PSIM2(K)=0.7*ZETA2+0.75*ZETA2*(6.-0.35*ZETA2)*EXP(-0.35*ZETA2)
+         PSIH2(K)=0.7*ZETA2+0.75*ZETA2*(6.-0.35*ZETA2)*EXP(-0.35*ZETA2)
+
+        ENDIF
+
+!----------------------------------------------------------------------
+        IF(K==KZTM)THEN
+         ZTMAX1=ZETA1
+         ZTMAX2=ZETA2
+        ENDIF
+
+        ZETA1=ZETA1+DZETA1
+        ZETA2=ZETA2+DZETA2
+!----------------------------------------------------------------------
+       ENDDO
+!----------------------------------------------------------------------
+      ZTMAX1=ZTMAX1-EPS
+      ZTMAX2=ZTMAX2-EPS
+      
+      first=.false.
+      endif
+!----------------------------------------------------------------------
+
+
+
+      RDZ=1./ZSL
+      CXCHL=EXCML*RDZ
+      CXCHS=EXCMS*RDZ
+!
+      BTGX=G/THLOW
+      ELFC=VKARMAN*BTGX
+!
+      IF(PBLH>1000.)THEN
+        BTGH=BTGX*PBLH
+      ELSE
+        BTGH=BTGX*1000.
+      ENDIF
+!
+!----------------------------------------------------------------------
+!
+!***  SEA POINTS
+!
+!----------------------------------------------------------------------
+!
+      IF(SEAMASK>0.5)THEN
+!
+!----------------------------------------------------------------------
+        DO ITR=1,ITRMX
+!----------------------------------------------------------------------
+          Z0=MAX(USTFC*USTAR*USTAR,1.59E-5)
+!
+!***  VISCOUS SUBLAYER, JANJIC MWR 1994
+!
+!----------------------------------------------------------------------
+          IF(USTAR<USTC)THEN
+!----------------------------------------------------------------------
+!
+            IF(USTAR<USTR)THEN
+!
+              IF(NTSD==0) then
+                AKMS=CXCHS
+                AKHS=CXCHS
+                QS=QLOW
+              ENDIF
+!
+              ZU=FZU1*SQRT(SQRT(Z0*USTAR*RVISC))/USTAR
+              WGHT=AKMS*ZU*RVISC
+              RWGH=WGHT/(WGHT+1.)
+              UZ0=(ULOW*RWGH+UZ0)*0.5
+              VZ0=(VLOW*RWGH+VZ0)*0.5
+!
+              ZT=FZT1*ZU
+              ZQ=FZQ1*ZT
+              WGHTT=AKHS*ZT*RTVISC
+              WGHTQ=AKHS*ZQ*RQVISC
+!
+              IF(NTSD>0)THEN
+                THZ0=((WGHTT*THLOW+THS)/(WGHTT+1.)+THZ0)*0.5
+                QZ0=((WGHTQ*QLOW+QS)/(WGHTQ+1.)+QZ0)*0.5
+              ELSE
+                THZ0=(WGHTT*THLOW+THS)/(WGHTT+1.)
+                QZ0=(WGHTQ*QLOW+QS)/(WGHTQ+1.)
+              ENDIF
+!
+            ENDIF
+!
+            IF(USTAR>=USTR.AND.USTAR<USTC)THEN
+              ZU=Z0
+              UZ0=0.
+              VZ0=0.
+!
+              ZT=FZT2*SQRT(SQRT(Z0*USTAR*RVISC))/USTAR
+              ZQ=FZQ2*ZT
+              WGHTT=AKHS*ZT*RTVISC
+              WGHTQ=AKHS*ZQ*RQVISC
+!
+              IF(NTSD>0)THEN
+                THZ0=((WGHTT*THLOW+THS)/(WGHTT+1.)+THZ0)*0.5
+                QZ0=((WGHTQ*QLOW+QS)/(WGHTQ+1.)+QZ0)*0.5
+              ELSE
+                THZ0=(WGHTT*THLOW+THS)/(WGHTT+1.)
+                QZ0=(WGHTQ*QLOW+QS)/(WGHTQ+1.)
+              ENDIF
+!
+            ENDIF
+!----------------------------------------------------------------------
+          ELSE
+!----------------------------------------------------------------------
+            ZU=Z0
+            UZ0=0.
+            VZ0=0.
+!
+            ZT=Z0
+            THZ0=THS
+!
+            ZQ=Z0
+            QZ0=QS
+!----------------------------------------------------------------------
+          ENDIF
+!----------------------------------------------------------------------
+          TEM=(TLOW+TZ0)*0.5
+          THM=(THELOW+THZ0)*0.5
+!
+          A=THM*P608
+          B=(ELOCP/TEM-1.-P608)*THM
+!
+          DTHV=((THELOW-THZ0)*((QLOW+QZ0+CWMLOW)*(0.5*P608)+1.)        &
+     &        +(QLOW-QZ0+CWMLOW)*A+CWMLOW*B)
+!
+          DU2=MAX((ULOW-UZ0)**2+(VLOW-VZ0)**2,EPSU2)
+          RIB=BTGX*DTHV*ZSL/DU2
+!----------------------------------------------------------------------
+!         IF(RIB>=RIC)THEN
+!----------------------------------------------------------------------
+!           AKMS=MAX( VISC*RDZ,CXCHS)
+!           AKHS=MAX(TVISC*RDZ,CXCHS)
+!----------------------------------------------------------------------
+!         ELSE  !  turbulent branch
+!----------------------------------------------------------------------
+            ZSLU=ZSL+ZU
+            ZSLT=ZSL+ZT
+!
+            RZSU=ZSLU/ZU
+            RZST=ZSLT/ZT
+!
+            RLOGU=LOG(RZSU)
+            RLOGT=LOG(RZST)
+!
+!----------------------------------------------------------------------
+!***  1./MONIN-OBUKHOV LENGTH
+!----------------------------------------------------------------------
+!
+            RLMO=ELFC*AKHS*DTHV/USTAR**3
+!
+            ZETALU=ZSLU*RLMO
+            ZETALT=ZSLT*RLMO
+            ZETAU=ZU*RLMO
+            ZETAT=ZT*RLMO
+!
+            ZETALU=MIN(MAX(ZETALU,ZTMIN1),ZTMAX1)
+            ZETALT=MIN(MAX(ZETALT,ZTMIN1),ZTMAX1)
+            ZETAU=MIN(MAX(ZETAU,ZTMIN1/RZSU),ZTMAX1/RZSU)
+            ZETAT=MIN(MAX(ZETAT,ZTMIN1/RZST),ZTMAX1/RZST)
+!
+!----------------------------------------------------------------------
+!***   WATER FUNCTIONS
+!----------------------------------------------------------------------
+!
+            RZ=(ZETAU-ZTMIN1)/DZETA1
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSMZ=(PSIM1(K+2)-PSIM1(K+1))*RDZT+PSIM1(K+1)
+!
+            RZ=(ZETALU-ZTMIN1)/DZETA1
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSMZL=(PSIM1(K+2)-PSIM1(K+1))*RDZT+PSIM1(K+1)
+!
+            SIMM=PSMZL-PSMZ+RLOGU
+!
+            RZ=(ZETAT-ZTMIN1)/DZETA1
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSHZ=(PSIH1(K+2)-PSIH1(K+1))*RDZT+PSIH1(K+1)
+!
+            RZ=(ZETALT-ZTMIN1)/DZETA1
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSHZL=(PSIH1(K+2)-PSIH1(K+1))*RDZT+PSIH1(K+1)
+!
+            SIMH=(PSHZL-PSHZ+RLOGT)*FH01
+!----------------------------------------------------------------------
+            USTARK=USTAR*VKARMAN
+      if(abs(simm)<1.e-10.or.abs(simh)<1.e-10)then
+        write(0,*)' simm=',simm,' simh=',simh,' at i=',i,' j=',j
+      endif
+            AKMS=MAX(USTARK/SIMM,CXCHS)
+            AKHS=MAX(USTARK/SIMH,CXCHS)
+!
+!----------------------------------------------------------------------
+!***  BELJAARS CORRECTION FOR USTAR
+!----------------------------------------------------------------------
+!
+            IF(DTHV<=0.)THEN                                           !zj
+              WSTAR2=WWST2*ABS(BTGH*AKHS*DTHV)**(2./3.)                !zj
+            ELSE                                                       !zj
+              WSTAR2=0.                                                !zj
+            ENDIF                                                      !zj
+            USTAR=MAX(SQRT(AKMS*SQRT(DU2+WSTAR2)),EPSUST)
+!
+!----------------------------------------------------------------------
+!         ENDIF  !  End of turbulent branch
+!----------------------------------------------------------------------
+!
+        ENDDO  !  End of the iteration loop over sea points
+!
+!----------------------------------------------------------------------
+!
+!***  LAND POINTS
+!
+!----------------------------------------------------------------------
+!
+      ELSE
+!
+!----------------------------------------------------------------------
+        IF(NTSD==0)THEN
+          QS=QLOW
+        ENDIF
+!
+        ZU=Z0
+        UZ0=0.
+        VZ0=0.
+!
+        ZT=ZU*ZTFC
+        THZ0=THS
+!
+        ZQ=ZT
+        QZ0=QS
+!----------------------------------------------------------------------
+        TEM=(TLOW+TZ0)*0.5
+        THM=(THELOW+THZ0)*0.5
+!
+        A=THM*P608
+        B=(ELOCP/TEM-1.-P608)*THM
+!
+        DTHV=((THELOW-THZ0)*((QLOW+QZ0+CWMLOW)*(0.5*P608)+1.)          &
+     &        +(QLOW-QZ0+CWMLOW)*A+CWMLOW*B)
+!
+        DU2=MAX((ULOW-UZ0)**2+(VLOW-VZ0)**2,EPSU2)
+        RIB=BTGX*DTHV*ZSL/DU2
+!----------------------------------------------------------------------
+!       IF(RIB>=RIC)THEN
+!         AKMS=MAX( VISC*RDZ,CXCHL)
+!         AKHS=MAX(TVISC*RDZ,CXCHL)
+!----------------------------------------------------------------------
+!       ELSE  !  Turbulent branch
+!----------------------------------------------------------------------
+          ZSLU=ZSL+ZU
+!
+          RZSU=ZSLU/ZU
+!
+          RLOGU=LOG(RZSU)
+
+          ZSLT=ZSL+ZU ! u,v and t are at the same level
+!----------------------------------------------------------------------
+!
+!
+!mp   Remove Topo modification of ZILFC term
+!
+!         TOPOTERM=TOPOFAC*ZSFC**2.
+!         TOPOTERM=MAX(TOPOTERM,3.0)
+!
+!vcw
+!  RIB modification to ZILFC term
+!  7/29/2009 V Wong recommends 5, change pending
+!
+           CZETMAX = 10.
+! stable
+          IF(DTHV>0.)THEN
+            IF (RIB<RIC) THEN
+              ZZIL=ZILFC*(1.0+(RIB/RIC)*(RIB/RIC)*CZETMAX)
+            ELSE
+              ZZIL=ZILFC*(CZETMAX+1.0)
+            ENDIF
+! unstable
+          ELSE
+            ZZIL=ZILFC
+          ENDIF
+
+!----------------------------------------------------------------------
+!
+          land_point_iteration: DO ITR=1,ITRMX
+!
+!----------------------------------------------------------------------
+!***  ZILITINKEVITCH FIX FOR ZT
+!----------------------------------------------------------------------
+!
+            ZT=MAX(EXP(ZZIL*SQRT(USTAR*Z0BASE))*Z0BASE,EPSZT)
+            RZST=ZSLT/ZT
+            RLOGT=LOG(RZST)
+!
+!----------------------------------------------------------------------
+!***  1./MONIN-OBUKHOV LENGTH-SCALE
+!----------------------------------------------------------------------
+!
+            RLMO=ELFC*AKHS*DTHV/USTAR**3
+            ZETALU=ZSLU*RLMO
+            ZETALT=ZSLT*RLMO
+            ZETAU=ZU*RLMO
+            ZETAT=ZT*RLMO
+!
+            ZETALU=MIN(MAX(ZETALU,ZTMIN2),ZTMAX2)
+            ZETALT=MIN(MAX(ZETALT,ZTMIN2),ZTMAX2)
+            ZETAU=MIN(MAX(ZETAU,ZTMIN2/RZSU),ZTMAX2/RZSU)
+            ZETAT=MIN(MAX(ZETAT,ZTMIN2/RZST),ZTMAX2/RZST)
+!
+!----------------------------------------------------------------------
+!***  LAND FUNCTIONS
+!----------------------------------------------------------------------
+!
+            RZ=(ZETAU-ZTMIN2)/DZETA2
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSMZ=(PSIM2(K+2)-PSIM2(K+1))*RDZT+PSIM2(K+1)
+!
+            RZ=(ZETALU-ZTMIN2)/DZETA2
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSMZL=(PSIM2(K+2)-PSIM2(K+1))*RDZT+PSIM2(K+1)
+!
+            SIMM=PSMZL-PSMZ+RLOGU
+!
+            RZ=(ZETAT-ZTMIN2)/DZETA2
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSHZ=(PSIH2(K+2)-PSIH2(K+1))*RDZT+PSIH2(K+1)
+!
+            RZ=(ZETALT-ZTMIN2)/DZETA2
+            K=INT(RZ)
+            RDZT=RZ-REAL(K)
+            K=MIN(K,KZTM2)
+            K=MAX(K,0)
+            PSHZL=(PSIH2(K+2)-PSIH2(K+1))*RDZT+PSIH2(K+1)
+!
+            SIMH=(PSHZL-PSHZ+RLOGT)*FH02
+!----------------------------------------------------------------------
+            USTARK=USTAR*VKARMAN
+            AKMS=MAX(USTARK/SIMM,CXCHL)
+            AKHS=MAX(USTARK/SIMH,CXCHL)
+!
+!----------------------------------------------------------------------
+!***  BELJAARS CORRECTION FOR USTAR
+!----------------------------------------------------------------------
+!
+            IF(DTHV<=0.)THEN                                           !zj
+              WSTAR2=WWST2*ABS(BTGH*AKHS*DTHV)**(2./3.)                !zj
+            ELSE                                                       !zj
+              WSTAR2=0.                                                !zj
+            ENDIF                                                      !zj
+!
+            USTAR=MAX(SQRT(AKMS*SQRT(DU2+WSTAR2)),EPSUST)
+!
+!----------------------------------------------------------------------
+          ENDDO land_point_iteration
+!----------------------------------------------------------------------
+!
+!       ENDIF  !  End of turbulant branch over land
+!
+!----------------------------------------------------------------------
+!
+      ENDIF  !  End of land/sea branch
+!
+!----------------------------------------------------------------------
+!***  COUNTERGRADIENT FIX
+!----------------------------------------------------------------------
+       CT=0.
+
+      
+!----------------------------------------------------------------------
+!***  THE FOLLOWING DIAGNOSTIC BLOCK PRODUCES 2-m and 10-m VALUES
+!***  FOR TEMPERATURE, MOISTURE, AND WINDS.  IT IS DONE HERE SINCE
+!***  THE VARIOUS QUANTITIES NEEDED FOR THE COMPUTATION ARE LOST
+!***  UPON EXIT FROM THE ROTUINE.
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!
+      WSTAR=SQRT(WSTAR2)/WWST
+!
+      UMFLX=AKMS*(ULOW -UZ0 )
+      VMFLX=AKMS*(VLOW -VZ0 )
+      HSFLX=AKHS*(THLOW-THZ0)
+      HLFLX=AKHS*(QLOW -QZ0 )
+
+      ZU10=ZU+ZTAR
+      ZT02=ZT+02.
+      ZT10=ZT+ZTAR
+
+      RLNU10=LOG(ZU10/ZU)
+      RLNT02=LOG(ZT02/ZT)
+      RLNT10=LOG(ZT10/ZT)
+
+      ZTAU10=ZU10*RLMO
+      ZTAT02=ZT02*RLMO
+      ZTAT10=ZT10*RLMO
+
+!----------------------------------------------------------------------
+!***  SEA
+!----------------------------------------------------------------------
+!
+        IF(SEAMASK>0.5)THEN
+!
+!----------------------------------------------------------------------
+         ZTAU10=MIN(MAX(ZTAU10,ZTMIN1),ZTMAX1)
+         ZTAT02=MIN(MAX(ZTAT02,ZTMIN1),ZTMAX1)
+         ZTAT10=MIN(MAX(ZTAT10,ZTMIN1),ZTMAX1)     
+
+         RZ=(ZTAU10-ZTMIN1)/DZETA1
+         K=INT(RZ)
+         RDZT=RZ-REAL(K)
+         K=MIN(K,KZTM2)
+         K=MAX(K,0)
+         PSM10=(PSIM1(K+2)-PSIM1(K+1))*RDZT+PSIM1(K+1)
+         
+	 SIMM10=PSM10-PSMZ+RLNU10
+         RZ=(ZTAT02-ZTMIN1)/DZETA1
+         K=INT(RZ)
+         RDZT=RZ-REAL(K)
+         K=MIN(K,KZTM2)
+         K=MAX(K,0)
+         PSH02=(PSIH1(K+2)-PSIH1(K+1))*RDZT+PSIH1(K+1)
+!
+         SIMH02=(PSH02-PSHZ+RLNT02)*FH01
+!
+         RZ=(ZTAT10-ZTMIN1)/DZETA1
+         K=INT(RZ)
+         RDZT=RZ-REAL(K)
+         K=MIN(K,KZTM2)
+         K=MAX(K,0)
+         PSH10=(PSIH1(K+2)-PSIH1(K+1))*RDZT+PSIH1(K+1)
+!
+         SIMH10=(PSH10-PSHZ+RLNT10)*FH01
+!
+         AKMS10=MAX(USTARK/SIMM10,CXCHS)
+         AKHS02=MAX(USTARK/SIMH02,CXCHS)
+         AKHS10=MAX(USTARK/SIMH10,CXCHS)
+!----------------------------------------------------------------------
+!***  LAND
+!----------------------------------------------------------------------
+!
+        ELSE
+!
+!----------------------------------------------------------------------
+          ZTAU10=MIN(MAX(ZTAU10,ZTMIN2),ZTMAX2)
+          ZTAT02=MIN(MAX(ZTAT02,ZTMIN2),ZTMAX2)
+          ZTAT10=MIN(MAX(ZTAT10,ZTMIN2),ZTMAX2)
+!----------------------------------------------------------------------
+          RZ=(ZTAU10-ZTMIN2)/DZETA2
+          K=INT(RZ)
+          RDZT=RZ-REAL(K)
+          K=MIN(K,KZTM2)
+          K=MAX(K,0)
+          PSM10=(PSIM2(K+2)-PSIM2(K+1))*RDZT+PSIM2(K+1)
+!
+          SIMM10=PSM10-PSMZ+RLNU10
+!
+          RZ=(ZTAT02-ZTMIN2)/DZETA2
+          K=INT(RZ)
+          RDZT=RZ-REAL(K)
+          K=MIN(K,KZTM2)
+          K=MAX(K,0)
+          PSH02=(PSIH2(K+2)-PSIH2(K+1))*RDZT+PSIH2(K+1)
+!
+          SIMH02=(PSH02-PSHZ+RLNT02)*FH02
+!
+          RZ=(ZTAT10-ZTMIN2)/DZETA2
+          K=INT(RZ)
+          RDZT=RZ-REAL(K)
+          K=MIN(K,KZTM2)
+          K=MAX(K,0)
+          PSH10=(PSIH2(K+2)-PSIH2(K+1))*RDZT+PSIH2(K+1)
+!
+          SIMH10=(PSH10-PSHZ+RLNT10)*FH02
+!
+          AKMS10=USTARK/SIMM10
+          AKHS02=USTARK/SIMH02
+          AKHS10=USTARK/SIMH10
+!
+          IF(AKMS10<=CXCHL) AKMS10=AKMS
+          IF(AKHS02<=CXCHL) AKHS02=AKHS
+          IF(AKHS10<=CXCHL) AKHS10=AKHS
+!
+!----------------------------------------------------------------------
+        ENDIF
+!----------------------------------------------------------------------
+!     ENDIF
+!----------------------------------------------------------------------
+!
+      U10 =UMFLX/AKMS10+UZ0
+      V10 =VMFLX/AKMS10+VZ0
+      TH02=HSFLX/AKHS02+THZ0
+      TH10=HSFLX/AKHS10+THZ0
+      Q02 =HLFLX/AKHS02+QZ0
+      Q10 =HLFLX/AKHS10+QZ0
+      TERM1=-0.068283/TLOW
+      PSHLTR=PSFC*EXP(TERM1)
+
+!----------------------------------------------------------------------
+!***  COMPUTE "EQUIVALENT" Z0 TO APPROXIMATE LOCAL SHELTER READINGS.
+!----------------------------------------------------------------------
+!
+      U10E=U10
+      V10E=V10
+!
+      IF(SEAMASK<0.5)THEN
+        ZUUZ=AMIN1(ZU*0.50,0.18)
+        ZU=AMAX1(ZU*0.35,ZUUZ)
+!
+        ZU10=ZU+ZTAR
+        RZSU=ZU10/ZU
+        RLNU10=LOG(RZSU)
+
+        ZETAU=ZU*RLMO
+        ZTAU10=ZU10*RLMO
+
+        ZTAU10=MIN(MAX(ZTAU10,ZTMIN2),ZTMAX2)
+        ZETAU=MIN(MAX(ZETAU,ZTMIN2/RZSU),ZTMAX2/RZSU)
+
+        RZ=(ZTAU10-ZTMIN2)/DZETA2
+        K=INT(RZ)
+        RDZT=RZ-REAL(K)
+        K=MIN(K,KZTM2)
+        K=MAX(K,0)
+        PSM10=(PSIM2(K+2)-PSIM2(K+1))*RDZT+PSIM2(K+1)
+        SIMM10=PSM10-PSMZ+RLNU10
+        EKMS10=MAX(USTARK/SIMM10,CXCHL)
+
+        U10E=UMFLX/EKMS10+UZ0
+        V10E=VMFLX/EKMS10+VZ0
+
+      ENDIF
+!
+      U10=U10E
+      V10=V10E
+
+      end subroutine surfacelayer

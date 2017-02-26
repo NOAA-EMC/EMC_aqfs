@@ -20,6 +20,8 @@
 !		Restructure the elimination code, add flag array.
 ! 2014-jun-26	Format bug fix, caught by ifort.
 !
+! 2016-jan-12	Minor library upgrade.  Use string_utils module.
+!
 ! Input:   infile_template = Path template for input data set.  May include
 !		leading environment var, and YYYY MM DD substitution strings.
 !          varname = BUFR field name for requested data variable, e.g. COPOPM.
@@ -100,6 +102,7 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    use grid_location
    use qc__single_site
    use read__obs_series
+   use string_utils
    implicit none
 
 ! Input arguments.

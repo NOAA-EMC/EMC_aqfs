@@ -1,0 +1,205 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<META NAME="MSSmartTagsPreventParsing" CONTENT="TRUE"> 
+<TITLE> BILIN() and BMATVEC() </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" 
+      TOPMARGIN="15" 
+      MARGINHEIGHT="15" 
+      LEFTMARGIN="15" 
+      MARGINWIDTH="15">
+<H1>   BILIN() and BMATVEC() </H1>
+
+<H2> Fortran version: </H2>
+<PRE>
+    SUBROUTINE BILIN( M, N, P, NU, CU, V, C )
+      INTEGER  M         !  input: in-vector length  dimension (single-indexed)
+      INTEGER  N         !  input: out-vector length dimension (single-indexed)
+      INTEGER  P         !  input:  "layer"          dimension
+      INTEGER  NU( 4,N ) !  input:  4-band matrix
+      REAL     CU( 4,N ) !  input:  4-band matrix
+      REAL     V( M,P )  !  input:  vector to be interpolated
+      REAL     C( N,P )  !  output: vector
+
+    SUBROUTINE BMATVEC( M, N, P, NU, CU, V, C )
+      INTEGER  M         !  input: in-vector length  dimension (single-indexed)
+      INTEGER  N         !  input: out-vector length dimension (single-indexed)
+      INTEGER  P         !  input:  "layer"          dimension
+      INTEGER  NU( 4,N ) !  input:  4-band matrix
+      REAL     CU( 4,N ) !  input:  4-band matrix
+      REAL     V( M,P )  !  input:  vector to be interpolated
+      REAL     C( P,N )  !  output: *transposed* vector
+</PRE><P> 
+
+<H2> C version:  none </H2>
+
+<H2> Summary: </H2>
+
+    <BLOCKQUOTE>
+
+    For Fortran-90 declarations and interface checking:    
+    <PRE>
+    <A HREF = "M3UTILIO.html">USE M3UTILIO</A>
+    </PRE><P>
+    <VAR>BILIN()</VAR> and <VAR>BMATVEC()</VAR> apply 4-band sparse matrix 
+    <CODE>&lt;NU,CU&gt</CODE>; (e.g.,  as computed by subroutine
+    <A HREF = "UNGRIDB.html"><VAR>UNGRIDB()</VAR></A>) 
+    to array <CODE>V</CODE>, to generate output array <CODE>C</CODE>, 
+    according to the following equation for output vector value at 
+    row <CODE>R</CODE> and layer <CODE>L</CODE>"
+    <BLOCKQUOTE>
+        <VAR>C( R,L )</VAR> = 
+            <STRONG>SUM<SUB>J = 1...4 </SUB></STRONG>
+                [ <VAR>CU(J,R) V( NU(R,J),L )</VAR> ]
+    </BLOCKQUOTE>
+    Note that  <VAR>BMATVEC</VAR> simultaneously does a transpose
+    on the output subscripting, as is used by the SMOKE layer-fractions
+    processor:  the input met variables <CODE>V</CODE> are subscripted
+    by <CODE>(COLUMN,ROW,LAYER)</CODE>, whereas the output interpolated
+    variables <CODE>C</CODE> are subscripted by
+    <CODE>(LAYER,STACKNUMBER)</CODE>.
+    <P>
+
+    For <STRONG>bilinear interpolation of gridded data</STRONG>
+    <CODE>V</CODE> having dimensions <CODE>V(NC,NR)</CODE> 
+    (as specified in the Fortran storage order) to a list of locations 
+    having grid-normal coordinates <CODE>&lt;X(S),Y(S)&gt;</CODE>, 
+    let 
+    <PRE>
+    C(S) = 1 + INT( X(S) )
+    R(S) = 1 + INT( Y(S) )
+    P(S) = AMOD( X(S), 1.0 )
+    Q(S) = AMOD( Y(S), 1.0 )
+    </PRE>
+    Then <CODE>NU</CODE> has the following <STRONG>single-indexing 
+    subscripts</STRONG> into the grid for the cell-corners surrounding 
+    the <CODE>&lt;X(S),Y(S)&gt;</CODE>:
+    <PRE>
+    NU(1,S) = C + NC * ( R - 1 ) + 1
+    NU(2,S) = C + NC * ( R - 1 ) 
+    NU(3,S) = C + NC *   R
+    NU(4,S) = C + NC *   R       + 1
+    </PRE>
+    and <CODE>AX</CODE> has the bilinear-interpolation coefficients
+    <PRE>
+    AX(1,S) = ( 1.0 - P( S ) )*( 1.0 - Q( S ) )
+    AX(2,S) =         P( S )  *( 1.0 - Q( S ) )
+    AX(3,S) = ( 1.0 - P( S ) )*        Q( S )
+    AX(4,S) =         P( S )  *        Q( S )
+    </PRE>
+    </BLOCKQUOTE>
+<P> 
+
+    See also subroutines
+    <BLOCKQUOTE>
+    <A HREF = "BMATVEC.html">BMATVEC and BILIN</A>,
+    <A HREF = "DMATVEC.html">DMATVEC</A>,
+    <A HREF = "PMATVEC.html">PMATVEC</A>,
+    <A HREF = "SMATVEC.html">SMATVEC</A>, and
+    <A HREF = "UNGRIDB.html">UNGRIDB</A>
+    </BLOCKQUOTE>
+    and programs
+    <BLOCKQUOTE>
+    <A HREF = "MTXBLEND.html">MTXBLEND</A>,
+    <A HREF = "MTXBUILD.html">MTXBUILD</A>,
+    <A HREF = "MTXCALC.html">MTXCALC</A>,
+    <A HREF = "MTXCPLE.html">MTXCPLE</A>.
+    </BLOCKQUOTE>
+    <P> 
+
+
+<H2> Fortran Usage: </H2>
+    
+    <BLOCKQUOTE>
+    <VAR>!! under construction !!</VAR>
+    <P>     
+    
+    Here is an example of how to do grid-to-grid interpolation,
+    assuming that you want to interpolate 1-layer variable FOO1
+    and multilayer variable BAR1 from the lat-lon-based grid G1
+    to the grid G2 (which may be Lambert or something).  Either 
+    BILIN() or BMATVEC() may be used for the single layer interpolation;
+    BILIN() preserves layered subscript order for 3-D variables, whereas
+    BMATVEC() transposes data from I/O&nbsp;API order in which LAYER
+    is the outermost subscript to a computational order in which LAYER
+    is innermost.
+    <P>
+    
+    Note that UNGRIDB needs the X and Y coordinates for the G2 cells 
+    expressed in terms of the underlying coordinate system for G1 
+    (in this  case, since G1 is lat-lon, this means you need the G2-cell
+    latitudes and longitudes as inputs for UNGRIDB).
+    </BLOCKQUOTE>
+    <PRE>
+    ...
+    USE M3UTILIO
+    ...
+    INTEGER	NCOLS1, NROWS1			!  for G1
+    INTEGER     P				!  number of layers is P==1
+    INTEGER     NLAYS
+    REAL*8	XORIG1, YORIG1			!  for G1
+    REAL*8	XCELL1, YCELL1			!  for G1
+    REAL	FOO1( NCOLS1, NROWS1 )		!  to be interpolated
+    REAL	BAR1( NCOLS1, NROWS1, NLAYS )	!  to be interpolated
+    ...
+    INTEGER	NCOLS2, NROWS2	!  for G2
+    REAL	ALON2( NCOLS2, NROWS2 )		! G2 X-values in G1 coords
+    REAL	ALAT2( NCOLS2, NROWS2 )		! G2 Y-values in G1 coords
+    REAL	CU( 4, NCOLS2*NROWS2 )  	! interpolation coeffs
+    INTEGER	NU( 4, NCOLS2*NROWS2 )  	! interpolation indexes
+    REAL	FOO2( NCOLS2, NROWS2 )		! G2-interpolated result
+    REAL	BAR2( NCOLS2, NROWS2, NLAYS )	! G2-interpolated result
+    REAL	QUX3( NLAYS, NCOLS2, NROWS2 )	! transpose-interpolated result
+    ...
+    CALL UNGRIDB( NCOLS1, NROWS1, XORIG1, YORIG1, XCELL1, YCELL1,
+   &              NCOLS2*NROWS2, ALON2, ALAT2, NU, CU )
+    ...
+    P = 1	!  only one layer
+    CALL BMATVEC( NCOLS1*NROWS1,	!  single-indexed input  size
+   &              NCOLS2*NROWS2,	!  single-indexed output size
+   &              P,			!  P=1 layer
+   &              NU, CU,		!  matrix from UNGRIDB()
+   &              FOO1,			!  to be interpolated
+   &		  FOO2 )		!  G2-interpolated result
+    ...		
+    CALL BILIN( NCOLS1*NROWS1,	        !  single-indexed input  size
+   &            NCOLS2*NROWS2,	        !  single-indexed output size
+   &            NLAYS,		        !  number of layers
+   &            NU, CU,		        !  matrix from UNGRIDB()
+   &            BAR1,			!  to be interpolated
+   &		BAR2 )		        !  G2-interpolated result
+    ...		
+    
+    CALL BMATVEC( NCOLS1*NROWS1,	!  single-indexed input  size
+   &              NCOLS2*NROWS2,	!  single-indexed output size
+   &              NLAYS,		!  number of layers
+   &              NU, CU,		!  matrix from UNGRIDB()
+   &              BAR1,			!  to be interpolated
+   &		  QUX3 )	        !  transpose-interpolated result
+    ...		
+    </PRE>
+
+<HR> <!----------------------------------------------------------------->
+    
+<A HREF = "CSTRINGS.html" >
+Next:  <STRONG>C/Fortran string conversion</STRONG>
+</A><P> 
+
+<A HREF = "AA.html#coordstuff"> 
+Up: <STRONG>Coordinate and Grid Related Routines</STRONG> 
+</A><P> 
+
+<A HREF = "AA.html#utility"> 
+Up: <STRONG>Utility Routines</STRONG> 
+</A><P> 
+
+<A HREF = "AA.html"> 
+To: <STRONG>Models-3/EDSS I/O API:   The Help Pages</STRONG> 
+</A><P> 
+
+</BODY>
+</HTML>
+

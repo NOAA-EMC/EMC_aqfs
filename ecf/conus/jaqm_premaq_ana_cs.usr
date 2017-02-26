@@ -1,0 +1,51 @@
+#!/bin/ksh
+#BSUB -extsched 'CRAYLINUX[]' -R '1*{select[craylinux && !vnode]} + 24*{select[craylinux && vnode]span[ptile=24] cu[type=cabinet]}'
+#
+#BSUB -oo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_premaq_ana_cs.out
+#BSUB -eo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_premaq_ana_cs.err
+#BSUB -J  premaq_cs_ana
+#BSUB -W  01:55
+#BSUB -q  devhigh
+#BSUB -P  CMAQ-T2O 
+#BSUB -M  3072
+
+export PARAFLAG=YES
+
+export job=${job:-$LSB_JOBNAME}
+export jobid=${jobid:-$job.$LSB_JOBID}
+export RUN_ENVIR=${RUN_ENVIR:-aqm}
+export envir=${envir:-para}
+export SENDDBN=${SENDDBN:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+source /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel/5.2.56
+module load prod_util
+module load prod_envir
+module load grib_util/1.0.3
+
+export KEEPDATA=YES
+
+export IOBUF_PARAMS="*:verbose:size=16M:count=4"
+
+# EXPORT list here
+set -ax
+export PARAFLAG=YES
+
+export FCST=NO
+ 
+aprun -n 1 ${HOMEaqm}/jobs/JAQM_PREMAQ_CS
+
+err=$?
+if [ "${PARAFLAG}" = "YES" ]
+then
+ #err=$?
+  if [ ${err} -ne 0 ]
+  then
+    exit 249
+  fi
+fi
+
+
+

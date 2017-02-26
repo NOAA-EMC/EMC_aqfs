@@ -1,6 +1,6 @@
 module purge
 
-module load ../../modulefiles/CMAQ/v4.7.4
+module load ../../modulefiles/CMAQ/v5.0.2
 
 module list
 
@@ -11,23 +11,12 @@ BASE=`pwd`
 
 ##########################
 
-cd ${BASE}/aqm_ioapi
-./compile_ioapi
-
-##############################
-
-for src in  pario-n se-rc4n_2010
+for src in ioapi_v31 pario se_snl 
 do
-cd ${BASE}/aqm_$src
-make clean
-make
-done
-##############################
 
-for src in filesetapi edss_tools smoke
-do
-cd ${BASE}/aqm_$src
-make clean
-make all
+cd ${BASE}/aqm_${src}
+
+./compile.sh
+
 done
 ##############################

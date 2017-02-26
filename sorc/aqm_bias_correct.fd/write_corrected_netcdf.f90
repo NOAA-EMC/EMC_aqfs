@@ -6,6 +6,7 @@
 ! NCO/ARL/PSD bias correction system for CMAQ forecast outputs.
 !
 ! 2014-jul-09	Original version.  By Dave Allured.
+! 2016-jan-12	Minor change to argument sequence in a library call.
 !
 ! This routine writes a single Netcdf file for bias corrected
 ! gridded forecasts, for one forecast cycle.  Two data variables
@@ -112,7 +113,7 @@ subroutine write_corrected_netcdf (outfile, outvar, grid_lats, grid_lons, &
    title   = 'CMAQ bias corrected ' // trim (outvar) // ' forecasts'
    history = 'Created by bias_correct.f90'
 
-   call netcreate3 (outfile, title, history, reserve_header, ncid, diag)
+   call netcreate3 (outfile, title, history, reserve_header, ncid, diag=diag)
    						! history time stamp is added
 
 !-------------------------------------------------

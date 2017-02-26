@@ -547,6 +547,9 @@
         endif 
 
        ipdstmpl(9)=nowtime8
+       if ( ipdstmpl(9) .lt. 0 ) then
+        ipdstmpl(9) = 0.
+       endif
 
        call nextime(nowdate8,nowtime, 240000)
 

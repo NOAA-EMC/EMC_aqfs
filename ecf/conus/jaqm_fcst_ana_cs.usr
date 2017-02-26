@@ -1,0 +1,57 @@
+#!/bin/ksh
+#BSUB -J jaqm_fcst_v502 
+#BSUB -o /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_fcst_ana_cs.out 
+#BSUB -e /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_fcst_ana_cs.err 
+#BSUB -q devhigh 
+##BSUB -q dev
+##BSUB -extsched "CRAYLINUX[]" -R "1*{select[craylinux && !vnode]} + 576*{select[craylinux && vnode] span [ptile=24]}"
+#BSUB -M 3000
+#BSUB -W 01:55
+#BSUB -P CMAQ-T2O 
+#BSUB -extsched 'CRAYLINUX[]'
+
+#%include <head.h>
+#%include <envir-xc40.h>
+#
+source /opt/modules/default/init/ksh 
+module load PrgEnv-intel
+module load iobuf
+module load prod_util
+module load prod_envir
+
+export NODES=24
+export IOBUF_PARAMS="12M:verbose"
+
+set -ax
+
+ulimit -s unlimited
+
+export RUN_ENVIR=notnco
+export COMROOT=/gpfs/hps/ptmp/${USER}/com
+export NWROOT=/u/${USER}/noscrub/nwdev
+export NWROOTp1=/nwprod
+export cmaq_ver=v5.0.2
+export envir=para
+export job=aqm_cmaq_cs
+#
+export PARAFLAG=YES
+
+export SENDCOM=YES
+export SENDDBN=NO
+export SENDECF=NO
+
+export FCST=NO
+ 
+${HOMEaqm}/jobs/JAQM_FORECAST_CS
+
+err=$?
+if [ "${PARAFLAG}" = "YES" ]
+then
+  if [ ${err} -ne 0 ]
+  then
+    exit 249
+  fi
+fi
+
+
+

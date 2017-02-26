@@ -1,43 +1,23 @@
+module load ncep
+
 module purge
 
-module load ../modulefiles/CMAQ/v4.7.4
-#
-module list
-
-sleep 1
+module load ../modulefiles/CMAQ/v5.0.2
 
 BASE=`pwd`
 
 ##########################
-for src in prep_nmmb premaq_nmmb_v47 fcst_nmmb_v47 cmaq2grib post_maxi_CHA rdgrbwt_aot_CHA snowdust fengsha fengsha_merge fire_checking 
+for src in premaq_v502 fengsha_2016 fengsha_merge_2016 snowdust_2016 fire_checking_2016 fire_fcst_1 fire_fcst_2 fire_analy_1 fire_analy_2 fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 ngac_dust_dlbc csum chg rdgrbwt_aot_CHA_g2  
 do
 cd ${BASE}/aqm_${src}.fd
 make clean
 make
 done
 ##############################
-for src in emmod emutil emqa smkinven point temporal grdmat spcmat smkmerge 
-do
-cd ${BASE}/aqm_${src}.fd
-make clean
-make all
-done
-#
-##############################
-for src in cmaq2grib2_v1 ngac_dust_dlbc post_maxi_CHA_grib2
-do 
-cd ${BASE}/aqm_${src}.fd
-make clean
-make 
-done
-##############################
-module unload NetCDF/3.6.3
-module unload ics
-module load ics/14.0.1
-module switch ics/14.0.1
-module  unload HDF4/4.2.8
-module load HDF5/1.8.9/serial
-module load NetCDF/4.2/serial
+module load HDF4-intel-haswell/4.2.8
+module load HDF5-serial-intel-haswell/1.8.9
+module switch  intel/16.3.210 
+module switch bufr-intel/11.0.2
 ###############################
 for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
 do

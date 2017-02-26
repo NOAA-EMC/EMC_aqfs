@@ -20,6 +20,11 @@
 ! 2015-oct-27	Pass site ID's and coordinates into main_analog, for
 !		  diagnostics and site exception handling.
 !
+! 2016-jan-20	Parallel support.  Move site exception list reader out of
+!		  site loop, up to main program.
+! 2016-feb-09	Add config parameters: filter method, debug controls, etc.
+! 2016-feb-10	Move test file writers out of main_analog, up to main program.
+!
 ! Credits:
 !
 ! The filter component is the analog/Kalman filter for forecast
@@ -85,26 +90,24 @@ program bias_correct
    use index_to_date_mod
    use main__analog
    use read__config_file_main
+   use read__exception_list
    use read__interp_forecasts
    use read__obs_qc
    use read__grid_coords
-   use spread_mod
+   use spreading_mod
    use stdlit
    use write__site_list
+   use write__test_day_files
+   use write__test_site_files
    implicit none
 
 ! Local variables.
 
    integer, parameter :: id_len = 9		! station ID string length
    						! for 9-digit AIRNow site ID's
-   character(200) config_file, grid_coord_file
-   character(200) obs_file_template, interp_file_template
-   character(200) in_gridded_template, output_file_template
-   character(200) new_site_list_template, site_list_title
-
-   character(60) target_obs_var, target_model_var
-   character(60) title_varname
-   character fdate_str*24
+   character(200) config_file, site_list_title
+   character(60)  title_varname
+   character(24)  fdate_str
 
    integer ndays, nhours, diag, cycle_time
    integer start_date, training_end_date, forecast_date, base_year
@@ -112,7 +115,20 @@ program bias_correct
 
    real(dp) vmiss, standard_vmiss
 
-! Analog var table.
+! Config file parameters.
+
+   character(200) obs_file_template, interp_file_template
+   character(200) in_gridded_template, output_file_template
+   character(200) new_site_list_template, grid_coord_file
+   character(200) site_exception_file
+   character(60)  target_obs_var, target_model_var
+   character(200) filter_method, output_limit_method
+   character(200) site_file_template, day_file_template
+
+   integer num_analogs
+   logical stop_after_filter
+
+! Analog var table (config file).
 
    character(60),  allocatable :: analog_vars(:)	! var config data (V)
    real(dp),       allocatable :: lower_limits(:)	! (V)
@@ -145,6 +161,16 @@ program bias_correct
 
    real(dp), allocatable :: uncorr_sites(:,:)	   ! (hours, sites)
    real(dp), allocatable :: corr_sites(:,:)	   ! (hours, sites)
+
+! Target var, corrected data at site locations, all days in period.
+! For writing test files only.
+
+   real(dp), allocatable :: filter_result_3d(:,:,:)  ! (days, hours, sites)
+
+! Site exception bias thresholds.
+
+   real(dp), allocatable :: excep_thresh_low(:)    ! (sites)
+   real(dp), allocatable :: excep_thresh_high(:)
 
 ! Program parameters.
 
@@ -200,8 +226,11 @@ program bias_correct
 
    call read_config_file_main (config_file, obs_file_template, &
       interp_file_template, in_gridded_template, output_file_template, &
-      new_site_list_template, grid_coord_file, target_obs_var, &
-      target_model_var, analog_vars, lower_limits, upper_limits, is_circular)
+      new_site_list_template, grid_coord_file, site_exception_file, &
+      target_obs_var, target_model_var, analog_vars, &
+      lower_limits, upper_limits, is_circular, &
+      filter_method, num_analogs, output_limit_method, &
+      site_file_template, day_file_template, stop_after_filter)
 
 ! Read grid coordinate file.  Grid coords needed for both QC and final output.
 
@@ -307,15 +336,28 @@ program bias_correct
    end if
 
 !---------------------------------------------------------------------
+! Read supplemental files.
+!---------------------------------------------------------------------
+
+! Read the site bias threshold exception list, which is a sparse list.
+! Output arrays are aligned with current site indexing.
+
+   call read_exception_list (site_exception_file, interp_ids, vmiss, diag, &
+      excep_thresh_low, excep_thresh_high)
+
+!---------------------------------------------------------------------
 ! Apply Kalman/analog filter to interpolated forecasts.
 !---------------------------------------------------------------------
 
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  Call main_analog.'
 
-   call main_analog (model_in, obs_reshaped, target_model_var, analog_vars, &
-      lower_limits, upper_limits, is_circular, vmiss, diag, interp_ids, &
-      interp_lats, interp_lons, uncorr_sites, corr_sites)
+   call main_analog (filter_method, model_in, obs_reshaped, vmiss, &
+      target_model_var, analog_vars, lower_limits, upper_limits, is_circular, &
+      excep_thresh_low, &
+      excep_thresh_high, num_analogs, diag, interp_ids, interp_lats, &
+      interp_lons, uncorr_sites, corr_sites, &
+      filter_result_3d)
 
    if (diag >= 3) print *, 'main_analog returned.'
 
@@ -324,17 +366,39 @@ program bias_correct
 
    deallocate (model_in, obs_reshaped)
 
+!-----------------------------------------------------------------
+! Write intermediate test files, if selected.
+!-----------------------------------------------------------------
+
+   if (day_file_template /= 'none' ) &
+      call write_test_day_files  (day_file_template,  filter_result_3d, &
+         vmiss, diag, interp_ids, interp_lats, interp_lons)
+
+   if (site_file_template /= 'none' ) &
+      call write_test_site_files (site_file_template, filter_result_3d, &
+         vmiss, diag, interp_ids, interp_lats, interp_lons)
+
+! Check for early stop request.
+
+   if (stop_after_filter) then
+      print *, '*** "Stop after filter" is selected (config file).'
+      call fdate (fdate_str)
+      print '(2a)', fdate_str, '  bias_correct.f90: Stop.'
+      call exit
+   end if
+
 !---------------------------------------------------------------------
 ! Spread bias corrections to forecast grids, and write output file.
 !---------------------------------------------------------------------
 
    call fdate (fdate_str)
    print *
-   print '(2a)', fdate_str, '  Call spread.'
+   print '(2a)', fdate_str, '  Call spreading module.'
 
-   call spread (in_gridded_template, grid_coord_file, output_file_template, &
-      target_model_var, forecast_date, cycle_time,  base_year, calendar, &
-      uncorr_sites, corr_sites, interp_lats, interp_lons, vmiss, diag)
+   call spreading (in_gridded_template, grid_coord_file, &
+      output_file_template, target_model_var, output_limit_method, &
+      forecast_date, cycle_time, base_year, calendar, uncorr_sites, &
+      corr_sites, interp_lats, interp_lons, vmiss, diag)
 
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  bias_correct.f90: Done.'

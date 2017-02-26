@@ -3,7 +3,7 @@ SHELL=/bin/sh
 MODEL      = aqm_subset_x
 
 # Compiler Definitions
-FC         = ${F_COMP} 
+FC         = ifort 
 CC         = cc
 
 # Preprocessor
@@ -11,10 +11,10 @@ FPP         =
 
 IOAPI_LIB   =../../lib/libaqm_ioapi.a 
 
-NETCDF2      = $(NETCDF)
+NETCDF2      = ${NETCDF}
 NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 
-INCLUDES    = -I ../../lib/sorc/aqm_ioapi/ioapi -I $(NETCDF2)/include -I.
+INCLUDES    = -I ../../lib/sorc/aqm_ioapi_v31/ioapi -I $(NETCDF2)/include -I.
 
 # Compiler Flags
 F_FLAGS = -132 -O3 -free -D_LARGE_FILES
@@ -39,7 +39,7 @@ subset.o
 .SUFFIXES: .F .f .c
 
 $(MODEL): $(OBJECTS)
-	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -o ../../exec/$@
+	$(FC) $(LINK_FLAGS) $(OBJECTS) $(LIBRARIES) -qopenmp -o ../../exec/$@
 
 .F.o:
 	$(FC) -c $(F_FLAGS) $(INCLUDES) $(CPP_FLAGS) $<

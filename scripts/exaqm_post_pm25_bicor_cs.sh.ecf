@@ -10,7 +10,10 @@
 ######################################################################
 set -xa
 
+export pgm=aqm_cs_pm25_bias_correct
+
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+export id_grib=148
 
 cd $DATA
 
@@ -19,7 +22,7 @@ cd $DATA
  ic=1
  while [ $ic -lt 100 ]
  do
- if [ -s $COMIN/aqm.t${cyc}z.aconc.ncf ]
+ if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]
  then
   echo "cycle ${cyc} post1 is done!"
   break 
@@ -31,7 +34,7 @@ cd $DATA
 #
  if [ $ic -ge 100 ]
  then
-    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc.ncf"
+    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
  fi
 
  startmsg
@@ -42,15 +45,15 @@ cd $DATA
  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
 # 
-if [ -e $COMINbicor/grid/$Yr/$PDY ] ; then
- echo " $COMINbicor/grid/$Yr/$PDY exits"
+if [ -e $COMOUTbicor/grid/$Yr/$PDY ] ; then
+ echo " $COMOUTbicor/grid/$Yr/$PDY exits"
 else
- mkdir -p $COMINbicor/grid/$Yr/$PDY
+ mkdir -p $COMOUTbicor/grid/$Yr/$PDY
 fi
 #if [ "$SENDCOM" = 'YES' ]; then
-    cp $DATA/$f1 $COMINbicor/grid/$Yr/$PDY
-    cp $DATA/$f2 $COMINbicor/grid/$Yr/$PDY
-    cp $DATA/$f3 $COMINbicor/grid/$Yr/$PDY
+    cp $DATA/$f1 $COMOUTbicor/grid/$Yr/$PDY
+    cp $DATA/$f2 $COMOUTbicor/grid/$Yr/$PDY
+    cp $DATA/$f3 $COMOUTbicor/grid/$Yr/$PDY
 #fi
 
 #
@@ -60,10 +63,10 @@ fi
 startmsg
 $USHaqm/aqm_bicor_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
+
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
-#$USHaqm/aqm_bicor_pm25_cs.sh  >> $pgmout 2>errfile 
 $USHaqm/aqm_bicor_pm25_cs.sh 
 export err=$?; err_chk
 #------------------------------------------------------------------------
@@ -99,24 +102,111 @@ fi
 
 fi
 
-       ##############################
-       # Post Files to PCOM
-       ##############################
+#############################################
+export fhr=01
+typeset -Z2 fhr
 
-#       if test "$SENDCOM" = 'YES'
-#       then
-#           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+case $cyc in
+ 00) endfhr=06;;
+ 06) endfhr=48;;
+ 12) endfhr=48;;
+ 18) endfhr=06;;
+esac
 
-          ##############################
-          # Distribute Data
-          ##############################
+while [ $fhr -le $endfhr ]
+do
+ cat $DATA/aqm.${cycle}.pm25_bc.f${fhr}.${id_grib}.grib2 >> tmpfile_pm25_bc
+ let "fhr=fhr+1"
+ typeset -Z2 fhr
+done
 
-#          if [ "$SENDDBN_NTC" = 'YES' ] ; then
-#            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
-#          else
-#             msg="File $output_grb.$job not posted to db_net."
-#             postmsg "$jlogfile" "$msg"
-#          fi
-#       fi
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
+#
+####################################################
+#  Create AWIPS GRIB2 data for Bias-Corrected PM2.5
+###################################################
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+  echo 0 > filesize
+  export XLFRTEOPTS="unit_vars=yes"
+  export FORT11=aqm.t${cyc}z.grib2_pm25_bc.227
+  export FORT12="filesize"
+  export FORT31=
+  export FORT51=aqm.t${cyc}z.grib2_pm25_bc.227.temp
+  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_pm25_bc.${cycle}.227
+  export err=$?;err_chk
+#
+  echo `ls -l aqm.t${cyc}z.grib2_pm25_bc.227.temp  | awk '{print $5} '` > filesize
+  export XLFRTEOPTS="unit_vars=yes"
+  export FORT11=aqm.t${cyc}z.grib2_pm25_bc.227.temp
+  export FORT12="filesize"
+  export FORT31=
+  export FORT51=awpaqm.t${cyc}z.1hpm25-bc.227.grib2
+  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_pm25_bc.${cycle}.227
+  export err=$?;err_chk
 
-#done
+####################################################
+ rm -rf filesize
+ echo 0 > filesize
+ export XLFRTEOPTS="unit_vars=yes"
+ export FORT11=aqm.${cycle}.1hpm25-max.227.bc.grib2
+ export FORT12="filesize"
+ export FORT31=
+ export FORT51=aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp
+ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
+
+ echo `ls -l  aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp | awk '{print $5} '` > filesize
+ export XLFRTEOPTS="unit_vars=yes"
+ export FORT11=aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp
+ export FORT12="filesize"
+ export FORT31=
+ export FORT51=awpaqm.${cycle}.daily-1hr-pm25-max-bc.227.grib2
+ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
+
+ rm filesize
+#  daily_24hr_ave_PM2.5
+ echo 0 > filesize
+ export XLFRTEOPTS="unit_vars=yes"
+ export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2
+ export FORT12="filesize"
+ export FORT31=
+ export FORT51=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
+
+ echo `ls -l  aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp | awk '{print $5} '` > filesize
+ export XLFRTEOPTS="unit_vars=yes"
+ export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+ export FORT12="filesize"
+ export FORT31=
+ export FORT51=awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2
+ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
+
+##############################
+# Post Files to PCOM
+##############################
+ if test "$SENDCOM" = 'YES'
+   then
+     cp awpaqm.${cycle}.1hpm25-bc.227.grib2             $PCOM/
+     cp awpaqm.${cycle}.daily-1hr-pm25-max-bc.227.grib2 $PCOM/
+     cp awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2      $PCOM/
+
+##############################`
+# Distribute Data
+##############################
+
+     if [ "$SENDDBN_NTC" = 'YES' ] ; then
+       $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.1hpm25-bc.227.grib2
+       $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.daily-1hr-pm25-max-bc.227.grib2
+       $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2
+     else
+          msg="File $output_grb.$job not posted to db_net."
+          postmsg "$jlogfile" "$msg"
+     fi
+  fi
+fi
+#######################################################
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+################## END OF SCRIPT #######################
+exit
+

@@ -11,7 +11,6 @@ PNG_LIB2   = ${PNG_LIB}
 BACIO_LIB  = ${BACIO_LIB4}
 JASPER_LIB2 = ${JASPER_LIB}
 Z_LIB2      = ${Z_LIB}
-#MDL_LIB2    = ${MDL_LIB4}
 MDL_LIB2    = 
 
 LIBS   =  $(IOAPI_LIB) \
@@ -23,7 +22,7 @@ LIBS   =  $(IOAPI_LIB) \
 	  $(JASPER_LIB2) \
 	  $(Z_LIB2)
 
-INC    = $(LIB_LOC)/sorc/aqm_ioapi/ioapi
+INC    = $(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
 
 FC     = ${F_COMP} 
 

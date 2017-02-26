@@ -19,6 +19,16 @@
 ! 2014-jul-02	Allow zeros and negative values in data at site locations.
 !		Improve diagnostics.
 ! 2014-jul-09	Limit bias corrected values to not less than zero.
+!		Note, latent bug.  Corrected output grids could include
+!		  uninitialized memory values wherever uncorrected input
+!		  grids were missing values.  But NCEP said this would never
+!		  happen, original forecasts never contained missing values.
+!
+! 2015-dec-31	Version in cmaq.v4.7.2, by Jianping Huang.
+!		Zero and negative values revert to fraction of uncorrected.
+!
+! 2016-feb-09	DRA: Add config file selector for output limit method.
+!		Add time stamps to spreading loop.
 !
 ! This routine calculates bias over whole grid.
 ! Objective analysis is used iteratively with 8 runs.
@@ -49,7 +59,8 @@ contains
 !-------------------------------------------------
 
 subroutine spread_bias (uncorr_grids, uncorr_sites, corr_sites, XLAT, XLON, &
-      siteLAT, siteLON, vmiss, diag, bias_grids, corr_grids)
+      siteLAT, siteLON, vmiss, diag, output_limit_method, bias_grids, &
+      corr_grids)
 
    use config, only : dp
    use grid__distances
@@ -68,6 +79,8 @@ subroutine spread_bias (uncorr_grids, uncorr_sites, corr_sites, XLAT, XLON, &
    real(dp), intent(in) :: siteLON(:)
    real(dp), intent(in) :: vmiss		! common missing value code
    integer,  intent(in) :: diag			! diag verbosity level, 0-N
+
+   character(*), intent(in) :: output_limit_method  ! output limit method name
 
 ! Output arguments.
 
@@ -200,7 +213,8 @@ subroutine spread_bias (uncorr_grids, uncorr_sites, corr_sites, XLAT, XLON, &
 run_loop: &
    DO irun=1,nrun
      RAD=RAD/2
-     PRINT *,'irun=',irun,' RAD=',RAD
+     call fdate (fdate_str)
+     print '(2a,i0,a,i0)', fdate_str, ': irun=',irun,' RAD=',RAD
 
 !! Calculate the sDISTANT array for the certain Radius 0f Influence
 !! 2014-jul-01, moved this to single calculation above.
@@ -247,29 +261,59 @@ site_loop: &
 ! Compute bias corrected forecast grids.
 !-------------------------------------------------
 
+   if (diag >= 2) print *
    if (diag >= 2) print '(2a)', ' spread_bias: Apply bias, make corrected', &
       ' forecast grids.'
 
-   if (diag >= 2) print '(2a)', '   Limit corrected values to not less', &
-      ' than zero.'
+! Initial bias correction.
+
+   corr_grids(:,:,:) = vmiss			! init to all missing
 
    where (uncorr_grids(:,:,:) /= vmiss)
       corr_grids = uncorr_grids + bias_grids	! add bias to uncorrected values
-!jp      corr_grids = max (corr_grids, 0d0)	! limit to not less than zero
    end where
 
+! Apply selected output limit method.
+
+   if (diag >= 2) then
+      print '(2a)', ' spread_bias: Apply selected limit method.'
+      print '(2a)', '   Output limit method = "' &
+         // trim (output_limit_method) // '"'
+   end if
+
+limit_method: &
+   if (output_limit_method == 'none') then
+
+      continue					! no limit, negatives possible
+
+   else if (output_limit_method == 'hard zero') then
+
+      where (corr_grids(:,:,:) /= vmiss)
+         corr_grids = max (corr_grids, 0d0)	! limit to not less than zero
+      end where
+
+   else
+
+      if (output_limit_method /= 'revert to fraction of uncorrected') then
+         print *
+         print *, '*** spread_bias: Unknown name for output limit method.'
+         print *, '*** Selected method = "' // trim (output_limit_method) // '"'
+         print *, '*** Use "revert to fraction of uncorrected".'
+      end if
+
 !jp0
-   DO irun=1,nhours
-    do j=1,YG
-     do i=1,XG
-        if ( corr_grids(i,j,irun) .le. 0.0001 ) then
-          corr_grids(i,j,irun) = uncorr_grids(i,j,irun)*0.25 ! no bias corr.
-        endif
+      DO irun=1,nhours
+       do j=1,YG
+        do i=1,XG
+           if ( corr_grids(i,j,irun) .le. 0.0001 ) then
+             corr_grids(i,j,irun) = uncorr_grids(i,j,irun)*0.25 ! no bias corr.
+           endif
+        enddo
+       enddo
       enddo
-     enddo
-    enddo
 !jp9
 
+   end if limit_method
 
 !-------------------------------------------------
 ! Print final data summaries.

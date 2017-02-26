@@ -19,22 +19,47 @@ set -xa
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
+export pgm=aqm_cs_post2
+
 cd $DATA
 
 export XLFRTEOPTS="unit_vars=yes"
 export id_grib=148
 
 #########################################################
+#
+#
+########################################################
+let "cyc9=cyc+1"
+export JDATE=`date2jday.sh  $PDY`
+
+rm -rf $COMOUT/aqm.t${cyc}z.conc_1.ncf
+
+startmsg
+${USHaqm}/aqm_csum.sh -rf 1 ${FIXaqm}/vlist.twoways.5.0.2.v1 $COMOUT/aqm.t${cyc}z.conc.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.conc_1.ncf >> $pgmout 2>$DATA/errfile2 
+export err=$?;err_chk
+
+rm -rf $DATA/check_file.log2
+while [ ! -s $DATA/check_file.log2 ] ; do
+  if [[ -s $DATA/$pgmout ]] ; then
+     grep -ni "Closing file infile03" $DATA/$pgmout > $DATA/check_file.log2 
+  else
+    sleep 10
+  fi 
+    sleep 10
+done
+
+#########################################################
 # Part I: Convert Machine binary format to Grib format
 #########################################################
 
-export CHEM3D=${COMIN}/aqm.${cycle}.conc.ncf
+export CHEM3D=${COMIN}/aqm.${cycle}.conc_1.ncf
 export METCRO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
 export METCRO2D=${COMIN}/aqm.${cycle}.metcro2d.ncf
 
 
 case $cyc in
- 00) export n_durhr=6;;
+ 00) export n_durhr=7;;
  06) export n_durhr=49;;
  12) export n_durhr=49;;
  18) export n_durhr=6;;
@@ -43,11 +68,11 @@ esac
 . prep_step
 
   ic=1
-  while [ $ic -lt 1000 ]
+  while [ $ic -lt 200 ]
   do
-    if [ -s $COMIN/aqm.${cycle}.conc.ncf ]
+    if [ -s $COMIN/aqm.${cycle}.conc_1.ncf ]
     then
-     ln -sf $COMIN/aqm.${cycle}.conc.ncf $DATA/aqm.${cycle}.conc.ncf
+     ln -sf $COMIN/aqm.${cycle}.conc_1.ncf $DATA/aqm.${cycle}.conc_1.ncf
     break
     else
         let "ic=ic+1"
@@ -55,26 +80,24 @@ esac
     fi
     if [ $ic -ge 180 ]
     then
-    err_exit "*****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc.ncf"
+    err_exit "*****FATAL ERROR**** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.conc_1.ncf"
     fi
   done
 
-cat >cmaq2grib.ini <<EOF5
+cat >cmaq2grib2.ini <<EOF5
 &control
-varlist='O3','NO2','NO','NO3','N2O5','HNO3','HONO','PNA','CO','FORM','ALD2','PAN','NTR',
-'XO2N','SO2','ASO4I','ASO4J','ANH4I','ANH4J','ANO3I','ANO3J','AORGAI','AORGAJ','AORGPAI',
-'AORGPAJ','AORGBI','AORGBJ','AECI','AECJ','A25I','A25J','NUMATKN','NUMACC','SRFATKN',
-'SRFACC','AH2OI','AH2OJ'
+varlist='O3','CO','NO','NO2','NOY','VOC','PM25_TOT','PM25_EC','PM25_NH4',
+'PM25_NO3','PM25_OC','PM25_SO4','PMC_TOT'
 metlist='    '
 outfile='aqm.${cycle}.chem_sigma'
 nlayers=35
 id_gribdomain=148
-ave1hr=.true.
+ave1hr=.false.
 /
 EOF5
 
 startmsg
-$EXECaqm/aqm_cmaq2grib >> $pgmout 2>errfile 
+$EXECaqm/aqm_cmaq2grib2_v3 >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 ########################################################
@@ -97,7 +120,7 @@ do
 
  typeset -Z2 fhr
 
- cp $DATA/aqm.${cycle}.chem_sigma${fhr} $COMOUT/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}
+ mv $DATA/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
 
  let "fhr=fhr+1"
 

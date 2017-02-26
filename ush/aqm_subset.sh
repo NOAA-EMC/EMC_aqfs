@@ -1,4 +1,4 @@
-#! /bin/csh -f
+#!/bin/csh -f
 
 # type fmm -h for help
 set exist_h = ` echo $argv | grep -e "-h" | wc -w `
@@ -80,7 +80,10 @@ ls -al $inputfile
 
 echo ' '
 
+#export err=$?;err_chk
+#startmsg
 $EXECaqm/aqm_subset_x 
+#export err=$?;err_chk
 
 exit
 

@@ -15,6 +15,7 @@
 !			  Gregorian calendars only.
 !			Switch from anglical_match to the more efficient
 !			  lowercase method, for string comparisons.
+! 2.01	2014-dec-02	Library upgrade.  Use string_utils module interface.
 !
 ! Input:   idate = one-based date index, integer day number on the
 !	      continuous calendar date line.  Positive or negative,
@@ -72,6 +73,8 @@ contains
 !---------------------------------------------------------
 
 subroutine index_to_date (idate, year, month, day, base_year, calendar)
+
+   use string_utils
    implicit none
 
    integer,      intent (in ) :: idate

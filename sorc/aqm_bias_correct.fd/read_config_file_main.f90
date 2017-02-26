@@ -8,6 +8,10 @@
 ! 2014-jul-08	Original version.  By Dave Allured.
 !		Adapted from the config reader for interpolate_update.
 !
+! 2016-jan-20	Add site_exception_file parameter.
+! 2016-feb-08	Add filter method, number of analogs, common debug controls.
+! 2016-feb-09	Check for blank strings in required parameters.
+!
 ! Notes:
 !
 ! The configuration file is a simple text file containing file
@@ -25,10 +29,14 @@ contains
 
 subroutine read_config_file_main (config_file, obs_file_template, &
       interp_file_template, in_gridded_template, output_file_template, &
-      new_site_list_template, grid_coord_file, target_obs_var, &
-      target_model_var, analog_vars, lower_limits, upper_limits, is_circular)
+      new_site_list_template, grid_coord_file, site_exception_file, &
+      target_obs_var, target_model_var, analog_vars, lower_limits, &
+      upper_limits, is_circular, filter_method, num_analogs, &
+      output_limit_method, site_file_template, filter_array_file_template, &
+      stop_after_filter)
 
    use config, only : dp
+   use get_param_module
    use read__table_lines
    use stdlit, only : normal
    implicit none
@@ -41,12 +49,21 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    character(*), intent(out)              :: output_file_template
    character(*), intent(out)              :: new_site_list_template
    character(*), intent(out)              :: grid_coord_file
+   character(*), intent(out)              :: site_exception_file
    character(*), intent(out)              :: target_obs_var
    character(*), intent(out)              :: target_model_var
+
    character(*), intent(out), allocatable :: analog_vars(:)
    real(dp),     intent(out), allocatable :: lower_limits(:)
    real(dp),     intent(out), allocatable :: upper_limits(:)
    logical,      intent(out), allocatable :: is_circular(:)
+
+   character(*), intent(out)              :: filter_method
+   integer,      intent(out)              :: num_analogs
+   character(*), intent(out)              :: output_limit_method
+   character(*), intent(out)              :: site_file_template
+   character(*), intent(out)              :: filter_array_file_template
+   logical,      intent(out)              :: stop_after_filter
 
    integer get_free_unit			! function def.
 
@@ -104,35 +121,39 @@ read_file: &
    do					! structure for escape handling only
 
       call get_param_string ('obs file template', obs_file_template, cf, &
-         status, lnum)
+         status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('interp file template', interp_file_template, &
-         cf, status, lnum)
+         cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('gridded input file template',in_gridded_template,&
-         cf, status, lnum)
+         cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('output file template', output_file_template, &
-         cf, status, lnum)
+         cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('new site list template', new_site_list_template, &
-         cf, status, lnum)
+         cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('grid coordinate file', grid_coord_file, &
-         cf, status, lnum)
+         cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('site exception file', site_exception_file, &
+         cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('target obs variable', target_obs_var, cf, &
-         status, lnum)
+         status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('target model variable', target_model_var, cf, &
-         status, lnum)
+         status, lnum, nonblank)
       if (status /= normal) exit read_file
 
 !-----------------------------------------------------------
@@ -190,24 +211,59 @@ var_loop: &
       end do var_loop
 
       print *
+
+! Consistency check for specified model var.
+
+      if (.not. any (analog_vars(:) == target_model_var)) then
+         print *
+         print *, '*** Specified target model variable is not in the given' &
+            // ' var table.'
+         print *, '*** Target model variable = ' // trim (target_model_var)
+         exit read_file
+      end if
+
+!-----------------------------------------------------------
+! Read post processing and debug controls.
+!-----------------------------------------------------------
+
+      call get_param_string ('filter method', filter_method, cf, status, lnum, &
+         nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of analogs', num_analogs, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('output limit method', output_limit_method, cf, &
+         status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      print *
+
+      call get_param_string ('site file template', site_file_template, cf, &
+         status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('filter array file template', &
+         filter_array_file_template, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_yesno ('stop after filter', stop_after_filter, cf, &
+         status, lnum)
+      if (status /= normal) exit read_file
+
+      print *
       exit			! normal exit for single pass block structure
    end do read_file
+
+!-----------------------------------------------------------
+! End of read_file block.  Normal and error exits.
+!-----------------------------------------------------------
 
 ! Catch aborts from read_file block.
 
    if (status /= normal) then
       print '(a,i0)', '*** read_config_file_main: Abort, config file line' &
          // ' number = ', lnum
-      call exit (1)
-   end if
-
-! Consistency check for specified model var.
-
-   if (.not. any (analog_vars(:) == target_model_var)) then
-      print *, '*** read_config_file_main: Fatal:'
-      print *, '*** Specified target model variable is not in the given' &
-         // ' var table.'
-      print *, '*** Target model variable = ' // trim (target_model_var)
       call exit (1)
    end if
 

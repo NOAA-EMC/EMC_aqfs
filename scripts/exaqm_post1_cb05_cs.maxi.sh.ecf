@@ -5,7 +5,10 @@
 # Script name:         exaqm_cmaq_maxi.sh
 # Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
 #
-# Author:  Youhua Tang  Org: NP22  Date: 2009-06-30
+# Youhua Tang  Org: NP22  Date: 2009-06-30
+# Jianping Huang : 10/1/2016
+#          Change grib1 to grib2 
+#          added new products for PM2.5 with WMO Headers  
 #
 ######################################################################
 set -xa
@@ -14,41 +17,64 @@ export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
 cd $DATA
 
-while [ ! -s ${COMIN}/aqm.${cycle}.aconc.ncf ]; do
+while [ ! -s ${COMIN}/aqm.${cycle}.aconc_sfc.ncf ]; do
  sleep 120    # wait until the CMAQ output is ready
 done
 
-export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc.ncf
-export CMAQFILE2=${COMIN}/aqm.t00z.aconc.ncf
+export CMAQFILE1=${COMIN}/aqm.${cycle}.aconc_sfc.ncf
+if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then 
+ export CMAQFILE2=${COMIN}/aqm.t00z.aconc_sfc.ncf
+elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ];  then 
+ export CMAQFILE2=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ];  then
+ export CMAQFILE2=${COMINm2}/aqm.t12z.aconc_sfc.ncf
+fi
+
 if [ $cyc -eq 06 ]; then
- export CMAQFILE3=${COMIN}/aqm.t00z.aconc.ncf
+ if [ -s ${COMIN}/aqm.t00z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMIN}/aqm.t00z.aconc_sfc.ncf
+ elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
+ fi
 fi
 if [ $cyc -eq 12 ]; then
- export CMAQFILE3=${COMIN}/aqm.t06z.aconc.ncf
+ if [ -s ${COMIN}/aqm.t06z.aconc_sfc.ncf ] ; then 
+  export CMAQFILE3=${COMIN}/aqm.t06z.aconc_sfc.ncf
+ elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm1}/aqm.t12z.aconc_sfc.ncf
+ elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ] ; then
+  export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
+ fi
 fi
 
 cat >cmaq-maxi2grib.ini <<EOF5
 &control
-markutc=04
-outfile='aqm-maxi.148.grib'
+markutc=05
+outfile='aqm-maxi.148.grib2'
 varlist='o3_1hr','o3_8hr'
 id_gribdomain=148
 /
 EOF5
 
 startmsg
-$EXECaqm/aqm_post_maxi_CHA   >> ${pgmout} 2>errfile
+$EXECaqm/aqm_post_maxi_CHA_grib2_v2   >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 # interpolate to grid 227
 
-$COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib aqm-maxi.227.grib
 
-$WGRIB -s aqm-maxi.227.grib | grep "OZMAX1" | $WGRIB -i aqm-maxi.227.grib -grib -o aqm-1hro3-maxi.227.grib
-$WGRIB -s aqm-maxi.227.grib | grep "OZMAX8" | $WGRIB -i aqm-maxi.227.grib -grib -o aqm-8hro3-maxi.227.grib
+$WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.1ho3-max.148.grib2
+$WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.8ho3-max.148.grib2
 
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+$COPYGB2  -g "$grid227" -x  -i"2 2"  aqm-maxi.148.grib2  aqm-maxi.227.grib2 
+$WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-1hro3-maxi.227.grib2
+$WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-8hro3-maxi.227.grib2
 
 # write out pm2.5 in grib2 format
+
 cat >cmaq-maxi2grib.ini <<EOF5
 &control
 markutc=05
@@ -59,7 +85,7 @@ id_gribdomain=148
 EOF5
 
 startmsg
-$EXECaqm/aqm_post_maxi_CHA_grib2  >> ${pgmout} 2>errfile
+$EXECaqm/aqm_post_maxi_CHA_grib2_v2  >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
@@ -72,31 +98,35 @@ export err=$?;err_chk
 $WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib  aqm.${cycle}.24hpm25-ave.148.grib2
 export err=$?;err_chk
 #-----------------------------------------
-$WGRIB2 aqm-pm25_24hr.227.grib2 -d 1 -grib aqm-1hr-pm25-daily-max.227.grib2
+#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 1 -grib aqm-1hr-pm25-daily-max.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.227.grib2 -grib aqm.${cycle}.1hpm25-max.227.grib2
 export err=$?;err_chk
-$WGRIB2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
-export err=$?;err_chk
-
-if [ -f ${MAQFILE2} ]; then
-#------------
-$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
+#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
+$WGRIB2 aqm-pm25_24hr.227.grib2 |grep "PMTF"   | $WGRIB2 -i aqm-pm25_24hr.227.grib2 -grib aqm.${cycle}.24hrpm25-ave.227.grib2
 export err=$?;err_chk
 
-$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.24hpm25-ave.148.grib2
-export err=$?;err_chk
+#if [ -f ${MAQFILE2} ]; then
+##------------
+#$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
+#export err=$?;err_chk
+
+#$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.24hpm25-ave.148.grib2
+#export err=$?;err_chk
 #-----------
-$WGRIB2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib aqm-1hr-pm25-daily-max.227.grib2
-export err=$?;err_chk
+#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib aqm-1hr-pm25-daily-max.227.grib2
+#export err=$?;err_chk
 
-$WGRIB2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib aqm-24hr-pm25-daily-ave.227.grib2
-export err=$?;err_chk
+#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib aqm-24hr-pm25-daily-ave.227.grib2
+#export err=$?;err_chk
 
-fi
+#fi
+
+#stop
 
 for hr in 1 8
 do
 
-$CNVGRIB -g12 -m -p32  aqm-${hr}hro3-maxi.227.grib aqm-${hr}hro3-maxi.227.grib2
+#$CNVGRIB -g12 -m -p32  aqm-${hr}hro3-maxi.227.grib aqm-${hr}hro3-maxi.227.grib2
 
 echo 0 > filesize
 export XLFRTEOPTS="unit_vars=yes"
@@ -111,10 +141,52 @@ export XLFRTEOPTS="unit_vars=yes"
 export FORT11=aqm-${hr}hro3-maxi.227.grib2.temp
 export FORT12="filesize"
 export FORT31=
-export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227
+#export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227
+export FORT51=awpaqm.${cycle}.${hr}ho3-max.227.grib2
 ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
 
+done 
+########################################################
+# Add WMO header for daily 1h PM2.5 and 24hr_ave PM2.5
+########################################################
+#  daily_1hr_max_PM2.5
+rm -rf filesize
+echo 0 > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm.${cycle}.1hpm25-max.227.grib2
+export FORT12="filesize"
+export FORT31=
+export FORT51=aqm.${cycle}.max_1hr_pm25.227.grib2.temp
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25.${cycle}.227
+
+echo `ls -l  aqm.${cycle}.max_1hr_pm25.227.grib2.temp | awk '{print $5} '` > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm.${cycle}.max_1hr_pm25.227.grib2.temp
+export FORT12="filesize"
+export FORT31=
+export FORT51=awpaqm.${cycle}.daily-1hr-pm25-max.227.grib2
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25.${cycle}.227
+
+
 rm filesize
+#  daily_24hr_ave_PM2.5
+echo 0 > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm.${cycle}.24hrpm25-ave.227.grib2
+export FORT12="filesize"
+export FORT31=
+export FORT51=aqm.${cycle}.24hrpm25-ave.227.grib2.temp
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
+
+#echo `ls -l  aqm.${cycle}.24hrpm25-ave.227.grib2 | awk '{print $5} '` > filesize
+echo `ls -l  aqm.${cycle}.24hrpm25-ave.227.grib2.temp | awk '{print $5} '` > filesize
+export XLFRTEOPTS="unit_vars=yes"
+export FORT11=aqm.${cycle}.24hrpm25-ave.227.grib2.temp
+export FORT12="filesize"
+export FORT31=
+export FORT51=awpaqm.${cycle}.24hr-pm25-ave.227.grib2
+${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
+
 
        ##############################
        # Post Files to PCOM
@@ -122,35 +194,36 @@ rm filesize
 
        if test "$SENDCOM" = 'YES'
        then
-           cp grib2.${envir}.${cycle}.aqm-${hr}hro3-max.227  $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+           cp awpaqm.${cycle}.*o3-max.227.grib2            $PCOM/
+           cp awpaqm.${cycle}.daily-1hr-pm25-max.227.grib2 $PCOM/ 
+           cp awpaqm.${cycle}.24hr-pm25-ave.227.grib2      $PCOM/ 
 
           ##############################
           # Distribute Data
           ##############################
 
           if [ "$SENDDBN_NTC" = 'YES' ] ; then
-            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $pcom/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.${hr}ho3-max.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"
           fi
        fi
 
-done
+#done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
- cp grib2.${envir}.${cycle}.aqm-1hro3-max.227 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
- cp grib2.${envir}.${cycle}.aqm-8hro3-max.227 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
- cp aqm-maxi.148.grib $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.148
-
- cp aqm-1hr-pm25-daily-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
- cp aqm-24hr-pm25-daily-ave.227.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
- cp aqm.${cycle}.1hpm25-max.148.grib2 $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2
- cp aqm.${cycle}.24hpm25-ave.148.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25.148.grib2
- $COPYGB -g 227 -x -i"1 1" aqm-maxi.148.grib grib1.${envir}.${cycle}.aqm-daily-max.227
- $CNVGRIB -g12 -m -p32 grib1.${envir}.${cycle}.aqm-daily-max.227 $COMOUT/aqm.${cycle}.max_1hr_8hr_o3.227.grib2
+  cp awpaqm.${cycle}.1ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+  cp awpaqm.${cycle}.8ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+  cp aqm.${cycle}.*ho3-max.148.grib2      $COMOUT/
+  cp aqm.${cycle}.1hpm25-max.227.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
+  cp aqm.${cycle}.24hrpm25-ave.227.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
+  cp aqm.${cycle}.1hpm25-max.148.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2
+  cp aqm.${cycle}.24hpm25-ave.148.grib2   $COMOUT/aqm.${cycle}.ave_24hr_pm25.148.grib2
  if [ "$SENDDBN" = 'YES' ] ; then
   $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
   $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
+  $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
  fi
 fi

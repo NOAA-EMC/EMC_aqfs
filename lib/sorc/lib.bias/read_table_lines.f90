@@ -6,6 +6,7 @@
 ! NCO/ARL/PSD bias correction program for CMAQ forecast outputs.
 !
 ! 2014-apr-24	Original version.  By Dave Allured.
+! 2016-jan-12	Minor library upgrade.  Use string_utils module.
 !
 ! This routine reads a single variable length table, as
 ! unprocessed text lines
@@ -31,6 +32,7 @@ contains
 subroutine read_table_lines (cf, header, lines, nlines, line_num)
 
    use stdlit
+   use string_utils
    implicit none
 
    integer,      intent(in   ) :: cf		! config file unit number

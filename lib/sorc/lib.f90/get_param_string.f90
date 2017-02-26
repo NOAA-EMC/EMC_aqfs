@@ -1,4 +1,4 @@
-!---------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !
 ! get_param_string -- Get specified parameter string from a text file.
 !
@@ -12,6 +12,7 @@
 ! 1.02	2000-sep-29	Fix syntax bug "found = false" (benign)
 ! 1.03	2000-dec-29	Fortran 90 compatibility
 ! 1.04	2001-jan-18	New calling convention for read_line
+!
 ! 2.00	2001-feb-14	Add file unit number argument
 !			Remove references to "control file"
 !			Convert to Fortran 90
@@ -19,10 +20,15 @@
 ! 2.01	2001-aug-28	Remove globals.h dependency; use stdlit.h instead
 ! 2.02	2001-aug-31	Change from stdlit.h to stdlit module; f90 free format
 !
+! 3.00	2016-feb-09	Upgrade to module interface.
+!			This file must now be included in a container module.
+!			Add optional argument "nonblank" for required string.
+!
 ! input:	label = text label expected on next line in file
 !			(left justified, equal sign not included)
 !		filenum = file unit number of file to read
 !		line_num = line number of previous line read from this file
+!		nonblank = optional, present & True to require non-blank string.
 !
 ! output:	value = string value of parameter, left justified
 !		status = normal, fail, or eof status code (see globals.h)
@@ -40,7 +46,7 @@
 !		line read from the file.  The general format of the
 !		parameter line is:
 !
-!		    label = value 
+!		    label = value
 !
 !		Leading and trailing spaces are allowed around these
 !		elements.  However, embedded spaces in the label must
@@ -54,18 +60,22 @@
 !		all comment lines are ignored.  Comment lines are either
 !		null, all spaces, or beginning with an asterisk (*).
 !
-!---------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 
-subroutine get_param_string (label, value, filenum, status, line_num)
-   
+subroutine get_param_string (label, value, filenum, status, line_num, nonblank)
+
    use stdlit
-   use config
-   
+   use config, only : line_dim
    implicit none
-   character label*(*), value*(*)
-   integer filenum, status, line_num
-   
-   character*(line_dim) line_in, line, value1
+
+   character(*),      intent (in   ) :: label
+   character(*),      intent (  out) :: value
+   integer,           intent (in   ) :: filenum
+   integer,           intent (  out) :: status
+   integer,           intent (inout) :: line_num
+   logical, optional, intent (in   ) :: nonblank
+
+   character(line_dim) line_in, line, value1
    integer linelen, equal
 
 ! Read, echo, and parse parameter line.
@@ -73,7 +83,7 @@ subroutine get_param_string (label, value, filenum, status, line_num)
    call read_line (filenum, line_in, linelen, status, line_num)
 
    if (status == normal) then		! if not eof...
-   
+
       call message (line_in)		! always echo parameter line to display
 
       line = adjustl (line_in)		  ! discard leading spaces
@@ -82,7 +92,7 @@ subroutine get_param_string (label, value, filenum, status, line_num)
       if (equal == 0 .or. line(1:equal-1) /= label) then
          status = fail
       end if
-      
+
    end if
 
 ! Check for eof or unrecognized label.
@@ -97,12 +107,25 @@ subroutine get_param_string (label, value, filenum, status, line_num)
 
    value1 = adjustl (line(equal+1:))	! left-justify value string
    value = value1			! copy to output string
-   
-   if (len_trim (value1) > len (value)) then	! overflow output str?
+
+   if (len_trim (value1) > len (value)) then	! overflow output string?
       call message ('*** Parameter string too long')
       status = fail
+      return
    end if
 
-   return				! exit with normal or error status
+! Optional check for non-blank string.
+
+   if (present (nonblank)) then
+      if (nonblank .eqv. .true.) then
+         if (value == ' ') then
+            call message ('*** Non-blank parameter value is required.')
+            status = fail
+            return
+          end if
+       end if
+   end if
+
+! Normal exit here.
 
 end subroutine get_param_string

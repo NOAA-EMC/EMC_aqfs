@@ -1,0 +1,165 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<META NAME="MSSmartTagsPreventParsing" CONTENT="TRUE"> 
+<TITLE> I/O API Sample Programs </TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF"
+      TOPMARGIN="15" 
+      MARGINHEIGHT="15" 
+      LEFTMARGIN="15" 
+      MARGINWIDTH="15">
+
+<!--#include virtual="/INCLUDES/header.html" -->
+
+<H1>    Some Sample Programs Using the I/O&nbsp;API </H1>
+
+    Here are three sample programs to show normal usage of the
+    I/O&nbsp;API.  These programs were designed to show some typical
+    uses in a meaningful fashion (i.e., the programs really <U>do</U>
+    compute something useful).  These programs also use a number of the
+    utility and coordinate transformation routines.  Along with these
+    programs, a number of I/O&nbsp;API data manipulation programs are
+    also distributed, in the <VAR>m3tools</VAR> subdirectory of the
+    release;m they are <A HREF="AA.html#tools">documented here in the
+    I/O&nbsp;API User Manual</A>.
+    
+    These sample programs are:
+    <UL>
+        <LI>  <A HREF = "LATLON.txt"><STRONG>LATLON </STRONG></A> 
+              computes single-layer time-independent gridded and/or
+              boundary files containing variables &quot;LAT&quot;
+              and &quot;LON&quot; containing latitudes and longitudes 
+              at cell centers for the specified grid and/or its boundary 
+              (the choice of which file (or both) to generate is a 
+              user option).  Uses
+              <UL>
+                  <LI>  <A HREF = "DSCGRID.html">DSCGRID</A>
+                  <LI>  <A HREF = "GETDBLE.html">GETDBLE</A>
+                  <LI>  <A HREF = "GETMENU.html">GETMENU</A>
+                  <LI>  <A HREF = "GETNUM.html">GETNUM</A>
+                  <LI>  <A HREF = "GETREAL.html">GETREAL</A>
+                  <LI>  <A HREF = "GETSTR.html">GETSTR</A>
+                  <LI>  <A HREF = "GETYN.html">GETYN</A>
+                  <LI>  <A HREF = "M3EXIT.html">M3EXIT</A>
+                  <LI>  <A HREF = "M3WARN.html">M3WARN</A>
+                  <LI>  <A HREF = "OPEN3.html">OPEN3</A>
+                  <LI>  <A HREF = "TRIMLEN.html">TRIMLEN</A>
+                  <LI>  <A HREF = "LAMBERT.html">SETLAM</A>
+                  <LI>  <A HREF = "LAMBERT.html">LAM2LL</A>
+                  <LI>  <A HREF = "UTM2LL.html">UTM2LL</A>
+                  <LI>  <A HREF = "WRITE3.html">WRITE3</A>
+              </UL>
+              <P> 
+        <LI>  <A HREF = "PRESZ.txt"><STRONG>PRESZ </STRONG></A> 
+              optionally reads in a file containing gridded terrain
+              heights, prompts the user for a (hydrostatic) vertical
+              grid, and then constructs a time-independent layered 
+              gridded file containing variables
+              <UL>
+                  <LI>  ZH (meters), hypsometric-approximation heights
+                        at the half-levels (i.e., at layer centers).
+                  <LI>  ZF(meters), heights at the full levels (i.e., 
+                        at layer-tops).
+                  <LI>  PRESH, pressures at the half-levels.
+                  <LI>  PRESF, pressures at the full levels.
+              </UL>
+              Uses
+              <UL>
+                  <LI>  <A HREF = "DESC3.html">DESC3</A>
+                  <LI>  <A HREF = "DSCGRID.html">DSCGRID</A>
+                  <LI>  <A HREF = "GETDBLE.html">GETDBLE</A>
+                  <LI>  <A HREF = "GETMENU.html">GETMENU</A>
+                  <LI>  <A HREF = "GETNUM.html">GETNUM</A>
+                  <LI>  <A HREF = "GETREAL.html">GETREAL</A>
+                  <LI>  <A HREF = "GETSTR.html">GETSTR</A>
+                  <LI>  <A HREF = "GETYN.html">GETYN</A>
+                  <LI>  <A HREF = "M3EXIT.html">M3EXIT</A>
+                  <LI>  <A HREF = "M3WARN.html">M3WARN</A>
+                  <LI>  <A HREF = "OPEN3.html">OPEN3</A>
+                  <LI>  <A HREF = "READ3.html">READ3</A>
+                  <LI>  <A HREF = "TRIMLEN.html">TRIMLEN</A>
+                  <LI>  <A HREF = "WRITE3.html">WRITE3</A>
+              </UL>
+              <P>
+        <LI>  <A HREF = "SFCMET.txt"><STRONG>SFCMET </STRONG></A> reads
+              in an ASCII hourly surface meteorology observation file
+              in the format used by the National Climactic Data Center,
+              and puts out its data in an ID-referenced-type hourly
+              time-stepped I/O API file.  Workstation only.  Uses
+              <UL>
+                  <LI>  <A HREF = "GETDBLE.html">GETDBLE</A>
+                  <LI>  <A HREF = "GETMENU.html">GETMENU</A>
+                  <LI>  <A HREF = "GETNUM.html">GETNUM</A>
+                  <LI>  <A HREF = "GETREAL.html">GETREAL</A>
+                  <LI>  <A HREF = "GETSTR.html">GETSTR</A>
+                  <LI>  <A HREF = "GETYN.html">GETYN</A>
+                  <LI>  <A HREF = "M3EXIT.html">M3EXIT</A>
+                  <LI>  <A HREF = "M3WARN.html">M3WARN</A>
+                  <LI>  <A HREF = "OPEN3.html">OPEN3</A>
+                  <LI>  <A HREF = "PROMPTFFILE.html">PROMPTFFILE</A>
+                  <LI>  <A HREF = "READSMET.html">READSMET</A>
+                  <LI>  <A HREF = "TRIMLEN.html">TRIMLEN</A>
+                  <LI>  <A HREF = "WRITE3.html">WRITE3</A>
+              </UL>
+    </UL>
+
+    <STRONG>Executables for these programs</STRONG> are available for
+    each <A HREF = "LIBS.html"> supported workstation architecture </A>
+    in the directories <VAR>/env/proj/(SunOS5 | IRIX5 | alphaOSF1)/bin</VAR>.
+    <STRONG>Before you run the programs,</STRONG> you need to assign 
+    <A HREF = "LOGICALS.html"> logical names </A> to the physical file
+   names of output files and the <A HREF = "GRIDDESC.html">GRIDDESC</A> 
+    file according to Models-3 conventions, using the operation 
+    <PRE>
+        &quot;setenv <VAR>&lt;lname&gt; &lt;pname&gt;</VAR>&quot;
+    </PRE>
+    <STRONG>The programs will prompt you</STRONG> for the logical names
+   you have chosen for the input files, and then for the run
+    specifications (in these cases, mainly for the
+    specifications of grid and coordinate system to be used.  The 
+    prompts will have default responses indicated in square brackets
+    [LIKE THIS] which can be accepted  by hitting &lt;RETURN&gt;.  
+    <P> 
+                             
+    To <STRONG>build</STRONG> the programs:
+    <UL>
+        <LI>  save the source code (e.g., as &quot;latlon.F&quot;)
+              in a directory which also contains
+              <A HREF = "PARMS3.txt">PARMS3.EXT</A>,
+              <A HREF = "FDESC3.txt">FDESC3.EXT</A>, and
+              <A HREF = "IODECL3.txt">IODECL3.EXT</A>
+        <LI>  compile them on the workstation cluster using a compile
+              line such as
+    <PRE> 
+        f77 latlon.F -o latlon -L/env/apps/SunOS5/lib -lioapi -lnetcdf
+    </PRE>
+              Note that since LATLON and PRESZ require the use of
+              &quot;cpp&quot;, they should be saved as &quot;.F&quot;
+              files rather than &quot;.f&quot; files.
+    </UL>
+
+
+<HR> <!----------------------------------------------------------------->
+
+<A HREF = "NCDUMP.html" >
+next:  <STRONG>NCDUMP</STRONG>
+</A><P> 
+
+<A HREF = "AA.html#tools"> 
+Up: <STRONG>Related Programs</STRONG> 
+</A><P>
+
+<A HREF = "AA.html"> 
+To: <STRONG>Models-3/EDSS I/O API:   The Help Pages</STRONG> 
+</A><P>
+
+<HR> <!----------------------------------------------------------------->
+
+<!--#include virtual="/INCLUDES/footer.html" -->
+    
+</BODY>
+</HTML>
+
