@@ -1,5 +1,5 @@
 #BSUB -J %E%aqm_prephyb_conus_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prephyb_conus_%CYC%.o%J
+#BSUB -o /%COM_OUTPUT%/%ENVIR%/today/aqm_prephyb_conus_%CYC%.o%J
 #BSUB -e /%COM%/output/%ENVIR%/today/aqm_prephyb_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -cwd /tmpnwprd
