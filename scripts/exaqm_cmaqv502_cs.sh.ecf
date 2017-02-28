@@ -256,22 +256,22 @@ OMIfile=OMI.dat
 
 #meterology files
 
-# ic=1
-#  while [ $ic -lt 1081 ]
-#  do
-#    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
-#    then
-#    break
-#    else
-#          let "ic=ic+1"
-#          sleep 10
-#      fi
-#
-#      if [ $ic -ge 180 ]
-#      then
-#      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
-#      fi
-#   done   
+ ic=1
+  while [ $ic -lt 1081 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+    then
+    break
+    else
+          let "ic=ic+1"
+          sleep 10
+      fi
+
+      if [ $ic -ge 180 ]
+      then
+      err_exit "****FATAL ERROR*** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.metcro3d.ncf"
+      fi
+   done   
    
 if [ "$FCST" = "YES" ]
 then

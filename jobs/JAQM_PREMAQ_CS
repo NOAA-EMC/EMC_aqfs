@@ -39,7 +39,7 @@ export COMINm1=${COMINm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 export COMOUT=${COMOUT:-$COMROOT/$NET/$envir/$RUN.$PDY}
 export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
-export NGAC_DIR=${NGAC_DIR:-$COMROOTp1/ngac/prod}
+export NGAC_DIR=${NGAC_DIR:-$COMROOTp2/ngac/prod}
 export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/prod/emission}
 export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/prod}
 

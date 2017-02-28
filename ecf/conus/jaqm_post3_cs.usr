@@ -23,6 +23,7 @@ export SENDECF=${SENDECF:-YES}
 export SENDDBN_NTC=${SENDDBN_NTC:-YES}
 
 source /opt/modules/default/init/ksh
+module unload PrgEnv-cray
 module load PrgEnv-intel
 module load prod_util
 module load prod_envir

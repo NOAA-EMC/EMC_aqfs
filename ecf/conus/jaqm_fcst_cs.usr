@@ -14,6 +14,7 @@
 #%include <envir-xc40.h>
 #
 source /opt/modules/default/init/ksh 
+module unload PrgEnv-cray
 module load PrgEnv-intel
 module load iobuf
 module load prod_util
