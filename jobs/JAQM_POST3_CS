@@ -1,8 +1,5 @@
 #!/bin/ksh
 
-#source /opt/modules/default/init/ksh
-#module load prod_util
-
 date
 export PS4=' $SECONDS + '
 set -x
@@ -19,7 +16,7 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
@@ -37,7 +34,7 @@ export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 mkdir -p $COMOUT
 

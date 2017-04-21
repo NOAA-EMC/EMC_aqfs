@@ -305,7 +305,7 @@ c  modifed by jphuang 02/01/2010
       listsec1(6)=int(istime(1)/100000)
       listsec1(7)=imonth1
       listsec1(8)=idate1
-      listsec1(9)=mod(istime(1),100)
+      listsec1(9)=mod(istime(1),100)-1
       listsec1(10)=00     ! Reference time - Minute
       listsec1(11)=00     ! Reference time - Second
       listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)

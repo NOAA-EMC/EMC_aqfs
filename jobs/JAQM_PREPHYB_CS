@@ -17,7 +17,7 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm

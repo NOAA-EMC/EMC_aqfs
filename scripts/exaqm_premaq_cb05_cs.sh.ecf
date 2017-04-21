@@ -141,7 +141,8 @@ else
 fi
 
 while [ $fhr -le $endfhr ]; do
-  ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
+  #XXW ln -s $COMNAM/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
+  ln -s $COMIN/aqm.${cycle}.nmm${fhr}.tm00  $DATA/.
   let "fhr=fhr+1"
   typeset -Z2 fhr
 done

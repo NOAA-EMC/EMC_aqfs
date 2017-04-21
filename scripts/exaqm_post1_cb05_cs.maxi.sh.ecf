@@ -203,7 +203,10 @@ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
           ##############################
 
           if [ "$SENDDBN_NTC" = 'YES' ] ; then
-            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.${hr}ho3-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.1ho3-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.8ho3-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.daily-1hr-pm25-max.227.grib2
+            $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.${cycle}.24hr-pm25-ave.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."
              postmsg "$jlogfile" "$msg"

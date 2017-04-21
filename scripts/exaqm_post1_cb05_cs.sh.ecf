@@ -41,8 +41,10 @@ ${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $CO
 export err=$?;err_chk
 
 startmsg
-${USHaqm}/aqm_csum.sh -kf -kl -sl ${FIXaqm}/vlist.twoways.5.0.2.v1 $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf >>$pgmout 2>$DATA/errfile1
+${USHaqm}/aqm_csum.sh -kf -kl -sl ${FIXaqm}/vlist.twoways.5.0.2.v2 $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf >>$pgmout 2>$DATA/errfile1
 export err=$?;err_chk
+
+ecflow_client --event release_bicor
 
 rm -rf $DATA/check_file.log1
 while [ ! -s $DATA/check_file.log1 ] ; do
@@ -165,6 +167,11 @@ do
   for field in awpozcon awpozcat chem_sfc 
    do
     cp $DATA/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2 $COMOUT/
+    if [ $field = awpozcon ]; then
+      if [ $SENDDBN = YES ]; then
+        $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2
+      fi
+    fi
    done
 
  fi
@@ -209,7 +216,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
 
   cp -rp aqm.t${cyc}z.ave_1hr_o3.227.grib2 $COMOUT/
   cp -rp aqm.t${cyc}z.ave_8hr_o3.227.grib2 $COMOUT/
-  cp -rp aqm.t${cyc}z.grib2_5xpm25nmmb.227 $COMOUT/aqm.t${cyc}z.ave_1h_pm25.227.grib2
+  cp -rp aqm.t${cyc}z.grib2_5xpm25nmmb.227 $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
 
   if [ "$SENDDBN" = 'YES' ] ; then
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_o3.227.grib2
@@ -254,7 +261,7 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
           # Distribute Data
           ##############################
 
-          if [ "$SENDDBN_NTC" = 'YES' ] ; then
+          if [ "$SENDDBN" = 'YES' ] ; then
              $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.t${cyc}z.${hr}ho3.227.grib2
           else
              msg="File $output_grb.$job not posted to db_net."

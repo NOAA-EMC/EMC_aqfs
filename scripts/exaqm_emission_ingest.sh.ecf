@@ -18,8 +18,8 @@ set -x
 ##################
 
 # for the production mailing list
-#maillist='ncep.list.spa-helpdesk@noaa.gov ncep.list.pmb-dataflow@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
-maillist='ncep.list.spa-helpdesk@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
+#XXW maillist='ncep.list.spa-helpdesk@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
+maillist='Xiaoxue.Wang@noaa.gov'
 
 # calculate number days of the next month
 days_in_next_month=`cal $(date +%m -d 'next month') $(date +%Y) | grep -v '[A-Za-z]' | wc -w`
@@ -61,6 +61,7 @@ echo "number days of the next year= $number_days_next_year"
 #where the monthly emission directory
 in_dir=$DCOMIN/$yyyymm
 out_dir=$COMOUT/$yyyymm
+out_dir_hps=$COMOUThps/$yyyymm
 
 #    copy monthly emission files from /dcom to /com
 # dcom directory check
@@ -85,25 +86,39 @@ if (( $no_files_in_dcom == 0 )); then
     err_exit "FATAL ERROR- No ARL AQM monthly emission file in $in_dir"
 fi
  
-mkdir -p -m 775 $out_dir
+mkdir -p -m 775 $out_dir $out_dir_hps
 cp -p $in_dir/* $out_dir/.
+cp -p $in_dir/* $out_dir_hps/.
 
 # check the file number monthly directory
 
 no_file_in_com=`ls $out_dir/* | wc -l`
-no_file_shouldbe=$(( 6 * $days_in_next_month ))
+no_file_shouldbe=$(( 4 * $days_in_next_month ))
 
 if (( $no_file_in_com != $no_file_shouldbe )); then
     echo " the number files copied to com= $no_file_in_com
     echo " the number files should be in com= $no_file_shouldbe
 
-    subject="FATAL --- number of ARL AQM monthly emission files is incorrect"
-    echo " FATAL ERROR --- number of ARL AQM monthly emission files in $out_dir is incorrect" > email_body
+    subject="FATAL --- number of ARL AQM monthly emission files for OCUNUS is incorrect"
+    echo " FATAL ERROR --- number of ARL AQM monthly emission files for OCONUS in $out_dir is incorrect" > email_body
     cat email_body |mail -s "$subject" $maillist
 
-    err_exit "FATAL ERROR- number of ARL AQM monthly emission files in $out_dir is incorrect"
+    err_exit "FATAL ERROR- number of ARL AQM monthly emission files for OCONUS in $out_dir is incorrect"
 fi
  
+no_file_in_comhps=`ls $out_dir_hps/* | wc -l`
+no_file_shouldbe=$(( 2 * $days_in_next_month ))
+
+if (( $no_file_in_comhps != $no_file_shouldbe )); then
+    echo " the number files copied to com= $no_file_in_comhps
+    echo " the number files should be in com= $no_file_shouldbe
+
+    subject="FATAL --- number of ARL AQM monthly emission files for CONUS is incorrect"
+    echo " FATAL ERROR --- number of ARL AQM monthly emission files CONUS in $out_dir_hps is incorrect" > email_body
+    cat email_body |mail -s "$subject" $maillist
+
+    err_exit "FATAL ERROR- number of ARL AQM monthly emission files for CONUS in $out_dir_hps is incorrect"
+fi
 # check the file size
 no_filesize_in_AK=`ls -l $out_dir/*AK* | cut -d' ' -f5 | sort -u | wc -l`
 filesize_in_AK=`ls -l $out_dir/*AK* | cut -d' ' -f5 | sort -u | head -1`
@@ -145,13 +160,13 @@ if (( $filesize_in_HI < 36000000 )); then
     err_exit "FATAL ERROR- the monthly emission HI domain file size is not large enough"
 fi
  
-no_filesize_in_CONUS=`ls -l $out_dir/*CONUS* | cut -d' ' -f5 | sort -u | wc -l`
-filesize_in_CONUS=`ls -l $out_dir/*CONUS* | cut -d' ' -f5 | sort -u | head -1`
+no_filesize_in_CONUS=`ls -l $out_dir_hps/*CONUS* | cut -d' ' -f5 | sort -u | wc -l`
+filesize_in_CONUS=`ls -l $out_dir_hps/*CONUS* | cut -d' ' -f5 | sort -u | head -1`
 
 if (( $no_filesize_in_CONUS > 2 )); then
 
     subject="Warning --- some file sizes of ARL AQM monthly CONUS domain emission are different"
-    echo " Warning --- some file sizes of ARL AQM monthly CONUS domain in $out_dir are different" > email_body
+    echo " Warning --- some file sizes of ARL AQM monthly CONUS domain in $out_dir_hps are different" > email_body
     cat email_body |mail -s "$subject" $maillist
 
 fi
@@ -159,7 +174,7 @@ fi
 if (( $filesize_in_CONUS < 1100000000 )); then
 
     subject="FATAL --- the file size of ARL AQM monthly CONUS domain emission is incorrect"
-    echo " FATAL ERROR --- the file size of ARL AQM monthly CONUS domain in $out_dir is incorrect" > email_body
+    echo " FATAL ERROR --- the file size of ARL AQM monthly CONUS domain in $out_dir_hps is incorrect" > email_body
     cat email_body |mail -s "$subject" $maillist
 
     err_exit "FATAL ERROR- the monthly emission CONUS domain file size is not large enough"
@@ -177,12 +192,6 @@ cat email_body |mail -s "$subject" $maillist
 ###############################################################
 # This section checks and copies the yearly emission files
 ###############################################################
-
-# For test purpose by Luke
-#### Test area ###########
-#  next_month=01
-#  next_year=2015
-#### Test area ###########
 
 if (( $next_month == 01 )); then
    #where the yearly emission directory
@@ -263,13 +272,6 @@ fi
 # This section checks and copies the jtable files
 ###############################################################
 
-# For test purpose by Luke
-#### Test area ###########
-#   next_month=01
-#   next_year=2015
-#   number_days_next_year=365
-#### Test area ###########
-
 if (( $next_month == 01 )); then
    # where the yearly jtable directory
    in_dir=$DCOMIN/JTable/$next_year
@@ -329,6 +331,3 @@ if (( $next_month == 01 )); then
    cat email_body |mail -s "$subject" $maillist
 
 fi
-
-
-

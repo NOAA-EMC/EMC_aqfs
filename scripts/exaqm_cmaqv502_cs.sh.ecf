@@ -256,10 +256,17 @@ OMIfile=OMI.dat
 
 #meterology files
 
+ if [ "$FCST" = "YES" ] ; then 
+  IT_testfl=$COMIN/aqm.${cycle}.metcro3d.ncf
+ else
+  IT_testfl=$COMINm1/aqm.${cycle}.metcro3d.ncf
+ fi
+
  ic=1
   while [ $ic -lt 1081 ]
   do
-    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+#    if [ -s $COMIN/aqm.${cycle}.metcro3d.ncf ]
+    if [ -s ${IT_testfl}  ]
     then
     break
     else

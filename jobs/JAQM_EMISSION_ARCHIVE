@@ -11,7 +11,7 @@ export pid=$$
 
 # PATH for working directory
 
-export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
+export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
@@ -28,9 +28,17 @@ export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
 
 #  Default is NO: output to HPSS. YES: output to TSM
 export TSM_FLAG=NO
-export HPSSOUT=${HPSSOUT:-/NCEPPROD/hpssprod/runhistory}
-export HPSSOUT_OBS=${HPSSOUT_OBS:-/NCEPOBSERV/hpssprod/runhistory}
-export TSMOUT=${TSMOUT:-/hsmprod/runhistory}
+
+if [ $envir = prod ]; then
+  export HPSSOUT=${HPSSOUT:-/NCEPPROD/hpssprod/runhistory}
+  export HPSSOUT_OBS=${HPSSOUT_OBS:-/NCEPOBSERV/hpssprod/runhistory}
+  export TSMOUT=${TSMOUT:-/hsmprod/runhistory}
+else
+  export HPSSOUT=${HPSSOUT:-/NCEPPROD/hpsspara/runhistory}
+  export HPSSOUT_OBS=${HPSSOUT_OBS:-/NCEPOBSERV/hpsspara/runhistory}
+  export TSMOUT=${TSMOUT:-/hsmpara/runhistory}
+fi
+
 
 ####################################
 # Export variable for TSM write
@@ -42,21 +50,16 @@ export SCP_CONFIG='-oNoneEnabled=yes -oNoneSwitch=yes -F /home/nwprod/.ossh/ssh_
 #export TMPDIR=$DATA
 
 ####################################
-# Copy Operational Util Scripts to $DATA
-####################################
-module load prod_util
-module load grib_util
-
-####################################
 # Determine Job Output Name on System
 ####################################
-export pgmout="OUTPUT.${pid}"
+export pgmout="OUTPUT.$$"
 
 export HOMErhist=${HOMErhist:-${NWROOT}/cmaq.${cmaq_ver}}
 export USHrhist=${USHrhist:-$HOMErhist/ush}
 export PARMrhist=${PARMrhist:-$HOMErhist/parm}
 
-export RUN_DAY=${RUN_DAY:-16}
+#XXW export RUN_DAY=${RUN_DAY:-16}
+export RUN_DAY=${RUN_DAY:-10}
 
 export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
 

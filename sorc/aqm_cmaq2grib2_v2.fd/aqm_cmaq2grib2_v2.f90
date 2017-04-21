@@ -371,16 +371,16 @@
       listsec1(4)=1       ! Version number of GRIB local tables used to augment Master Tables (Table 1.1)
       listsec1(5)=1       ! Significance of reference time (Table 1.2)(0:ana 1:fcst 2:vrfy)
 ! following need to be changed !
-      listsec1(6)=mod(istime(1)/100000,100) ! Initial yy of analysis or forecast
-      listsec1(7)=imonth      ! Reference time - Month
-      listsec1(8)=idate      ! Reference time - Day
-      listsec1(9)=mod(istime(1),100)-1      ! Reference time - Hour
-!      jjdate=int(istime(1)/100)
-!      call daymon(jjdate,imonth1,idate1)
-!      listsec1(6)=int(istime(1)/100000)
-!      listsec1(7)=imonth1
-!      listsec1(8)=idate1
-!      listsec1(9)=mod(istime(1),100)
+!      listsec1(6)=mod(istime(1)/100000,100) ! Initial yy of analysis or forecast
+!      listsec1(7)=imonth      ! Reference time - Month
+!      listsec1(8)=idate      ! Reference time - Day
+!      listsec1(9)=mod(istime(1),100)-1      ! Reference time - Hour
+      jjdate=int(istime(1)/100)
+      call daymon(jjdate,imonth1,idate1)
+      listsec1(6)=int(istime(1)/100000)
+      listsec1(7)=imonth1
+      listsec1(8)=idate1
+      listsec1(9)=mod(istime(1),100)-1
       listsec1(10)=00     ! Reference time - Minute
       listsec1(11)=00     ! Reference time - Second
       listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
@@ -598,6 +598,11 @@
 !jp       ipdstmpl(17)=imonth1              !  Month
 !jp       ipdstmpl(18)=idate1               !  Date
 !jp       ipdstmpl(19)=INT(nowtime1/10000)  !  Forecast hour
+!jp       ipdstmpl(16)=INT(nowdate/1000)   ! YEAR (YYYY)
+!       ipdstmpl(16)=INT(nowdate1/1000)   ! YEAR (YYYY)
+!       ipdstmpl(17)=imonth1              !  Month
+!       ipdstmpl(18)=idate1               !  Date
+!       ipdstmpl(19)=INT(nowtime1/10000)-1  !  Forecast hour
        ipdstmpl(16)=INT(nowdate/1000)   ! YEAR (YYYY)
        ipdstmpl(17)=imonth1              !  Month
        ipdstmpl(18)=idate1               !  Date

@@ -14,8 +14,6 @@ export RUN=aqm
 ############################################
 
 #####################################
-export pid=$$
-
 # PATH for working directory
 
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
@@ -26,12 +24,12 @@ cd $DATA
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 ####################################
 # Determine Job Output Name on System
 ####################################
-export pgmout="OUTPUT.${pid}"
+export pgmout="OUTPUT.$$"
 
 export cycle=${cycle:-t${cyc}z}
 
@@ -58,10 +56,12 @@ export cycle=t12z
 setpdy.sh
 . PDY
 
-export RUN_DAY=${RUN_DAY:-16}
+#XXW export RUN_DAY=${RUN_DAY:-16}
+export RUN_DAY=${RUN_DAY:-29}
 
 export DCOMIN=${DCOMIN:-${DCOMROOT}/us007003/aqm_emission/${envir}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}
+export COMOUThps=${COMOUThps:-/gpfs/hps/nco/ops/com/${NET}/${envir}/emission}
 env
 
 #############################################################

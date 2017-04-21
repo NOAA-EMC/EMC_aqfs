@@ -346,7 +346,7 @@
       listsec1(6)=int(istime(1)/100000)
       listsec1(7)=imonth1
       listsec1(8)=idate1
-      listsec1(9)=mod(istime(1),100)
+      listsec1(9)=mod(istime(1),100)-1
       listsec1(10)=00     ! Reference time - Minute
       listsec1(11)=00     ! Reference time - Second
       listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
@@ -518,7 +518,7 @@
        nowdate1=nowdate
        nowtime1=nowtime
 
-       call nextime(nowdate1,nowtime1,10000)
+!       call nextime(nowdate1,nowtime1,10000)
 
        call daymon(nowdate1,imonth1,idate1)
 
@@ -560,10 +560,15 @@
 
        cgrib1=''
    
-       ipdstmpl(22)=INT(nowdate1/1000)   ! YEAR (YYYY)
+!       ipdstmpl(22)=INT(nowdate1/1000)   ! YEAR (YYYY)
+!       ipdstmpl(23)=imonth1              !  Month
+!       ipdstmpl(24)=idate1               !  Date
+!       ipdstmpl(25)=INT(nowtime1/10000)-1  !  Forecast hour
+       ipdstmpl(22)=INT(nowdate/1000)   ! YEAR (YYYY)
        ipdstmpl(23)=imonth1              !  Month
        ipdstmpl(24)=idate1               !  Date
        ipdstmpl(25)=INT(nowtime1/10000)  !  Forecast hour
+
 
        cgrib2=''
 

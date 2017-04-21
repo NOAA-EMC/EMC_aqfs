@@ -1,5 +1,7 @@
 #!/bin/ksh
 
+export envir=para
+
 set -ax 
 if [ ${USER} = 'Jianping.Huang' ] ; then
  mydir=/gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/
@@ -17,4 +19,3 @@ make clean
 make
 cp ${BASEDIR}/${BIN}/libioapi.a  ${mydir}/nw${envir}/cmaq.${model_ver}/lib/libaqm_ioapi.a
 cp ${BASEDIR}/${BIN}/*mod         ${mydir}/nw${envir}/cmaq.${model_ver}/lib/include
-
