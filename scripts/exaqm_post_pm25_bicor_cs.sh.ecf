@@ -122,6 +122,15 @@ done
 
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
 $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
+
+if [ $SENDCOM = YES ]; then
+   cp  aqm.t${cyc}z.grib2_pm25_bc.227 $COMOUT/aqm.t${cyc}z.1hr_ave_pm25_bc.227.grib2
+   if [ $SENDDBN = YES ]; then
+      $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.1hr_ave_pm25_bc.227.grib2
+   fi
+fi
+
+
 #
 ####################################################
 #  Create AWIPS GRIB2 data for Bias-Corrected PM2.5
