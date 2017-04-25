@@ -1,0 +1,24 @@
+!
+/
+/-----  file history description  --------
+! subset conc file variables
+! for the CB4_AQ chemical mechanism
+!
+/ the following record fields must fall exactly on the field boundaries as ...
+/2345678901234567890123456789012345678901234567890123456789012345678901234567890
+/|              |x|        |   |      |x^x|              |x|               129->
+/SPECIES          UNITS      =      1.0 1 species          Description
+/
+/       new                           File  from
+/     species       units       factor  #   species         Species Description
+/---------------- ----------   -------- - ---------------- ----------------------------
+/2345678901234567890123456789012345678901234567890123456789012345678901234567890
+/|              |x|        |   |      |x^x|              |x|               129->
+ pm25             micgm/m**  =      1.0 1 PM25_TOT
+ O3               ppmV       =      1.0 1 O3
+ NO               ppmV       =      1.0 1 NO
+ NO2              ppmV       =      1.0 1 NO2
+ NOX              ppmV       =      1.0 1 NOX
+ NOY              ppmV       =      1.0 1 NOY
+ PM25_EC          ppmV       =      1.0 1 PM25_EC
+ PM25_OC          ppmV       =      1.0 1 PM25_OC
