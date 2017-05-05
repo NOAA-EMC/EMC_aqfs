@@ -1,0 +1,324 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_post1_5xozconnmmb.sh
+# Script description:  Run CMAQ post processing 
+#
+# Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
+#
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2003-07-15    Julia Zhu, modified for production
+# 2004-03-31    Pius Lee, notcdf and upgrades 
+# 2010-02-01    Jianping Huang  camq2grib and wgrib 
+# 2013-06-29    Jianping Huang  modified for WCOSS 
+# 2017-01-21    Jianping Huang  modified for CMAQ v5.0.2 on Cray 
+######################################################################
+set -xa
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+export pgm=aqm_cs_post1
+
+cd $DATA
+
+export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+export XLFRTEOPTS="unit_vars=yes"
+export id_grib=139
+
+#########################################################
+# Part I: Calculate PM2.5 based on CMAQ original output 
+#########################################################
+export JDATE=`date2jday.sh  $PDY`
+let "cyc9=cyc+1"
+
+startmsg
+rm -rf $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf
+${USHaqm}/aqm_chg.csh -t "$JDATE ${cyc9}0000" $COMOUT/aqm.t${cyc}z.aconc.ncf $COMOUT/aqm.t${cyc}z.aconc_1.ncf
+export err=$?;err_chk
+
+startmsg
+${USHaqm}/aqm_csum.sh -kf -kl -sl ${FIXaqm}/vlist.twoways.5.0.2.v2 $COMOUT/aqm.t${cyc}z.aconc_1.ncf $COMOUT/aqm.t${cyc}z.aerodiam.ncf $COMOUT/aqm.t${cyc}z.metcro3d.ncf $COMOUT/aqm.t${cyc}z.aconc_sfc.ncf >>$pgmout 2>$DATA/errfile1
+export err=$?;err_chk
+
+ecflow_client --event release_bicor
+
+rm -rf $DATA/check_file.log1
+while [ ! -s $DATA/check_file.log1 ] ; do
+  if [[ -s $DATA/$pgmout ]] ; then
+     grep -ni "Closing file infile03" $DATA/$pgmout > $DATA/check_file.log1
+  else
+    sleep 10
+  fi
+    sleep 10
+done
+
+#########################################################
+# Part II: Convert Machine netcdf format to Grib format
+#	  input file is "ACONC.r6a.ncf"
+#########################################################
+
+ ic=1
+  while [ $ic -lt 1000 ]
+  do
+    if [ -s $COMIN/aqm.${cycle}.aconc_sfc.ncf ]
+    then
+     ln -sf $COMIN/aqm.${cycle}.aconc_sfc.ncf $DATA/
+      break
+    else
+      let "ic=ic+1"
+      sleep 10
+    fi
+
+    if [ $ic -ge 100 ]
+    then
+        err_exit "****FATAL ERROR**** - COULD NOT LOCATE: $COMIN/aqm.${cycle}.aconc_sfc.ncf"
+    fi
+  done
+
+#-------------
+. prep_step
+
+export CHEM3D=${COMIN}/aqm.${cycle}.aconc_sfc.ncf
+
+cat >cmaq2grib2.ini <<EOF5
+&control
+varlist='O3','O3_8hr'
+metlist='  '
+outfile='aqm.${cycle}.awpozcon'
+ozonecatfile='aqm.${cycle}.awpozcat'
+nlayers=1
+id_gribdomain=139
+ave1hr=.true.
+/
+EOF5
+
+startmsg
+
+$EXECaqm/aqm_cmaq2grib2_v2 >> $pgmout 2>errfile
+export err=$?;err_chk
+
+# write out pm2.5 in  grib2 format
+
+rm -rf cmaq2grib2.ini
+
+cat >cmaq2grib2.ini <<EOF5
+&control
+varlist='PM2.5'
+metlist='    '
+outfile='aqm.${cycle}.pm25'
+nlayers=1
+id_gribdomain=139
+ave1hr=.true.
+/
+EOF5
+
+startmsg
+$EXECaqm/aqm_cmaq2grib2_v2   >> $pgmout 2>errfile
+export err=$?;err_chk
+
+#
+cat >cmaq2grib2.ini <<EOF5
+&control
+varlist='O3','CO','NO','NO2','NOY','VOC','PM25_TOT','PM25_EC','PM25_NH4','PM25_NO3','PM25_OC','PM25_SO4','PMC_TOT'
+metlist='    '
+outfile='aqm.${cycle}.chem_sfc'
+nlayers=1
+id_gribdomain=139
+ave1hr=.true.
+/
+EOF5
+
+startmsg
+$EXECaqm/aqm_cmaq2grib2_v3 >> $pgmout 2>errfile
+export err=$?;err_chk
+
+typeset -Z2 fhr
+export fhr=01
+
+case $cyc in
+ 00) endfhr=06;;
+ 06) endfhr=48;;
+ 12) endfhr=48;;
+ 18) endfhr=06;;
+esac
+
+rm -rf tmpfile
+
+if [ "$SENDCOM" = 'YES' ]
+then
+    for pmfile in $DATA/aqm.${cycle}.pm25*;do
+        ifile=$(basename ${pmfile})
+        cp ${ifile} $COMOUT/
+        if [ "$SENDDBN" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
+        fi
+    done
+fi
+
+while [ $fhr -le $endfhr ]
+do
+ if [ "$SENDCOM" = 'YES' ]
+ then
+
+  for field in awpozcon awpozcat chem_sfc 
+   do
+    cp $DATA/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2 $COMOUT/
+    if [ $field = awpozcon ]; then
+      if [ $SENDDBN = YES ]; then
+        $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2
+      fi
+    fi
+   done
+
+ fi
+
+#
+# Create GRIB file to convert to grid 196 then to GRIB2 for NDFD
+#
+  cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile
+  cat $DATA/aqm.${cycle}.pm25.f${fhr}.${id_grib}.grib2 >> tmpfile_pm25
+
+  if [ $fhr -le 07 ]; then
+   cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile.1hr
+  else
+#   $WGRIB -d 1 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.1hr
+   $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 1 -append -grib tmpfile.1hr
+   export err=$?;err_chk
+#   $WGRIB -d 2 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.8hr
+   $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 2 -append -grib tmpfile.8hr
+   export err=$?;err_chk
+  fi
+
+  let "fhr=fhr+1"
+  typeset -Z2 fhr
+ done
+
+#################################################
+# Part III:  Insert WMO header to GRIB files
+#################################################
+
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+
+###############
+# Convert ozone Concentration to grid 196 in GRIB2 format
+###############
+echo ' &NLCOPYGB IDS(180)=1, /' > ozcon_scale
+ 
+#export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+ export grid196="10 6 0 0 0 0 0 0 321  225  18073000 198475000 56 20000000 23088000  206131000 206131000 0 64 25000000 25000000 0 0"
+$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile      aqm.t${cyc}z.grib2_HIozconnmmb.196
+$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile_pm25 aqm.t${cyc}z.grib2_HIpm25nmmb.196
+$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.196.grib2  
+$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.196.grib2  
+
+  cp -rp aqm.t${cyc}z.ave_1hr_o3.196.grib2 $COMOUT/
+  cp -rp aqm.t${cyc}z.ave_8hr_o3.196.grib2 $COMOUT/
+  cp -rp aqm.t${cyc}z.grib2_HIpm25nmmb.196 $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.196.grib2
+
+  if [ "$SENDDBN" = 'YES' ] ; then
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_o3.196.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_8hr_o3.196.grib2
+    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.196.grib2
+  fi
+   
+##############################
+# Create AWIPS GRIB data
+##############################
+
+   for hr in 1 8
+   do
+       echo 0 > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=aqm.t${cyc}z.ave_${hr}hr_o3.196.grib2
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.196
+       export err=$?;err_chk
+#
+       echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=awpaqm.t${cyc}z.${hr}ho3.196.grib2
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.196
+       export err=$?;err_chk
+
+       ##############################
+       # Post Files to PCOM
+       ##############################
+
+       if test "$SENDCOM" = 'YES'
+       then
+#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.196  $PCOM/awpaqm.t${cyc}z.${hr}ho3.196.grib2
+           cp awpaqm.t${cyc}z.${hr}ho3.196.grib2  $PCOM/
+
+          ##############################
+          # Distribute Data
+          ##############################
+
+          if [ "$SENDDBN" = 'YES' ] ; then
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.t${cyc}z.${hr}ho3.196.grib2
+          else
+             msg="File $output_grb.$job not posted to db_net."
+             postmsg "$jlogfile" "$msg"
+          fi
+       fi
+   done
+#fi
+#########################################
+#  Create AWIPS GRIB2 data for PM2.5
+#########################################
+   cp -rp ${DATA}/aqm.t${cyc}z.grib2_HIpm25nmmb.196  ${COMOUT}/
+
+       echo 0 > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=aqm.t${cyc}z.grib2_HIpm25nmmb.196
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awpHIpm25nmmb.temp
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_HIpm25nmmb.${cycle}.196
+       export err=$?;err_chk
+#
+       echo `ls -l grib2.t${cyc}z.awpHIpm25nmmb.temp  | awk '{print $5} '` > filesize
+       export XLFRTEOPTS="unit_vars=yes"
+       export FORT11=grib2.t${cyc}z.awpHIpm25nmmb.temp
+       export FORT12="filesize"
+       export FORT31=
+       export FORT51=grib2.t${cyc}z.awpHIpm25nmmb.196
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_HIpm25nmmb.${cycle}.196
+       export err=$?;err_chk
+
+##############################
+# Post PM2.5 Files to PCOM
+##############################
+      if test "$SENDCOM" = 'YES'
+       then
+         cp grib2.t${cyc}z.awpHIpm25nmmb.196  $PCOM/awpaqm.t${cyc}z.1hpm25.196.grib2
+         echo "no files copy"
+
+          ##############################
+          # Distribute Data
+          ##############################
+
+          if [ "$SENDDBN_NTC" = 'YES' ] ; then
+             $DBNROOT/bin/dbn_alert $DBNALERT_TYPE $NET $job $PCOM/awpaqm.t${cyc}z.1hpm25.196.grib2
+          else
+             msg="File $output_grb.$job not posted to db_net."
+             postmsg "$jlogfile" "$msg"
+          fi
+       fi
+
+#######################
+fi
+#######################################################
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
+################## END OF SCRIPT #######################
+exit

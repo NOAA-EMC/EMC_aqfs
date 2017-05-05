@@ -639,6 +639,7 @@
        enddo
       enddo
 
+       ibmap=255
        call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
                           coordlist,numcoord,idrsnum,idrstmpl, &
                           idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
