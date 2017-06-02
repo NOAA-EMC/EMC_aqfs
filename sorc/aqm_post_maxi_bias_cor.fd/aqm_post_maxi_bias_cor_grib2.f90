@@ -31,6 +31,7 @@ program aqm_post_maxi_bias_cor_grib2
    integer    diag, imax,jmax
    integer    icyc,iyear,imonth,iday,ihour,base_year,ichk
    integer    nowdate,nowtime
+   integer    nowdate9,nowtime9,iyear9,imonth9,iday9
    integer    ierr,mday,ier
    integer    i, j 
 ! for grib2 by JP
@@ -372,9 +373,9 @@ program aqm_post_maxi_bias_cor_grib2
      ipdstmpl(13)=255      ! Type of first second surface (see Code table 4.5) (100:isobaric level)
      ipdstmpl(14)=0        ! Scale factor of second fixed surface
      ipdstmpl(15)=0        ! Scaled value of second fixed surface
-     ipdstmpl(16)=iyear    !  Year
-     ipdstmpl(17)=imonth   !  Month
-     ipdstmpl(18)=iday+mday     !  Date
+!     ipdstmpl(16)=iyear    !  Year
+!     ipdstmpl(17)=imonth   !  Month
+!     ipdstmpl(18)=iday+mday     !  Date
      ipdstmpl(19)=4        !  Forecast hour
      ipdstmpl(20)=0        !
      ipdstmpl(21)=0        !
@@ -430,6 +431,24 @@ program aqm_post_maxi_bias_cor_grib2
      ipdstmpl(9)=(markutc-icyc)+(mday-1)*24
      ipdstmpl(19)=markutc-1
 
+!jp0
+!     ipdstmpl(16)=iyear    !  Year
+!     ipdstmpl(17)=imonth   !  Month
+!     ipdstmpl(18)=iday+mday     !  Date
+     nowdate9=date_index(iyear, imonth, iday, base_year, calendar)
+     print*,"hjp111,nowdate9=",nowdate9
+     call next_time(nowdate9,nowtime,240000)
+     print*,"hjp112,nowdate9=",nowdate9
+     call index_to_date(nowdate9,iyear9, imonth9, iday9, base_year, calendar)
+      print*,"hjp113,iyear9=",iyear9,"imonth9=",imonth9,"iday9=",iday9
+
+!    ipdstmpl(16)=int(nowdate9/1000)           !  Year
+     ipdstmpl(16)=iyear9                       ! Year
+     ipdstmpl(17)=imonth9                      !  Month
+     ipdstmpl(18)=iday9
+!jp9
+
+
 ! below is used for get bits for grib2
       if (maxval(fld1)==minval(fld1))then
          idrsnum=0
@@ -465,7 +484,6 @@ program aqm_post_maxi_bias_cor_grib2
      ipdstmpl(27)=23       ! daily maxi 1hr pm2.5 parameter
      ipdstmpl(9)=(5-icyc)+(mday-1)*24
      ipdstmpl(19)=markutc-1
-
 
      do j=1,ny
       do i=1,nx
@@ -504,7 +522,8 @@ program aqm_post_maxi_bias_cor_grib2
 
      nowdate=date_index(iyear, imonth, iday, base_year, calendar)
 
-     call next_time(nowdate,nowtime,10000)
+!     call next_time(nowdate,nowtime,10000)
+     call next_time(nowdate,nowtime,240000)
      call index_to_date(nowdate,iyear, imonth, iday, base_year, calendar)
 
      end do

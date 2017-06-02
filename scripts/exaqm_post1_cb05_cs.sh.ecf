@@ -153,9 +153,6 @@ then
     for pmfile in $DATA/aqm.${cycle}.pm25*;do
         ifile=$(basename ${pmfile})
         cp ${ifile} $COMOUT/
-        if [ "$SENDDBN" = 'YES' ]; then
-            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
-        fi
     done
 fi
 
@@ -167,11 +164,6 @@ do
   for field in awpozcon awpozcat chem_sfc 
    do
     cp $DATA/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2 $COMOUT/
-    if [ $field = awpozcon ]; then
-      if [ $SENDDBN = YES ]; then
-        $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2
-      fi
-    fi
    done
 
  fi
@@ -197,12 +189,6 @@ do
   typeset -Z2 fhr
  done
 
-#################################################
-# Part III:  Insert WMO header to GRIB files
-#################################################
-
-if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
-
 ###############
 # Convert ozone Concentration to grid 227 in GRIB2 format
 ###############
@@ -224,6 +210,12 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
   fi
    
+#################################################
+# Part III:  Insert WMO header to GRIB files
+#################################################
+
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+
 ##############################
 # Create AWIPS GRIB data
 ##############################

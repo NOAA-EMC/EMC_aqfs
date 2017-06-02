@@ -324,7 +324,18 @@ SUBROUTINE rdgribspecs (iunit, gribflnm, gribgrid,  &
 ! This stuff gets stored in the MAP variable, as defined in module GRIDINFO.
 !-------------------------------------------------------------------------------
 
-  gribgrid = 138 !ksec1(3)          ! Grid identification
+!  gribgrid = 138 !ksec1(3)          ! Grid identification
+  IF ( gfld%igdtmpl(8) == 201 .and. gfld%igdtmpl(9) == 165 ) then
+   gribgrid = 140 !ksec1(3)          ! Grid identification
+  else if ( gfld%igdtmpl(8) == 468 .and. gfld%igdtmpl(9) == 288 ) then
+   gribgrid = 138
+  else if ( gfld%igdtmpl(8) == 82 .and. gfld%igdtmpl(9) == 54 ) then
+   gribgrid = 139
+  else 
+   print*, "unknown gribgrid", gfld%igdtmpl(8), gfld%igdtmpl(9)
+  endif
+  
+  print*, "gribgrid=", gribgrid
 
   !----------------------------
   ! map projection

@@ -1,0 +1,102 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_5xwrf_prephyb0.sh.sms
+# Script description:  Run nam product generator for CMAQ
+#
+# Author:      Marina Tsidulko     Org: NP22       Date: 2003-07-03
+#
+# Abstract: This script runs 0-48 h NAM PRDGEN for CMAQ
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2004-03-31    Pius Lee, netcdf independent and append gfs ozone
+# 2004-04-01    Luc, modified for production
+# 2013-05-03    Jianping Huang, modified for transition to WCOSS 
+#               use mpmd instead four J jobs
+# 2017-01-24    Jianping Huang rewrote for using on Cray 
+######################################################################
+set -x
+
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+export pgm=aqm_hi_pregen
+
+cd $DATA
+
+echo "Start of NMMB_prdgen Job"
+
+if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
+  hr_max=6
+ else
+  hr_max=48
+ fi
+
+fhr9=0
+fhr=$fhr
+
+while [ $fhr9 -le $hr_max ]
+do
+  if [ $fhr9 -le 9 ]
+  then
+   fhr="0"$fhr9
+  else
+   fhr=$fhr9 
+  fi
+
+  ic=0
+  while [ $ic -lt 300 ]
+  do
+    if [ -s $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    then
+      echo  $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      break
+    else
+      let "ic=ic+1"
+      sleep 10
+    fi
+
+    if [ $ic -ge 180 ]
+    then
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINnam/nam.${cycle}.bgrd3d$fhr.tm00"
+    fi
+  done
+ let "fhr9=fhr9+1"
+done
+
+ let NPOE=1
+ while [ $NPOE  -le 4 ] 
+ do  
+ rm -f poescript.$NPOE
+ echo "$USHaqm/aqm_prephyb_nmmb_hi_split.sh  \"$NPOE\" &" >>poescript
+ let NPOE=${NPOE}+1
+ done
+ 
+ echo "wait" >> poescript
+ chmod 775 $DATA/poescript 
+
+startmsg
+ 
+$DATA/poescript
+ 
+export err=$?; err_chk
+
+if [ "$SENDCOM" = 'YES' ]
+then
+ fhr=0
+ typeset -Z2 fhr
+ while [ $fhr -le $hr_max ]
+ do
+  mv  $DATA/aqm.${cycle}.nmm$fhr.tm00 $COMOUT/aqm.${cycle}.nmm$fhr.tm00   
+  let "fhr=fhr+1"
+  typeset -Z2 fhr
+ done 
+fi
+
+echo EXITING $0
+
+msg='ENDED NORMALLY.'
+postmsg "$jlogfile" "$msg"
+
