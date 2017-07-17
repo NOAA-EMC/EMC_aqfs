@@ -334,7 +334,8 @@ fi
 if [[ "$INITIAL_RUN" = "N" ]]; then
    export ICFILE=$DATA/CONC.${APPL}.ncf
 else    
-   export ICFILE=$FIXaqm/aqm.AK12z.init.conc_2011.ncf
+#   export ICFILE=$FIXaqm/aqm.AK12z.init.conc_2011.ncf
+   export ICFILE=$FIXaqm/aqm.AK12z.init.cgrid_2017.ncf
 fi
 
 # In-line biogenic emissions configuration
