@@ -90,12 +90,12 @@ export err=$?; err_chk
 
 oldgrib2file1=aqm.t${cyc}z.24hpm25-ave.148.bc.grib2
 newgrib2file1=aqm.t${cyc}z.24hpm25-ave.227.bc.grib2
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1} 
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file1}  ${newgrib2file1} 
 
 oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
 newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
-${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
+${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file2}  ${newgrib2file2}
 
 if [ "$SENDCOM" = 'YES' ]; then
    cp aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.148.grib2
@@ -128,8 +128,8 @@ do
  typeset -Z2 fhr
 done
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
 
 if [ $SENDCOM = YES ]; then
   cp  tmpfile_pm25_bc  $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.148.grib2

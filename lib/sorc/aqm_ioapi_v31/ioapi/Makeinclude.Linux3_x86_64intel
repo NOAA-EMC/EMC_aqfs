@@ -7,7 +7,8 @@
 
 AR   = ar
 CC   = icc
-FC   = ifort -auto -warn notruncated_source -Bstatic -static-intel
+#FC   = ifort -auto -warn notruncated_source -Bstatic -static-intel
+FC   = ifort -warn notruncated_source -Bstatic -static-intel
 M4   = m4
 LINK = $(CC)
 
@@ -19,8 +20,10 @@ MODI = -I       ## Module-include-directory command
 # MFLAGS  = -traceback -mavx    -xAVX2   -march=corei7-avx2     # Haswell
  MFLAGS    = -traceback -xHost                                   # this-machine
 
-OMPFLAGS  = -openmp
-OMPLIBS   = -openmp
+#OMPFLAGS  = -openmp
+OMPFLAGS  = 
+#OMPLIBS   = -openmp
+OMPLIBS   = 
 COPTFLAGS = -O3 ${MFLAGS}
 FOPTFLAGS = -O3 -unroll -stack_temps -safe_cray_ptr \
   -convert big_endian -assume byterecl  ${MFLAGS}

@@ -92,7 +92,7 @@
      &                                      'IS  '  / )
 
 !.........  Define types needed for module
-        TYPE :: EACHRPT
+        TYPE :: EACHRPT 
 
             SEQUENCE
 
@@ -157,6 +157,7 @@
             CHARACTER(IOVLEN3) :: SPCPOL        ! pollutant for BYSPC
             CHARACTER(LENLAB3) :: SUBGNAM       ! subgrid names
             CHARACTER(300)     :: OFILENAM      ! output names
+            CHARACTER(3)       :: CHARDUMMY     ! dummy variable added to make the structure a multiple of 4
 
         END TYPE
 

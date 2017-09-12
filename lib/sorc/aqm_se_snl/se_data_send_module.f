@@ -67,7 +67,8 @@
         real, intent(in) :: data(:)
         integer, pointer :: sind(:, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, scount, error
 !       real :: sarray(size(data))
@@ -100,7 +101,8 @@
         real, intent(in) :: data(:,:)
         integer, pointer :: sind(:, :, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, scount, error
 !       real :: sarray(size(data))
@@ -137,7 +139,8 @@
         real, intent(in) :: data(:,:)
         integer, pointer :: sind(:, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, scount, error
 !       real :: sarray(size(data))
@@ -174,7 +177,8 @@
         real, intent(in) :: data(:,:,:)
         integer, pointer :: sind(:, :, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, k, scount, error
 !       real :: sarray(size(data))
@@ -214,7 +218,8 @@
         real, intent(in) :: data(:,:,:)
         integer, pointer :: sind(:, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, k, scount, error
 !       real :: sarray(size(data))
@@ -253,7 +258,8 @@
         real, intent(in) :: data(:,:,:,:)
         integer, pointer :: sind(:, :, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, k, l, scount, error
 !       real :: sarray(size(data))
@@ -296,7 +302,8 @@
         real, intent(in) :: data(:,:,:,:)
         integer, pointer :: sind(:, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, k, s, scount, error
 !       real :: sarray(size(data))
@@ -337,7 +344,8 @@
         real, intent(in) :: data(:,:,:,:,:)
         integer, pointer :: sind(:, :, :), send_to(:)
         integer, intent(in) :: dir_ind, tag
-        integer, intent(out) :: request
+! --        integer, intent(out) :: request ! leads to compiler warning
+        integer, intent(inout) :: request
 
         integer :: i, j, k, l, m, scount, error
 !       real :: sarray(size(data))

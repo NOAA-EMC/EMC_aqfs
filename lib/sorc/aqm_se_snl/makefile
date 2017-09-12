@@ -5,16 +5,20 @@ SHELL=/bin/sh
 
 LIBNAME = libaqm_se_snl.a
 
-FC = ftn
-#MPI_INC = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include 
+FC = ftn 
 MPI_INC = ${CRAY_MPICH2_DIR}/include 
+IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel
+IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
 
-FFLAGS = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise -I$(MPI_INC)
+FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise 
 
+DEBUG      =
+
+FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I$(MPI_INC)
 
 
 #> the following order is important
- OBJS = \
+ OBJS =\
   se_comm_info_ext.o\
   se_disp_info_ext.o\
   se_domain_info_ext.o\
@@ -42,11 +46,12 @@ FFLAGS = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise -I$(
   se_twoway_comm_module.o\
   se_modules.o  
 
+.SUFFIXES: .F .f .c
 
 $(LIBNAME) : $(OBJS)
-	$(FC) $(FFLAGS) -c $?
-	ar -crv ../../$@ $(OBJS)
-	ranlib ../../$@
+	$(FC) $(FFLAGS) -c $<
+	ar -crv -o ../../$@ $?
+	chmod 644 ../../$@
 #	ar -crv $@ $?
 #	chmod 644 $@
 

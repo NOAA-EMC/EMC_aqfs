@@ -68,8 +68,8 @@ export err=$?;err_chk
 $WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.1ho3-max.148.grib2
 $WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.8ho3-max.148.grib2
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2"  aqm-maxi.148.grib2  aqm-maxi.227.grib2 
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 "
+$COPYGB2  -g "$grid227" -x  -i"1 1"  aqm-maxi.148.grib2  aqm-maxi.227.grib2 
 $WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-1hro3-maxi.227.grib2
 $WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-8hro3-maxi.227.grib2
 
@@ -88,8 +88,8 @@ startmsg
 $EXECaqm/aqm_post_maxi_CHA_grib2_v2  >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+$COPYGB2  -g "$grid227" -x  -i"1 1" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
 
 #-----------------------------------------
 $WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
