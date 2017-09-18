@@ -177,10 +177,8 @@ do
   if [ $fhr -le 07 ]; then
    cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile.1hr
   else
-#   $WGRIB -d 1 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.1hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 1 -append -grib tmpfile.1hr
    export err=$?;err_chk
-#   $WGRIB -d 2 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.8hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 2 -append -grib tmpfile.8hr
    export err=$?;err_chk
   fi
@@ -246,7 +244,6 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 
        if test "$SENDCOM" = 'YES'
        then
-#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $PCOM/awpaqm.t${cyc}z.${hr}ho3.227.grib2
            cp awpaqm.t${cyc}z.${hr}ho3.227.grib2  $PCOM/
 
           ##############################

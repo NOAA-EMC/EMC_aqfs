@@ -14,7 +14,7 @@
 
 .SUFFIXES: .m4 .c .F .f
 
-BASEDIR = /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31
+BASEDIR = /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.4/lib/sorc/aqm_ioapi_v31
 
 SRCDIR  = $(BASEDIR)/iotests
 IODIR   = $(BASEDIR)/ioapi
@@ -23,7 +23,7 @@ F90DIR  = $(BASEDIR)/$(BIN)f90
 
 # Architecture dependent stuff
 
-include /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.2/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
+include /gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
 
 
 CFLAGS = $(ARCHFLAGS) $(PARFLAGS) $(COPTFLAGS)

@@ -244,6 +244,11 @@ program aqm_post_maxi_bias_cor_grib2
 
 !     cgrib1=' '
 !     cgrib2=' '
+     base_year=iyear
+     listsec1(6)=iyear    ! Reference time - Year (4 digits)
+     listsec1(7)=imonth      ! Reference time - Month
+     listsec1(8)=iday      ! Reference time - Day
+     listsec1(9)=icyc      ! Reference time - Hour
 
    do mday = 1, nhours/24 
        do i = 1, imax
@@ -263,11 +268,11 @@ program aqm_post_maxi_bias_cor_grib2
     if (diag >= 3) print *, 'read_gridded_aqm: Return.'
 
 !-----------------------------------------------------------------------
-     base_year=iyear
-     listsec1(6)=iyear    ! Reference time - Year (4 digits)
-     listsec1(7)=imonth      ! Reference time - Month
-     listsec1(8)=iday      ! Reference time - Day
-     listsec1(9)=icyc      ! Reference time - Hour
+!     base_year=iyear
+!     listsec1(6)=iyear    ! Reference time - Year (4 digits)
+!     listsec1(7)=imonth      ! Reference time - Month
+!     listsec1(8)=iday      ! Reference time - Day
+!     listsec1(9)=icyc      ! Reference time - Hour
 
      nowtime=(ihour+1)*10000
 !      do nt=1,nhours

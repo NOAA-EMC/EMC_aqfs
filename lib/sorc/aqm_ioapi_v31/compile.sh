@@ -9,7 +9,7 @@ if [ ${USER} = 'Jianping.Huang' ] ; then
 else
  mydir=/gpfs/hps/nco/ops
 fi
-model_ver=v5.0.2
+model_ver=v5.0.4
 export BASEDIR=${mydir}/nw${envir}/cmaq.${model_ver}/lib/sorc/aqm_ioapi_v31
 export BIN=Linux3_x86_64intel
 export IOAPI_OFFSET_64=YES

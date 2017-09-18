@@ -492,7 +492,6 @@ startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
 aprun -n24 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
-#aprun -n576 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
 export err=$?
 
 #------------------------------------------------------

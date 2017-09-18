@@ -1,0 +1,43 @@
+#!/bin/ksh
+#
+#BSUB -oo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_post1_ak.out 
+#BSUB -eo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_post1_ak.err 
+#BSUB -J jaqm_post1_ak
+#BSUB -q devhigh 
+##BSUB -q dev_transfer
+##BSUB -M 1000
+#BSUB -R rusage[mem=3000]
+#BSUB -W 00:30
+#BSUB -P CMAQ-T2O
+
+export IOBUF_PARAMS="*:verbose"
+
+export job=${job:-$LSB_JOBNAME}
+export jobid=${jobid:-$job.$LSB_JOBID}
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export envir=${envir:-prod}
+
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+source /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel/5.2.56
+module load prod_util
+module load prod_envir
+module load grib_util/1.0.3
+
+export PARAFLAG=YES
+ 
+model=cmaq
+
+../../versions/${model}.ver
+
+export  HOME${model}=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+
+eval \$HOME${model}/jobs/JAQM_POST1_AK
+
+#%include <tail.h>
+

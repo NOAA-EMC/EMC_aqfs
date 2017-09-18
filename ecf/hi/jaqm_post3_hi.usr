@@ -1,0 +1,48 @@
+#!/bin/ksh
+#
+#BSUB -extsched 'CRAYLINUX[]' -R '1*{select[craylinux && !vnode]} + 24*{select[craylinux && vnode]span[ptile=24] cu[type=cabinet]}'
+#BSUB -oo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_post3_hi.out 
+#BSUB -eo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_post3_hi.err 
+#BSUB -J jaqm_post3_hi
+#BSUB -q "devhigh" 
+##BSUB -q dev_transfer 
+#BSUB -M 3072
+#BSUB -W 00:25
+#BSUB -P CMAQ-T2O
+
+#%include <head.h>
+
+export NDOES=1
+export IOBUF_PARAMS="*:verbose:size=16M:count=4"
+
+set -ax
+
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+source /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel
+module load prod_util
+module load prod_envir
+
+export PARAFLAG=YES
+
+export KEEPDATA=YES
+ 
+model=cmaq
+
+../../versions/${model}.ver
+
+export  HOME${model}=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+
+eval \$HOME${model}/jobs/JAQM_POST3_HI
+
+#%include <tail.h>
+
+
+
+
+
