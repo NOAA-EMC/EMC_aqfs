@@ -1,4 +1,4 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Mon Sep 18 20:20:47 2017
+        !COMPILER-GENERATED INTERFACE MODULE: Sat Sep 23 03:22:40 2017
         ! This source file is for reference only and may not completely
         ! represent the generated interface used by the compiler.
         MODULE READ_LINE__genmod
