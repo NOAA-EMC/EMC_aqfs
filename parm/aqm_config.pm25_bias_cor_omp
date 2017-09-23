@@ -43,7 +43,7 @@ obs file template           = data/bcdata.YYYYMM/airnow/YYYY/YYYYMMDD/b008/xx031
 interp file template        = data/bcdata.YYYYMM/interpolated/YYYY/MM/forecasts.interp.YYYYMMDD.HHz.nc
 gridded input file template = data/bcdata.YYYYMM/grid/YYYY/YYYYMMDD/aqm.tHHz.O3_pm25.ncf
 output file template        = out/pm2.5.corrected.YYYYMMDD.HHz.nc
-new site list template      = sites/sites.valid.YYYYMMDD.HHz.list
+new site list template      = sites/aqm_sites.valid.pm25.YYYYMMDD.list
 
 * Grid coordinate file.
 
