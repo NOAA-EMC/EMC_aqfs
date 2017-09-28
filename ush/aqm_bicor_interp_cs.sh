@@ -19,7 +19,8 @@ mkdir data
 mkdir -p out/$Yr/$Mn
 
 #===================================================`
-ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list  $DATA/data 
+#ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list  $DATA/data 
+ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.list  $DATA/data/aqm_sites.valid.20170818.12z.list 
 ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data
 ln -s ${COMINbicor}/grid   $DATA/data
 
