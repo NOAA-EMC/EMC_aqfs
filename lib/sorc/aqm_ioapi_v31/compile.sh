@@ -4,7 +4,7 @@ export envir=para
 
 set -ax 
 if [ ${USER} = 'Jianping.Huang' ] ; then
- mydir=/gpfs/hps/emc/naqfc/noscrub/Jianping.Huang/
+ mydir=/gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/
  envir=dev
 else
  mydir=/gpfs/hps/nco/ops

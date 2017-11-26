@@ -32,20 +32,22 @@ mkdir -p data sites coords
 
 
 ln -s $PARMaqm/aqm.*grdcro2d.ncf  coords/
-ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.list sites/sites.valid.20170818.12z.list 
+#ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.list sites/sites.valid.20170818.12z.list 
+ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list sites/
 ln -s $PARMaqm/aqm_bias_thresholds.2015.1030.32-sites.txt ./bias_thresholds.2015.1030.32-sites.txt 
 
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
 aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+#aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp_test  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 if [ ${envir} = 'para' ] ; 
 then
  cp  $DATA/out/pm2.5.corrected*  ${COMOUT_grib} 
 fi
-if [ ${envir} = 'para2' ] ;
+if [ ${envir} = 'para4' ] ;
 then
  cp  $DATA/out/pm2.5.corrected*   $COMOUT_grib
 fi

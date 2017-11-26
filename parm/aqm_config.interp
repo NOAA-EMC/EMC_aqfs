@@ -23,7 +23,7 @@
 *
 *--------------------------------------------------------------------------
 
-station file         = data/aqm_sites.valid.20170818.12z.list
+station file         = data/aqm_sites.valid.20140617.12z.list
 grid coordinate file = data/aqm.t12z.grdcro2d.ncf
 interp file template = out/YYYY/MM/forecasts.interp.YYYYMMDD.HHz.nc
 

@@ -12,6 +12,7 @@ BASE=`pwd`
 ##########################
 
 for src in ioapi_v31 pario se_snl 
+
 do
 
 cd ${BASE}/aqm_${src}

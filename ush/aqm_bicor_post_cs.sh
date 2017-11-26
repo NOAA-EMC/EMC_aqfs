@@ -44,8 +44,7 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc .
 
 export id_gribdmn=148
 startmsg
-#$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
-$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn} 
+$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 if [ "$SENDCOM" = 'YES' ]
