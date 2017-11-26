@@ -73,15 +73,16 @@ C...........   EXTERNAL FUNCTIONS and their descriptions:
      &                  GETIFDSC, MULTUNIT, VERCHAR
 
 C...........   SUBROUTINE ARGUMENTS
-        CHARACTER(*), INTENT (IN) :: ENAME  ! emissions inven logical name
-        INTEGER     , INTENT (IN) :: SDATE  ! episode start date 
-        INTEGER     , INTENT (IN) :: STIME  ! episode start time
-        INTEGER     , INTENT (IN) :: TSTEP  ! episode time step
-        INTEGER     , INTENT (IN) :: NSTEPS ! number of time steps
-        INTEGER     , INTENT (IN) :: TZONE  ! zone used for hours in output files
-        INTEGER     , INTENT (IN) :: NPELV  ! number of elevated sources
-        CHARACTER(*), INTENT(OUT) :: TNAME  ! lay-1 (or all) hourly logical name 
-        INTEGER     , INTENT(OUT) :: PDEV   ! unit number of temporal supmtl file
+        CHARACTER(*), INTENT (IN)   :: ENAME  ! emissions inven logical name
+        INTEGER     , INTENT (IN)   :: SDATE  ! episode start date 
+        INTEGER     , INTENT (IN)   :: STIME  ! episode start time
+        INTEGER     , INTENT (IN)   :: TSTEP  ! episode time step
+        INTEGER     , INTENT (IN)   :: NSTEPS ! number of time steps
+        INTEGER     , INTENT (IN)   :: TZONE  ! zone used for hours in output files
+        INTEGER     , INTENT (IN)   :: NPELV  ! number of elevated sources
+        CHARACTER(*), INTENT(OUT)   :: TNAME  ! lay-1 (or all) hourly logical name 
+        INTEGER     , INTENT(INOUT) :: PDEV   ! unit number of temporal supmtl file
+C....   INTEGER     , INTENT(OUT)   :: PDEV   ! leads to a compiler warning
 
 C...........   LOCAL PARAMETERS
         CHARACTER(50), PARAMETER ::CVSW = '$Name: SMOKE_v2_1_09302004 $'  ! CVS revision tag

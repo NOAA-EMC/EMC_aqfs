@@ -22,7 +22,6 @@ else
 fi
 
 ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc  a.nc 
-#export CMAQBCFILE1=$COMIN/pm2.5.corrected.${PDY}.${cyc}z.nc
 
 export chk=1 
 # today 00z file exists otherwise chk=0

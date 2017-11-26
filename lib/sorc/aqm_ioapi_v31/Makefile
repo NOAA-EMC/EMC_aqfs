@@ -187,12 +187,13 @@ nametest:  lib $(OBJDIR)/libnetcdf.a
 $(FIXDIR):
 	mkdir -p $(FIXDIR)
 
-$(OBJDIR):
-	mkdir -p $(OBJDIR)
+#$(OBJDIR):
+#	mkdir -p $(OBJDIR)
 
+#$(LIBINST): 
 $(LIBINST): $(INSTALL)
-	cd $(INSTALL); mkdir -p $(LIBINST)
+#	cd $(INSTALL); mkdir -p $(LIBINST)
 
 $(BININST): $(INSTALL)
-	cd $(INSTALL); mkdir -p $(BININST)
+#	cd $(INSTALL); mkdir -p $(BININST)
 

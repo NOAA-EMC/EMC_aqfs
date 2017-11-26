@@ -1,0 +1,62 @@
+#!/bin/ksh
+#
+#BSUB -oo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_pregen_hi.out
+#BSUB -eo /gpfs/hps/ptmp/Jianping.Huang/com/para/today/jaqm_pregen_hi.err
+#BSUB -J jaqm_pregen_hi
+#BSUB -P CMAQ-T2O
+#BSUB -q "devhigh" 
+##BSUB -q "debug" 
+#BSUB -M 2600
+#BSUB -W 00:30
+#BSUB -extsched 'CRAYLINUX[]'
+##
+
+#%include <head.h>
+#module load PrgEnv-intel
+
+export NODES=1
+
+export PARAFLAG=YES
+
+export job=${job:-$LSB_JOBNAME}
+export jobid=${jobid:-$job.$LSB_JOBID}
+export RUN_ENVIR=${RUN_ENVIR:-aqm}
+export envir=${envir:-para}
+export SENDDBN=${SENDDBN:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+source /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel/5.2.56
+module load prod_util
+module load prod_envir
+module load grib_util/1.0.3
+
+export KEEPDATA=YES
+
+export jlogfile=${jlogfile:- ${COMROOT}/logs/jlogfiles/jlogfile.$jobid}
+export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
+#export DBNROOT=/iodprod/dbnet_siphon
+export PCOMROOT=${PCOMROOT:-${PCOMROOT}/$envir}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+export KEEPDATA=${KEEPDATA:-NO}
+
+export KMP_AFFINITY=disabled
+export MPICH_GNI_MAX_EAGER_MSG_SIZE=65536
+export FORT_BUFFERED=TRUE
+
+model=cmaq
+
+../../versions/${model}.ver
+
+export  HOME${model}=${HOMEaqm:-${NWROOT}/cmaq.${model_ver}}
+
+eval \$HOME${model}/jobs/JAQM_PREPHYB_HI
+
+#%include <tail.h>
+
+ 
+
+
+

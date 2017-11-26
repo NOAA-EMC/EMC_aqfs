@@ -153,9 +153,6 @@ then
     for pmfile in $DATA/aqm.${cycle}.pm25*;do
         ifile=$(basename ${pmfile})
         cp ${ifile} $COMOUT/
-        if [ "$SENDDBN" = 'YES' ]; then
-            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
-        fi
     done
 fi
 
@@ -167,11 +164,6 @@ do
   for field in awpozcon awpozcat chem_sfc 
    do
     cp $DATA/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2 $COMOUT/
-    if [ $field = awpozcon ]; then
-      if [ $SENDDBN = YES ]; then
-        $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.${cycle}.${field}.f${fhr}.${id_grib}.grib2
-      fi
-    fi
    done
 
  fi
@@ -185,10 +177,8 @@ do
   if [ $fhr -le 07 ]; then
    cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile.1hr
   else
-#   $WGRIB -d 1 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.1hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 1 -append -grib tmpfile.1hr
    export err=$?;err_chk
-#   $WGRIB -d 2 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.8hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 2 -append -grib tmpfile.8hr
    export err=$?;err_chk
   fi
@@ -197,22 +187,16 @@ do
   typeset -Z2 fhr
  done
 
-#################################################
-# Part III:  Insert WMO header to GRIB files
-#################################################
-
-if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
-
 ###############
 # Convert ozone Concentration to grid 227 in GRIB2 format
 ###############
 echo ' &NLCOPYGB IDS(180)=1, /' > ozcon_scale
  
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile      aqm.t${cyc}z.grib2_5xozconnmmb.227
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25 aqm.t${cyc}z.grib2_5xpm25nmmb.227
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.227.grib2  
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.grib2  
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile      aqm.t${cyc}z.grib2_5xozconnmmb.227
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile_pm25 aqm.t${cyc}z.grib2_5xpm25nmmb.227
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.227.grib2  
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.grib2  
 
   cp -rp aqm.t${cyc}z.ave_1hr_o3.227.grib2 $COMOUT/
   cp -rp aqm.t${cyc}z.ave_8hr_o3.227.grib2 $COMOUT/
@@ -224,6 +208,12 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
   fi
    
+#################################################
+# Part III:  Insert WMO header to GRIB files
+#################################################
+
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+
 ##############################
 # Create AWIPS GRIB data
 ##############################
@@ -254,7 +244,6 @@ $COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
 
        if test "$SENDCOM" = 'YES'
        then
-#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.227  $PCOM/awpaqm.t${cyc}z.${hr}ho3.227.grib2
            cp awpaqm.t${cyc}z.${hr}ho3.227.grib2  $PCOM/
 
           ##############################

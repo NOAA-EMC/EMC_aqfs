@@ -672,8 +672,10 @@
       if (  varlist(L).eq.'O3_8hr' .and. nt .ge. 8 ) then
 !jp        ipdstmpl(9)=nt-7
 !jp        ipdstmpl(27)=7        !
-        ipdstmpl(9)=nt-7
-        ipdstmpl(27)=7        !
+!        ipdstmpl(9)=nt-7
+        ipdstmpl(9)=nt-8
+!jp        ipdstmpl(27)=7        !
+        ipdstmpl(27)=8        !
         ipdstmpl(1)=14        ! catogory
         ipdstmpl(2)=193       ! parameter   ozone concentration 
       endif
@@ -819,9 +821,10 @@
        enddo
       enddo
  
-!      ipdstmpl(9)=nt-8
-      ipdstmpl(9)=nt-7
-      ipdstmpl(27)=7        !
+      ipdstmpl(9)=nt-8
+!jp      ipdstmpl(9)=nt-7
+!jp      ipdstmpl(27)=7        !
+      ipdstmpl(27)=8        !
 
 
       call addfield(cgrib2,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &

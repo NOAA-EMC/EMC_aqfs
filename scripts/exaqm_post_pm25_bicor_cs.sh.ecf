@@ -38,11 +38,10 @@ cd $DATA
  fi
 
  startmsg
- $USHaqm/aqm_bicor_prep_cs.sh_prep  >> $pgmout 2>errfile  
+ $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
  export err=$?; err_chk
 
-# f1=aqm.${cycle}.O3_pm25.ncf
- f1=aqm.${cycle}.O3_pm25_more.ncf
+ f1=aqm.${cycle}.O3_pm25.ncf
  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
  f4=UV_wind.${cycle}.ncf
@@ -59,8 +58,6 @@ fi
     cp $DATA/$f4 $COMOUTbicor/grid/$Yr/$PDY
 #fi
 
-exit
-
 #
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
@@ -68,7 +65,7 @@ exit
 startmsg
 $USHaqm/aqm_bicor_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
-exit
+
 #-----------------------------------------------------------------------
 #  STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
@@ -93,16 +90,22 @@ export err=$?; err_chk
 
 oldgrib2file1=aqm.t${cyc}z.24hpm25-ave.148.bc.grib2
 newgrib2file1=aqm.t${cyc}z.24hpm25-ave.227.bc.grib2
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file1}  ${newgrib2file1} 
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file1}  ${newgrib2file1} 
 
 oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
 newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
-${COPYGB2}  -g "$grid227" -x  -i"2 2"  ${oldgrib2file2}  ${newgrib2file2}
+${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file2}  ${newgrib2file2}
 
 if [ "$SENDCOM" = 'YES' ]; then
+   cp aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.148.grib2
+   cp aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.148.grib2
    cp aqm.t${cyc}z.1hpm25-max.227.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.227.grib2
    cp aqm.t${cyc}z.24hpm25-ave.227.bc.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.227.grib2
+  if [ $SENDDBN = YES ]; then
+     $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
+     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.ave_24hr_pm25_bc.227.grib2
+  fi
 fi
 
 fi
@@ -125,8 +128,17 @@ do
  typeset -Z2 fhr
 done
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+$COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
+
+if [ $SENDCOM = YES ]; then
+  cp  tmpfile_pm25_bc  $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.148.grib2
+  cp  aqm.t${cyc}z.grib2_pm25_bc.227 $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
+  if [ $SENDDBN = YES ]; then
+     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
+  fi
+fi
+
 #
 ####################################################
 #  Create AWIPS GRIB2 data for Bias-Corrected PM2.5

@@ -185,10 +185,8 @@ do
   if [ $fhr -le 07 ]; then
    cat $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile.1hr
   else
-#   $WGRIB -d 1 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.1hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 1 -append -grib tmpfile.1hr
    export err=$?;err_chk
-#   $WGRIB -d 2 -grib -append $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib} -o tmpfile.8hr
    $WGRIB2 $DATA/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 -d 2 -append -grib tmpfile.8hr
    export err=$?;err_chk
   fi
@@ -208,12 +206,11 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 ###############
 echo ' &NLCOPYGB IDS(180)=1, /' > ozcon_scale
  
-#export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
- export grid196="10 6 0 0 0 0 0 0 321  225  18073000 198475000 56 20000000 23088000  206131000 206131000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile      aqm.t${cyc}z.grib2_HIozconnmmb.196
-$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile_pm25 aqm.t${cyc}z.grib2_HIpm25nmmb.196
-$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.196.grib2  
-$COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.196.grib2  
+export grid196="10 6 0 0 0 0 0 0 321 225 18073000 198475000 56 20000000 23088000 206131000 64 0 2500000 2500000" 
+$COPYGB2  -g "$grid196" -x  -i"1 1" tmpfile      aqm.t${cyc}z.grib2_HIozconnmmb.196
+$COPYGB2  -g "$grid196" -x  -i"1 1" tmpfile_pm25 aqm.t${cyc}z.grib2_HIpm25nmmb.196
+$COPYGB2  -g "$grid196" -x  -i"1 1" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.196.grib2  
+$COPYGB2  -g "$grid196" -x  -i"1 1" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.196.grib2  
 
   cp -rp aqm.t${cyc}z.ave_1hr_o3.196.grib2 $COMOUT/
   cp -rp aqm.t${cyc}z.ave_8hr_o3.196.grib2 $COMOUT/
@@ -255,7 +252,6 @@ $COPYGB2  -g "$grid196" -x  -i"2 2" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.196.gri
 
        if test "$SENDCOM" = 'YES'
        then
-#           cp grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.196  $PCOM/awpaqm.t${cyc}z.${hr}ho3.196.grib2
            cp awpaqm.t${cyc}z.${hr}ho3.196.grib2  $PCOM/
 
           ##############################

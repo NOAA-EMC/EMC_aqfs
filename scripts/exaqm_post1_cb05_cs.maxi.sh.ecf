@@ -68,8 +68,8 @@ export err=$?;err_chk
 $WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.1ho3-max.148.grib2
 $WGRIB2 aqm-maxi.148.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.148.grib2 -grib  aqm.${cycle}.8ho3-max.148.grib2
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2"  aqm-maxi.148.grib2  aqm-maxi.227.grib2 
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 "
+$COPYGB2  -g "$grid227" -x  -i"1 1"  aqm-maxi.148.grib2  aqm-maxi.227.grib2 
 $WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-1hro3-maxi.227.grib2
 $WGRIB2 aqm-maxi.227.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi.227.grib2 -grib  aqm-8hro3-maxi.227.grib2
 
@@ -88,8 +88,8 @@ startmsg
 $EXECaqm/aqm_post_maxi_CHA_grib2_v2  >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
-$COPYGB2  -g "$grid227" -x  -i"2 2" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+$COPYGB2  -g "$grid227" -x  -i"1 1" aqm-pm25_24hr.148.grib2 aqm-pm25_24hr.227.grib2
 
 #-----------------------------------------
 $WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
@@ -98,30 +98,10 @@ export err=$?;err_chk
 $WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib  aqm.${cycle}.24hpm25-ave.148.grib2
 export err=$?;err_chk
 #-----------------------------------------
-#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 1 -grib aqm-1hr-pm25-daily-max.227.grib2
 $WGRIB2 aqm-pm25_24hr.227.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.227.grib2 -grib aqm.${cycle}.1hpm25-max.227.grib2
 export err=$?;err_chk
-#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 2 -grib aqm-24hr-pm25-daily-ave.227.grib2
 $WGRIB2 aqm-pm25_24hr.227.grib2 |grep "PMTF"   | $WGRIB2 -i aqm-pm25_24hr.227.grib2 -grib aqm.${cycle}.24hrpm25-ave.227.grib2
 export err=$?;err_chk
-
-#if [ -f ${MAQFILE2} ]; then
-##------------
-#$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PDMAX1" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.1hpm25-max.148.grib2
-#export err=$?;err_chk
-
-#$WGRIB2 aqm-pm25_24hr.148.grib2 |grep "PMTF" | $WGRIB2 -i aqm-pm25_24hr.148.grib2 -grib aqm.${cycle}.24hpm25-ave.148.grib2
-#export err=$?;err_chk
-#-----------
-#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 3 -append -grib aqm-1hr-pm25-daily-max.227.grib2
-#export err=$?;err_chk
-
-#$WGRIB2 aqm-pm25_24hr.227.grib2 -d 4 -append -grib aqm-24hr-pm25-daily-ave.227.grib2
-#export err=$?;err_chk
-
-#fi
-
-#stop
 
 for hr in 1 8
 do
@@ -178,7 +158,7 @@ export FORT31=
 export FORT51=aqm.${cycle}.24hrpm25-ave.227.grib2.temp
 ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
 
-#echo `ls -l  aqm.${cycle}.24hrpm25-ave.227.grib2 | awk '{print $5} '` > filesize
+#echo `ls -l aqm.${cycle}.24hrpm25-ave.227.grib2 | awk '{print $5} '` > filesize
 echo `ls -l  aqm.${cycle}.24hrpm25-ave.227.grib2.temp | awk '{print $5} '` > filesize
 export XLFRTEOPTS="unit_vars=yes"
 export FORT11=aqm.${cycle}.24hrpm25-ave.227.grib2.temp
@@ -216,9 +196,10 @@ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.227
 #done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
-  cp awpaqm.${cycle}.1ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
-  cp awpaqm.${cycle}.8ho3-max.227.grib2 $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
-  cp aqm.${cycle}.*ho3-max.148.grib2      $COMOUT/
+  cp aqm-1hro3-maxi.227.grib2             $COMOUT/aqm.${cycle}.max_1hr_o3.227.grib2
+  cp aqm-8hro3-maxi.227.grib2             $COMOUT/aqm.${cycle}.max_8hr_o3.227.grib2
+  cp aqm.${cycle}.1ho3-max.148.grib2      $COMOUT/aqm.${cycle}.max_1hr_o3.148.grib2
+  cp aqm.${cycle}.8ho3-max.148.grib2      $COMOUT/aqm.${cycle}.max_8hr_o3.148.grib2
   cp aqm.${cycle}.1hpm25-max.227.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.227.grib2
   cp aqm.${cycle}.24hrpm25-ave.227.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25.227.grib2
   cp aqm.${cycle}.1hpm25-max.148.grib2    $COMOUT/aqm.${cycle}.max_1hr_pm25.148.grib2

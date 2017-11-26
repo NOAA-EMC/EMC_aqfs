@@ -12,12 +12,13 @@ IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel
 IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
 
 FC         = ftn
-FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise
+FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise 
+
 
 #DEBUG      = -g -traceback
 DEBUG      = 
 
-FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I $(MPI_INC) . 
+FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I $(MPI_INC) 
 
  OBJS= \
   pinterpb_mod.o\
@@ -41,17 +42,13 @@ FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I $(MPI_
   readbndy.o\
   subdmap.o\
   wrsubmap.o\
-  parutilio.o 
+  parutilio.o
 
 .SUFFIXES: .F .f .c
 
 $(LIBNAME) : $(OBJS)
-	$(FC) $(FFLAGS) $(LIOAPI) -c $<
+	$(FC) $(FFLAGS) -c $<
 	ar -rv  -o ../../$@ $?
 	chmod 644 ../../$@
 clean:
 	/bin/rm -f *.a *.o *.mod
-
-# mv *.o *.a $M3TOOLS/pario
-# $(FC) $(FFLAGS) -c $(?:.o=.f)
-# $(FC) $(FFLAGS) -c $(?:.o=.f)

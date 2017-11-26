@@ -10,6 +10,10 @@
 ######################################################################
 set -xa
 
+export OMP_STACKSIZE=60000000
+export OMP_NUM_THREADS=16
+export MKL_NUM_THREADS=16
+
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
 cd $DATA
@@ -22,32 +26,30 @@ else
 fi
 
 
-#rm -rf  data/interpolated  data/airnow  data/grid
 rm -rf data
 
 mkdir -p data sites coords
 
-#ln -s $PARMaqm/aqm_site_bias_thresholds.txt .
 
 ln -s $PARMaqm/aqm.*grdcro2d.ncf  coords/
-ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list sites/ 
+#ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.list sites/sites.valid.20170818.12z.list 
+ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list sites/
 ln -s $PARMaqm/aqm_bias_thresholds.2015.1030.32-sites.txt ./bias_thresholds.2015.1030.32-sites.txt 
 
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
-aprun -n 1 -d 24 $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+#aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm25_bias_cor_omp_test  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
-
 
 if [ ${envir} = 'para' ] ; 
 then
  cp  $DATA/out/pm2.5.corrected*  ${COMOUT_grib} 
 fi
-if [ ${envir} = 'para2' ] ;
+if [ ${envir} = 'para4' ] ;
 then
  cp  $DATA/out/pm2.5.corrected*   $COMOUT_grib
-# cp  $DATA/out/pm2.5.corrected* /naqfc/noscrub/${USER}/bias/corrected_v3
 fi
 
  cp $DATA/out/pm2.5*   $COMOUT
