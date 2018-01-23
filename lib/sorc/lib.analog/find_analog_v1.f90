@@ -27,6 +27,11 @@
 !		Switch is_circular to type logical.
 ! 2014-jul-15	Add diagnostics.
 !
+! 2017-mar-28	DRA: Add predictor weighting, per 2014-oct-01 code update
+!		  by Stefano Alessandrini (ste), NCAR.
+! 2017-jun-29	DRA: Fix metric problem when a predictor is all zeros
+!		  or constant values within current search window.
+!
 ! Inputs:
 !       data         <day> x <hour> x <vars>
 !		     (<day> same as run or forecast cycle)
@@ -79,23 +84,24 @@ contains
 ! find_analog search routine.
 !-----------------------------------------------------------
 
-subroutine find_analog (data, vmiss, fpar, fvar, diag, indices, metrics, &
-    winLower, winUpper)
+subroutine find_analog (data, pred_weights, vmiss, fpar, fvar, diag, indices, &
+    metrics, winLower, winUpper)
 
   use index__sort_descending
   use stdev_TNcirc
   use wind__dir_error
   implicit none
 
-  real(dp),        intent(in ) :: data(:,:,:)	     ! (days, hours, vars)
-  real(dp),        intent(in ) :: vmiss		     ! common missing value
-  type(fpar_type), intent(in ) :: fpar		     ! find_analog parameters
-  integer,         intent(in ) :: fvar		     ! var index of forecast var
-  integer,         intent(in ) :: diag		     ! verbosity, 0=errors only
+  real(dp),        intent(in ) :: data(:,:,:)	    ! (days, hours, vars)
+  real(dp),        intent(in ) :: pred_weights(:)   ! predictor weights (vars)
+  real(dp),        intent(in ) :: vmiss		    ! common missing value
+  type(fpar_type), intent(in ) :: fpar		    ! find_analog parameters
+  integer,         intent(in ) :: fvar		    ! var index of forecast var
+  integer,         intent(in ) :: diag		    ! verbosity, 0=errors only
 
-  integer,  allocatable, intent(out) :: indices(:)   ! 1-D indices within window
-  real(dp), allocatable, intent(out) :: metrics(:)   ! 1-D metrics within window
-  integer,  intent(out) :: winLower, winUpper	     ! hour range, found window
+  integer,  allocatable, intent(out) :: indices(:)  ! 1-D indices within window
+  real(dp), allocatable, intent(out) :: metrics(:)  ! 1-D metrics within window
+  integer,  intent(out) :: winLower, winUpper	    ! hour range, found window
 
 ! Local variables.
 
@@ -417,20 +423,48 @@ use_real: &
     normalized(:,:) = vmiss			! flag invalid metrics
 
     where (varstd(:,:) > 0) normalized = summed(:,:) / varstd(:,:)
-    					! protect from divide by zero
+    						! protect from divide by zero
+! Handle zero standard deviation.
 
-! Sum contributions from all the individual variables, for each analog date.
+! This happens when a predictor has all constant values within
+! the current search window.  A particular case is solar radiation
+! at night time, which of course is all zeros.
+
+! All constant values within the window means this predictor can not
+! make a meaningful contribution to the metric-based analog search.
+! Therefore, simply zero all corresponding normalized values,
+! and the metrics will be based only on the other predictors.
+
+    where (varstd(:,:) == 0) normalized = 0
+
+! Weighted sum of contributions from all predictors, for each analog date.
 ! No metric on days with any missing.
 ! Metric was initially filled with missing values.
+
+    if (diag >= 7) then
+      print *, '  shape (normalized)           = ', shape (normalized)
+      print *, '  shape (pred_weights)         = ', shape (pred_weights)
+      print *, '  shape (metric(1:prev_day,w)) = ', shape (metric(1:prev_day,w))
+    end if
 
     dim_num = 2					! sum over the var dimension
 
     where (all (normalized /= vmiss, dim_num)) &	! no sum if any missing
-      metric(1:prev_day, w) = sum (normalized(:,:), dim_num)	! D <-- DV
-
+      metric(1:prev_day, w) = matmul (normalized(:,:), pred_weights(:))
+      							! D <-- DV
   end do hour_loop
 
 ! Handle invalid metrics.
+
+  if (diag >= 6) then
+    print *
+    print *, '  *** Check for invalid metrics:'
+    print *, '  fhour                 = ', fhour
+    print *, '  Missing metrics count = ', count (metric(:,:) == vmiss)
+    print *, '  Metric array size     = ', size  (metric)
+    print *, '  shape (metric)        = ', shape (metric)
+    print *
+  end if
 
   if (any (metric(:,:) == vmiss)) then
 

@@ -564,7 +564,8 @@
        if  (varlist(L).eq.'o3_8hr' )then 
         ipdstmpl(19)=markutc+8-1+(mday-1)*24          !  Forecast hour
        else
-        ipdstmpl(19)=markutc
+!        ipdstmpl(19)=markutc
+        ipdstmpl(19)=markutc-1
        endif
 !
        if ( varlist(L).eq.'o3_8hr' .and. mday .eq. 2 ) then

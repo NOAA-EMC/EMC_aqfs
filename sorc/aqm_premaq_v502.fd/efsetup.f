@@ -52,11 +52,10 @@ C...........   EXTERNAL FUNCTIONS and their descriptions:
         EXTERNAL    INDEX1
 
 C...........   SUBROUTINE ARGUMENTS
-        CHARACTER(*), INTENT (IN)   :: FNAME           ! logical file or 'NONE'
-        CHARACTER(*), INTENT (IN)   :: MODELNAM        ! name of EF model
-        INTEGER     , INTENT(INOUT) :: NVAR          ! actual no of variables
-C....   INTEGER     , INTENT(OUT)   :: NVAR            ! this leads to a compiler warning
-        CHARACTER(*), INTENT(OUT)   :: VOLNAM          ! volatile pollutant name
+        CHARACTER(*), INTENT (IN) :: FNAME           ! logical file or 'NONE'
+        CHARACTER(*), INTENT (IN) :: MODELNAM        ! name of EF model
+        INTEGER     , INTENT(OUT) :: NVAR            ! actual no of variables
+        CHARACTER(*), INTENT(OUT) :: VOLNAM          ! volatile pollutant name
 
 C...........   Local variables
         INTEGER         I, J, K, L, L2, N ! counters and indices

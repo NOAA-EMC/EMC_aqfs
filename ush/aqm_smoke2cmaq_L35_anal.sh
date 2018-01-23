@@ -78,6 +78,22 @@ $EXECaqm/aqm_fire_analy_1  > tmpfire.out
 export err=$?;
 err_chk
 
+##
+## For plume-height diagnosis output
+##
+# to archive fire profile files 
+#jp if [ "${RUN_ENVIR}" == "emc" ]; then
+   archive_run=analy
+   archive_dir=fire_${archive_run}_${PDYm1}_t${cyc}z
+   archive_tar=fire_${archive_run}_profile_t${cyc}z.tar.gz
+   mkdir -p ${archive_dir}
+   mv fire_${archive_run}_profile*.txt   ${archive_dir}
+   mv fire_${archive_run}_gridindx_*.txt ${archive_dir}
+   cp -p tmpfire.out                     ${archive_dir}
+   tar -czf ${archive_tar} ${archive_dir}
+   mv ${archive_tar}                     $COMOUTm1
+#jp fi
+## For plume-height diagnosis output
 
  cat > cmaq.ini << EOF
  &control

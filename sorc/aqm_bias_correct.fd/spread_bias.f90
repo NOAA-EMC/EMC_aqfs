@@ -30,6 +30,8 @@
 ! 2016-feb-09	DRA: Add config file selector for output limit method.
 !		Add time stamps to spreading loop.
 !
+! 2017-apr-05	Add more comprehensive summary statistics.
+!
 ! This routine calculates bias over whole grid.
 ! Objective analysis is used iteratively with 8 runs.
 !
@@ -105,6 +107,7 @@ subroutine spread_bias (uncorr_grids, uncorr_sites, corr_sites, XLAT, XLON, &
    						!   (hours, sites)
    real(dp), allocatable :: sDISTANT(:,:,:)	! index array (sites, X, Y)
    logical,  allocatable :: mask_valid(:,:,:)	! data mask (X, Y, hours)
+   real(dp), allocatable :: corr_unlim (:,:,:)  ! corr_grids before limit step
 
    real(dp), allocatable :: numerator(:)	! bias partial sums (hours)
    integer,  allocatable :: np(:)		! site counts (hours)
@@ -141,6 +144,7 @@ subroutine spread_bias (uncorr_grids, uncorr_sites, corr_sites, XLAT, XLON, &
    allocate (numerator(nhours), np(nhours))
    allocate (bias_sites(nhours, nsite))
    allocate (bias_grids(xg, yg, nhours), corr_grids(xg, yg, nhours))
+   allocate (corr_unlim(xg, yg, nhours))
    allocate (sDISTANT(nsite, xg, yg))
 
    if (diag >= 3) then
@@ -273,7 +277,11 @@ site_loop: &
       corr_grids = uncorr_grids + bias_grids	! add bias to uncorrected values
    end where
 
+   corr_unlim(:,:,:) = corr_grids(:,:,:)	! save copy for final summary
+
+!-------------------------------------------------
 ! Apply selected output limit method.
+!-------------------------------------------------
 
    if (diag >= 2) then
       print '(2a)', ' spread_bias: Apply selected limit method.'
@@ -298,8 +306,10 @@ limit_method: &
          print *
          print *, '*** spread_bias: Unknown name for output limit method.'
          print *, '*** Selected method = "' // trim (output_limit_method) // '"'
-         print *, '*** Use "revert to fraction of uncorrected".'
+         print *, '*** Instead will use "revert to fraction of uncorrected".'
       end if
+
+      ! ***** SOFT ERROR.  Fall through to fraction method. *****
 
 !jp0
       DO irun=1,nhours
@@ -329,11 +339,15 @@ limit_method: &
    vmin         = minval (bias_grids, mask_valid)
    vmax         = maxval (bias_grids, mask_valid)
 
+   npositive    = count (mask_valid .and. (bias_grids >  0))
+   nzero        = count (mask_valid .and. (bias_grids == 0))
+   nnegative    = count (mask_valid .and. (bias_grids <  0))
+
    nvalid       = count (mask_valid)
    nmiss        = size (mask_valid) - nvalid
    percent_miss = (nmiss * 100.0_dp) / size (mask_valid)
 
-   if (nvalid > 0) then				! comnpute average bias
+   if (nvalid > 0) then				! compute mean bias
       avg = sum (pack (bias_grids, mask_valid)) / nvalid
    else
       avg = 0
@@ -342,8 +356,11 @@ limit_method: &
    if (nvalid == 0) vmin = vmiss		! fix display if all missing
    if (nvalid == 0) vmax = vmiss
 
-   print '(2(a,g0.4))',     "   Min, max bias grids        = ", vmin,', ',vmax
-   print '(a,g0.4)',        "   Average of all bias values = ", avg
+   print '(2(a,g0.4))',     '   Min, max bias grids        = ', vmin,', ',vmax
+   print '(a,g0.4)',        '   Mean of all bias values    = ', avg
+   print '(a,i0)',          '   Number greater than zero   = ', npositive
+   print '(a,i0)',          '   Number of zeros            = ', nzero
+   print '(a,i0)',          '   Number less than zero      = ', nnegative
    print '(a,i0,a,f0.1,a)', '   Number of missing values   = ', nmiss, &
       ' (', percent_miss, '%)'
    print *
@@ -362,10 +379,50 @@ limit_method: &
    nmiss        = size (mask_valid) - nvalid
    percent_miss = (nmiss * 100.0_dp) / size (mask_valid)
 
+   if (nvalid > 0) then				! compute mean uncorrected
+      avg = sum (pack (uncorr_grids, mask_valid)) / nvalid
+   else
+      avg = 0
+   end if
+
    if (nvalid == 0) vmin = vmiss		! fix display if all missing
    if (nvalid == 0) vmax = vmiss
 
-   print '(2(a,g0.4))',     "   Min, max uncorrected grids = ", vmin,', ',vmax
+   print '(2(a,g0.4))',     '   Min, max uncorrected grids = ', vmin,', ',vmax
+   print '(a,g0.4)',        '   Mean of all uncorr. values = ', avg
+   print '(a,i0)',          '   Number greater than zero   = ', npositive
+   print '(a,i0)',          '   Number of zeros            = ', nzero
+   print '(a,i0)',          '   Number less than zero      = ', nnegative
+   print '(a,i0,a,f0.1,a)', '   Number of missing values   = ', nmiss, &
+      ' (', percent_miss, '%)'
+   print *
+
+!------------
+
+   mask_valid   = (corr_unlim(:,:,:) /= vmiss)
+   vmin         = minval (corr_unlim, mask_valid)
+   vmax         = maxval (corr_unlim, mask_valid)
+
+   npositive    = count (mask_valid .and. (corr_unlim >  0))
+   nzero        = count (mask_valid .and. (corr_unlim == 0))
+   nnegative    = count (mask_valid .and. (corr_unlim <  0))
+
+   nvalid       = count (mask_valid)
+   nmiss        = size (mask_valid) - nvalid
+   percent_miss = (nmiss * 100.0_dp) / size (mask_valid)
+
+   if (nvalid > 0) then				! compute mean corrected
+      avg = sum (pack (corr_unlim, mask_valid)) / nvalid
+   else
+      avg = 0
+   end if
+
+   if (nvalid == 0) vmin = vmiss		! fix display if all missing
+   if (nvalid == 0) vmax = vmiss
+
+   print '(2(a,g0.4))',     '   Min, max corrected grids   = ', vmin,', ',vmax
+   print '(a)',             '     before zero limiting'
+   print '(a,g0.4)',        '   Mean of all corrected vals = ', avg
    print '(a,i0)',          '   Number greater than zero   = ', npositive
    print '(a,i0)',          '   Number of zeros            = ', nzero
    print '(a,i0)',          '   Number less than zero      = ', nnegative
@@ -387,10 +444,17 @@ limit_method: &
    nmiss        = size (mask_valid) - nvalid
    percent_miss = (nmiss * 100.0_dp) / size (mask_valid)
 
+   if (nvalid > 0) then				! compute mean corrected
+      avg = sum (pack (corr_grids, mask_valid)) / nvalid
+   else
+      avg = 0
+   end if
+
    if (nvalid == 0) vmin = vmiss		! fix display if all missing
    if (nvalid == 0) vmax = vmiss
 
-   print '(2(a,g0.4))',     "   Min, max corrected grids   = ", vmin,', ',vmax
+   print '(2(a,g0.4))',     '   Min, max final corrected   = ', vmin,', ',vmax
+   print '(a,g0.4)',        '   Mean all final corrected   = ', avg
    print '(a,i0)',          '   Number greater than zero   = ', npositive
    print '(a,i0)',          '   Number of zeros            = ', nzero
    print '(a,i0)',          '   Number less than zero      = ', nnegative

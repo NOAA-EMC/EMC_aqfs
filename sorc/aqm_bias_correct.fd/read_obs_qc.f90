@@ -22,6 +22,9 @@
 !
 ! 2016-jan-12	Minor library upgrade.  Use string_utils module.
 !
+! 2017-apr-04	Add ozone support.  Pass var name to QC routine.
+!		Add ozone units conversion, mole/mole to ppmv, to match CMAQ.
+!
 ! Input:   infile_template = Path template for input data set.  May include
 !		leading environment var, and YYYY MM DD substitution strings.
 !          varname = BUFR field name for requested data variable, e.g. COPOPM.
@@ -209,9 +212,10 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    call lowercase (orig_units2)
 
 ! Adaptive method.  First determine the needed units, if any.
-! This is a cheap table lookup.  Could be tablified.
+! This is a cheap table lookup.  Could be made into formal table, if needed.
 
    units_needed = 'any'
+   if (varname == 'COPO')   units_needed = 'ppmv'
    if (varname == 'COPOPM') units_needed = 'microgram/m^3'
 
    if (diag >= 2) then
@@ -222,13 +226,17 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    end if
 
 ! Then check for available unit conversions.
-! This is another cheap table.  Could also be tablified.
+! This is another cheap table.  Could also be made into a formal table.
 
    multiplier = -777			! default to "no conversion" magic num.
 
    if (units_needed == 'microgram/m^3') then
       if (any (orig_units2 == (/ 'kg/(m**3)', 'kg m-3   ' /))) &
          multiplier = 1.0e9_dp			! kilograms to micrograms
+
+   else if (units_needed == 'ppmv') then
+      if (orig_units2 == 'mole/mole') &
+         multiplier = 1.0e6_dp			! MOLE/MOLE to ppmv
    end if
 
 ! Diagnostics for no conversion.
@@ -341,7 +349,7 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    nsites_valid = 0
 
    do si = 1, nsites_in
-      call qc_single_site (in_data(:,si), vmiss, diag, in_ids(si))
+      call qc_single_site (varname, in_data(:,si), vmiss, diag, in_ids(si))
 
       nmiss  = count  (in_data(:,si) == vmiss)
       nvalid = ntimes - nmiss

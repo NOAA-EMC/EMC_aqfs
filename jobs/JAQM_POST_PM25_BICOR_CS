@@ -28,8 +28,7 @@ export RUN=${RUN:-aqm}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
-#export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc}`  # 1 year 
-export TMP_STDAY=`${NDATE} -360 ${PDY}${cyc}`  # 1 year 
+export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc}`  # 1 year 
 export BC_STDAY=`echo $TMP_STDAY | cut -c1-8`
 
 export Yr=`echo ${PDY} | cut -c1-4`
