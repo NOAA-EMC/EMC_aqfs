@@ -21,21 +21,24 @@
 !		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 ! 2014-jul-15	Minor bug fix in diagnostic print.
 !
+! 2017-apr-28	Move ratio input argument into kpar structure.
+!		Minor comment fixes.
+!
 ! --- KF input parameters
 ! --- Inputs
 !     obs       = array of observations
 !     pred      = array of predictions
-!     par       = parameters
-!                 par.varo = variance of observation variance
-!                 par.varp = variance prediction variance
-!                 par.iperiod = initialization period (training period)
-!                 par.lower_limits = variable lower bounds
-!                 par.upper_limits = variable upper bounds
-!                 par.vmiss = value corresponding to missing value
-!                 par.update = time between update (24 hours)
-!                 par.start = start time of time series [obs pred]
-!                 par.timeZone = timeZone of measurements (for output graphics)
-!     ratio     = sigmas ratio
+!     vmiss     = value corresponding to missing value
+!     kpar      = parameters
+!                 kpar.varo = variance of observation variance
+!                 kpar.varp = variance prediction variance
+!                 kpar.ratio = sigmas ratio
+!                 kpar.iperiod = initialization period (training period)
+!                 kpar.lower_limits = variable lower bounds
+!                 kpar.upper_limits = variable upper bounds
+!                 kpar.update = time between update (24 hours)
+!                 kpar.start = start time of time series [obs pred]
+!                 kpar.timeZone = timeZone of measurements (for output graphics)
 !     algorithm = specifies which approach to filter
 !                 1:  current operational mode, where coefficients are
 !                     calculated only from data at the same time of day
@@ -67,6 +70,7 @@ module kf__luca			! standard visibility
 
     real(dp) varo		! variance of observation variance
     real(dp) varp		! variance prediction variance
+    real(dp) ratio		! KF method parameter (sigma_ratio)
     integer  iperiod		! initialization period (training period)
     integer  update		! time between update (24 hours)
     				! *** or: number of time steps per forecast
@@ -85,14 +89,13 @@ contains
 ! Kalman filter routine.
 !-----------------------------------------------------------
 
-subroutine kf_luca (obs, pred, vmiss, kpar, ratio, diag, output)
+subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
   implicit none
 
   real(dp),         intent(in ) :: obs(:)	! input observations
   real(dp),         intent(in ) :: pred(:)	! input predictions
   real(dp),         intent(in ) :: vmiss	! common missing value
   type (kpar_type), intent(in ) :: kpar		! Kalman filter parameters
-  real(dp),         intent(in ) :: ratio	! sigmas ratio
   integer,          intent(in ) :: diag		! verbosity, 0 = errors only
 
   real(dp), allocatable, intent(out) :: output(:)  ! Kalman filtered predictions
@@ -202,11 +205,11 @@ check_valid: &
         if (y(tprev) /= vmiss) then		 ! ldm, 14-6-2005
           kalman_gain = (p_sigv + kpar%varo) / (p_sigv + kpar%varo + kpar%varp)
           p_sigv = (p_sigv + kpar%varo) * (1 - kalman_gain)
-          sigv = sigv &
-            + (kalman_gain * ( ((y(t) - y(tprev)) ** 2) / (2 + ratio) - sigv))
+          sigv = sigv + (kalman_gain * ( ((y(t) - y(tprev)) ** 2) &
+                        / (2 + kpar%ratio) - sigv))
         end if
 
-        sigw = ratio * sigv
+        sigw = kpar%ratio * sigv
         kalman_gain = (p_x + sigw)/(p_x + sigw + sigv)
         p_x = (p_x + sigw) * (1 - kalman_gain)
         x(t) = x(t - kpar%update) + kalman_gain *(y(t) - x(t - kpar%update))
@@ -217,7 +220,7 @@ check_valid: &
 
       else
          Last_Error = vmiss
-         p_x = p_x + (ratio * sigv)
+         p_x = p_x + (kpar%ratio * sigv)
          p_x = min (p_x, 10000d0)
          x(t) = x(t-kpar%update)
       end if check_valid

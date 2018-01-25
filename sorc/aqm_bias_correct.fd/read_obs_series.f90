@@ -18,6 +18,8 @@
 ! 2016-feb-10	Reduce coordinate mismatch messages.
 !		Add file summary messages for mismatches, diag level 1 and up.
 !
+! 2017-mar-30	Fix minor bug in internal var table reader.  Enable ozone.
+!
 ! Input:   infile_template = path template for input data set.  May include
 !		leading environment var, and YYYY MM DD substitution strings.
 !          varname = BUFR name for requested data variable.
@@ -192,7 +194,7 @@ subroutine read_obs_series (infile_template, varname, start_date, end_date, &
       // '" in local var table.'
 
    do i = 1, size (var_table)
-      read (var_table, *) var_symbolic, var_bufr, typo_expect, tphr_expect
+      read (var_table(i), *) var_symbolic, var_bufr, typo_expect, tphr_expect
 
       if (diag >= 5) then
          fmt1 = '(i10,2(3x,a),2(3x,g0.3))'

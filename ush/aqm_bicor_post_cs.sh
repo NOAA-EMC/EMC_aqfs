@@ -42,9 +42,18 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc .
 ##------------------------
 # convert from netcdf to grib2 format
 
-export id_gribdmn=148
+cat >bias_cor.ini <<EOF1
+&control
+varlist='pm25'
+infile='pm2.5.corrected.${PDY}.${cyc}z.nc'
+outfile='aqm.${cycle}.pm25_bc'
+id_gribdomain=148
+/
+EOF1
+
+id_gribdmn=148
 startmsg
-$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn}  >> $pgmout 2>errfile 
+$EXECaqm/aqm_post_bias_cor_grib2 ${PDY} $cyc 
 export err=$?;err_chk
 
 if [ "$SENDCOM" = 'YES' ]
@@ -58,6 +67,7 @@ then
     done
 fi
 
+if [ "$envir" = "para5" ] ; then
 
 if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then
  cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/${RUN}.$PDY
@@ -66,7 +76,9 @@ else
  cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/${RUN}.$PDY
 fi
 
-echo EXITING $0
+fi
+
+echo EXITING $
 
 ########################################################
 

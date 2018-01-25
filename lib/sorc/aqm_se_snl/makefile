@@ -5,12 +5,12 @@ SHELL=/bin/sh
 
 LIBNAME = libaqm_se_snl.a
 
-FC = ftn 
+FC = ftn
 MPI_INC = ${CRAY_MPICH2_DIR}/include 
 IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel
 IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
 
-FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise 
+FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145 
 
 DEBUG      =
 

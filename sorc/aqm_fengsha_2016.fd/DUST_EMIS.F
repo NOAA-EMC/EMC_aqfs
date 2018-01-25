@@ -577,8 +577,8 @@ C......................................................
       IF(( (RN(C, R) + RC(C, R)) .LE. (0.00025) ).AND.
      >   ( SLTYP(C, R) .GT. 0))                 THEN   
                 
-c         JJ = NINT( SLTYP(C, R) )
-	 JJ = MIN(NINT( SLTYP(C, R) ), 13)
+C         JJ = NINT( SLTYP(C, R) )
+         JJ = MIN(NINT( SLTYP(C, R) ), 13)	 
 
 C soil moisture effect on U*t
          IF(SOIMT(C, R).LE.WMAX(C, R)) THEN

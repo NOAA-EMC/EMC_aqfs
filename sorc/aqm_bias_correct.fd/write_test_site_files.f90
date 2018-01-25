@@ -7,6 +7,9 @@
 !
 ! 2016-feb-10	Original version.  By Dave Allured.
 !		Spin off from main_analog.f90, version 2016-0208i.
+! 2017-apr-03	Expand site number field in file names from 3 to 4 digits.
+! 2017-apr-04	Support forecast cycle number in file name template.
+!		Print output statistics.
 !
 !------------------------------------------------------------------------------
 
@@ -14,14 +17,16 @@ module write__test_site_files
 contains
 
 subroutine write_test_site_files (site_file_template, filter_result, vmiss, &
-    diag, site_ids, site_lats, site_lons)
+    cycle_time, diag, site_ids, site_lats, site_lons)
 
   use config, only : dp
+  use string_utils
   implicit none
 
   character(*), intent(in) :: site_file_template	! file name templates
   real(dp),     intent(in) :: filter_result(:,:,:)	! (days, hours, sites)
   real(dp),     intent(in) :: vmiss			! missing value code
+  integer,      intent(in) :: cycle_time		! fcst hour for filename
   integer,      intent(in) :: diag			! diag verbosity level
 
 ! Currently unused inputs, for possible future use.
@@ -35,8 +40,9 @@ subroutine write_test_site_files (site_file_template, filter_result, vmiss, &
 ! Local variables.
 
   character(200) outname
+  character(10) cycle_str, site_str
 
-  integer j, isite, ndays, nhours, nsites
+  integer isite, ndays, nhours, nsites
   integer outfile, outday1, outday2
 
 ! Start.
@@ -47,7 +53,7 @@ subroutine write_test_site_files (site_file_template, filter_result, vmiss, &
 
 ! Suppress compiler warnings for unused inputs.
 
-  j = vmiss + len (site_ids) + site_lats(1) + site_lons(1)
+  isite = vmiss + len (site_ids) + site_lats(1) + site_lons(1)
 
 ! Get dimensions.
 
@@ -65,9 +71,17 @@ subroutine write_test_site_files (site_file_template, filter_result, vmiss, &
 
 ! Create unique file name for current site.
 
+    write (cycle_str, '(i2.2)') cycle_time	! forecast hour string, fixed
+    						! length with leading zeros
+
+    write (site_str,  '(i4.4)') isite		! site index number, fixed
+    						! length with leading zeros
+
+! Insert number strings into file name from template.
+
     outname = site_file_template
-    j = index (outname, 'SSS')			! insert site index number
-    write (outname(j:j+2), '(i3.3)') isite	! into the output file name
+    call replace_substring (outname, 'HH',   trim (cycle_str))
+    call replace_substring (outname, 'SSSS', trim (site_str ))
 
 ! Write text file for current site.
 
@@ -82,6 +96,14 @@ subroutine write_test_site_files (site_file_template, filter_result, vmiss, &
     write (outfile, '(f20.15)') filter_result(outday1:outday2, :, isite)
     close (outfile)
   end do
+
+! Output statistics.
+
+  if (diag >= 2) then
+    print *, '  Number of site files written       = ', nsites
+    print *, '  Number of forecast cycles included = ', (outday2 - outday1 + 1)
+    print *, '  Number of forecast hours included  = ', nhours
+  end if
 
   if (diag >= 3) print *, 'write_test_site_files:  Done.'
 

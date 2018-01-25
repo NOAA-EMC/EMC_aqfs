@@ -7,43 +7,36 @@
 !            3) calculate daily 1-hr max and 24-hr ave PM2.5
 !
 !------------------------------------------------------------------------------
-program aqm_post1_bias_correct_grib2 
+      program aqm_post1_bias_correct_grib2 
 
-   use config, only : dp
-   use read__netcdf_var
-   use stdlit, only : normal
-   use index_to_date_mod        
-   use date__index
-   use next__time       
+      use config, only : dp
+      use read__netcdf_var
+      use stdlit, only : normal
+      use index_to_date_mod        
+      use date__index
+      use next__time       
 !   use grib_mod
 
+      implicit none
 
-   implicit none
-
-!   character(*), intent(in ) :: infile		! input file name
-!   character(*), intent(in ) :: varname		! requested var name
-!   integer,      intent(in ) :: diag		! verbosity level, 0-N
-
-!   real,         intent(out) :: vdata(:,:,:)	! output array (X, Y, hours)
-!   integer,      intent(out) :: status		! result status, normal or
-   						!   fail (stdlit)
 ! Local variables.
 
-   character outfile2*200
-   integer nhours
-   integer dims_in4(4), dims_in3(3)
-!   logical fail1, fail2
+      character outfile*200
+      integer nhours,L,L2,nspcmaq
+      integer dims_in4(4), dims_in3(3)
+! logical fail1, fail2
 
 ! added by JP  
-   character  infile*80
-   character  varname*10,ymd*8,ch_cyc*2
-   integer    diag, imax,jmax
-   integer    icyc,iyear,imonth,iday,ihour,base_year,nt
-   integer    nowdate,nowtime
-   integer    ierr,ier
+      character  infile*200
+      character  varname*10,ymd*8,ch_cyc*2,chtmp*2
+      integer    diag, imax,jmax
+      integer    icyc,iyear,imonth,iday,ihour,base_year,nt
+      integer    nowdate,nowtime
+      integer    ierr,ier
 ! for grib2 
       integer, parameter   :: max_bytes=20000000
       integer, parameter   :: nx=442,ny=265
+      integer, parameter   :: ncmaq=3
 !
       integer listsec0(2)
       integer listsec1(13)
@@ -69,52 +62,77 @@ program aqm_post1_bias_correct_grib2
 !      integer yy,mm,dd,hh,mn,sc
       real(4) :: dxval
 
-       character*50 gdss(400)
+      character*50 gdss(400)
       integer GRID, kgdss(200), lengds,im,jm,jf
 !-------------------------------------------------------------------
 
-      integer status
-   
-      character id_gribdomain*3
+    integer status
+  
+    character grib_id*3
 
 !   integer kpds(200),kgds(200)
 !   integer kpds(25),kgds(25)
 !   integer kpds(25),kgds(20)
 !   integer kpds(200),kgds(200),istime(1),ietime(1)  
 
-   character(*), parameter :: calendar  = 'gregorian'
+    character(*), parameter :: calendar  = 'gregorian'
+    character*16 cmaqspec(ncmaq),varlist(ncmaq)
+    real conv_ratio(ncmaq),gipds1(ncmaq),gipds2(ncmaq),&
+             gipds27(ncmaq)
 
     logical  ave1hr
 
-!      integer indexcmaq(ncmaq),indexmet(nmet),istime(4),ietime(4)    ! file start and ending in YYYYDDDHH
+    integer indexcmaq(ncmaq),id_gribdomain  ! 
+     
+    data cmaqspec(1),gipds1(1),gipds2(1),gipds27(1)/'O3',14,193,1/
+    data cmaqspec(2),gipds1(2),gipds2(2),gipds27(2)/'O3_8hr',14,193,8/
+    data cmaqspec(3),gipds1(3),gipds2(3),gipds27(3)/'pm25',13,193,1/
 
-!      namelist /control/varlist,metlist,outfile2,nlayers,id_gribdomain,&   ! (table A)
-!                         ave1hr,ozonecatfile
+    data varlist/ncmaq*'     '/
 
-!      open(7,file='cmaq2grib.ini')
-!      read(7,control)
-!      close(7)
-
+    namelist /control/varlist,infile,outfile,id_gribdomain
 
 ! 4-D input array to conform to the current CMAQ and MET gridded format.
 ! Must be double precision for the generic Netcdf reader.
 
 !   real(dp), allocatable :: vdata(:,:,:)	! (COL, ROW, LAY, TSTEP)
    real(dp), allocatable :: indata(:,:,:,:)	! (COL, ROW, LAY, TSTEP)
-   real, allocatable :: pm25data(:,:)	! (COL, ROW, LAY, TSTEP)
+   real, allocatable :: bc_data(:,:)	! (COL, ROW, LAY, TSTEP)
 
 ! Get command arguments as strings.
+    open(7,file='bias_cor.ini')
+    read(7,control)
+    close(7)
+
+!--- cmaq species
+
+    do L=1,ncmaq
+     if(varlist(L).ne.'    ') then
+
+       do L2=1,ncmaq
+         if(varlist(L).eq.cmaqspec(L2)) exit
+       enddo
+       if(L2.gt.ncmaq) then
+        print*,'wrong varlist ', varlist(L)
+        stop
+       endif
+        indexcmaq(L)=L2
+      else
+        exit
+      endif
+     enddo
+
+    nspcmaq=L-1
+
+    if(nspcmaq.lt.1) then
+      print*,'no CMAQ species provided'
+!       stop
+    endif
+
    diag=5
-!   id_gribdomain=148
-   outfile2='aqm.t99z.pm25_bc.f99.xxx.grib2'
    ave1hr=.true.
-   call get_command_argument (1, infile)
-   call get_command_argument (2, varname) 
-   call get_command_argument (3, ymd)
-   call get_command_argument (4, ch_cyc) 
-   call get_command_argument (5, id_gribdomain) 
- 
-   
+   call get_command_argument (1, ymd)
+   call get_command_argument (2, ch_cyc)
 !
    read(ymd(1:4),*)iyear
    read(ymd(5:6),*)imonth
@@ -122,14 +140,14 @@ program aqm_post1_bias_correct_grib2
    read(ch_cyc(1:2),*)icyc
    ihour=icyc
 
-   if ( icyc .le. 9 ) then
-    write(outfile2(6:6),'(a1)')"0"
-    write(outfile2(7:7),'(i1)')icyc
-   else
-    write(outfile2(6:7),'(i2)')icyc
-   endif
+!   if ( icyc .le. 9 ) then
+!    write(outfile(6:6),'(a1)')"0"
+!    write(outfile(7:7),'(i1)')icyc
+!   else
+!    write(outfile(6:7),'(i2)')icyc
+!   endif
 
-   write(outfile2(22:24),'(a3)')id_gribdomain
+!   write(outfile(22:24),'(a3)')id_gribdomain
 
    print*,"iyear=",iyear,"imonth=",imonth,"iday=",iday,"icyc=",icyc
 
@@ -138,9 +156,12 @@ program aqm_post1_bias_correct_grib2
 
    if (diag >= 3) print *
    if (diag >= 3) print *, 'aqm.post1_bias_correct: Start.'
-   if (diag >= 3) print *, '  Read var ' // trim (varname)
+!   if (diag >= 3) print *, '  Read var ' // trim (varname)
+   if (diag >= 3) print *, '  Read var ' // trim (varlist(1))
 
-   call read_netcdf_var (infile, varname, diag, indata, status)
+
+!   call read_netcdf_var (infile, varname, diag, indata, status)
+   call read_netcdf_var (infile, trim(varlist(1)), diag, indata, status)
 
 ! Read errors are soft errors.
 ! On read error, return with fail status from lower level.
@@ -170,7 +191,7 @@ program aqm_post1_bias_correct_grib2
 ! Round from double to single precision, using default rounding mode.
 
    nhours = size (indata, 4)
-   allocate (pm25data(imax,jmax))
+   allocate (bc_data(imax,jmax))
 
 ! Diagnostics, if requested.
 
@@ -204,26 +225,29 @@ program aqm_post1_bias_correct_grib2
          jf=kgdss(2)*kgdss(3)
        end if
 !
-
       base_year=iyear
 !      nowtime=ihour*10000
 
 !-- set file unit
       ifilw=52
       if (nt .le. 9 ) then
-       write(outfile2(19:19),'(a1)')"0"
-       write(outfile2(20:20),'(i1)')nt
+       write(chtmp(1:1),'(a1)')"0"
+       write(chtmp(2:2),'(i1)')nt
       else
-       write(outfile2(19:20),'(i2)')nt
+       write(chtmp(1:2),'(i2)')nt
+      endif
+   
+      write(grib_id,'(i3.3)')id_gribdomain
+
+      call baopen(ifilw,trim(outfile)//'.f'//chtmp//'.'//grib_id//&
+                       '.grib2',ierr)
+
+      if(ierr.ne.0) then
+       print*,'can not open ',trim(outfile)
+       stop 2001
       endif
 
-       call baopen(ifilw,trim(outfile2),ierr)
-       if(ierr.ne.0) then
-        print*,'can not open ',trim(outfile2)
-        stop 2001
-       endif
-
-        cgrib=''
+       cgrib=''
 
 !
 !-----Grib2 file header information
@@ -249,8 +273,8 @@ program aqm_post1_bias_correct_grib2
       listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
       listsec1(13)=1      ! Type of processed data (Table 1.4) (0:ana products 1:fcst products 2:ana & fcst 3: cntl fcst)
 
-       call gribcreate(cgrib,max_bytes,listsec0,listsec1,ierr)
-       print*,'gribcreate status=',ierr
+!       call gribcreate(cgrib,max_bytes,listsec0,listsec1,ierr)
+!       print*,'gribcreate status=',ierr
 
 !
 !-- section 3: grid definition section
@@ -287,27 +311,19 @@ program aqm_post1_bias_correct_grib2
         igdstmpl(20)=45000000
         igdstmpl(21)=0
         igdstmpl(22)=0
-!        igdstmpl(14)=48     ! Resolution and component flags (Table 3.3)
-!        igdstmpl(15)=latlst ! La2 - latitude of last grid point
-!        igdstmpl(16)=lonlst ! Lo2 - longitude of last grid point
-!        igdstmpl(17)=dxval  ! Di - i direction increment
-!        igdstmpl(18)=ny/2   ! N - number of paralells between a pole and the
-!        equator
-!        igdstmpl(19)=0      ! Scanning mode (Table 3.4) (0:Points in the first
-!        row or column scan in the +i (+x) direction)
       endif
 
       idefnum=1             ! Used if igds(3) .ne. 0. The number of entries in array ideflist
       ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
-      call addgrid(cgrib,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
-      print*,'addgrid status=',ierr,"cgrib=",trim(cgrib(1))
+!      call addgrid(cgrib,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
+!      print*,'addgrid status=',ierr,"cgrib=",trim(cgrib(1))
 !
 !-- section 4: product definition section
       ipdstmpl=0
       ipdsnum=8             ! Product Definition Template Number (Table 4.0) (0: Analysis or forecast at a horizontal level or in a horizontal layer at a point in time)
       ipdstmpllen=29        ! pdt template length
-      ipdstmpl(1)=13        ! catogory
-      ipdstmpl(2)=193       ! parameter
+!      ipdstmpl(1)=13        ! catogory
+!      ipdstmpl(2)=193       ! parameter
       ipdstmpl(3)=2         ! Type of generating process (Table 4.3) (0:ana, 1:ic, 2:fcst)
       ipdstmpl(4)=0         ! Background generating process identifier
       ipdstmpl(5)=211        ! Analysis or forecast generating process identified (ON388TableA)
@@ -332,7 +348,7 @@ program aqm_post1_bias_correct_grib2
       ipdstmpl(24)=0        !
       ipdstmpl(25)=2        !
       ipdstmpl(26)=1        !
-      ipdstmpl(27)=1        !
+!     ipdstmpl(27)=1        !
       ipdstmpl(28)=255      !
       ipdstmpl(29)=0        !
 
@@ -353,12 +369,12 @@ program aqm_post1_bias_correct_grib2
       idrstmpl(7)=0         ! Missing value management used (see Code Table 5.5)
       idrstmpl(8)=0         ! Primary missing value substitute
       idrstmpl(9)=0         ! Secondary missing value substitute
-!      idrstmpl(10)=9047     !
+!     idrstmpl(10)=9047     !
       idrstmpl(11)=0        !
       idrstmpl(12)=5        !
       idrstmpl(13)=1        !
       idrstmpl(14)=1        !
-!      idrstmpl(15)=12       !
+!     idrstmpl(15)=12       !
       idrstmpl(16)=5        !
       idrstmpl(17)=2
       idrstmpl(18)=2
@@ -366,36 +382,75 @@ program aqm_post1_bias_correct_grib2
 !-- section 6:
       ibmap=255             ! Bit-map indicator (Table 6.0) (0:A bit map applies, 255:A bit map does not apply)
 !
+   
 
-       pm25data(:,:)=indata(:,:,1,nt)
+     do L=1,nspcmaq
+
+       call gribcreate(cgrib,max_bytes,listsec0,listsec1,ierr)
+
+       call addgrid(cgrib,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
+
+!       if(varlist(L).ne.'pm25') then
+!         if(varlist(L).eq.'O3_8hr') then
+!             o3_8hr(1:imax,1:jmax,1,nt)=o3_8hr(1:imax,1:jmax,1,nt)*1000
+          
+!        bc_data(:,:)=indata(:,:,1,nt)
+         print*,"hjp222,L=",L,"varlist(L)=",varlist(L)
+         if(varlist(L).eq.'O3_8hr'.and.nt.ge.8) then
+          do i=1,imax
+           do j=1,jmax
+             bc_data(i,j)=sum(indata(i,j,1,nt-7:nt))/8
+           enddo
+          enddo
+          ipdstmpl(9)=nt-8
+         else
+           bc_data(:,:)=indata(:,:,1,nt)
+           ipdstmpl(9)=nt-1
+         endif
+
 
         do j=1,ny
         do i=1,nx
-        fld(i+(j-1)*nx)=pm25data(i,j)
-
+         if (varlist(L).eq. 'pm25' ) then
+          fld(i+(j-1)*nx)=bc_data(i,j)
+         else
+          fld(i+(j-1)*nx)=bc_data(i,j)*1000.  ! O3 ppmv--> ppbv
+         endif
         enddo
         enddo
 
-         call addfield(cgrib,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
+        ipdstmpl(1)=gipds1(indexcmaq(L))
+        ipdstmpl(2)=gipds2(indexcmaq(L))
+        ipdstmpl(27)=gipds27(indexcmaq(L))
+
+       if ( varlist(L) .ne. 'O3_8hr' ) then
+        call addfield(cgrib,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
                           coordlist,numcoord,idrsnum,idrstmpl, &
                           idrstmpllen,fld,nx*ny,ibmap,bmap,ierr)
-        print*,'addfield status=',ierr
+
+        call gribend(cgrib,max_bytes,lengrib,ierr) 
+        call wryte(ifilw, lengrib, cgrib)
+       endif
+
+       if ( varlist(L) .eq. 'O3_8hr' .and. nt.ge.8 ) then
+        call addfield(cgrib,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
+                          coordlist,numcoord,idrsnum,idrstmpl, &
+                          idrstmpllen,fld,nx*ny,ibmap,bmap,ierr)
+
+        call gribend(cgrib,max_bytes,lengrib,ierr)
+        call wryte(ifilw, lengrib, cgrib)
+       endif
+
+       enddo  ! CMAQ species loop
 
        nowdate=date_index(iyear, imonth, iday, base_year, calendar)
 
-       print*,"hjp111a,nowdate:",nowdate,"nowtime=",nowtime
        call next_time(nowdate,nowtime,10000)
-       print*,"hjp111b,nowdate:",nowdate,"nowtime=",nowtime
        call index_to_date(nowdate,iyear, imonth, iday, base_year, calendar)
-       print*,"hjp111c,iyear,imn,iday=",iyear, imonth, iday       
 
-       call gribend(cgrib,max_bytes,lengrib,ierr)
-       print*,'gribend status=',ierr
-       print*,'length of the final GRIB2 message in octets =',lengrib
-!
-       call wryte(ifilw, lengrib, cgrib)
 
-       end do
+
+       end do   ! nt loop
          
   end program aqm_post1_bias_correct_grib2 
 

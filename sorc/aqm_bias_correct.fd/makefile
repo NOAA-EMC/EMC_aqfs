@@ -16,6 +16,19 @@
 # 2016-feb-24	Remove $F90_PARALLEL, it is problematical.  Control parallel
 #		  and optimizations exclusively through $F90_FLAGS.
 #
+# 2017-apr-04   Add *.f90 to catch hidden include files in main directory.
+# 2017-apr-06   read_netcdf_var.f90 moves to standard F90 library.
+# 2017-apr-11   Add library routine.
+#               Rename x_analog.f90 to analog_ensemble.f90.
+# 2017-apr-24   Add routines for predictor weighting.
+#
+# 2017-apr-29   Code restructuring for analog_control, etc.
+# 2017-may-17   More support for predictor weighting.
+# 2017-may-31   Add compute_weight_sets.f90.
+# 2017-jun-02   Add blackout_obs_data.f90.
+# 2017-jun-08   Move analog computational code into lib.analog.
+# 2017-aug-08   transfer the code from Theia to Cray for O3 bias correction
+
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
 # keep the make file generic for different compilers.
@@ -32,29 +45,24 @@ Prg =		aqm_bias_correct
 
 # Library directories.
 
-#Plib =		$(LIB_BIAS)
-#Lib =		$(LIB_F90)
+Alib     =   ../../lib/sorc/lib.analog
 Plib     =   ../../lib/sorc/lib.bias
 Lib      =   ../../lib/sorc/lib.f90
 #
 
 
-#LIB_NETCDF = -I$(NETCDF)/include -L$(NETCDF)/lib -lnetcdff
 LIB_NETCDF = -I$(NETCDF)/include ${NETCDF_LDFLAGS} 
 
 F90_CMD = ifort 
 
 LIB_BUFR = ${BUFR_LIB4}
 
-#F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc -assume realloc_lhs
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc 
-#F90_FLAGS2 = -traceback -warn all -warn errors 
 F90_FLAGS2 = 
 F90_FLAGS3 = -fstack-security-check -fpe-all=0
-#F90_FLAGS4 = -O0
-F90_FLAGS4 = -O2
-#F90_FLAGS5 = -openmp 
-F90_FLAGS5 = -qopenmp
+F90_FLAGS4 = -O3
+#F90_FLAGS5 = -qopenmp
+F90_FLAGS5 = -openmp
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
@@ -77,51 +85,61 @@ Lib1 =		$(Lib)/$(F90_CONFIG)		$(Lib)/config.f90 \
 		$(F90_IEEE_SUP)			$(Lib)/parse_varexp.f90 \
 		$(Lib)/stdlit.f90		$(Lib)/string_utils.f90
 
-Lib2 =		$(Lib)/date_utils.f90		$(Lib)/distance_btw_coords.f90 \
-		$(Lib)/get_free_unit.f90	$(Lib)/get_param_module.f90 \
-		$(Lib)/message_nolog.f90	$(Lib)/netwrite3.no-udunits.f90\
-                $(Lib)/read_line.f90		$(Lib)/shell-sort.f90
+Lib2 =          $(Lib)/binomial_coefficient.f90 $(Lib)/date_utils.f90 \
+                $(Lib)/distance_btw_coords.f90  $(Lib)/find_runs.f90 \
+                $(Lib)/get_free_unit.f90        $(Lib)/get_param_module.f90 \
+                $(Lib)/message_nolog.f90        $(Lib)/multisets.f90 \
+                $(Lib)/netwrite3.no-udunits.f90 $(Lib)/read_line.f90 \
+                $(Lib)/read_netcdf_var.f90      $(Lib)/shell-sort.f90
 
 Subs.lib =	$(Lib1) $(Lib2)
 
 # Plib = Shared project support library.
 
-Subs.plib =	$(Plib)/bufrlib_interface.f90	$(Plib)/expand_filename.f90 \
-		$(Plib)/get_command_args.f90	$(Plib)/gridlocation.f90 \
-		$(Plib)/read_bufr_var.f90	$(Plib)/read_netcdf_var.f90 \
-		$(Plib)/read_grid_coords.f90	$(Plib)/read_gridded_aqm.f90 \
-		$(Plib)/read_gridded_vars.f90	$(Plib)/read_table_lines.f90 \
-		$(Plib)/shell-sort.descending.f90 \
-		$(Plib)/std_dev.f90
+Subs.plib =     $(Plib)/bufrlib_interface.f90   $(Plib)/expand_filename.f90 \
+                $(Plib)/gridlocation.f90        $(Plib)/read_bufr_var.f90 \
+                $(Plib)/read_grid_coords.f90    $(Plib)/read_gridded_aqm.f90 \
+                $(Plib)/read_gridded_vars.f90   $(Plib)/read_table_lines.f90 \
+                $(Plib)/shell-sort.descending.f90 \
+                $(Plib)/std_dev.f90
+
+
+# Analog = Analog computational library.
+
+Analog1 =       $(Alib)/compute_weight_sets.f90 $(Alib)/rmse.f90 \
+                $(Alib)/stdevTNcirc.f90         $(Alib)/wind_dir_error.f90
+
+Analog2 =       $(Alib)/find_analog_v1.f90      $(Alib)/kf_luca.f90 \
+                $(Alib)/analog_ensemble.f90     $(Alib)/anenmean_method.f90 \
+                $(Alib)/kfan_method.f90         $(Alib)/filter_dispatch.f90 \
+                $(Alib)/weight_control.f90      $(Alib)/analog_control.f90
+
+Subs.alib =     $(Analog1) $(Analog2)
 
 # Local support routines in main program directory.
 
-Analog1 =	read_exception_list.f90		stdevTNcirc.f90 \
-		wind_dir_error.f90
-
-Analog2 =	find_analog_v1.f90		kf_luca.f90 \
-		x_analog.f90			anenmean_method.f90 \
-		kfan_method.f90			main_analog.f90
-
-Local1 =	align_obs_to_forecasts.f90	grid_distances.f90 \
-		qc_single_site.f90		read_config_file_main.f90 \
-		read_interp_forecasts.f90	read_obs_series.f90 \
-		read_obs_qc.f90			spread_bias.f90 \
-		write_corrected_netcdf.f90	write_site_list.f90 \
-		write_test_day_files.f90	write_test_site_files.f90
+Local1 =        align_obs_to_forecasts.f90      blackout_obs_data.f90 \
+                get_command_args.main.f90       grid_distances.f90 \
+                qc_single_site.f90              read_config_file_main.f90 \
+                read_interp_forecasts.f90       read_obs_series.f90 \
+                read_obs_qc.f90                 read_predictor_weights.f90 \
+                read_exception_list.f90 \
+                spread_bias.f90                 write_corrected_netcdf.f90 \
+                write_predictor_weights.f90     write_site_list.f90 \
+                write_test_day_files.f90        write_test_site_files.f90
 
 Local2 =	spreading.f90
 
-Subs.local =	$(Analog1) $(Analog2) $(Local1) $(Local2)
+Subs.local =    $(Local1) $(Local2)
 
 # Main program.
 
-Subs.main =	$(Subs.lib) $(Subs.plib) $(Subs.local)
+Subs.main =     $(Subs.lib) $(Subs.plib) $(Subs.alib) $(Subs.local)
 
 # Catch hidden include file dependencies that are not explicitly listed.
 # This is overkill, but it is fast and good assurance.
 
-Hidden =	$(Lib)/*.f90 $(Plib)/*.f90
+Hidden =	$(Lib)/*.f90 $(Plib)/*.f90 $(Alib)/*.f90
 
 $(Prg):	$(Prg).f90 $(Subs.main) $(Hidden) makefile
 	$(Link.f90) $(Subs.main) $@.f90 $(Libraries) -o ../../exec/$@

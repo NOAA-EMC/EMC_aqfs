@@ -5,7 +5,8 @@
 ! 1.00	2012-apr-26	Original version.  By Dave Allured.
 !
 ! 2.00	2014-apr-24	Add option to replace all occurrences in one call.
-!			Requires module interface via date_utils.f90;
+!			Requires module interface via string_utils.f90.
+! 2.01	2017-apr-04	Comment fix only.
 !
 ! This routine finds one or more occurrences of a given substring
 ! within a main string.  If found, the occurrences are replaced

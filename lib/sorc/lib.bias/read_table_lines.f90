@@ -7,6 +7,7 @@
 !
 ! 2014-apr-24	Original version.  By Dave Allured.
 ! 2016-jan-12	Minor library upgrade.  Use string_utils module.
+! 2017-jun-30	Skip over comment lines within table.  Loop is restructured.
 !
 ! This routine reads a single variable length table, as
 ! unprocessed text lines
@@ -17,6 +18,9 @@
 ! Full lines are read with A format, to protect against special
 ! characters such as slash, which would break list directed (*)
 ! formatting.
+!
+! Comment lines with leading asterisk "*" are now properly
+! skipped, as of version 2017-jun-30.
 !
 ! This routine only returns if the table is read successfully.
 ! Known problems result in an error message and abort.
@@ -47,7 +51,7 @@ subroutine read_table_lines (cf, header, lines, nlines, line_num)
 
    character(len(lines)) line, header2
 
-   integer hlen, llen, li, ios, status
+   integer hlen, llen, ios, status
 
 ! Read table header line.
 
@@ -71,26 +75,30 @@ subroutine read_table_lines (cf, header, lines, nlines, line_num)
 
    nlines = 0				! init actual line counter
 
-   do li = 1, size (lines)
-      line_num = line_num + 1		! track line number within whole file
-      read (cf, '(a)', iostat=ios) lines(li)	! read full line of text
+   do
+      line_num = line_num + 1		 ! track line number within whole file
+      read (cf, '(a)', iostat=ios) line  ! read full line of text
 
       if (ios /= 0) exit		! assume EOF, normal end of table
-      if (lines(li) == ' ') exit	! blank line, normal end of table
+      if (line == ' ') exit		! blank line, normal end of table
 
-      nlines = li			! update count of actual table lines
+      if (line(1:1) == '*') cycle	! skip comment line
+
+      nlines = nlines + 1		! update count of actual table lines
+
+      if (nlines > size (lines)) then
+         print *, '*** read_config_file: Number of table lines exceeds' &
+            // ' buffer.  Abort.'
+         call exit (1)
+      end if
+
+      lines(nlines) = line		! copy valid line to output array
    end do
 
 ! Check for invalid table.
 
    if (nlines == 0) then
       print *, '*** read_config_file: Empty table.  Abort.'
-      call exit (1)
-   end if
-
-   if (nlines == size (lines)) then
-      print *, '*** read_config_file: Number of table lines exceeds buffer.' &
-         // '  Abort.'
       call exit (1)
    end if
 

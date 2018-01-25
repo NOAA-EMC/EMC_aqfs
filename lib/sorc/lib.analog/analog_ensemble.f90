@@ -35,6 +35,16 @@
 !		Remove unused KFAS calculations and output (so-called KFAN).
 !		But keep AnEnMean calculations identical.
 !
+! 2017-mar-27	analog_ensemble.f90:
+!		Interface changes.  Add method name protocol.
+!		Add predictor weights.
+!		Rename some variables for clarity.
+! 2017-may-25	Add parameter apar%forecast_last_hour to limit range of
+!		  computed forecasts.
+!
+! 2018-jan-19	Add Irina's new bias formula for present forecast only.
+!		Add parameter apar%bias_formula.
+!
 ! *** To do:
 ! *** After initial proving, convert reallocates to static arrays,
 !     for efficiency.
@@ -45,34 +55,41 @@
 ! Module definitions.
 !-----------------------------------------------------------
 
-module x__analog		! standard visibility
+module analog__ensemble		! standard visibility
 
   use config, only : dp
   implicit none
 
-! Parameter structure for x_analog.
+! Parameter structure for analog_ensemble.
 
   type apar_type
 
-    integer  fvar		! array subscript for target var to be corrected
-    integer  start_stat		! starting point to compute statistics
-    integer  num_an		! Number of best analogs to use for AN
-    integer  weights		! 0: Do not weight analogs
-				! 1: Weight them by the inverse metric
-				! 2: Weight them linearly
-    integer  skipMissingAnalogs	! Applies to both ANKF and AN
-				! 1: Always use num_an analogs,
-				! even if some of the best ones are missing
+    integer   fvar		  ! array index for target var to be corrected
+    integer   start_stat	  ! start day of forecasts needed to compute
+    integer   forecast_last_hour  ! last forecast hour needed to compute
+    integer   num_an		  ! Number of best analogs to use for AN
+    integer   weight_type	  ! Type of analog weighting:
+				  ! 0: Do not weight analogs
+				  ! 1: Weight them by the inverse metric
+				  ! 2: Weight them linearly
+    integer   skipMissingAnalogs  ! Applies to both ANKF and AN
+				  ! 1: Always use num_an analogs,
+				  ! even if some of the best ones are missing
+     real(dp) bias_thresh_low	  ! bias exclusion thresholds for analogs
+     real(dp) bias_thresh_high
+     character(2) bias_formula	  ! Selected bias formula:
+     				  ! mb = mean (forecast + predictions) plus bias
+				  ! fb = forecast plus bias
   end type apar_type
 
 contains
 
 !-----------------------------------------------------------
-! Analog filter subroutine.
+! Analog filter function.
 !-----------------------------------------------------------
 
-subroutine x_analog (obs, pred, vmiss, apar, fpar, bias_thresh_low, &
-    bias_thresh_high, isite, site_id, diag, ensan, Ianalog, analog_in_an)
+subroutine analog_ensemble (obs, pred, pred_weights, vmiss, apar, fpar, &
+    isite, site_id, diag, ensan, Ianalog, analog_in_an)
 
   use config, only : dp
   use find__analog
@@ -82,11 +99,10 @@ subroutine x_analog (obs, pred, vmiss, apar, fpar, bias_thresh_low, &
 
   real(dp),        intent(in ) :: obs(:,:)		! DH  - target var only
   real(dp),        intent(in ) :: pred(:,:,:)		! DHV - forecast vars
+  real(dp),        intent(in ) :: pred_weights(:)	! V   - var weights
   real(dp),        intent(in ) :: vmiss			! common missing value
-  type(apar_type), intent(in ) :: apar			! x_analog parameters
+  type(apar_type), intent(in ) :: apar			! analog_ensemble params
   type(fpar_type), intent(in ) :: fpar			! find_analog parameters
-  real(dp),        intent(in ) :: bias_thresh_low	! bias thresholds
-  real(dp),        intent(in ) :: bias_thresh_high	!   for analogs
   integer,         intent(in ) :: isite			! current site index no.
   character(*),    intent(in ) :: site_id 		! current site ID
   integer,         intent(in ) :: diag			! verbosity, 0=errs only
@@ -117,7 +133,7 @@ subroutine x_analog (obs, pred, vmiss, apar, fpar, bias_thresh_low, &
 
   real(dp), allocatable :: obs_flat(:), pred_flat(:)
   real(dp), allocatable :: obstemp(:), predtemp(:)
-  real(dp), allocatable :: weights(:), test_bias(:)
+  real(dp), allocatable :: an_weights(:), test_bias(:)
 
   real(dp), allocatable :: metric(:)	! returned metrics for selected analogs
 
@@ -127,7 +143,8 @@ subroutine x_analog (obs, pred, vmiss, apar, fpar, bias_thresh_low, &
 ! Initialize.
 !-------------------------------------------------
 
-  if (diag >= 5) print '(a,i5,a)', ' *** x_analog, site', isite, ': Start.'
+  if (diag >= 5) print '(a,i5,a)', ' *** analog_ensemble, site', isite, &
+                       ': Start.'
 
   nday  = size (pred, 1)		! get array dimensions
   nhour = size (pred, 2)		! first two must match obs
@@ -165,8 +182,9 @@ day_loop: &
   					! to be corrected; start of array is
 					! the training period
 hour_loop: &
-    do h = 1, nhour
-      if (diag >= 6) print '(2(a,i0))', 'x_analog: D = ', d, ', H = ', h
+    do h = 1, apar%forecast_last_hour	! only loop over forecast hours needed
+
+      if (diag >= 6) print '(2(a,i0))', 'analog_ensemble: D = ', d, ', H = ', h
 
       fpar2%fday  = d			! override target time parameters
       fpar2%fhour = h			! only one target hour at a time,
@@ -192,7 +210,8 @@ hour_loop: &
 ! proportional re-weighting after truncation?)
 
       if (size (fpar%trend) /= 3) then
-        print *, '*** x_analog: Abort, selected trend size is not supported.'
+        print *, &
+            '*** analog_ensemble: Abort, selected trend size is not supported.'
         print *, '*** Currently there must be exactly three trend weights.'
         print '(a,i0)', ' *** Number of weights in fpar%trend = ', &
           size (fpar%trend)
@@ -216,8 +235,8 @@ hour_loop: &
 
 ! Note, analogs are based only on model data in "pred", NOT obs.
 
-      call find_analog (pred, vmiss, fpar2, fvar, diag, inds, metric, &
-            winLower, winUpper)
+      call find_analog (pred, pred_weights, vmiss, fpar2, fvar, diag, inds, &
+            metric, winLower, winUpper)
 
 !!      open (10, file='ianalog2')
 !!      write (10, '(i10)') inds
@@ -233,11 +252,11 @@ hour_loop: &
 !!      open (10, file=filename)
 !!      write (10, '(f10.2)') metric
 
-!! print *, '*** DEBUG STOP, X_ANALOG'
+!! print *, '*** DEBUG STOP, ANALOG_ENSEMBLE'
 !! stop
 
 !! if (h == 14) then
-!!   print '(a,i0,a,i0)', '*** DEBUG STOP, x_analog, day ', d, ', hour ', h
+!!   print '(a,i0,a,i0)', '*** DEBUG STOP, analog_ensemble, day ',d, ', hour ',h
 !!   stop
 !! end if
 
@@ -264,14 +283,11 @@ hour_loop: &
 ! threshold for bias value.
 !-----------------------------------------------------------
 
-!! EARLY VERSION, 2015 Oct 29.  Single subroutine, very thread unsafe:
-!! call bias_threshold_filter (obstemp, predtemp, site_id, diag, analog_mask)
-!! Now replaced by following inline code.  Reader moved to main program.
-
 ! Enable all analogs for current site without both specified thresholds.
 
 bias_threshold_filter: &
-      if (bias_thresh_low == vmiss .or. bias_thresh_high == vmiss) then
+      if (  apar%bias_thresh_low  == vmiss &
+       .or. apar%bias_thresh_high == vmiss) then
 
         analog_mask = spread (.true., 1, nanalogs)
 
@@ -283,8 +299,8 @@ bias_threshold_filter: &
 ! Apply thresholds and create mask.
 ! TRUE = analog enabled, FALSE = disabled (bias outside the given thresholds).
 
-        analog_mask =    (test_bias(:) > bias_thresh_low)  &
-                   .and. (test_bias(:) < bias_thresh_high)
+        analog_mask =    (test_bias(:) > apar%bias_thresh_low)  &
+                   .and. (test_bias(:) < apar%bias_thresh_high)
 
         if (diag >= 4) then			! threshold diagnostic
           print '(2a,3i6)', &
@@ -327,7 +343,7 @@ bias_threshold_filter: &
 ! DEFERRED 2014-mar-11.  This option was not in current use.
 
       else
-        print *,           '*** x_analog: Abort.'
+        print *,           '*** analog_ensemble: Abort.'
         print '(a,i0,a)', ' *** Option apar%skipMissingAnalogs = ', &
           apar%skipMissingAnalogs, ' is not currently supported.'
         call exit (1)
@@ -341,58 +357,55 @@ bias_threshold_filter: &
 
 ! Determine type of weighting.
 
-      if (apar%weights == 0) then		! No weighting
-        weights = (/ (1, i = 1, ct) /)		! trick for array of ones
+      if (apar%weight_type == 0) then		! No weighting
+        an_weights = (/ (1, i = 1, ct) /)	! trick for array of ones
 
-      else if (apar%weights == 1) then		! Weighted by metric
-        weights = 1 / (metric(Ian) ** 2)
+      else if (apar%weight_type == 1) then	! Weighted by metric
+        an_weights = 1 / (metric(Ian) ** 2)
 
 ! The weights should not be nans, because the metric for a value
 ! where the obs and pred are not missing should be a valid number
 
 !!        assert(isempty(find(isnan(metric(end-ct+1:end)), 1)))
 
-        nan_count = count (ieee_is_nan (weights(:)))
+        nan_count = count (ieee_is_nan (an_weights(:)))
 
         if (nan_count /= 0) then
-          print *, '*** x_analog: NaNs detected when computing weights' &
-            // ' for metrics.'
+          print *, '*** analog_ensemble: NaNs detected when computing' &
+            // ' weights for metrics.'
           print *, '*** Number of weights = ', ct
           print *, '*** NaN count         = ', nan_count
           call exit (1)
         end if
 
-      else if (apar%weights == 2) then		! Linear weighting
-        weights = (/ (i, i = 1, ct) /)		! 1 through N
+      else if (apar%weight_type == 2) then	! Linear weighting
+        an_weights = (/ (i, i = 1, ct) /)	! 1 through N
 
       else
-        print *, '*** x_analog: Abort, weighting scheme not supported.'
-        print '(a,i0)', ' *** Option apar%weights = ', apar%weights
+        print *, '*** analog_ensemble: Abort, weighting scheme not supported.'
+        print '(a,i0)', ' *** Option apar%weight_type = ', apar%weight_type
         call exit (1)
       end if
 
-      weights = weights / sum (weights)		! Normalize weights
+      an_weights = an_weights / sum (an_weights)	! Normalize weights
 
-      if (diag >= 7) print *, 'weights = '
-      if (diag >= 7) print '(10f8.5)', weights
-
-!!       !!!!!  TEST!!!! SET WEIGHTS TO 1
-!!       weights = weights./weights
+      if (diag >= 7) print *, 'an_weights = '
+      if (diag >= 7) print '(10f8.5)', an_weights
 
 ! Compute weighted mean arrays.
 
       if (diag >= 7) print *, 'Compute weighted mean arrays:'
       if (diag >= 7) print *, 'Ian ='
       if (diag >= 7) print '(10i6)', Ian
-      if (diag >= 7) print *, 'size (Ian)      = ', size (Ian)
-      if (diag >= 7) print *, 'size (weights)  = ', size (weights)
-      if (diag >= 7) print *, 'size (predtemp) = ', size (predtemp)
+      if (diag >= 7) print *, 'size (Ian)        = ', size (Ian)
+      if (diag >= 7) print *, 'size (an_weights) = ', size (an_weights)
+      if (diag >= 7) print *, 'size (predtemp)   = ', size (predtemp)
 
-      mean_ens = sum (predtemp(Ian) * weights)	! Compute weighted ens mean
+      mean_ens = sum (predtemp(Ian) * an_weights)   ! Compute weighted ens mean
 
-      if (diag >= 7) print *, 'size (obstemp)  = ', size (obstemp)
+      if (diag >= 7) print *, 'size (obstemp)    = ', size (obstemp)
 
-      mean_obs = sum (obstemp(Ian)  * weights)	! Compute weighted obs mean
+      mean_obs = sum (obstemp(Ian)  * an_weights)   ! Compute weighted obs mean
 
 ! Complain about missing values, but do not stop.
 
@@ -403,10 +416,10 @@ bias_threshold_filter: &
          count_missing = count (obstemp(Ian) == vmiss)
 
          if (count_missing /= 0) then
-           print *, ''
-           print '(a,i0,a,i0,a)', '*** x_analog: obstemp(Ian) contains ', &
-             count_missing, ' missing values, out of a total of ', &
-               size (obstemp(Ian)), ' values.'
+           print *
+           print '(2a,i0,2a,i0,a)', '*** analog_ensemble: obstemp(Ian)', &
+                 ' contains ', count_missing, ' missing values,', &
+                 ' out of a total of ', size (obstemp(Ian)), ' values.'
            print '(10f8.2)', obstemp(Ian)
          end if
 
@@ -426,8 +439,13 @@ enough_analogs: &
 
         bias = mean_obs - mean_ens
         ilast = size (predtemp)
-        ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
-          					! original
+
+        if (apar%bias_formula == 'mb') then
+          ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
+          					! original bias formula
+        else
+          ensan(d, h) = predtemp(ilast) + bias	! use present forecast only
+        end if
 
 !!        %ensan(d, h) = predtemp(end) + bias;	    ! Thomas Palined...and me...
 !!        %ensan(d, h) = mean_obs;		    ! The more elegant...
@@ -449,7 +467,7 @@ enough_analogs: &
     end do hour_loop
   end do day_loop
 
-  if (diag >= 6) print *, '*** x_analog: Return.'
+  if (diag >= 6) print *, '*** analog_ensemble: Return.'
 
-end subroutine x_analog
-end module x__analog
+end subroutine analog_ensemble
+end module analog__ensemble

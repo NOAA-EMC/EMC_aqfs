@@ -22,9 +22,18 @@ else
 fi
 
 ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc  a.nc 
+#export CMAQBCFILE1=$COMIN/pm2.5.corrected.${PDY}.${cyc}z.nc
 
 export chk=1 
 # today 00z file exists otherwise chk=0
+
+cat >bias_cor_max.ini <<EOF1
+&control
+varlist='pm25_24h_ave','pm25_1h_max'
+outfile='aqm-pm25_bc'
+id_gribdomain=148
+/
+EOF1
 
 if [ $cyc =  '06' ]; then
  if [ -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc ]; then
@@ -50,17 +59,21 @@ fi
 #-------------------------------------------------
 rm -rf errfile
 startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  pm25 ${PDY} $cyc $chk 
+$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} $cyc $chk 
 export err=$?;err_chk
 
 
-if [ $envir = "para" ] ; then
- cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT_grib/${RUN}.$PDY/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2
- cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT_grib/${RUN}.$PDY/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
+# split into two files: one for 24hr_ave and one for 1h_max
 
+$WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PMTF"   | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 
+$WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PDMAX1" | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2 
+
+if qm.t${cyc}z.grib2_pm25_bc.227 $COMOUT/[ "$envir" = "para5" ] ; then
+  cp $DATA/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2  $COMOUT_grib/${RUN}.$PDY/
+  cp $DATA/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2   $COMOUT_grib/${RUN}.$PDY/
 fi
- cp $DATA/aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2
- cp $DATA/aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
+  cp $DATA/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 $COMOUT/
+  cp $DATA/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2  $COMOUT/
 
 
 

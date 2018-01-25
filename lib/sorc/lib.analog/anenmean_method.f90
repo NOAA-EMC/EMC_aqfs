@@ -1,6 +1,6 @@
 !------------------------------------------------------------------------------
 !
-! kfan_method.f90 -- Kalman/analog filter for single site forecast time series.
+! anenmean_method.f90 -- Analog ensemble mean filter for one site time series.
 !
 ! This is a support routine for the NOAA NCO/ARL/PSD bias
 ! correction system for CMAQ forecast outputs.
@@ -16,66 +16,71 @@
 ! Luca Delle Monache - lucadm@ucar.edu  (June 2011)
 ! Badrinath Nagarajan - badri@ucar.edu  (June 2011)
 !
-! 2016-feb-04	kfan_method.f90:
-!		Top level control for KFAN method for single site time series.
-!		Break out from main_analog.f90, PSD version 2016-feb-04.
+! 2016-feb-04	anenmean_method.f90:
+!		Top level control for AnEnMean method, single site time series.
+!		Break out from main_analog.f90, PSD version 2016-feb-01.
 !		By Dave Allured, NOAA/OAR/ESRL/PSD/CIRES.
 ! 2016-feb-15	Use simplified x_analog subroutine, instead of kf_analog.
 !
+! 2017-apr-29	Interface changes for new method functions.
+!		Move some parameters into parameter structure.
+! 2017-may-12	New protocol, method name embedded in filter routine.
+! 2017-may-25	apar%start_stat and apar%forecast_last_hour must now
+!		  be provided by all callers.
+!
 !------------------------------------------------------------------------------
 
-module kfan__method
+module anenmean__method
 contains
 
-subroutine kfan_method (obs, pred, vmiss, apar, fpar, kpar, ratio, &
-    bias_thresh_low, bias_thresh_high, isite, site_id, diag, kfan_result)
+function anenmean_method (filter_method, obs, pred, vmiss, apar, fpar, &
+    pred_weights, isite, site_id, diag, anenmean_result) result (return_status)
 
   use config, only : dp
   use find__analog, only : fpar_type
-  use x__analog
-  use kf__luca
+  use analog__ensemble
   implicit none
 
+  character(*),    intent(in ) :: filter_method		! selected method name
   real(dp),        intent(in ) :: obs(:,:)		! DH  - target var only
   real(dp),        intent(in ) :: pred(:,:,:)		! DHV - forecast vars
   real(dp),        intent(in ) :: vmiss			! common missing value
   type(apar_type), intent(in ) :: apar			! kf_analog parameters
   type(fpar_type), intent(in ) :: fpar			! find_analog parameters
-  type(kpar_type), intent(in ) :: kpar			! Kalman filter params
-  real(dp),        intent(in ) :: ratio
-  real(dp),        intent(in ) :: bias_thresh_low	! bias thresholds
-  real(dp),        intent(in ) :: bias_thresh_high	!   for analogs
+  real(dp),        intent(in ) :: pred_weights(:)       ! V - predictor weights
   integer,         intent(in ) :: isite			! current site index no.
   character(*),    intent(in ) :: site_id 		! current site ID
   integer,         intent(in ) :: diag			! verbosity, 0=errs only
 
-  real(dp),        intent(out) :: kfan_result(:,:)	! DH - bias corr. result
+  real(dp),        intent(out) :: anenmean_result(:,:)	! DH - bias corr. result
+
+  logical return_status		! function return status: true = processed,
+  				! false = method name not matched
 
 ! Local variables.
 
   type (apar_type) :: apar2
   type (fpar_type) :: fpar2
-  type (kpar_type) :: kpar2
 
   character fdate_str*24
   integer ndays, nhours
 
-  real(dp), allocatable :: anenmean_result(:,:)     ! DH
-
-  real(dp), allocatable :: obs_flat(:)		    ! reshaping temp arrays
-  real(dp), allocatable :: ensan_flat(:)
-  real(dp), allocatable :: result_1d(:)
-
-! Unused result arrays from kf_analog.  See subroutine docs.
+! Unused result arrays from analog_ensemble.  See subroutine docs.
 
   integer,  allocatable :: Ianalog(:,:,:)	! indices of found analogs
   real(dp), allocatable :: analog_in_an(:,:,:)	! nearest analogs found
 
+! Check requested filter method name.
+
+  return_status = (filter_method == 'AnEnMean')   ! case sensitive
+
+  if (.not. return_status) return		  ! name not recognized; return
+						  !   without any processing
 ! Start AnEnMean method.
 
   if (diag >= 3) then
     call fdate (fdate_str)
-    print '(2a,i5,a)', fdate_str, '  kfan_method, site', isite, ': Start.'
+    print '(2a,i5,a)', fdate_str, '  anenmean_method, site', isite, ': Start.'
   end if
 
 ! Conservative.  Make writeable copies of parameter structures,
@@ -86,52 +91,26 @@ subroutine kfan_method (obs, pred, vmiss, apar, fpar, kpar, ratio, &
 
   apar2 = apar
   fpar2 = fpar
-  kpar2 = kpar
 
-! Allocate result arrays for kf_analog.
+! Allocate dummy result arrays for single site.
 
   ndays  = size (pred, 1)		! number of forecast cycles in data
   					! training period is 1 to ndays-1
 					! last day is current forecast cycle
   nhours = size (pred, 2)		! number of hours in each forecast cycle
 
-  allocate (anenmean_result(ndays, nhours))		! DH
   allocate (ianalog(ndays, nhours, apar2%num_an))	! DHA
   allocate (analog_in_an(ndays, nhours, apar2%num_an))	! DHA
 
-! KF/AN part 1.  Compute multiple analog forecasts.
+! Apply Analog Ensemble filter.
 
-  apar2%start_stat = 1			! make analogs for all available dates
-
-  call x_analog (obs, pred, vmiss, apar2, fpar2, bias_thresh_low, &
-    bias_thresh_high, isite, site_id, diag, anenmean_result, Ianalog, &
-    analog_in_an)			! last three are outputs
-
-! KF/AN part 2.  Apply Kalman filter to AnEnMean result (analog ensemble mean).
-
-! Convert 2-D inputs to 1-D.
-! Dimensions must be transposed for kf_luca, to match Matlab.
-
-  obs_flat   = (/ transpose (obs) /)		! (1-D) <-- (HD) <-- (DH)
-  ensan_flat = (/ transpose (anenmean_result) /)
-
-  kpar2%update = nhours				! array stride for KF/AN
-
-  call kf_luca (obs_flat, ensan_flat, vmiss, kpar2, ratio, diag, result_1d)
-
-  kfan_result = transpose (reshape (result_1d, (/ nhours, ndays /) ))
-						! (DH) <-- (HD) <-- (1-D)
-
-  if (diag >= 4) then
-    print '(a,99(1x,i0))', '  kfan_result dims = ', shape (kfan_result)
-    print '(a,99(1x,i0))', '  kf_luca 1-D size = ', size (result_1d)
-    print '(a,99(1x,i0))', '  ndays, nhours    = ', ndays, nhours
-  end if
-
+  call analog_ensemble (obs, pred, pred_weights, vmiss, apar2, fpar2, isite, &
+    site_id, diag, anenmean_result, Ianalog, analog_in_an)
+					! last three are outputs
   if (diag >= 4) then
     call fdate (fdate_str)
-    print '(2a,i5,a)', fdate_str, '  kfan_method, site', isite, ': Return.'
+    print '(2a,i5,a)', fdate_str, '  anenmean_method, site', isite, ': Return.'
   end if
 
-end subroutine kfan_method
-end module kfan__method
+end function anenmean_method
+end module anenmean__method

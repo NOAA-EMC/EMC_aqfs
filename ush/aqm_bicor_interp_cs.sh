@@ -14,26 +14,26 @@ export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
 cd $DATA
 
-mkdir data
+mkdir -p data/coords site-lists
 
-mkdir -p out/$Yr/$Mn
+mkdir -p out/ozone/$Yr
 
 #===================================================`
-ln -s $PARMaqm/aqm_sites.valid.20140617.12z.list  $DATA/data 
-#ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.list  $DATA/data/aqm_sites.valid.20170818.12z.list 
-ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data
-ln -s ${COMINbicor}/grid   $DATA/data
+ln -s $PARMaqm/sites.valid.ozone.20170531.06z.list  $DATA/site-lists
+ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data/coords
+ln -s $PARMaqm/aqm_config.interp.ozone.0707.8-vars  $DATA
+ln -s ${COMINbicor}   $DATA/data
 
 startmsg
-$EXECaqm/aqm_interpolate_update  ${PARMaqm}/aqm_config.interp ${cyc}z $PDY $PDY  >> $pgmout 2>errfile 
+$EXECaqm/aqm_interpolate_update  aqm_config.interp.ozone.0707.8-vars ${cyc}z $PDY $PDY  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
-if [ -e ${COMINbicor}/interpolated/$Yr/$Mn ] 
+if [ -e ${COMINbicor}/interpolated/ozone/$Yr/$Mn ] 
 then 
-  cp -p $DATA/out/$Yr/$Mn/*nc  ${COMINbicor}/interpolated/$Yr/$Mn 
+  cp -p $DATA/out/ozone/$Yr/*nc  ${COMINbicor}/interpolated/ozone/$Yr/$Mn 
 else
-  mkdir -p ${COMINbicor}/interpolated/$Yr/$Mn
-  cp -p  $DATA/out/$Yr/$Mn/*nc  ${COMINbicor}/interpolated/$Yr/$Mn
+  mkdir -p ${COMINbicor}/interpolated/ozone/$Yr/$Mn
+  cp -p  $DATA/out/ozone/$Yr/*nc  ${COMINbicor}/interpolated/ozone/$Yr/$Mn
 fi
 
 echo "Interploation is done for " $PDY 

@@ -7,6 +7,8 @@
 !
 ! 2016-feb-10	Original version.  By Dave Allured.
 !		Spin off from main_analog.f90, version 2016-0208i.
+! 2017-apr-04	Support forecast cycle number in file name template.
+!		Print output statistics.
 !
 !------------------------------------------------------------------------------
 
@@ -14,14 +16,16 @@ module write__test_day_files
 contains
 
 subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
-    diag, site_ids, site_lats, site_lons)
+    cycle_time, diag, site_ids, site_lats, site_lons)
 
   use config, only : dp
+  use string_utils
   implicit none
 
   character(*), intent(in) :: day_file_template		! file name templates
   real(dp),     intent(in) :: filter_result(:,:,:)	! (days, hours, sites)
   real(dp),     intent(in) :: vmiss			! missing value code
+  integer,      intent(in) :: cycle_time		! fcst hour for filename
   integer,      intent(in) :: diag			! diag verbosity level
 
 ! Currently unused inputs, for possible future use.
@@ -35,8 +39,9 @@ subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
 ! Local variables.
 
   character(200) outname
+  character(10) cycle_str, day_str
 
-  integer j, ndays, nhours, nsites
+  integer ndays, nhours, nsites, nfiles
   integer outfile, iday, outday1, outday2
 
 ! Start.
@@ -47,7 +52,7 @@ subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
 
 ! Suppress compiler warnings for unused inputs.
 
-  j = vmiss + len (site_ids) + site_lats(1) + site_lons(1)
+  iday = vmiss + len (site_ids) + site_lats(1) + site_lons(1)
 
 ! Get dimensions.
 
@@ -58,6 +63,8 @@ subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
   nsites = size (filter_result, 3)	! number of sites in result array
 
 ! Write result data to daily text files.
+
+  nfiles = 0				! init file counter
 
   outfile = get_free_unit ()		! allocate output unit number, will
 					! be released on close last file
@@ -71,9 +78,17 @@ subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
 
 ! Create unique file name for current day.
 
+    write (cycle_str, '(i2.2)') cycle_time	! forecast hour string, fixed
+    						! length with leading zeros
+
+    write (day_str,   '(i4.4)') iday		! decimal day number, fixed
+    						! length with leading zeros
+
+! Insert number strings into file name from template.
+
     outname = day_file_template
-    j = index (outname, 'DDDD')			! insert the decimal day number
-    write (outname(j:j+3), '(i4.4)') iday	! into the output file name
+    call replace_substring (outname, 'HH',   trim (cycle_str))
+    call replace_substring (outname, 'DDDD', trim (day_str  ))
 
 ! Write text file for current day.
 
@@ -82,7 +97,17 @@ subroutine write_test_day_files (day_file_template, filter_result, vmiss, &
     open  (outfile, file=outname, action='write')
     write (outfile, '(f20.15)') filter_result(iday:iday, :, :)
     close (outfile)
+
+    nfiles = nfiles + 1
   end do
+
+! Output statistics.
+
+  if (diag >= 2) then
+    print *, '  Number of day files written = ', nfiles
+    print *, '  Number of sites included    = ', nsites
+    print *, '  Number of forecast hours    = ', nhours
+  end if
 
   if (diag >= 3) print *, 'write_test_day_files:  Done.'
 

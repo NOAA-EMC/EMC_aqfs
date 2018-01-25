@@ -5,6 +5,10 @@
 # 2014-jul-16	Clean version for new release.
 # 2016-jan-12	Upgrade to Dave's current fortran library structure.
 # 2016-feb-10	Update for get_param_module.
+# 2017-apr-06   read_netcdf_var.f90 moves to standard F90 library.
+# 2017-jun-09   get_command_args.f90 moves into local directory.
+# 2017-aug-08   tranfer the code from Theia to Cray
+
 #
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
@@ -35,7 +39,7 @@ F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -traceback -warn all -warn errors
 F90_FLAGS3 = -fstack-security-check -fpe-all=0
 F90_FLAGS4 = -O3
-F90_FLAGS5 = -openmp
+F90_FLAGS5 = -qopenmp
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
@@ -54,21 +58,22 @@ Lib1 =		$(Lib)/$(F90_CONFIG)		$(Lib)/config.f90 \
 
 Lib2 =		$(Lib)/date_utils.f90		$(Lib)/get_free_unit.f90 \
 		$(Lib)/get_param_module.f90	$(Lib)/message_nolog.f90 \
-		$(Lib)/netwrite3.no-udunits.f90	$(Lib)/read_line.f90
+		$(Lib)/netwrite3.no-udunits.f90	$(Lib)/read_line.f90 \
+                $(Lib)/read_netcdf_var.f90
 
 Subs.lib =	$(Lib1) $(Lib2)
 
 # Plib = Shared project support library.
 
-Subs.plib =	$(Plib)/expand_filename.f90	$(Plib)/get_command_args.f90 \
-		$(Plib)/gridlocation.f90	$(Plib)/read_netcdf_var.f90 \
-		$(Plib)/read_grid_coords.f90	$(Plib)/read_gridded_aqm.f90 \
-		$(Plib)/read_gridded_vars.f90	$(Plib)/read_table_lines.f90
+Subs.plib =     $(Plib)/expand_filename.f90     $(Plib)/gridlocation.f90 \
+                $(Plib)/read_grid_coords.f90    $(Plib)/read_gridded_aqm.f90 \
+                $(Plib)/read_gridded_vars.f90   $(Plib)/read_table_lines.f90
 
 # Local support routines in main program directory.
 
-Subs.local =	interpolate.f90			read_config_file.f90 \
-		read_station_file.f90		write_interp_netcdf.f90
+Subs.local =    get_command_args.interp.f90     interpolate.f90 \
+                read_config_file.f90            read_station_file.f90 \
+                write_interp_netcdf.f90
 
 # Main program.
 
@@ -77,7 +82,8 @@ Subs.main =	$(Subs.lib) $(Subs.plib) $(Subs.local)
 # Catch hidden include file dependencies that are not explicitly listed.
 # This is overkill, but it is fast and good assurance.
 
-Hidden =	$(Lib)/*.f90 $(Plib)/*.f90
+#Hidden =	$(Lib)/*.f90 $(Plib)/*.f90
+Hidden =        *.f90 $(Lib)/*.f90 $(Plib)/*.f90
 
 $(Prg):	$(Prg).f90 $(Subs.main) $(Hidden) makefile
 	$(Link.f90) $(Subs.main) $@.f90 $(Libraries) -o ../../exec/$@

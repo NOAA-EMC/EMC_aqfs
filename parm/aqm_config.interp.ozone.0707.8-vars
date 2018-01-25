@@ -1,0 +1,57 @@
+*--------------------------------------------------------------------------
+*
+* Configuration file for interpolate.f90.
+* Common version for Theia, PSD Mac and Linux.
+*
+* 2014-apr-24	Original test version.
+* 2014-jul-18	Release version for Zeus.  5 predictors, new PM2.5 site list.
+*
+* 2016-feb-11	Path configuration for Theia.  Target = PM2.5.
+*
+* 2017-jul-07	New PM2.5 version, 9 predictors.  Common for Theia and PSD.
+*		Updates for new CMAQ 5.02 data.  Simplify data paths.
+*		Switch from CSDSF radiation, to RGRND, surface solar radiation.
+*		New site list, PM2.5 11 months.
+*		Remove ozone.  PM2.5 and ozone interp files need to be
+*		  separate, for now, for bias correction run efficiency.
+* 2017-jul-07	New separate ozone version, 8 predictors.
+*		New site list, ozone 11 months.
+*
+* Blank lines and asterisk in column 1 are comment lines.
+* Paths may begin with an environment variable, e.g. $DATA/...
+* Tables are free format, space delimited.
+*
+* Most names are case sensitive.
+*
+* In template specifications, codes YYYY, MM, DD, and HH will be
+* replaced with date and time info.
+*
+*--------------------------------------------------------------------------
+
+station file         = site-lists/sites.valid.ozone.20170531.06z.list
+grid coordinate file = data/coords/aqm.t12z.grdcro2d.ncf
+interp file template = out/ozone/YYYY/forecasts.interp.YYYYMMDD.HHz.nc
+
+* Column 1 = File type name.
+* Column 2 = Read subroutine selector.
+* Column 3 = Filename template for gridded input files, including paths.
+
+File table:
+aqm.2      reader.aqm    data/bcdata.YYYYMM/grid/YYYYMMDD/aqm.tHHz.O3_pm25.ncf
+met.1      reader.met    data/bcdata.YYYYMM/grid/YYYYMMDD/sfc_met_n_PBL.tHHz.ncf
+
+* The var table specifies all variables to be included in interpolation.
+
+* Column 1  = Actual var name within input file.  Case sensitive.
+* Column 2  = File type name, must match file type above, col. 1 of file table.
+* Column 3+ = Comments.
+
+Var table:
+O3       aqm.2      Ozone concentration
+NOX      aqm.2      NOx concentration
+NOY      aqm.2      NOy concentration
+PBL2     met.1      PBL height, ACM2 based Richardson #
+RGRND    met.1      Solar radiation reaching surface
+TEMP2    met.1      Temperature, 2 meters
+WDIR10   met.1      Wind direction, 10 meters
+WSPD10   met.1      Wind speed, 10 meters

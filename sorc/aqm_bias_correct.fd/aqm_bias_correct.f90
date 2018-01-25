@@ -25,12 +25,22 @@
 ! 2016-feb-09	Add config parameters: filter method, debug controls, etc.
 ! 2016-feb-10	Move test file writers out of main_analog, up to main program.
 !
+! 2017-apr-04	Minor.  Add cycle_time to test file names.
+! 2017-apr-29	Code restructured for weight generation, parallel control, etc.
+!		Module analog_control replaces main_analog.
+!		Run parameters consolidated into structures apar, fpar, kpar.
+! 2017-may-17	Add support for site-specific predictor weighting.
+! 2017-jun-05	Add support for obs blackout dates.
+! 2017-jun-06	Add support for predictor weight generation by subsets.
+!
 ! Credits:
 !
 ! The filter component is the analog/Kalman filter for forecast
 ! time series interpolated to observation site locations.  The
 ! original Matlab code and filter algorithms are by Luca Delle
-! Monache, Thomas Nipen, and Badrinath Nagarajan of NCAR.
+! Monache, Thomas Nipen, Badrinath Nagarajan, and Will Cheng
+! of NCAR.  Stefano Alessandrini of NCAR contributed refinements
+! in Fortran versions.
 !
 ! Core interpolation and spreading routines were developed by
 ! Irina Djalalova and James Wilczak of NOAA/ESRL/PSD3.
@@ -52,9 +62,11 @@
 !
 !------------------------------------------------------------------------------
 !
-! Usage, run command with four or five arguments:
+! Usage, run command with four or more arguments:
 !
-! ./bias_correct config-file forecast-cycle start-date forecast-date diag=N
+! ./bias_correct config-file forecast-cycle start-date forecast-date [options]
+!
+! Required arguments in fixed order:
 !
 ! config-file	  Configuration file for current platform and data set
 !		  set configuration.  Includes file name templates for
@@ -70,32 +82,52 @@
 ! forecast-date	  YYYYMMDD: Forecast initial date for bias correction.
 !		  The training period ends on the day before this date.
 !
+! Optional arguments, may be in any order following the required args:
+!
 ! diag=N	  Set verbosity level N.  Optional argument, default
 !		  is set below.  0 = errors only, 1 = milestones,
 !		  2 = brief progress, 3 and up = increasing details.
+!		  Caution, 6 and up generate huge outputs.
+!
+! gen_weights	  Generate new predictor weights file.
+!		  Caution, very long run time.
+!
+! weight1=N	  First and last weight set index numbers, for breaking
+! weight2=N	  up weight generation into weight subsets.
 !
 ! Examples:
 !
-! ./bias_correct config.pm2.5.0612 20140515 20140529 12z
-! ./bias_correct config.pm2.5.0612 20140515 20140612 06z diag=4
+! ./bias_correct config.pm2.5.0612 12z 20140515 20140529
+! ./bias_correct config.pm2.5.0612 06z 20140515 20140612 diag=4
+! ./bias_correct config.pm2.5.0612 06z 20140515 20140612 gen_weights diag=3
+!
+! ./bias_correct config.ozone.gen 06z 20160701 20170331 \
+!                                     gen_weights weight1=101 weight2=150
 !
 !------------------------------------------------------------------------------
 
 program bias_correct
 
    use align__obs_to_forecasts
-   use config, only : dp
+   use analog__control
+   use analog__ensemble,       only : apar_type
+   use blackout__obs_data
+   use config,                 only : dp
+   use find__analog,           only : fpar_type
    use get__command_args
    use expand__filename
+   use kf__luca,               only : kpar_type
    use index_to_date_mod
-   use main__analog
    use read__config_file_main
    use read__exception_list
+   use read__grid_coords
    use read__interp_forecasts
    use read__obs_qc
-   use read__grid_coords
+   use read__predictor_weights
    use spreading_mod
    use stdlit
+   use weight__control,        only : wpar_type
+   use write__predictor_weights
    use write__site_list
    use write__test_day_files
    use write__test_site_files
@@ -115,25 +147,30 @@ program bias_correct
 
    real(dp) vmiss, standard_vmiss
 
+   logical ex
+
 ! Config file parameters.
 
    character(200) obs_file_template, interp_file_template
    character(200) in_gridded_template, output_file_template
    character(200) new_site_list_template, grid_coord_file
-   character(200) site_exception_file
+   character(200) pred_weight_file, site_exception_file
    character(60)  target_obs_var, target_model_var
    character(200) filter_method, output_limit_method
    character(200) site_file_template, day_file_template
 
-   integer num_analogs
+   integer obs_blackout_start(3), obs_blackout_end(3)
+
    logical stop_after_filter
+
+   type (apar_type) apar			! subsystem parameter structures
+   type (fpar_type) fpar
+   type (kpar_type) kpar
+   type (wpar_type) wpar
 
 ! Analog var table (config file).
 
    character(60),  allocatable :: analog_vars(:)	! var config data (V)
-   real(dp),       allocatable :: lower_limits(:)	! (V)
-   real(dp),       allocatable :: upper_limits(:)	! (V)
-   logical,        allocatable :: is_circular(:)	! (V)
 
 ! Obs input data.
 
@@ -165,11 +202,20 @@ program bias_correct
 ! Target var, corrected data at site locations, all days in period.
 ! For writing test files only.
 
-   real(dp), allocatable :: filter_result_3d(:,:,:)  ! (days, hours, sites)
+   real(dp), allocatable :: filter_result_3d(:,:,:)   ! (days, hours, sites)
+
+! Site-specific predefined predictor weights.
+
+   real(dp), allocatable :: pred_weights(:,:)	      ! (vars, sites)
+
+! Site-specific generated predictor weights with best RMSE's.
+
+   real(dp), allocatable :: new_weights(:,:)	      ! (vars, sites)
+   real(dp), allocatable :: new_rmse(:)		      ! (sites)
 
 ! Site exception bias thresholds.
 
-   real(dp), allocatable :: excep_thresh_low(:)    ! (sites)
+   real(dp), allocatable :: excep_thresh_low(:)       ! (sites)
    real(dp), allocatable :: excep_thresh_high(:)
 
 ! Program parameters.
@@ -177,9 +223,9 @@ program bias_correct
    character(*), parameter :: prog_name = 'bias_correct'
    character(*), parameter :: calendar  = 'gregorian'
 
-!-------------------------------------------------
+!-----------------------------------------------------------------
 ! Initialize.
-!-------------------------------------------------
+!-----------------------------------------------------------------
 
    call fdate (fdate_str)
    print *
@@ -205,7 +251,8 @@ program bias_correct
 ! Get command line parameters.
 
    call get_command_args (prog_name, calendar, config_file, cycle_time, &
-      start_date, forecast_date, base_year, diag)
+      start_date, forecast_date, base_year, diag, wpar%gen_weights, &
+      wpar%subset1, wpar%subset2)
 
 ! Date check, tighter than the command line input routine.
 
@@ -219,20 +266,63 @@ program bias_correct
       call exit (1)
    end if
 
+!-----------------------------------------------------------------
 ! Read and process the configuration file.
+!-----------------------------------------------------------------
 
    call fdate (fdate_str)
+   print *
    print '(2a)', fdate_str, '  Call read_config_file_main.'
 
    call read_config_file_main (config_file, obs_file_template, &
       interp_file_template, in_gridded_template, output_file_template, &
-      new_site_list_template, grid_coord_file, site_exception_file, &
-      target_obs_var, target_model_var, analog_vars, &
-      lower_limits, upper_limits, is_circular, &
-      filter_method, num_analogs, output_limit_method, &
-      site_file_template, day_file_template, stop_after_filter)
+      new_site_list_template, grid_coord_file, pred_weight_file, &
+      site_exception_file, target_obs_var, target_model_var, analog_vars, &
+      filter_method, output_limit_method, site_file_template, &
+      day_file_template, stop_after_filter, obs_blackout_start, &
+      obs_blackout_end, apar, fpar, kpar, wpar)
 
-! Read grid coordinate file.  Grid coords needed for both QC and final output.
+!-----------------------------------------------------------------
+! Consistency checks for weight generation.
+!-----------------------------------------------------------------
+
+   if (wpar%gen_weights) then
+
+! Prevent invalid file name.
+
+      if (pred_weight_file == 'equal weights') then
+         print *
+         print *, '*** Weight generation is selected, but weight file name' &
+            // ' is invalid.'
+         print *, '*** File name = ' // trim (pred_weight_file)
+         print *, '*** Abort.'
+         call exit (1)
+      end if
+
+! Overwrite protect for predictor weights file.
+! Better to find out now, instead of at end of very long weight generation.
+
+      inquire (file=pred_weight_file, exist=ex)
+
+      if (ex) then
+         print *
+         print *, '*** Overwrite protect.'
+         print *, '*** Weight generation is selected, but there is a' &
+            // ' previous weight file.'
+         print *, '*** File = ' // trim (pred_weight_file)
+         print *, '*** Please change target file name, or move the' &
+            // ' previous file.'
+         print *, '*** Abort.'
+         call exit (1)
+      end if
+
+   end if
+
+!-----------------------------------------------------------------
+! Read grid coordinate file.
+!-----------------------------------------------------------------
+
+! Grid coordinates are needed needed for both QC and final output.
 
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  Call read_grid_coords.'
@@ -283,6 +373,14 @@ program bias_correct
 
    call write_site_list (new_site_list_template, forecast_date, cycle_time, &
       base_year, calendar, site_list_title, obs_ids, obs_lats, obs_lons, diag)
+
+!---------------------------------------------------------------------
+! Remove obs data within blackout dates/times.
+!---------------------------------------------------------------------
+
+   call blackout_obs_data (obs_in, standard_vmiss, start_date, &
+      training_end_date, base_year, calendar, obs_blackout_start, &
+      obs_blackout_end, target_obs_var, obs_units, diag)
 
 !---------------------------------------------------------------------
 ! Read interpolated forecast data for same training period.
@@ -339,6 +437,13 @@ program bias_correct
 ! Read supplemental files.
 !---------------------------------------------------------------------
 
+! Read predictor weights file, if any.
+
+   if (.not. wpar%gen_weights) then
+      call read_predictor_weights (pred_weight_file, analog_vars, interp_ids, &
+         diag, pred_weights)
+   end if
+
 ! Read the site bias threshold exception list, which is a sparse list.
 ! Output arrays are aligned with current site indexing.
 
@@ -350,33 +455,41 @@ program bias_correct
 !---------------------------------------------------------------------
 
    call fdate (fdate_str)
-   print '(2a)', fdate_str, '  Call main_analog.'
+   print '(2a)', fdate_str, '  Call analog_control.'
 
-   call main_analog (filter_method, model_in, obs_reshaped, vmiss, &
-      target_model_var, analog_vars, lower_limits, upper_limits, is_circular, &
-      excep_thresh_low, &
-      excep_thresh_high, num_analogs, diag, interp_ids, interp_lats, &
-      interp_lons, uncorr_sites, corr_sites, &
-      filter_result_3d)
+   call analog_control (filter_method, model_in, obs_reshaped, vmiss, &
+      target_model_var, analog_vars, apar, fpar, kpar, wpar, pred_weights, &
+      excep_thresh_low, excep_thresh_high, diag, interp_ids, interp_lats, &
+      interp_lons, uncorr_sites, corr_sites, filter_result_3d, &
+      new_weights, new_rmse)
 
-   if (diag >= 3) print *, 'main_analog returned.'
+   if (diag >= 3) print *, 'analog_control returned.'
 
-! Recover memory from large arrays, no longer needed.
-! Next step uses large arrays.
+!-----------------------------------------------------------------
+! Write new predictor weights file, if weight generation mode.
+!-----------------------------------------------------------------
 
-   deallocate (model_in, obs_reshaped)
+   if (wpar%gen_weights) then
+      call write_predictor_weights (pred_weight_file, analog_vars, &
+         interp_ids, new_weights, new_rmse, diag)
+
+      call fdate (fdate_str)
+      print '(2a)', fdate_str, &
+         '  bias_correct.f90: Stop after new weight generation.'
+      call exit
+   end if
 
 !-----------------------------------------------------------------
 ! Write intermediate test files, if selected.
 !-----------------------------------------------------------------
 
-   if (day_file_template /= 'none' ) &
+   if (day_file_template /= 'none') &
       call write_test_day_files  (day_file_template,  filter_result_3d, &
-         vmiss, diag, interp_ids, interp_lats, interp_lons)
+         vmiss, cycle_time, diag, interp_ids, interp_lats, interp_lons)
 
-   if (site_file_template /= 'none' ) &
+   if (site_file_template /= 'none') &
       call write_test_site_files (site_file_template, filter_result_3d, &
-         vmiss, diag, interp_ids, interp_lats, interp_lons)
+         vmiss, cycle_time, diag, interp_ids, interp_lats, interp_lons)
 
 ! Check for early stop request.
 
@@ -386,6 +499,11 @@ program bias_correct
       print '(2a)', fdate_str, '  bias_correct.f90: Stop.'
       call exit
    end if
+
+! Recover memory from large arrays, no longer needed.
+! Next step uses large arrays.
+
+   deallocate (model_in, obs_reshaped)
 
 !---------------------------------------------------------------------
 ! Spread bias corrections to forecast grids, and write output file.
