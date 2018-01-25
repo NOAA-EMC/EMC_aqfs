@@ -20,6 +20,8 @@
 !		  in the weight file name template.
 ! 2017-jun-15	Enforce filter method = AnEnMean for weight generation.
 !
+! 2018-jan-19	Add parameter to select bias formula.
+!
 ! Notes:
 !
 ! The configuration file is a simple text file containing file
@@ -96,9 +98,11 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    character(200) weight_file_template
    character(100) header_expected
    character(20) limits(2)			! input strings for 2 limits
+   character(60) opt_mb, opt_fb
    character circular_str*10, suffix*1
    character subset_str*30
    character required_gen_method*60
+   character string*60
 
    integer j, n, vi, ios, status
    integer cf					! unit number for config file
@@ -288,6 +292,27 @@ var_loop: &
 
       call get_param_int ('number of analogs', num_analogs, cf, status, lnum)
       if (status /= normal) exit read_file
+
+! Bias formula.
+
+      call get_param_string ('bias formula', string, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      opt_mb = 'mean (forecast plus model predictions) plus bias'
+      opt_fb = 'forecast plus bias'
+
+      if (string == opt_mb) then
+         apar%bias_formula = 'mb'
+      else if (string == opt_fb) then
+         apar%bias_formula = 'fb'
+      else
+         print *, '*** read_config_file_main:  Invalid parameter value.'
+         print *, '*** Bias formula must be one of these choices:'
+         print *, '***   ' // trim (opt_mb)
+         print *, '***   ' // trim (opt_fb)
+         print *
+         filter_method = required_gen_method
+      end if
 
       call get_param_string ('output limit method', output_limit_method, cf, &
          status, lnum, nonblank)

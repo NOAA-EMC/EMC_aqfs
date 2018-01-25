@@ -42,6 +42,9 @@
 ! 2017-may-25	Add parameter apar%forecast_last_hour to limit range of
 !		  computed forecasts.
 !
+! 2018-jan-19	Add Irina's new bias formula for present forecast only.
+!		Add parameter apar%bias_formula.
+!
 ! *** To do:
 ! *** After initial proving, convert reallocates to static arrays,
 !     for efficiency.
@@ -74,7 +77,9 @@ module analog__ensemble		! standard visibility
 				  ! even if some of the best ones are missing
      real(dp) bias_thresh_low	  ! bias exclusion thresholds for analogs
      real(dp) bias_thresh_high
-
+     character(2) bias_formula	  ! Selected bias formula:
+     				  ! mb = mean (forecast + predictions) plus bias
+				  ! fb = forecast plus bias
   end type apar_type
 
 contains
@@ -434,8 +439,13 @@ enough_analogs: &
 
         bias = mean_obs - mean_ens
         ilast = size (predtemp)
-        ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
-          					! original
+
+        if (apar%bias_formula == 'mb') then
+          ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
+          					! original bias formula
+        else
+          ensan(d, h) = predtemp(ilast) + bias	! use present forecast only
+        end if
 
 !!        %ensan(d, h) = predtemp(end) + bias;	    ! Thomas Palined...and me...
 !!        %ensan(d, h) = mean_obs;		    ! The more elegant...

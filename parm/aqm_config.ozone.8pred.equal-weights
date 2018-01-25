@@ -99,14 +99,24 @@ target model variable       = O3
 *Var name  Min valid  Max valid  Circular  Comment
 ---------  ---------  ---------  --------  -----------------------------------
 O3               0          5       N      Ozone concentration
+WDIR10           0        360       Y      Wind direction, 10 meters
+WSPD10           0        100       N      Wind speed, 10 meters
+TEMP2          -50C        50C      N      Temperature, 2 meters
 NOX              0          5       N      NOx concentration
 NOY              0          5       N      NOy concentration
 PBL2             0       4500       N      PBL height, ACM2 based Richardson #
 RGRND            0       1500       N      Solar radiation reaching surface
-TEMP2          -50C        50C      N      Temperature, 2 meters
-WDIR10           0        360       Y      Wind direction, 10 meters
-WSPD10           0        100       N      Wind speed, 10 meters
 
+*pm25             0        250       N      PM2.5 concentration
+*PRSFC          60000   120000       N      Surface Pressure in Pascal
+*TEMPG          200        350       N      Ground Temperature in Kelvin
+*RN               0         10       N      Nonconvent. precipitation in cm
+*RC               0         10       N      Convent. precipitation in cm
+*HFX           -800       1200       N      Sensible heat flux in Watt/m**2
+*QFX           -500       1000       N      Latent heat flux in Watt/m**2
+*CFRAC            0          5       N      Total cloud fraction
+*QV               0         0.1      N      Water vapor mixing ratio in kg/kg
+*QR               0         0.1      N      Rain water mixing ratio
 *-------------------------------------------------
 * Input filter controls.
 *-------------------------------------------------
@@ -138,6 +148,11 @@ obs blackout end date       = 7 6 11z
 filter method               = KFAN
 
 number of analogs           = 10
+
+*Use for PM 2.5 (01-19-2018)
+*bias formula = mean (forecast plus model predictions) plus bias
+*Use for Ozone (01-19-2018)
+bias formula = forecast plus bias
 
 *-------------------------------------------------
 * Post processing controls.
