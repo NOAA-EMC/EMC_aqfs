@@ -567,8 +567,8 @@ program aqm_post_maxi_bias_cor_grib2
         ipdstmpl(19)=markutc+8-1+(mday-1)*24
      else
         nowtime8=5-icyc+(mday-1)*24
-        ipdstmpl(19)=markutc-1
-!        ipdstmpl(19)=markutc
+!        ipdstmpl(19)=markutc-1
+        ipdstmpl(19)=markutc
      endif
 
      ipdstmpl(9)= nowtime8
