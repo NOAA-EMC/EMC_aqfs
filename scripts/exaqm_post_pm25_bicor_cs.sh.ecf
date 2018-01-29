@@ -6,11 +6,12 @@
 # Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
 #
 # Author:  Jianping Huang 06/29/2015 
+#  8/14/2017
 #
 ######################################################################
 set -xa
 
-export pgm=aqm_cs_pm25_bias_correct
+export pgm=aqm_cs_o3_bias_correct
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export id_grib=148
@@ -19,6 +20,10 @@ cd $DATA
 
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
+if [ -s $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf ]
+then
+ echo " $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf  exists ! "
+else
  ic=1
  while [ $ic -lt 100 ]
  do
@@ -31,11 +36,18 @@ cd $DATA
    sleep 10
   fi
  done
-#
+
  if [ $ic -ge 100 ]
  then
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
  fi
+
+fi 
+
+if [ -s $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf ] 
+then
+ echo " $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf  exists ! " 
+else
 
  startmsg
  $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
@@ -45,25 +57,25 @@ cd $DATA
  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
  f4=UV_wind.${cycle}.ncf
-# 
-if [ -e $COMOUTbicor/grid/$Yr/$PDY ] ; then
- echo " $COMOUTbicor/grid/$Yr/$PDY exits"
-else
- mkdir -p $COMOUTbicor/grid/$Yr/$PDY
+ 
+ if [ -e $COMOUTbicor/grid/$PDY ] ; then
+  echo " $COMOUTbicor/grid/$PDY exits "
+ else
+  mkdir -p $COMOUTbicor/grid/$PDY
+ fi
+  cp $DATA/$f1 $COMOUTbicor/grid/$PDY
+  cp $DATA/$f2 $COMOUTbicor/grid/$PDY
+  cp $DATA/$f3 $COMOUTbicor/grid/$PDY
+  cp $DATA/$f4 $COMOUTbicor/grid/$PDY
+
 fi
-#if [ "$SENDCOM" = 'YES' ]; then
-    cp $DATA/$f1 $COMOUTbicor/grid/$Yr/$PDY
-    cp $DATA/$f2 $COMOUTbicor/grid/$Yr/$PDY
-    cp $DATA/$f3 $COMOUTbicor/grid/$Yr/$PDY
-    cp $DATA/$f4 $COMOUTbicor/grid/$Yr/$PDY
-#fi
 
 #
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
 startmsg
-$USHaqm/aqm_bicor_interp_cs.sh  >> $pgmout 2>errfile 
+$USHaqm/aqm_bicor_pm25_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
 
 #-----------------------------------------------------------------------
@@ -76,6 +88,9 @@ export err=$?; err_chk
 # STEP 4:  converting netcdf to grib format
 startmsg
 $USHaqm/aqm_bicor_post_cs.sh   >> $pgmout 2>errfile
+#/gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.0.4/ush/aqm_bicor_post_cs.sh   >> $pgmout 2>errfile
+
+
 export err=$?; err_chk
 
 #
@@ -88,20 +103,27 @@ export err=$?; err_chk
 
 # interpolate to grid 227
 
-oldgrib2file1=aqm.t${cyc}z.24hpm25-ave.148.bc.grib2
-newgrib2file1=aqm.t${cyc}z.24hpm25-ave.227.bc.grib2
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+oldgrib2file1=aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2
+newgrib2file1=aqm.t${cyc}z.ave_24hr_pm25_bc.227.grib2
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
 ${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file1}  ${newgrib2file1} 
 
-oldgrib2file2=aqm.t${cyc}z.1hpm25-max.148.bc.grib2
-newgrib2file2=aqm.t${cyc}z.1hpm25-max.227.bc.grib2
+oldgrib2file2=aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
+newgrib2file2=aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
 ${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file2}  ${newgrib2file2}
 
+if [ "$envir" = "para5" ] ; then
+   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   $COMOUT_grib/$RUN.$PDY
+   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  $COMOUT_grib/$RUN.$PDY
+   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   $COMOUT_grib/$RUN.$PDY
+   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  $COMOUT_grib/$RUN.$PDY
+fi
+
 if [ "$SENDCOM" = 'YES' ]; then
-   cp aqm.t${cyc}z.1hpm25-max.148.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.148.grib2
-   cp aqm.t${cyc}z.24hpm25-ave.148.bc.grib2 $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.148.grib2
-   cp aqm.t${cyc}z.1hpm25-max.227.bc.grib2  $COMOUT/aqm.${cycle}.max_1hr_pm25_bc.227.grib2
-   cp aqm.t${cyc}z.24hpm25-ave.227.bc.grib2  $COMOUT/aqm.${cycle}.ave_24hr_pm25_bc.227.grib2
+   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   $COMOUT/
+   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  $COMOUT/
+   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   $COMOUT/
+   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  $COMOUT/
   if [ $SENDDBN = YES ]; then
      $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
      $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.ave_24hr_pm25_bc.227.grib2
@@ -128,7 +150,7 @@ do
  typeset -Z2 fhr
 done
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
 $COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
 
 if [ $SENDCOM = YES ]; then
@@ -166,15 +188,16 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
  rm -rf filesize
  echo 0 > filesize
  export XLFRTEOPTS="unit_vars=yes"
- export FORT11=aqm.${cycle}.1hpm25-max.227.bc.grib2
+# export FORT11=aqm.${cycle}.1hpm25-max.227.bc.grib2
+ export FORT11=aqm.${cycle}.max_1hr_pm25_bc.227.grib2
  export FORT12="filesize"
  export FORT31=
- export FORT51=aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp
+ export FORT51=aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp
  ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
 
  echo `ls -l  aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
- export FORT11=aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp
+ export FORT11=aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp
  export FORT12="filesize"
  export FORT31=
  export FORT51=awpaqm.${cycle}.daily-1hr-pm25-max-bc.227.grib2
@@ -184,15 +207,18 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 #  daily_24hr_ave_PM2.5
  echo 0 > filesize
  export XLFRTEOPTS="unit_vars=yes"
- export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2
+# export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2
+ export FORT11=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2
  export FORT12="filesize"
  export FORT31=
- export FORT51=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+# export FORT51=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+ export FORT51=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp
  ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
 
  echo `ls -l  aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
- export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+# export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
+ export FORT11=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp
  export FORT12="filesize"
  export FORT31=
  export FORT51=awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2

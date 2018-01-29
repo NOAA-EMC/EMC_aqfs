@@ -623,7 +623,7 @@
           work(1:imax,1:jmax)=work(1:imax,1:jmax)*conv_ratio(indexcmaq(L))
         endif
 
-         if((.not.i3dvar(indexcmaq(L))).and.K.gt.1) cycle
+!jp         if((.not.i3dvar(indexcmaq(L))).and.K.gt.1) cycle
          if(.not.i3dvar(indexcmaq(L))) then
            ipdstmpl(2)=52     !not aerosol: volumne mixing ratio(mole/mole) 
            ipdstmpl(4)=0     ! smaller or equal first limit 
