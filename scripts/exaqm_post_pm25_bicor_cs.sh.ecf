@@ -11,26 +11,22 @@
 ######################################################################
 set -xa
 
-export pgm=aqm_cs_o3_bias_correct
+export pgm=aqm_cs_pm25_bias_correct
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export id_grib=148
 
 cd $DATA
-
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
-if [ -s $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf ]
-then
- echo " $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf  exists ! "
-else
+
  ic=1
  while [ $ic -lt 100 ]
  do
  if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]
  then
   echo "cycle ${cyc} post1 is done!"
-  break 
+  break
  else
   let "ic=ic+1"
    sleep 10
@@ -42,13 +38,11 @@ else
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
  fi
 
-fi 
-
-if [ -s $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf ] 
+#
+if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]
 then
- echo " $COMOUTbicor/grid/$PDY/UV_wind.${cycle}.ncf  exists ! " 
+ echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
 else
-
  startmsg
  $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
  export err=$?; err_chk
@@ -79,7 +73,7 @@ $USHaqm/aqm_bicor_pm25_interp_cs.sh  >> $pgmout 2>errfile
 export err=$?; err_chk
 
 #-----------------------------------------------------------------------
-#  STEP 3:  Performing Bias Correction for PM2.5 
+# STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
 $USHaqm/aqm_bicor_pm25_cs.sh 
 export err=$?; err_chk
@@ -162,8 +156,9 @@ if [ $SENDCOM = YES ]; then
 fi
 
 #
-####################################################
-#  Create AWIPS GRIB2 data for Bias-Corrected PM2.5
+#--------------------------------------------------------------
+# STEP 6: adding WMO header  
+# Create AWIPS GRIB2 data for Bias-Corrected PM2.5
 ###################################################
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
   echo 0 > filesize
