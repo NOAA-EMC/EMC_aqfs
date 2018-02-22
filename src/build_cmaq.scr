@@ -1,0 +1,34 @@
+module load ncep
+
+module purge
+
+module load ../modulefiles/CMAQ/v5.1.0
+
+BASE=`pwd`
+
+##########################
+for src in premaq_v502 fengsha_2016 fengsha_merge_2016 snowdust_2016 fire_checking_2016 fire_fcst_1 fire_fcst_2 fire_analy_1 fire_analy_2 fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 ngac_dust_dlbc csum chg rdgrbwt_aot_CHA_g2  
+do
+cd ${BASE}/aqm_${src}.fd
+make -f Makefile clobber
+make -f Makefile
+make -f Makefile install
+make -f Makefile clobber
+done
+
+##############################
+module load HDF4-intel-haswell/4.2.8
+module load HDF5-serial-intel-haswell/1.8.9
+module switch  intel/16.3.210 
+module switch bufr-intel/11.0.2
+###############################
+for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor 
+do
+cd ${BASE}/aqm_${src}.fd
+make -f Makefile clobber
+make -f Makefile
+make -f Makefile install
+make -f Makefile clobber
+done
+###############################
+#

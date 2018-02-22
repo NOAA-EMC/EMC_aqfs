@@ -179,7 +179,9 @@ clean:  ${OBJDIR}
 #	cd ${SRCDIR}; rm *.o core*
 
 install: ${INSTDIR}
-	echo "Installing in ${INSTDIR}" ; cd ${OBJDIR}; cp ${LIB} ${INSTDIR}
+	echo "Installing in ${INSTDIR}" ; cd ${OBJDIR}; cp ${LIB} ../../../libaqm_ioapi.a; cp ${OBJDIR}/*mod ../../../include; 
+clobber: 
+	rm -f ${OBJDIR}/${LIB}
 
 gtar:
 	cd ${BASEDIR}; make gtar

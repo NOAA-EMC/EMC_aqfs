@@ -58,7 +58,6 @@ $(LIBNAME) : $(OBJS)
 clean:
 	rm -f *.a $(OBJS) *.mod
 install:
-	-cp $(LIBNAME) ../../.
-	-cp *.mod ../../.
+	cp $(LIBNAME) ../../. ; cp *.mod ../../include/.
 clobber: clean
 	rm -f $(LIBNAME)

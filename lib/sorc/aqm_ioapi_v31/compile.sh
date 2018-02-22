@@ -16,7 +16,11 @@ export BIN=Linux3_x86_64intel
 export IOAPI_OFFSET_64=YES
 make configure
 cd ioapi
-make clean
-make
-cp ${BASEDIR}/${BIN}/libioapi.a  ${mydir}/nw${envir}/cmaq.${model_ver}/lib/libaqm_ioapi.a
-cp ${BASEDIR}/${BIN}/*mod         ${mydir}/nw${envir}/cmaq.${model_ver}/lib/include
+#make clean
+#make 
+make -f Makefile clobber
+make -f Makefile
+make -f Makefile install
+make -f Makefile clobber
+#cp ${BASEDIR}/${BIN}/libioapi.a  ${mydir}/nw${envir}/cmaq.${model_ver}/lib/libaqm_ioapi.a
+#cp ${BASEDIR}/${BIN}/*mod         ${mydir}/nw${envir}/cmaq.${model_ver}/lib/include

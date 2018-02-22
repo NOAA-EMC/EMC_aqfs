@@ -156,6 +156,8 @@ clean:
 	(cd $(NOTDIR)  ; make -i clean)
 	(cd $(TOOLDIR) ; make -i clean)
 	(cd $(TESTDIR) ; make -i clean)
+clobber: clean
+	(cd $(IODIR)   ; make -i clobber)	
 
 relink:
 	(cd $(TOOLDIR) ; make -i rmexe; make)

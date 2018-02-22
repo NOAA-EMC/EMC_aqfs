@@ -140,9 +140,9 @@ filter method               = KFAN
 number of analogs           = 10
 
 *Use for PM 2.5 (01-19-2018)
-bias formula = mean (forecast plus model predictions) plus bias
+*bias formula = mean (forecast plus model predictions) plus bias
 *Use for Ozone (01-19-2018)
-*bias formula = forecast plus bias
+bias formula = forecast plus bias
 *-------------------------------------------------
 * Post processing controls.
 *-------------------------------------------------
