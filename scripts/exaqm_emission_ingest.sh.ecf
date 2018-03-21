@@ -18,8 +18,7 @@ set -x
 ##################
 
 # for the production mailing list
-#XXW maillist='ncep.list.spa-helpdesk@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
-maillist='Xiaoxue.Wang@noaa.gov'
+maillist='ncep.list.spa-helpdesk@noaa.gov youhua.tang@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
 
 # calculate number days of the next month
 days_in_next_month=`cal $(date +%m -d 'next month') $(date +%Y) | grep -v '[A-Za-z]' | wc -w`
@@ -57,7 +56,8 @@ echo "number days of the next year= $number_days_next_year"
 ###############################################################
 # This section checks and copies the monthly emission files
 ###############################################################
-
+i=1
+if [ $i -eq 1 ]; then
 #where the monthly emission directory
 in_dir=$DCOMIN/$yyyymm
 out_dir=$COMOUT/$yyyymm
@@ -87,8 +87,9 @@ if (( $no_files_in_dcom == 0 )); then
 fi
  
 mkdir -p -m 775 $out_dir $out_dir_hps
-cp -p $in_dir/* $out_dir/.
-cp -p $in_dir/* $out_dir_hps/.
+cp -p $in_dir/*AK* $out_dir/.
+cp -p $in_dir/*HI* $out_dir/.
+cp -p $in_dir/*CONUS* $out_dir_hps/.
 
 # check the file number monthly directory
 
@@ -185,22 +186,29 @@ fi
 #################################
 
 subject="The monthly ARL AQM emission files have been successfully copied"
-echo "The monthly ARL AQM emission files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
+echo "The monthly ARL AQM emission files have been successfully copied from $in_dir to $out_dir and $out_dir_hps. Please double check and validate." > email_body
 cat email_body |mail -s "$subject" $maillist
-
+fi
 
 ###############################################################
 # This section checks and copies the yearly emission files
 ###############################################################
 
-if (( $next_month == 01 )); then
+if (( $next_month == 01 )) || (( $next_month == 05 )); then
    #where the yearly emission directory
+  if (( $next_month == 01 )); then
    in_dir=$DCOMIN/$next_year
    out_dir=$COMOUT/$next_year
 
    # define the input tar file from ARL
    input_tarfile=aqm_point_${next_year}.tar
+  else
+   in_dir=$DCOMIN/$current_year
+   out_dir=$COMOUT/$current_year
 
+   # define the input tar file from ARL
+   input_tarfile=aqm_point_${current_year}.tar
+  fi 
    #    copy yearly emission files from /dcom to /com
    # dcom directory check
    if [ ! -d "$in_dir" ]; then
@@ -274,6 +282,7 @@ fi
 
 if (( $next_month == 01 )); then
    # where the yearly jtable directory
+   
    in_dir=$DCOMIN/JTable/$next_year
    out_dir=$COMOUT/cb05_Jtable
 
@@ -327,7 +336,7 @@ if (( $next_month == 01 )); then
    #################################
 
    subject="The yearly ARL AQM jtable files have been successfully copied"
-   echo "The yearly ARL AQM jtable files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
+   echo "The yearly ARL AQM jtable files have been successfully copied from $in_dir to $out_dir and $out_dir_hps. Please double check and validate." > email_body
    cat email_body |mail -s "$subject" $maillist
 
 fi
