@@ -565,10 +565,14 @@ program aqm_post_maxi_bias_cor_grib2
      if ( varlist(L).eq.'O3_8h_max') then
         nowtime8=11-icyc+(mday-1)*24
         ipdstmpl(19)=markutc+8-1+(mday-1)*24
+     elseif ( varlist(L).eq.'O3_1h_max') then
+        nowtime8=5-icyc+(mday-1)*24
+!jp        ipdstmpl(19)=markutc-1
+        ipdstmpl(19)=markutc
      else
         nowtime8=5-icyc+(mday-1)*24
         ipdstmpl(19)=markutc-1
-!        ipdstmpl(19)=markutc
+!jp        ipdstmpl(19)=markutc
      endif
 
      ipdstmpl(9)= nowtime8
