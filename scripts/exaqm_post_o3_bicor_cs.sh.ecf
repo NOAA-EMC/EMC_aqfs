@@ -196,7 +196,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp  | awk '{print $5} '` > filesize
@@ -205,7 +205,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3-bc.227.grib2
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
 ##########################################################
@@ -217,7 +217,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp
-	${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
 
 	echo `ls -l  aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp | awk '{print $5} '` > filesize
 	export XLFRTEOPTS="unit_vars=yes"
@@ -225,7 +225,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=awpaqm.${cycle}.${hr}ho3-max-bc.227.grib2
-	${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
 
 ##############################
 # Post Files to PCOM
