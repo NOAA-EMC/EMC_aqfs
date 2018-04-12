@@ -11,7 +11,7 @@ c      implicit none
       
       parameter (imax=442,jmax=265,kmax=35)
 c      parameter (numrec=49)
-      parameter (maxnf=500)
+      parameter (maxnf=10000)
 
       integer nfire,fhour,syear,smon,sday,byear,bmon,bday,jdate,jtime,
      1 jstep,total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,
