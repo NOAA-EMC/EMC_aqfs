@@ -10,7 +10,7 @@ c      implicit none
       include 'CONST3.EXT'      ! i/o API
       
       parameter (imax=442,jmax=265,kmax=35) !domain
-      parameter (numrec=25,maxnf=500)       !time and fire
+      parameter (numrec=25,maxnf=10000)       !time and fire
 
       integer nfire,fhour,syear,smon,sday,start,jdate,jtime,jstep,
      1 total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,emlays
