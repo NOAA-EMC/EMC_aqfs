@@ -44,8 +44,8 @@ export USHaqm=${USHaqm:-$HOMEaqm/ush}
 ###################################
 # Set up the UTILITIES
 ###################################
-module load prod_util
-module load grib_util
+#module load prod_util
+#module load grib_util
 
 # Run setup to initialize working directory and utility scripts
 msg="JOB $job HAS BEGUN"
