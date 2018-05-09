@@ -1,4 +1,4 @@
-      program smoke2cmaq_35layer_1
+      program smoke2cmaq_35layer_fcst_1
       
 c This program is created by Li.Pan at NOAA/OAR/ARL      
 
@@ -11,44 +11,55 @@ c      implicit none
       
       parameter (imax=442,jmax=265,kmax=35)
 c      parameter (numrec=49)
-      parameter (maxnf=10000)
+c      parameter (maxnf=500)
+
+c Full 100% fcst day emissions
+      parameter (fcst_pm_cnst=1.00, fcst_gas_cnst=0.)
+      parameter (heat_convert_cnst=0.00000258)
 
       integer nfire,fhour,syear,smon,sday,byear,bmon,bday,jdate,jtime,
      1 jstep,total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,
      2 emlays
-      integer year(maxnf),mon(maxnf),day(maxnf),hour(maxnf),min(maxnf),
-     1 duration(maxnf),intx(maxnf),inty(maxnf),header(6),ftime(maxnf),
-     2 indomain(maxnf)
+
+chc add diurnal profile
+      real pm_frac(0:23), heat_frac(0:23)
+chc   real fcst_pm_cnst, fcst_gas_cnst, heat_convert_cnst
+      integer fcst_local_hour
+      integer utc
+      real, allocatable, dimension  (:,:,:) :: grdheatbtu
+      integer, allocatable, dimension  (:,:) :: lbot
+      real fcst_pm_frac    !fcst PM/GAS hourly fraction
+      real fcst_heat_frac  !fcst HEAT   hourly fraction
+Chc   declare as (imax,jmax,numrec) after numerc is read from input config file
+C local diagnosis variable
+      character*15 chr_name(41)
+      character*80 chrdum
+      real, allocatable, dimension  (:,:) :: wrtout
+      logical flag_write_excel
+      integer ii, jj, kk, ll, mm ,nn
+      integer IDUM
+chc add diurnal profile
      
-c      integer intime(maxnf,numrec),lstk(maxnf,numrec),lpbl(maxnf,numrec),
-c     2 ltop(maxnf,numrec)
+      integer header(6)
+      integer, allocatable, dimension (:) :: year,mon,day,hour,min,
+     1 duration, intx, inty,ftime, indomain    
+
      
-      real lat(maxnf),lon(maxnf),hgt(maxnf),rate(maxnf),area(maxnf),
-     1 heat(maxnf),time(maxnf),heatbtu(maxnf),pm25(maxnf),pm10(maxnf),
-     2 pm(maxnf),co(maxnf),co2(maxnf),ch4(maxnf),nmhc(maxnf),x(maxnf),
-     3 y(maxnf),latitude(maxnf),longitude(maxnf),acres(maxnf),
-     4 heatflux(maxnf),tmpsum,pm25co(maxnf)
-     
-c      real hmix(maxnf,numrec),psfc(maxnf,numrec),tsfc(maxnf,numrec),
-c     1 tstk(maxnf,numrec),wstk(maxnf,numrec),ustmp(maxnf,numrec),
-c     2 hfx(maxnf,numrec),tmpbflx(maxnf,numrec),ztop(maxnf,numrec),
-c     3 zbot(maxnf,numrec),zplm(maxnf,numrec),tmpacre(maxnf,numrec),
-c     4 sfract(maxnf,numrec)
-     
-c      real ddzf(maxnf,numrec,kmax),qv(maxnf,numrec,kmax),
-c     1 ta(maxnf,numrec,kmax),zf(maxnf,numrec,kmax),
-c     2 zh(maxnf,numrec,kmax),zstk(maxnf,numrec,kmax),
-c     3 pres(maxnf,numrec,0:kmax),uw(maxnf,numrec,kmax),
-c     4 vw(maxnf,numrec,kmax),dthdz(maxnf,numrec,kmax),
-c     5 wspd(maxnf,numrec,kmax),zzf(maxnf,numrec,0:kmax),
-c     6 tfrac(maxnf,numrec,kmax)
+      real, allocatable, dimension (:) :: lat,lon,hgt,rate,area,
+     1 heat,time,heatbtu,pm25,pm10,
+     2 pm,co,co2,ch4,nmhc,x,
+     3 y,latitude,longitude,acres,
+     4 heatflux,pm25co
      
       real xlon(imax,jmax),xlat(imax,jmax),xx(imax,jmax),yy(imax,jmax),
      1 vheight(kmax+1)
-      real truelat1,truelat2,cenlat,cenlon,tlat,tlon,ddx,hts,ptop
+
+      real truelat1,truelat2,cenlat,cenlon,tlat,tlon,ddx,hts,ptop,
+     1 tmpsum
       
-      character*160 efile,ffile(maxnf),GRID,MCRO3,MDOT3,MCRO2,
+      character*160 efile,ffile,GRID,MCRO3,MDOT3,MCRO2,
      1 OUTPUT1,OUTPUT2,OUTPUT3
+
       character hline*300,aline(2)*120,bline(3)*120,dirname*120,
      1 emifix*16,firefix(3)*16,chftmp*4,chytmp*4,chmtmp*2,
      2 chdtmp*2,firespec(8)*12      
@@ -69,7 +80,7 @@ c     6 tfrac(maxnf,numrec,kmax)
       real, allocatable, dimension  (:,:) :: ztop        
       real, allocatable, dimension  (:,:) :: zbot
       real, allocatable, dimension  (:,:) :: zplm  
-      real, allocatable, dimension  (:,:) :: tmpacre                               
+      real, allocatable, dimension  (:,:) :: tmpacre
       real, allocatable, dimension  (:,:) :: sfract 
       
       real, allocatable, dimension  (:,:,:) :: ddzf
@@ -83,7 +94,7 @@ c     6 tfrac(maxnf,numrec,kmax)
       real, allocatable, dimension  (:,:,:) :: vw        
       real, allocatable, dimension  (:,:,:) :: wspd
       real, allocatable, dimension  (:,:,:) :: zzf  
-      real, allocatable, dimension  (:,:,:) :: tfrac                               
+      real, allocatable, dimension  (:,:,:) :: tfrac
       real, allocatable, dimension  (:,:,:) :: dthdz       
              
       real, allocatable, dimension  (:,:,:,:) :: emis
@@ -109,7 +120,38 @@ c metcro3d variables
 c metdot3d variables
       real, allocatable, dimension (:,:,:,:) :: uwind
       real, allocatable, dimension (:,:,:,:) :: vwind 
+chc for diagnosis
+
+      data n_heat/1/,n_pm25/2/,n_pm10/3/,n_pm/4/,n_co/5/,n_co2/6/,
+     1 n_ch4/7/,n_nmhc/8/
+      data emlays/35/
       
+      data hts/0.0/ !stack height can be set as 100.0
+                  
+      data emifix/'EMITIMES'/
+      data firefix/'NOAA','_','.OUT'/
+      
+      
+      data firespec/'HEAT','PM25','PM10','PM','CO','CO2','CH4','NMHC'/
+
+chc add diurnal profile
+      data pm_frac/0.00570114, 0.00570114, 0.00570114, 0.00570114, 
+     1 0.00570114, 0.00570114, 0.00570114, 0.00570114, 0.00570114, 
+     2 0.00570114, 0.02000401, 0.04000801, 0.07001400, 0.10002000,
+     3 0.13002600, 0.16003200, 0.17003400, 0.12002400, 0.07001401,
+     4 0.04000801, 0.00570114, 0.00570114, 0.00570114, 0.00570114/
+
+      data heat_frac/0.0020803256556821600, 0.0020705541795396600, 
+     1 0.0013733187228315500, 0.0010260869412932700, 0.0008185544662399030,
+     2 0.0006807089512152810, 0.0005825625298669910, 0.0005091642217659640,
+     3 0.0004511037968307230, 0.0004098816885552800, 0.0084852801695145100,
+     4 0.0526339793024440000, 0.1143050168420500000, 0.1531754565788320000,
+     5 0.1793493211634940000, 0.1974044722238220000, 0.1728953921098070000,
+     6 0.0766986108811116000, 0.0262149334298009000, 0.0086042086899452900,
+     7 0.0001345759113781090, 0.0000327073703766417, 0.0000322467417084864,
+     8 0.0000315374318945850 /
+chc add diurnal profile
+
       namelist/control/syear,smon,sday,byear,bmon,bday,start,numrec,
      1 dirname
       
@@ -117,67 +159,152 @@ c metdot3d variables
       read(7,control)
       print*, syear,smon,sday,byear,bmon,bday,start,numrec,dirname       
       
-      allocate(intime(maxnf,numrec),STAT=ierr)
+      allocate(wrtout(41,numrec),STAT=ierr)
+      if(ierr.ne.0) stop 2019
+            
+chc for diagnosis
+      flag_write_excel = .false.
+      flag_write_excel = .true.
+      if ( flag_write_excel ) then
+         chr_name(1)=' '
+         chr_name(2)='Layer top'
+         chr_name(3)='Layer bottom'
+         chr_name(4)='smold frac'
+         chr_name(5)='total PM'
+         chr_name(6)='total heat'
+         do n = 1, 35
+            write(chrdum,'(i2)') n
+            chr_name(n+6)=chrdum(1:2)
+         end do
+         do n = 1, numrec
+            wrtout(1,n) = float(n)
+         end do
+      end if
+chc for diagnosis
+      
+      aline(1)=dirname
+      aline(2)=emifix
+      
+      efile=aline(1)(:len_trim(aline(1)))//
+     1 aline(2)(:len_trim(aline(2)))
+      print*,efile      
+
+      open(10,file=efile,status='old')
+      read(10,'(a300)')hline
+      read(10,'(a300)')hline
+c      read(10,'(a300)')hline
+      read(10,*)header(1:6)
+            
+c      nfire=0
+c      do while(.true.)
+c       nfire=nfire+1
+c       read(10,*,end=96)year(nfire),mon(nfire),day(nfire),hour(nfire),
+c     1  min(nfire),duration(nfire),lat(nfire),lon(nfire),hgt(nfire),
+c     2  rate(nfire),area(nfire),heat(nfire)
+c       heatflux(nfire)=heat(nfire)/area(nfire)
+cc       print*, heatflux(nfire)
+cc       print*,nfire,year(nfire),mon(nfire),day(nfire),hour(nfire),
+cc     1  min(nfire),duration(nfire),lat(nfire),lon(nfire),hgt(nfire),
+cc     2  rate(nfire),area(nfire),heat(nfire)
+c      enddo
+c 96   close(10)
+c      nfire=nfire-1
+c      print*,'the number of total detected fires is', nfire
+
+      nfire=header(6)
+      print*, 'the number of total detected fires is',nfire
+chc  heat(n) read heere is used to compute heatflux(n), femis(,,n_heat,)
+chc  then both femis(,,n_heat,) and heatflux(n) are notused for plumerise
+chc  area(n) in m2      
+chc  heat(n) in watts
+      allocate(year(nfire),mon(nfire),day(nfire),hour(nfire),min(nfire),
+     1 duration(nfire),intx(nfire),inty(nfire),ftime(nfire),
+     2 indomain(nfire),
+     3 lat(nfire),lon(nfire),hgt(nfire),rate(nfire),area(nfire),
+     4 heat(nfire),time(nfire),heatbtu(nfire),pm25(nfire),pm10(nfire),
+     5 pm(nfire),co(nfire),co2(nfire),ch4(nfire),nmhc(nfire),x(nfire),
+     6 y(nfire),latitude(nfire),longitude(nfire),acres(nfire),
+     7 heatflux(nfire),pm25co(nfire))
+     
+      do n=1,nfire
+       read(10,*)year(n),mon(n),day(n),hour(n),min(n),duration(n),
+     1  lat(n),lon(n),hgt(n),rate(n),area(n),heat(n)
+        heatflux(n)=heat(n)/area(n)
+      enddo
+      close(10)
+               
+      if(.not.open3('GRID',FSREAD3,'aq_open')) then
+       print*, 'failed to open GRID'
+       stop
+      endif
+
+
+      if(.not. DESC3('GRID') ) then
+       print*, 'Error getting info from GRID'
+       stop
+      endif
+
+      allocate(intime(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1900     
-      allocate(lstk(maxnf,numrec),STAT=ierr)
+      allocate(lstk(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1901 
-      allocate(lpbl(maxnf,numrec),STAT=ierr)
+      allocate(lpbl(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1902     
-      allocate(ltop(maxnf,numrec),STAT=ierr)
+      allocate(ltop(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1903 
       
-      allocate(hmix(maxnf,numrec),STAT=ierr)
+      allocate(hmix(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1904     
-      allocate(psfc(maxnf,numrec),STAT=ierr)
+      allocate(psfc(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1905 
-      allocate(tsfc(maxnf,numrec),STAT=ierr)
+      allocate(tsfc(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1906     
-      allocate(tstk(maxnf,numrec),STAT=ierr)
+      allocate(tstk(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1907 
-      allocate(wstk(maxnf,numrec),STAT=ierr)
+      allocate(wstk(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1908     
-      allocate(ustmp(maxnf,numrec),STAT=ierr)
+      allocate(ustmp(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1909 
-      allocate(hfx(maxnf,numrec),STAT=ierr)
+      allocate(hfx(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1910     
-      allocate(tmpbflx(maxnf,numrec),STAT=ierr)
+      allocate(tmpbflx(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1911                   
-      allocate(ztop(maxnf,numrec),STAT=ierr)
+      allocate(ztop(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1912  
-      allocate(zbot(maxnf,numrec),STAT=ierr)
+      allocate(zbot(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1913 
-      allocate(zplm(maxnf,numrec),STAT=ierr)
+      allocate(zplm(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1914     
-      allocate(tmpacre(maxnf,numrec),STAT=ierr)
+      allocate(tmpacre(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1915                   
-      allocate(sfract(maxnf,numrec),STAT=ierr)
+      allocate(sfract(nfire,numrec),STAT=ierr)
       if(ierr.ne.0) stop 1916       
           
-      allocate(ddzf(maxnf,numrec,kmax),STAT=ierr)
+      allocate(ddzf(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1917     
-      allocate(qv(maxnf,numrec,kmax),STAT=ierr)
+      allocate(qv(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1918 
-      allocate(ta(maxnf,numrec,kmax),STAT=ierr)
+      allocate(ta(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1919     
-      allocate(zf(maxnf,numrec,kmax),STAT=ierr)
+      allocate(zf(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1920 
-      allocate(zh(maxnf,numrec,kmax),STAT=ierr)
+      allocate(zh(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1921     
-      allocate(zstk(maxnf,numrec,kmax),STAT=ierr)
+      allocate(zstk(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1922 
-      allocate(uw(maxnf,numrec,kmax),STAT=ierr)
+      allocate(uw(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1923     
-      allocate(vw(maxnf,numrec,kmax),STAT=ierr)
+      allocate(vw(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1924                   
-      allocate(wspd(maxnf,numrec,kmax),STAT=ierr)
+      allocate(wspd(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1925  
-      allocate(tfrac(maxnf,numrec,kmax),STAT=ierr)
+      allocate(tfrac(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1926 
-      allocate(dthdz(maxnf,numrec,kmax),STAT=ierr)
+      allocate(dthdz(nfire,numrec,kmax),STAT=ierr)
       if(ierr.ne.0) stop 1927     
-      allocate(pres(maxnf,numrec,0:kmax),STAT=ierr)
+      allocate(pres(nfire,numrec,0:kmax),STAT=ierr)
       if(ierr.ne.0) stop 1928                   
-      allocate(zzf(maxnf,numrec,0:kmax),STAT=ierr)
+      allocate(zzf(nfire,numrec,0:kmax),STAT=ierr)
       if(ierr.ne.0) stop 1929  
       
                                                     
@@ -223,69 +350,14 @@ c metdot3d variables
       if(ierr.ne.0) stop 2016   
       allocate(vwind(imax+1,jmax+1,kmax,numrec),STAT=ierr)
       if(ierr.ne.0) stop 2017
-      
                                         
-      data n_heat/1/,n_pm25/2/,n_pm10/3/,n_pm/4/,n_co/5/,n_co2/6/,
-     1 n_ch4/7/,n_nmhc/8/
-      data emlays/35/
-      
-      data hts/0.0/ !stack height can be set as 100.0
-                  
-      data emifix/'EMITIMES'/
-      data firefix/'NOAA','_','.OUT'/
-      
-      
-      data firespec/'HEAT','PM25','PM10','PM','CO','CO2','CH4','NMHC'/     
-      
-      aline(1)=dirname
-      aline(2)=emifix
-      
-      efile=aline(1)(:len_trim(aline(1)))//
-     1 aline(2)(:len_trim(aline(2)))
-      print*,efile      
+chc add diurnal profile
+      allocate(grdheatbtu(imax,jmax,numrec),STAT=ierr)
+      if(ierr.ne.0) stop 2018
+chc add diurnal profile
+chc for diagnosis
 
-      open(10,file=efile,status='old')
-      read(10,'(a300)')hline
-      read(10,'(a300)')hline
-c      read(10,'(a300)')hline
-      read(10,*)header(1:6)
-	    
-c      nfire=0
-c      do while(.true.)
-c       nfire=nfire+1
-c       read(10,*,end=96)year(nfire),mon(nfire),day(nfire),hour(nfire),
-c     1  min(nfire),duration(nfire),lat(nfire),lon(nfire),hgt(nfire),
-c     2  rate(nfire),area(nfire),heat(nfire)
-c       heatflux(nfire)=heat(nfire)/area(nfire)
-cc       print*, heatflux(nfire)
-cc       print*,nfire,year(nfire),mon(nfire),day(nfire),hour(nfire),
-cc     1  min(nfire),duration(nfire),lat(nfire),lon(nfire),hgt(nfire),
-cc     2  rate(nfire),area(nfire),heat(nfire)
-c      enddo
-c 96   close(10)
-c      nfire=nfire-1
-c      print*,'the number of total detected fires is', nfire
-
-      nfire=header(6)
-      print*, 'the number of total detected fires is',nfire
-      
-      do n=1,nfire
-       read(10,*)year(n),mon(n),day(n),hour(n),min(n),duration(n),
-     1  lat(n),lon(n),hgt(n),rate(n),area(n),heat(n)
-        heatflux(n)=heat(n)/area(n)
-      enddo
-      close(10)
-               
-      if(.not.open3('GRID',FSREAD3,'aq_open')) then
-       print*, 'failed to open GRID'
-       stop
-      endif
-
-
-      if(.not. DESC3('GRID') ) then
-       print*, 'Error getting info from GRID'
-       stop
-      endif
+      allocate(lbot(nfire,numrec),STAT=ierr)
       
       if (imax.ne.ncols3d.and.jmax.ne.nrows3d) then
        print*, 'Error in domain setting',imax,ncols3d,jmax,nrows3d
@@ -322,7 +394,7 @@ c      do i=1,imax
 c       do j=1, jmax
 c        call llij_lc(xlat(i,j),xlon(i,j),truelat1,truelat2,cenlat,
 c     1   cenlon,tlat,tlon,xx(i,j),yy(i,j),ddx) 
-c        print*, i,j,xlon(i,j),xlat(i,j),xx(i,j),yy(i,j)        	 
+c        print*, i,j,xlon(i,j),xlat(i,j),xx(i,j),yy(i,j)                 
 c       enddo
 c      enddo
 
@@ -376,7 +448,12 @@ c      print*, "ptop=", ptop
         print*, 'Error in reading PRES from MCRO3'
         stop
        endif        
-       if(.not.READ3('MCRO3','DENS',ALLAYS3, jdate, jtime,
+       if(.not.READ3('MCRO3','PRES-F_lvl',ALLAYS3, jdate, jtime,
+     1  presf(1,1,1,m))) then
+        print*, 'Error in reading PRES-F from MCRO3'
+        stop
+       endif        
+      if(.not.READ3('MCRO3','DENS',ALLAYS3, jdate, jtime,
      1  dens(1,1,1,m))) then
         print*, 'Error in reading DENS from MCRO3'
         stop
@@ -489,13 +566,13 @@ c      print*,'mxrec3d=',mxrec3d
        endif 
        
 ! calculate full layer pressure based on sigmap
-       do i=1,imax
-        do j=1,jmax
-	 do k=1,kmax
-	  presf(i,j,k,m)=ptop+vheight(k+1)*(prsfc(i,j,m)-ptop)
-	 enddo
-	enddo
-       enddo
+!       do k=1,kmax
+!        do j=1,jmax
+!         do i=1,imax
+!          presf(i,j,k,m)=ptop+vheight(k+1)*(prsfc(i,j,m)-ptop)
+!         enddo
+!        enddo
+!       enddo
                                    
        call nextime(jdate,jtime,jstep)
       enddo      
@@ -537,11 +614,44 @@ c      print*,'mxrec3d=',mxrec3d
       
 c      emis(1:imax,1:jmax,1:kmax,1:nvars)=0.0
 cjp      femis(1:imax,1:jmax,1:8,1:kmax)=0.0 
-      femis(1:imax,1:jmax,1:8,1:numrec)=0.0 
 cjp      lfrac(1:imax,1:jmax,1:kmax,1:kmax)=0.0      
+      femis(1:imax,1:jmax,1:8,1:numrec)=0.0 
       lfrac(1:imax,1:jmax,1:kmax,1:numrec)=0.0      
+      grdheatbtu(1:imax,1:jmax,1:numrec)=0.0
                
+      if ( flag_write_excel ) then
+         write(chrdum,'(''fire_fcst_gridindx_'',i4.4,
+     1          i2.2,i2.2,''.txt'')')syear,smon,sday
+         ii=len(chrdum)
+         do jj=1,ii
+            if ( chrdum(jj:jj) == ' ') then
+               nn=jj-1
+               exit
+            end if
+         end do
+         open(88,file=chrdum(1:nn),form='formatted',status='unknown')
+         write(88,'(''Fire ID, Grid I index,Grid J index'')')
+      end if
+
       do n=1,nfire       
+         if (duration(n).lt.2400) then
+            write(*,'('' ==== Fire '', i3.3, 
+     1                '' is not a 24 duration fires'')') n
+            cycle
+         end if
+         if ( flag_write_excel ) then
+c            write(chrdum,'(''fire_fcst_6xmean_'',i3.3,''.txt'')')n
+            write(chrdum,'(''fire_fcst_profile_'',i3.3,''.txt'')')n
+            ii=len(chrdum)
+            do jj=1,ii
+               if ( chrdum(jj:jj) == ' ') then
+                  nn=jj-1
+                  exit
+               end if
+            end do
+            open(99,file=chrdum(1:nn),form='formatted',status='unknown')
+            wrtout(2:21,1:numrec)=0.
+         end if
        write(chftmp,'(i4.4)')n
        write(chytmp,'(i4.4)')byear
        write(chmtmp,'(i2.2)')bmon
@@ -552,39 +662,39 @@ cjp      lfrac(1:imax,1:jmax,1:kmax,1:kmax)=0.0
        bline(3)=firefix(3)
        
        
-       ffile(n)=aline(1)(:len_trim(aline(1)))//
+       ffile=aline(1)(:len_trim(aline(1)))//
      1  bline(1)(:len_trim(bline(1)))//chftmp//
      2  bline(2)(:len_trim(bline(2)))//chytmp//chmtmp//chdtmp//
      3  bline(3)(:len_trim(bline(3)))
-       print*,ffile(n)
+       print*,ffile
        
-       open(11,file=ffile(n),status='old')
+       open(11,file=ffile,status='old')
        
         read(11,'(a300)')hline
         read(11,'(a17,f5.2)')hline,latitude(n)
-	read(11,'(a17,f7.2)')hline,longitude(n)
-	read(11,'(a300)')hline
-	read(11,'(a17,f7.2)')hline,acres(n)
-		
-c	print*, latitude(n),longitude(n),acres(n)
-	
-	if((latitude(n)-lat(n)).ge.0.01.or.(longitude(n)-lon(n)).
+        read(11,'(a17,f7.2)')hline,longitude(n)
+        read(11,'(a300)')hline
+        read(11,'(a17,f7.2)')hline,acres(n)
+                
+c        print*, latitude(n),longitude(n),acres(n)
+        
+        if((latitude(n)-lat(n)).ge.0.01.or.(longitude(n)-lon(n)).
      1       ge.0.01) then
          print*, 'latitude and longitude mismatch in nfire', n
-	 stop
-	endif
-	
+         stop
+        endif
+        
        
        do i=1,11
         read(11,'(a300)')hline
        enddo
        
        do while(.true.)
-	
-	read(11,*,end=97)time(n),heatbtu(n),pm25(n),pm10(n),pm(n),
+        
+        read(11,*,end=97)time(n),heatbtu(n),pm25(n),pm10(n),pm(n),
      1   co(n),co2(n),ch4(n),nmhc(n)
         pm25co(n)=pm25(n)/co(n)
-c	print*,pm25co(n)
+c        print*,pm25co(n)
 c        print*, time(n),heatbtu(n),pm25(n),pm10(n),pm(n),co(n),co2(n),
 c     1   ch4(n),nmhc(n)
        enddo
@@ -599,12 +709,15 @@ c       print*, lon(n), lat(n), x(n), y(n)
        inty(n)=int(y(n))
        
 c       print*, intx(n),inty(n)
-       
+       if ( flag_write_excel ) write(88,'(2(i3,'',''), i3)')n, intx(n), inty(n)
        if (intx(n).ge.1.and.intx(n).le.imax.and.inty(n).ge.1.and.
      1      inty(n).le.jmax) then
          indomain(n)=1
        else
          indomain(n)=0
+         write(*,'('' ==== Fire '', i3.3, 
+     1             '' NOT in CONUS domain ====='')') n
+         
        endif
        
 c       print*, indomain(n)
@@ -621,101 +734,159 @@ c       print*, mon(n),day(n),hour(n),min(n),duration(n),start
         hour(n)=hour(n)*100+min(n)
         ftime(n)=hour(n)+duration(n)
 c        print*, ftime(n)
-	      
-        do m=1,numrec
-	
-c	 print*, 'PBL at fire spot is',n,m,pbl(intx(n),inty(n),m)
+              
+chc add diurnal profile
+chc find time zone for utc to local hour, produce emis fraction for 0-48 fcst hours
+        timezone=int(longitude(n)/15.)
+        fcst_local_hour=start+timezone
+        if ( fcst_local_hour < 0 ) then
+           fcst_local_hour = fcst_local_hour + 24
+        else if ( fcst_local_hour > 23 ) then
+           fcst_local_hour = fcst_local_hour - 24
+        end if
+        fcst_local_hour = fcst_local_hour - 1
+        utc = start - 1
+        print *, ' cyc hour = ', start, '  time zone = ', timezone
+        do m = 1, numrec
+           utc = utc + 1
+           if ( utc > 23 ) utc = utc - 24
+           fcst_local_hour = fcst_local_hour + 1
+           if(fcst_local_hour>23)fcst_local_hour=fcst_local_hour-24
+           write(*,'(''Processing FCST hour '', i2.2, ''  UTC hour = '',
+     1              i4.4, ''Z  Local hour = '', i2.2)') m, utc, fcst_local_hour
 
-c for the forecasting, only 24h fire are accounted	 
-c	 if (fhour.ge.hour(n).and.fhour.le.ftime(n)) then
-c	  intime(n,m)=1
-c	 else
-c	  intime(n,m)=0
-c	 endif
+c         print*, 'PBL at fire spot is',n,m,pbl(intx(n),inty(n),m)
 
-	 if (duration(n).ge.2400) then
-	  intime(n,m)=1
-	 else
-	  intime(n,m)=0
-	 endif
-	 
-	 if(intime(n,m).eq.1) then
+c for the forecasting, only 24h fire are accounted         
+c         if (fhour.ge.hour(n).and.fhour.le.ftime(n)) then
+c          intime(n,m)=1
+c         else
+c          intime(n,m)=0
+c         endif
+
+cc HHC     if(intime(n,m).eq.1) then   ## move 24 hour fire decision loop at the beginning of do n=1, nfire
+           fcst_pm_frac   = pm_frac(fcst_local_hour)
+           fcst_heat_frac = heat_frac(fcst_local_hour)
 C convert hysplit smoke fire emission rate to real rate
 c hysplit smoke rate is 6 hours total
 c hypslit smoke fire is assumed to be brush buring 
-c convert to wildfire 0.121/0.083=1.46 for pm25 	 
-	  femis(intx(n),inty(n),n_heat,m)=heat(n)/24.0
-cc	  femis(intx(n),inty(n),n_pm25,m)=pm25(n)/6.0/1.46
-	  femis(intx(n),inty(n),n_pm25,m)=pm25(n)/24.0
-	  femis(intx(n),inty(n),n_pm10,m)=pm10(n)/24.0
-	  femis(intx(n),inty(n),n_pm,m)=pm(n)/24.0
-	  femis(intx(n),inty(n),n_co,m)=0.0*co(n)/24.0
-	  femis(intx(n),inty(n),n_co2,m)=0.0*co2(n)/24.0
-	  femis(intx(n),inty(n),n_ch4,m)=0.0*ch4(n)/24.0
-	  femis(intx(n),inty(n),n_nmhc,m)=0.0*nmhc(n)/24.0
-	  
-	  hmix(n,m)=pbl(intx(n),inty(n),m)
-	  psfc(n,m)=prsfc(intx(n),inty(n),m)*0.01 !convert pa to mb
-	  pres(n,m,0)=psfc(n,m)
-	  tsfc(n,m)=temp2(intx(n),inty(n),m)
-	  ustmp(n,m)=max(ustar(intx(n),inty(n),m),0.1) !min value for ustar
-C	  hfx(n,m)=heatflux(n)/(CP * dens(intx(n),inty(n),1,m))
-	  hfx(n,m)=mhfx(intx(n),inty(n),m)/
-     1     (CP * dens(intx(n),inty(n),1,m))	  
-c	  tmpbflx(n,m)=heatbtu(n)/6.0*0.00000258 !convert factor
-	  tmpbflx(n,m)=heatbtu(n)/24.0*0.00000258 !convert factor	  
-c	  tmpbflx(n,m)=heatbtu(n)*4.0*0.00000258 !convert factor	  
-C	  tmpbflx(n,m)=heatbtu(n)/time(n)*60.0*0.00000258 !convert factor
-C	  tmpbflx(n,m)=heatbtu(n)*0.00000258 !convert factor
-	  	  
-c	  print*,'ustmp=',n,m,ustmp(n,m),ustar(intx(n),inty(n),m)
-C	  print*, 'hfx=',n,m,hfx(n,m),heatflux(n),CP,
+c convert to wildfire 0.121/0.083=1.46 for pm25          
+
+cc HHC need to convert local hours to Z and fit the starttime to Z sequence
+          if ( 1 .eq. 2 ) then  
+           femis(intx(n),inty(n),n_heat,m)=heat(n)/24.0
+           grdheatbtu(intx(n),inty(n),m) = grdheatbtu(intx(n),inty(n),m) +
+     1                heatbtu(n)*heat_convert_cnst/6.
+            tmpbflx(n,m)=grdheatbtu(intx(n),inty(n),m)
+cc            tmpbflx(n,m)=heatbtu(n)/6.0*0.00000258 !convert factor
+cc          femis(intx(n),inty(n),n_pm25,m)=pm25(n)/6.0/1.46
+           femis(intx(n),inty(n),n_pm25,m)=pm25(n)/24.0
+           femis(intx(n),inty(n),n_pm10,m)=pm10(n)/24.0
+           femis(intx(n),inty(n),n_pm,m)=pm(n)/24.0
+           femis(intx(n),inty(n),n_co,m)=0.0*co(n)/24.0
+           femis(intx(n),inty(n),n_co2,m)=0.0*co2(n)/24.0
+           femis(intx(n),inty(n),n_ch4,m)=0.0*ch4(n)/24.0
+           femis(intx(n),inty(n),n_nmhc,m)=0.0*nmhc(n)/24.0
+          else
+chc add diurnal profile
+           femis(intx(n),inty(n),n_heat,m)=femis(intx(n),inty(n),n_heat,m) +
+     1                fcst_pm_cnst*fcst_heat_frac*heat(n)
+c need to store previous data for btu heat
+           grdheatbtu(intx(n),inty(n),m) = grdheatbtu(intx(n),inty(n),m) +
+     1                fcst_pm_cnst*fcst_heat_frac*heatbtu(n)*heat_convert_cnst
+           tmpbflx(n,m)=grdheatbtu(intx(n),inty(n),m)
+           femis(intx(n),inty(n),n_pm25,m)=femis(intx(n),inty(n),n_pm25,m) +
+     1                fcst_pm_cnst*fcst_pm_frac*pm25(n)
+           femis(intx(n),inty(n),n_pm10,m)=femis(intx(n),inty(n),n_pm10,m) +
+     1                fcst_pm_cnst*fcst_pm_frac*pm10(n)
+           femis(intx(n),inty(n),n_pm,m)=femis(intx(n),inty(n),n_pm,m) +
+     1                fcst_pm_cnst*fcst_pm_frac*pm(n)
+           femis(intx(n),inty(n),n_co,m)=femis(intx(n),inty(n),n_co,m) +
+     1                fcst_gas_cnst*fcst_pm_frac*co(n)
+           femis(intx(n),inty(n),n_co2,m)=femis(intx(n),inty(n),n_co2,m) +
+     1                fcst_gas_cnst*fcst_pm_frac*co2(n)
+           femis(intx(n),inty(n),n_ch4,m)=femis(intx(n),inty(n),n_ch4,m) +
+     1                fcst_gas_cnst*fcst_pm_frac*ch4(n)
+           femis(intx(n),inty(n),n_nmhc,m)=femis(intx(n),inty(n),n_nmhc,m) +
+     1                fcst_gas_cnst*fcst_pm_frac*nmhc(n)
+chc add diurnal profile
+          end if
+          write(*,'(''total Heat = '',E12.5,TR2,'' Frac = '', F8.5,
+     1      TR2, ''hourly Heat = '', E12.5)') heat(n), fcst_heat_frac,
+     2      femis(intx(n),inty(n),n_heat,m)
+          write(*,'(''T BTU Heat = '',E12.5,TR2,'' Frac = '', F8.5,
+     1      TR2, ''hourly BTU H= '', E12.5)') heatbtu(n), fcst_heat_frac,
+     2      tmpbflx(n,m)
+          write(*,'(''total PM   = '',E12.5,TR2,'' Frac = '', F8.5,
+     1      TR2, ''hourly PM   = '', E12.5)') pm25(n), fcst_pm_frac,
+     2      femis(intx(n),inty(n),n_pm25,m)
+           if ( flag_write_excel ) then
+              wrtout(5,m)=femis(intx(n),inty(n),n_pm25,m)
+              wrtout(6,m)=tmpbflx(n,m)
+           end if
+          
+          hmix(n,m)=pbl(intx(n),inty(n),m)
+          psfc(n,m)=prsfc(intx(n),inty(n),m)*0.01 !convert pa to mb
+          pres(n,m,0)=psfc(n,m)
+          tsfc(n,m)=temp2(intx(n),inty(n),m)
+          ustmp(n,m)=max(ustar(intx(n),inty(n),m),0.1) !min value for ustar
+C          hfx(n,m)=heatflux(n)/(CP * dens(intx(n),inty(n),1,m))
+          hfx(n,m)=mhfx(intx(n),inty(n),m)/
+     1     (CP * dens(intx(n),inty(n),1,m))          
+c          tmpbflx(n,m)=heatbtu(n)/6.0*0.00000258 !convert factor
+c what is the convert factor 0.00000258  unit change or strength change
+c          tmpbflx(n,m)=heatbtu(n)*4.0*0.00000258 !convert factor          
+C          tmpbflx(n,m)=heatbtu(n)/time(n)*60.0*0.00000258 !convert factor
+C          tmpbflx(n,m)=heatbtu(n)*0.00000258 !convert factor
+                    
+c          print*,'ustmp=',n,m,ustmp(n,m),ustar(intx(n),inty(n),m)
+C          print*, 'hfx=',n,m,hfx(n,m),heatflux(n),CP,
 C     1     dens(intx(n),inty(n),1,m),mhfx(intx(n),inty(n),m)
 c          print*,'tmpbflx=',n,m,tmpbflx(n,m),heatbtu(n),time(n)
-	  
-c	  print*, n,m,hmix(n,m)
+          
+c          print*, n,m,hmix(n,m)
 
           do k=1,emlays
-	   if(k.eq.1) then
-	    ddzf(n,m,k)=1.0/mzf(intx(n),inty(n),k,m)
-	   else
-	    ddzf(n,m,k)=1.0/(mzf(intx(n),inty(n),k,m)-mzf(intx(n),
+           if(k.eq.1) then
+            ddzf(n,m,k)=1.0/mzf(intx(n),inty(n),k,m)
+           else
+            ddzf(n,m,k)=1.0/(mzf(intx(n),inty(n),k,m)-mzf(intx(n),
      1       inty(n),1,m))
-	   endif
-	   
-	    qv(n,m,k)=mqv(intx(n),inty(n),k,m)
-	    ta(n,m,k)=mta(intx(n),inty(n),k,m)
-	    zf(n,m,k)=mzf(intx(n),inty(n),k,m)
-	    zh(n,m,k)=mzh(intx(n),inty(n),k,m)
-	    zstk(n,m,k)=zf(n,m,k)-hts
-	    pres(n,m,k)=presf(intx(n),inty(n),k,m)*0.01 !convert pa to mb
-	    uw(n,m,k)=uwind(intx(n),inty(n),k,m) !u,v are on dot files 
-	    vw(n,m,k)=vwind(intx(n),inty(n),k,m)
-	  
-	  enddo !emlays
-c	  print*, n,m,hmix(n,m),psfc(n,m),tsfc(n,m),ddzf(n,m,1:35),
+           endif
+           
+            qv(n,m,k)=mqv(intx(n),inty(n),k,m)
+            ta(n,m,k)=mta(intx(n),inty(n),k,m)
+            zf(n,m,k)=mzf(intx(n),inty(n),k,m)
+            zh(n,m,k)=mzh(intx(n),inty(n),k,m)
+            zstk(n,m,k)=zf(n,m,k)-hts
+            pres(n,m,k)=presf(intx(n),inty(n),k,m)*0.01 !convert pa to mb
+            uw(n,m,k)=uwind(intx(n),inty(n),k,m) !u,v are on dot files 
+            vw(n,m,k)=vwind(intx(n),inty(n),k,m)
+          
+          enddo !emlays
+c          print*, n,m,hmix(n,m),psfc(n,m),tsfc(n,m),ddzf(n,m,1:35),
 c     1     qv(n,m,1:35),ta(n,m,1:35),zf(n,m,1:35),zh(n,m,1:35),
 c     2     zstk(n,m,1:35),pres(n,m,0:35),uw(n,m,1:35),vw(n,m,1:35)
-	  
-	  call fire_preplm(emlays,hmix(n,m),hts,psfc(n,m),tsfc(n,m),
+          
+          call fire_preplm(emlays,hmix(n,m),hts,psfc(n,m),tsfc(n,m),
      1     ddzf(n,m,1:35),qv(n,m,1:35),ta(n,m,1:35),uw(n,m,1:35),
      2     vw(n,m,1:35),zh(n,m,1:35),zf(n,m,1:35),zstk(n,m,1:35),     
      3     pres(n,m,0:35),lstk(n,m),lpbl(n,m),tstk(n,m),wstk(n,m),
      4     dthdz(n,m,1:35),wspd(n,m,1:35),zzf(n,m,0:35))
 
 c          print*, lstk(n,m)
-c	  print*, lpbl(n,m)
-c	  print*, tstk(n,m)
-c	  print*, wstk(n,m)
-c	  print*, dthdz(n,m,1:35)
-c	  print*, wspd(n,m,1:35)
-c	  print*, zzf(n,m,0:35)
+c          print*, lpbl(n,m)
+c          print*, tstk(n,m)
+c          print*, wstk(n,m)
+c          print*, dthdz(n,m,1:35)
+c          print*, wspd(n,m,1:35)
+c          print*, zzf(n,m,0:35)
 
 c         print*,n,m,emlays,lpbl(n,m),lstk(n,m),hfx(n,m),hmix(n,m),
 c     1    tmpbflx(n,m),tstk(n,m),ustmp(n,m),wstk(n,m)
 c         print*,dthdz(n,m,1:35),ta(n,m,1:35),wspd(n,m,1:35),
 c     1    zzf(n,m,0:35),zh(n,m,1:35),zstk(n,m,1:35)
-	 
+         
 
           call fire_plmris(emlays,lpbl(n,m),lstk(n,m),hfx(n,m),
      1     hmix(n,m),tmpbflx(n,m),tstk(n,m),ustmp(n,m),dthdz(n,m,1:35),
@@ -723,67 +894,86 @@ c     1    zzf(n,m,0:35),zh(n,m,1:35),zstk(n,m,1:35)
      3     zstk(n,m,1:35),wstk(n,m),ztop(n,m),zbot(n,m),zplm(n,m))
      
 c          print*, 'ztop=',ztop(n,m)
-c	  print*, 'zbot=',zbot(n,m)
-c	  print*, 'zplm=',zplm(n,m)
-	  
-	  tmpacre(n,m)=acres(n)
+c          print*, 'zbot=',zbot(n,m)
+c          print*, 'zplm=',zplm(n,m)
+          
+          tmpacre(n,m)=acres(n)
 
 c          print*,n,m,emlays,zbot(n,m),ztop(n,m),pres(n,m,0:35),
 c     1     zzf(n,m,0:35),ta(n,m,1:35),zh(n,m,1:35),tmpacre(n,m)
-     	  
-	  call fire_postplm(emlays,zbot(n,m),ztop(n,m),pres(n,m,0:35),
+               
+          call fire_postplm(emlays,zbot(n,m),ztop(n,m),pres(n,m,0:35),
      1     zzf(n,m,0:35),ta(n,m,1:35),zh(n,m,1:35),tmpacre(n,m),
-     2     sfract(n,m),ltop(n,m),tfrac(n,m,1:35))
+     2     sfract(n,m),ltop(n,m),lbot(n,m),tfrac(n,m,1:35))
      
           print*,'sfract=',sfract(n,m),ltop(n,m)
-	  print*,'ltop=',ltop(n,m)
-	  print*,'tfrac=',tfrac(n,m,1:35)
+          print*,'ltop=',ltop(n,m)
+          print*,'tfrac=',tfrac(n,m,1:35)
+          if ( flag_write_excel ) then
+             wrtout(2,m)=float(ltop(n,m))
+             wrtout(3,m)=float(lbot(n,m))
+             wrtout(4,m)=sfract(n,m)
+          end if
 
 
-          tmpsum=0.0	  
-	  do k=1,35
-	   
-	   if(tfrac(n,m,k).lt.0.0) then
-	    print*,'tfrac negative value',n,m,k,tfrac(n,m,k)
-	    stop
-	   else
-	    lfrac(intx(n),inty(n),k,m)=tfrac(n,m,k)
-	   endif
-	   
-	   tmpsum=tmpsum+tfrac(n,m,k)	   
-	    
-	  enddo
+          tmpsum=0.0          
+          do k=1,35
+           
+           if(tfrac(n,m,k).lt.0.0) then
+            print*,'tfrac negative value',n,m,k,tfrac(n,m,k)
+            stop
+           else
+            lfrac(intx(n),inty(n),k,m)=tfrac(n,m,k)
+           endif
+           
+           tmpsum=tmpsum+tfrac(n,m,k)           
+            
+          enddo
+          if ( flag_write_excel ) then
+             idum=6
+             do k=1,35
+                idum=idum+1
+                if ( idum > 41 ) STOP 'idum>41'
+                wrtout(idum,m)=femis(intx(n),inty(n),n_pm25,m) * lfrac(intx(n),inty(n),k,m)
+             enddo
+          end if
 
-	  if(tmpsum-1.0.ge.0.01) then
-	   print*,'the sum of tfrac in not equal to 1.0',tmpsum
-	   stop
-	  endif	  
-c	  print*,'tmpsum=',tmpsum
-	 
-	 
-	  	  	  	  
-	 endif ! withintime
-c	 print*, n,m,hmix(n,m),psfc(n,m),tsfc(n,m),ddzf(n,m,1:35),
+          if(tmpsum-1.0.ge.0.01) then
+           print*,'the sum of tfrac in not equal to 1.0',tmpsum
+           stop
+          endif          
+c          print*,'tmpsum=',tmpsum
+         
+         
+                                        
+cc HHC     endif ! withintime
+c         print*, n,m,hmix(n,m),psfc(n,m),tsfc(n,m),ddzf(n,m,1:35),
 c     1    qv(n,m,1:35),ta(n,m,1:35),zf(n,m,1:35),zh(n,m,1:35),
 c     2    zstk(n,m,1:35),pres(n,m,0:35),uw(n,m,1:35),vw(n,m,1:35)
 
 c         print*, lstk(n,m)
-c	 print*, lpbl(n,m)
-c	 print*, tstk(n,m)
-c	 print*, wstk(n,m)
-c	 print*, dthdz(n,m,1:35)
-c	 print*, wspd(n,m,1:35)
-c	 print*, zzf(n,m,0:35)
-	
-c	 print*,m, intime(n,m),hour(n),fhour,ftime(n)
-         fhour=fhour+100	 
-	 	
+c         print*, lpbl(n,m)
+c         print*, tstk(n,m)
+c         print*, wstk(n,m)
+c         print*, dthdz(n,m,1:35)
+c         print*, wspd(n,m,1:35)
+c         print*, zzf(n,m,0:35)
+        
+c         print*,m, intime(n,m),hour(n),fhour,ftime(n)
+         fhour=fhour+100         
+                 
         enddo !numrec
        endif !withindomain
-	       
+       if ( flag_write_excel ) then
+          do m=1,41
+             write(99,'(A12,49('','',e12.5))')chr_name(m),(wrtout(m,L), L=1,numrec)
+          end do
+          close(99)
+       end if
       enddo !nfire
+      if ( flag_write_excel ) close(88)
       
-      
+cc n is fcst 0-48 hours
       do n=1,numrec
        do L=1,nvars3d
         if(.not.WRITE3('OUTPUT2',vname3d(L),jdate,jtime,
@@ -809,6 +999,7 @@ C       print*,jdate,jtime,jstep
       
       print*, jdate,jtime,jstep
             
+cc n is fcst 0-48 hours
       do n=1,numrec
        if(.not.WRITE3('OUTPUT1','LFRAC',jdate,jtime,
      & lfrac(1,1,1,n))) then
@@ -845,16 +1036,17 @@ C       print*,jdate,jtime,jstep
       jtime=stime3d
       jstep=tstep3d
       
+cc n is fcst 0-48 hours
       do n=1,numrec
        emis(1:imax,1:jmax,1:kmax,1:7)=0.0
        do L=1,nvars3d
-        do i=1,imax
-	 do j=1,jmax
-	  do k=1,kmax
-	   emis(i,j,k,L)=femis(i,j,L+1,n)*lfrac(i,j,k,n)
-	  enddo
-	 enddo
-	enddo
+        do k=1,kmax
+         do j=1,jmax
+          do i=1,imax
+           emis(i,j,k,L)=femis(i,j,L+1,n)*lfrac(i,j,k,n)
+          enddo
+         enddo
+        enddo
         if(.not.WRITE3('OUTPUT3',vname3d(L),jdate,jtime,
      &   emis(1,1,1,L))) then
          print*,' write error in output3', vname3d(L)
@@ -866,7 +1058,7 @@ C       print*,jdate,jtime,jstep
       
       iflag=close3('OUTPUT3')                
       
-      end program smoke2cmaq_35layer_1      
+      end program smoke2cmaq_35layer_fcst_1      
       
 
       SUBROUTINE llij_lc( lat, lon, proj_truelat1, proj_truelat2,cenlat,
@@ -1058,7 +1250,7 @@ C.........  Compute wind speed and virtual temperature
 c        print*, 'in subroutine',EMLAYS,HMIX,HTS,PSFC,TS
 
         
-c	print*, DDZF(1:EMLAYS),QV(1:EMLAYS),TA(1:EMLAYS),ZF(1:EMLAYS),
+c        print*, DDZF(1:EMLAYS),QV(1:EMLAYS),TA(1:EMLAYS),ZF(1:EMLAYS),
 c     1   ZH(1:EMLAYS),ZSTK(1:EMLAYS),PRES(0:EMLAYS),UW(1:EMLAYS),
 c     2   VW(1:EMLAYS)
 
@@ -1121,15 +1313,15 @@ C           This overrides the layer 1 gradient determined above
         M    = MAX( 1, LSTK - 2 )
         TSTK = TS
         WSTK = WSPD( 1 )
-	
-c	print*, 'in subroutine'
+        
+c        print*, 'in subroutine'
 c        print*, LSTK
-c	print*, LPBL
-c	print*, TSTK
-c	print*, WSTK
-c	print*, DTHDZ(1:35)
-c	print*, WSPD(1:35)
-c	print*, ZZF(0:35)	
+c        print*, LPBL
+c        print*, TSTK
+c        print*, WSTK
+c        print*, DTHDZ(1:35)
+c        print*, WSPD(1:35)
+c        print*, ZZF(0:35)        
 
         RETURN
 
@@ -1250,8 +1442,8 @@ C***********************************************************************
 C   begin body of subroutine  PLMRIS
 
 c        print*,'in subroutine plmris'
-c	print*, EMLAYS,LPBL,LSTK,HFX,HMIX,BFLX,TSTK,USTAR,WSTK
-c	print*, DTHDZ(1:EMLAYS),TA(1:EMLAYS),WSPD(1:EMLAYS),ZF(0:EMLAYS),
+c        print*, EMLAYS,LPBL,LSTK,HFX,HMIX,BFLX,TSTK,USTAR,WSTK
+c        print*, DTHDZ(1:EMLAYS),TA(1:EMLAYS),WSPD(1:EMLAYS),ZF(0:EMLAYS),
 c     1   ZH(1:EMLAYS),ZSTK(1:EMLAYS)
 
 C.........  Compute convective scale
@@ -1450,11 +1642,11 @@ C           plume centerline after rise
         DH   = TWOTHD * ZPLM
         BOT  = 0.5 * DH
         ZPLM = DH
-	
-C	print*,'in subroutine'
-C	print*,'TOP=',TOP
-C	print*,'BOT=',BOT
-C	print*,'ZPLM=',ZPLM
+        
+C        print*,'in subroutine'
+C        print*,'TOP=',TOP
+C        print*,'BOT=',BOT
+C        print*,'ZPLM=',ZPLM
       
         RETURN
 
@@ -1463,7 +1655,7 @@ C	print*,'ZPLM=',ZPLM
 
 
         SUBROUTINE FIRE_POSTPLM( EMLAYS, ZBOT, ZTOP, PRESF, ZZF, TA,
-     &                           ZH, ACRES, SFRACT, LTOP, LFRAC )
+     &                           ZH, ACRES, SFRACT, LTOP, LBOT, LFRAC )
 
 C***********************************************************************
 C  subroutine body starts at line 
@@ -1504,7 +1696,7 @@ c        INTEGER, INTENT (IN) :: S                ! source ID
         REAL   , INTENT (IN) :: TA   ( 1:EMLAYS )! temperature at half-levels (K)
         REAL   , INTENT (IN) :: ZH   ( 1:EMLAYS )! layer center  height (m)
         REAL   , INTENT (IN) :: ACRES            ! number of acres burned
-        REAL   , INTENT(OUT) :: SFRACT           ! smouldering fraction
+        REAL   , INTENT(OUT) :: SFRACT           ! smoldering fraction
         INTEGER, INTENT(OUT) :: LTOP             ! plume top layer
         REAL   , INTENT(OUT) :: LFRAC( EMLAYS )  ! layer fractions for source
 
@@ -1512,7 +1704,8 @@ C...........   Local variables
 
         INTEGER       L
 
-        INTEGER       LBOT 
+c        INTEGER       LBOT
+        INTEGER, INTENT(OUT) :: LBOT
 
         DOUBLE PRECISION    DDP
         DOUBLE PRECISION    PDIFF
@@ -1529,7 +1722,7 @@ C***********************************************************************
 C   begin body of subroutine POSTPLM
 
 c        print*, 'in subroutine='
-c	print*, emlays,zbot,ztop,presf(0:35),zzf(0:35),ta(1:35),
+c        print*, emlays,zbot,ztop,presf(0:35),zzf(0:35),ta(1:35),
 c     1   zh(1:35),acres
 
 C...........   Check if area is zero or missing
@@ -1561,7 +1754,7 @@ C...........   ZZF( LTOP-1 ) <= ZTOP < ZZF( LTOP )
  
             LFRAC( LBOT ) = 1.0
             LTOP = LBOT
- 
+            PBOT = PRESF( LBOT )
             DO L = LBOT + 1, EMLAYS  ! fractions above plume
                 LFRAC( L ) = 0.0
             END DO
@@ -1569,7 +1762,7 @@ C...........   ZZF( LTOP-1 ) <= ZTOP < ZZF( LTOP )
 C.........  Note- this check not in original algorithm, but w/o it,
 C                         can end up with fractions > 1.0
         ELSE IF( LBOT == EMLAYS ) THEN    ! plume above top layer
- 
+            PBOT = PRESF( LBOT )
             LFRAC( LBOT ) = 1.0
  
             DO L = 1, EMLAYS-1       ! fractions below plume
@@ -1667,12 +1860,14 @@ c                CALL M3WARN( 'POSTPLM', 0,0, MESG )
  
         END IF          !  if ztop in same layer as zbot, or not
 
-C.........  For fire smouldering effects, include fractions below LBOT
+C.........  For fire smoldering effects, include fractions below LBOT
+
+
         BESIZE = 0.0703 * LOG( ACRES ) + 0.3
         
         SFRACT = 1.0D0 - DBLE( BESIZE )
-	
-	SFRACT = MAX(SFRACT,0.1) ! avoid negative value
+        
+        SFRACT = MAX(SFRACT,0.1) ! avoid negative value
         
         PDIFF = DBLE( PRESF( 0 ) ) - DBLE( PBOT )
         DDP   = 1.0D0 / PDIFF
@@ -1690,13 +1885,14 @@ C.........  For fire smouldering effects, include fractions below LBOT
         DO L = LBOT+1, LTOP
             LFRAC( L ) = LFRAC( L ) * ( 1 - SFRACT )
         END DO
-	
-	print*,'in subroutine ACRES=',ACRES
-	print*,'in subroutine besize=',besize
-	print*,'in subroutine sfract=',sfract
-	print*,'in subroutine presf=',presf(0:35)
-	print*,'in subroutine ltop=',ltop
-	print*, 'in subroutine lfrac=',lfrac(1:35)
+        
+        print*,'== in FIRE_POSTPLM ACRES  = ',ACRES
+        print*,'== in FIRE_POSTPLM besize = ',besize
+        print*,'== in FIRE_POSTPLM sfract = ',sfract
+        print*,'== in FIRE_POSTPLM lfrac  = ',lfrac(1:35)
+        print*,'== in FIRE_POSTPLM presf  = ',presf(0:35)
+        print*,'== in FIRE_POSTPLM ltop   = ',ltop
+        print*,'== in FIRE_POSTPLM lbot   = ',lbot
 
         RETURN
 
