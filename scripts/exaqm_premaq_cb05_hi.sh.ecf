@@ -582,6 +582,9 @@ export OUTFILE=$DATA/emission.${PDY}.m6.ncf
 #---------------------------------------------------------------------
 ##. prep_step
 
+msg="jphuang 33"
+postmsg "$jlogfile1" "$msg"
+
 startmsg
 $EXECaqm/aqm_premaq_v502  >> $pgmout 2>errfile
 export err=$?;err_chk

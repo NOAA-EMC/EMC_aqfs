@@ -1,5 +1,7 @@
 #!/bin/ksh
 
+#source ~/.bashrc
+
 date
 export PS4=' $SECONDS + '
 set -x

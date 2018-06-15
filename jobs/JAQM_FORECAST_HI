@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-source /opt/modules/default/init/ksh
+#source /opt/modules/default/init/ksh
 #module load prod_util
 
 
