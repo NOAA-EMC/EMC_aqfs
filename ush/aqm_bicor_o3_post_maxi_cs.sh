@@ -68,7 +68,8 @@ export err=$?;err_chk
 $WGRIB2 aqm-maxi_bc.148.grib2 |grep "OZMAX1" | $WGRIB2 -i aqm-maxi_bc.148.grib2 -grib  aqm.${cycle}.max_1hr_o3_bc.148.grib2
 $WGRIB2 aqm-maxi_bc.148.grib2 |grep "OZMAX8" | $WGRIB2 -i aqm-maxi_bc.148.grib2 -grib  aqm.${cycle}.max_8hr_o3_bc.148.grib2
 
-export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+#export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000 0 0"
+export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
 $COPYGB2  -g "$grid227" -x  -i"1 1"  aqm.${cycle}.max_1hr_o3_bc.148.grib2 aqm.${cycle}.max_1hr_o3_bc.227.grib2
 $COPYGB2  -g "$grid227" -x  -i"1 1"  aqm.${cycle}.max_8hr_o3_bc.148.grib2 aqm.${cycle}.max_8hr_o3_bc.227.grib2
 
