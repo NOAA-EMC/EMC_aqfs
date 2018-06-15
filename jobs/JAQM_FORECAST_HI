@@ -3,7 +3,6 @@
 #source /opt/modules/default/init/ksh
 #module load prod_util
 
-
 date
 export PS4=' $SECONDS + '
 set -x
