@@ -2,10 +2,6 @@
 
 #source /opt/modules/default/init/ksh
 #module load prod_util
-<<<<<<< HEAD
-=======
-
->>>>>>> cmaq.v5.1.0d
 
 date
 export PS4=' $SECONDS + '
