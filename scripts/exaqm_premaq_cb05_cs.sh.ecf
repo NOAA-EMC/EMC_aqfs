@@ -48,7 +48,9 @@ fi
 ## Specify the input pollutant data directory:
 if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
    yyyy=`echo $PDYm1 |cut -c1-4`
+#   yyyy=`echo $PDY |cut -c1-4`
    year_month=`echo $PDYm1 |cut -c1-6`
+##   year_month=`echo $PDY |cut -c1-6`
 elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    yyyy=`echo $PDY |cut -c1-4`
    year_month=`echo $PDY |cut -c1-6`
@@ -535,7 +537,9 @@ export LOOKUP_PM=$INPPLTDRY/aqm_lookup_table.${OUTGRID}.ncf
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
    export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_agts_${INV_BS}.${OUTGRID}.ncf
+#   export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_agts_${INV_BS}.${OUTGRID}.ncf
    export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_mgts_${INV_BS}.${OUTGRID}.ncf
+#   export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_mgts_${INV_BS}.${OUTGRID}.ncf
 elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_agts_${INV_BS}.${OUTGRID}.ncf
    export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_mgts_${INV_BS}.${OUTGRID}.ncf
