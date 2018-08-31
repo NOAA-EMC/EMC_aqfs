@@ -22,6 +22,9 @@ c Full 100% fcst day emissions
      2 emlays
 
 chc add diurnal profile
+      EXTERNAL  ENVYN
+      LOGICAL   ENVYN, USE_DIURNAL_PROFILE
+      INTEGER   ISTAT
       real pm_frac(0:23), heat_frac(0:23)
 chc   real fcst_pm_cnst, fcst_gas_cnst, heat_convert_cnst
       integer fcst_local_hour
@@ -155,6 +158,14 @@ chc add diurnal profile
       namelist/control/syear,smon,sday,byear,bmon,bday,start,numrec,
      1 dirname
       
+      USE_DIURNAL_PROFILE = ENVYN ('USE_DIURNAL_PROFILE', 
+     1                'USE DIURNAL EMIS?', .FALSE. , ISTAT)
+      IF ( USE_DIURNAL_PROFILE ) THEN
+         WRITE(*,'(''Flag is set to use diurnal profile emission'')')
+      ELSE
+         WRITE(*,'(''Flag is set not to use diurnal profile emission'')')
+      END IF
+
       open(7,file='fire.ini')
       read(7,control)
       print*, syear,smon,sday,byear,bmon,bday,start,numrec,dirname       
@@ -773,10 +784,11 @@ c hypslit smoke fire is assumed to be brush buring
 c convert to wildfire 0.121/0.083=1.46 for pm25          
 
 cc HHC need to convert local hours to Z and fit the starttime to Z sequence
-          if ( 1 .eq. 2 ) then  
+          if ( .NOT. USE_DIURNAL_PROFILE ) then
+             WRITE(*,'(''Use constant hourly emission'')')
            femis(intx(n),inty(n),n_heat,m)=heat(n)/24.0
            grdheatbtu(intx(n),inty(n),m) = grdheatbtu(intx(n),inty(n),m) +
-     1                heatbtu(n)*heat_convert_cnst/6.
+     1                heatbtu(n)*heat_convert_cnst/24.
             tmpbflx(n,m)=grdheatbtu(intx(n),inty(n),m)
 cc            tmpbflx(n,m)=heatbtu(n)/6.0*0.00000258 !convert factor
 cc          femis(intx(n),inty(n),n_pm25,m)=pm25(n)/6.0/1.46
@@ -788,6 +800,7 @@ cc          femis(intx(n),inty(n),n_pm25,m)=pm25(n)/6.0/1.46
            femis(intx(n),inty(n),n_ch4,m)=0.0*ch4(n)/24.0
            femis(intx(n),inty(n),n_nmhc,m)=0.0*nmhc(n)/24.0
           else
+             WRITE(*,'(''Use a fix diurnal profile emission'')')
 chc add diurnal profile
            femis(intx(n),inty(n),n_heat,m)=femis(intx(n),inty(n),n_heat,m) +
      1                fcst_pm_cnst*fcst_heat_frac*heat(n)

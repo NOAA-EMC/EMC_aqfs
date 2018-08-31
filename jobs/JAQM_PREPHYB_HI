@@ -1,4 +1,4 @@
-#!/bin/ksh
+#!/bin/ksh 
 
 date 
 export PS4=' $SECONDS + '
