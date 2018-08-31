@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-. /usrx/local/Modules/default/init/ksh
+. $MODULESHOME/init/ksh
 
 set -xa
 export PS4='$SECONDS + '
@@ -13,9 +13,9 @@ export NET=aqm
 export RUN=aqm
 ############################################
 
-#####################################
-# PATH for working directory
+export sendmail=${sendmail:-Y}
 
+#####################################
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
