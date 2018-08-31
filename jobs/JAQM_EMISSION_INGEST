@@ -28,7 +28,6 @@ export sendmail=${sendmail:-Y}
 #RUN_DAY=24
 #module load prod_util
 #fi
->>>>>>> Squashed commit of the following:
 
 #####################################
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
