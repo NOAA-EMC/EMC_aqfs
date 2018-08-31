@@ -285,6 +285,7 @@ if (( $next_month == 01 )) || (( $next_month == 05 )); then
    cat email_body |mail -s "$subject" $maillist
  fi
 fi
+<<<<<<< HEAD
 
 ###############################################################
 # This section checks and copies the jtable files
@@ -355,3 +356,5 @@ if (( $next_month == 01 )); then
    cat email_body |mail -s "$subject" $maillist
  fi
 fi
+=======
+>>>>>>> Squashed commit of the following:
