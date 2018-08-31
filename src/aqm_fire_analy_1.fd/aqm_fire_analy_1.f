@@ -12,7 +12,7 @@ c      implicit none
       parameter (imax=442,jmax=265,kmax=35) !domain
       parameter (numrec=25) ! (maxnf=500)       !time and fire
 
-      parameter (analy_pm_cnst=1., analy_gas_cnst=0.)
+      parameter (analy_pm_cnst=4., analy_gas_cnst=0.)
       parameter (heat_convert_cnst=0.00000258)
 
       integer nfire,fhour,syear,smon,sday,start,jdate,jtime,jstep,

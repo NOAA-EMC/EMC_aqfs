@@ -533,13 +533,13 @@ export COEFS_EVAPEXH=$INPPLTDRY/aqm_static_coef_evapexh.cb05.${OUTGRID}.ncf
 export MGTS_L=$DATA/aqm_mgts_l.${PDY}.${OUTGRID}.ncf
 export LOOKUP_PM=$INPPLTDRY/aqm_lookup_table.${OUTGRID}.ncf
 
-if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
-   export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_agts_${INV_BS}.${OUTGRID}.ncf
-   export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_mgts_${INV_BS}.${OUTGRID}.ncf
-elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
-   export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_agts_${INV_BS}.${OUTGRID}.ncf
-   export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDY}_mgts_${INV_BS}.${OUTGRID}.ncf
-fi
+#if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
+#   export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_agts_${INV_BS}.${OUTGRID}.ncf
+#   export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${PDYm1}_mgts_${INV_BS}.${OUTGRID}.ncf
+#elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
+   export AGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${SYYYY}${SMM}_agts_${INV_BS}.${OUTGRID}.ncf
+   export CGTS_L=$INPPLTDR/aqm_pollutant_${GAS_CHEM}_${SYYYY}${SMM}_mgts_${INV_BS}.${OUTGRID}.ncf
+#fi
 
 if [ !  -s "$AGTS_L" -o  ! -s "$CGTS_L" ]; then
   echo "*****FATAL ERROR***** - anthropogenic emission files are missing"
