@@ -64,6 +64,9 @@ if [ -e chkreads.log ] ; then
  rm -rf chkreads.log
 fi
 
+#export USE_DIURNAL_PROFILE=F        ## turn on-off for using diurnal profile fire emission
+export USE_DIURNAL_PROFILE=T        ## turn on-off for using diurnal profile fire emission
+
 $EXECaqm/aqm_fire_fcst_1 > tmpfire.out
 export err=$?;
 err_chk

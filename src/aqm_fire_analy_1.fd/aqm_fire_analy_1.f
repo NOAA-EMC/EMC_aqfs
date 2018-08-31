@@ -12,13 +12,16 @@ c      implicit none
       parameter (imax=442,jmax=265,kmax=35) !domain
       parameter (numrec=25) ! (maxnf=500)       !time and fire
 
-      parameter (analy_pm_cnst=1., analy_gas_cnst=0.)
+      parameter (analy_pm_cnst=4., analy_gas_cnst=0.)
       parameter (heat_convert_cnst=0.00000258)
 
       integer nfire,fhour,syear,smon,sday,start,jdate,jtime,jstep,
      1 total,n_heat,n_pm25,n_pm10,n_pm,n_co,n_co2,n_ch4,n_nmhc,emlays
      
 chc add diurnal profile
+      EXTERNAL  ENVYN
+      LOGICAL   ENVYN, USE_DIURNAL_PROFILE
+      INTEGER   ISTAT
       real pm_frac(0:23), heat_frac(0:23)
 chc   real analy_pm_cnst, analy_gas_cnst, heat_convert_cnst
       integer analy_local_hour
@@ -190,7 +193,14 @@ c metdot3d variables
          end do
       end if
 chc for diagnosis
-      
+      USE_DIURNAL_PROFILE = ENVYN ('USE_DIURNAL_PROFILE',
+     1                          'USE DIURNAL EMIS?', .FALSE. , ISTAT)
+      IF ( USE_DIURNAL_PROFILE ) THEN
+         WRITE(*,'(''Flag is set to use diurnal profile emission'')')
+      ELSE
+         WRITE(*,'(''Flag is set not to use diurnal profile emission'')')
+      END IF
+
       open(7,file='fire.ini')
       read(7,control)
       print*, syear,smon,sday,start,dirname
@@ -672,7 +682,8 @@ C convert hysplit smoke fire emission rate to real rate
 c hysplit smoke rate is 6 hours total
 c hypslit smoke fire is assumed to be brush buring 
 c convert to wildfire 0.121/0.083=1.46 for pm25          
-          if ( 1 .eq. 2 ) then
+          if ( .NOT. USE_DIURNAL_PROFILE ) then
+             WRITE(*,'(''Use constant hourly emission'')')
             femis(intx(n),inty(n),n_heat,m)=heat(n)/6.0
            grdheatbtu(intx(n),inty(n),m) = grdheatbtu(intx(n),inty(n),m) +
      1                heatbtu(n)*heat_convert_cnst/6.
@@ -687,6 +698,7 @@ cc           femis(intx(n),inty(n),n_pm25,m)=pm25(n)/6.0/1.46
            femis(intx(n),inty(n),n_ch4,m)=0.0*ch4(n)/6.0
            femis(intx(n),inty(n),n_nmhc,m)=0.0*nmhc(n)/6.0
           else
+             WRITE(*,'(''Use a fix diurnal profile emission'')')
 chc add diurnal profile
            femis(intx(n),inty(n),n_heat,m)=femis(intx(n),inty(n),n_heat,m) +
      1                analy_pm_cnst*analy_heat_frac*heat(n)

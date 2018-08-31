@@ -244,12 +244,12 @@ DISP=delete
 BCpath=$COMIN
 EMISpath=$COMIN
 METpath=$COMIN
-JVALpath=${INPEMIDIR}/cb05_Jtable
+# JVALpath=${INPEMIDIR}/cb05_Jtable
 OMIpath=${FIXaqm}/phot
 
 OUTDIR=$COMOUT
 
-JVALfile=JTABLE_${STDATE}
+# JVALfile=JTABLE_${STDATE}
 
 #ozone column data
 OMIfile=OMI.dat
@@ -408,7 +408,7 @@ export   INIT_AERO_1=$INIT_GASC_1
 export   INIT_NONR_1=$INIT_GASC_1
 export   INIT_TRAC_1=$INIT_GASC_1
 export   OMI=$OMIpath/$OMIfile
-export   XJ_DATA=$JVALpath/$JVALfile
+# export   XJ_DATA=$JVALpath/$JVALfile
 
 ##if [[ ${cycle} = 't00z'  || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
 ## export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
