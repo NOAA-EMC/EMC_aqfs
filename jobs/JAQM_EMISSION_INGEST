@@ -13,22 +13,9 @@ export NET=aqm
 export RUN=aqm
 ############################################
 
-export sendmail='Y'
+export sendmail=${sendmail:-Y}
 
 #####################################
-# PATH for working directory
-#test='Y'
-#if [ $test = 'Y' ];then
-#DATAROOT=/gpfs/hps3/ptmp/$USER
-#DATA=$DATAROOT/tmp.1
-#DCOMIN=$DATAROOT/dcom
-##COMOUT=$DATAROOT/com
-#COMOUThps=$DATAROOT/com
-#HOMEaqm=/gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/nwprod-2018
-#RUN_DAY=24
-#module load prod_util
-#fi
-
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
