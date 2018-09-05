@@ -13,10 +13,9 @@ export NET=aqm
 export RUN=aqm
 ############################################
 
-export sendmail='N'
+export sendmail='Y'
 
 #####################################
-
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA

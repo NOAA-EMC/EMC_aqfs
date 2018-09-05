@@ -20,7 +20,7 @@ set -x
 # for the production mailing list
 maillist='ncep.list.spa-helpdesk@noaa.gov youhua.tang@noaa.gov li.pan@noaa.gov pius.lee@noaa.gov jianping.huang@noaa.gov'
 
-sendmail=${sendmail:-N}
+sendmail=${sendmail:-Y}
 
 # calculate number days of the next month
 days_in_next_month=`cal $(date +%m -d 'next month') $(date +%Y) | grep -v '[A-Za-z]' | wc -w`
