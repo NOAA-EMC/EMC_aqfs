@@ -22,7 +22,7 @@ set -x
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-export pgm=aqm_ak_pregen
+export pgm=aqm_hi_pregen
 
 cd $DATA
 
