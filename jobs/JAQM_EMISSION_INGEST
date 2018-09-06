@@ -13,7 +13,7 @@ export NET=aqm
 export RUN=aqm
 ############################################
 
-export sendmail='Y'
+export sendmail=${sendmail:-Y}
 
 #####################################
 export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
