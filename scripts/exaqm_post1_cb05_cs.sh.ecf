@@ -153,6 +153,11 @@ then
     for pmfile in $DATA/aqm.${cycle}.pm25*;do
         ifile=$(basename ${pmfile})
         cp ${ifile} $COMOUT/
+        # JY - Add this pm25 hourly data alert for conus - 11/05/2018
+        if [ "$SENDDBN" = 'YES' ]; then
+            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
+        fi
+
     done
 fi
 
@@ -204,8 +209,10 @@ $COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile.8hr  aqm.t${cyc}z.ave_8hr_o3.227.gri
 
   if [ "$SENDDBN" = 'YES' ] ; then
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_o3.227.grib2
-    $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_8hr_o3.227.grib2
     $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
+    if [ $cyc -eq 06 -o $cyc -eq 12 ]; then
+      $DBNROOT/bin/dbn_alert MODEL AQM_CONC $job $COMOUT/aqm.t${cyc}z.ave_8hr_o3.227.grib2
+    fi
   fi
    
 #################################################

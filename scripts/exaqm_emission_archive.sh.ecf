@@ -41,6 +41,7 @@ errsum=0
   current_year=`date +%Y`
   echo " the current year= $current_year"
  
+  prevmon=`date -d "$PDY -1 month" +%Y%m`
 ##############################################################
 # archive monthly emission files
 ##############################################################
@@ -52,6 +53,8 @@ errsum=0
    fi
 
    $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIR}/${tar_dir} ${tar_dir} perm
+   $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIRhps}/${tar_dir} ${tar_dir} perm
+   $USHrhist/aqm_rhist_savedir.sh /gpfs/hps/nco/ops/com/aqm/prod/bcdata.$prevmon $prevmon 5
    export err=$?;let errsum=errsum+err;$USHrhist/aqm_rhist_errchk.sh monthly
 
 ##############################################################
@@ -68,6 +71,7 @@ errsum=0
    then
        tar_dir=${next_year}
        $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIR}/${tar_dir} ${tar_dir} perm
+       $USHrhist/aqm_rhist_savedir.sh ${INPEMIDIRhps}/${tar_dir} ${tar_dir} perm
        export err=$?;let errsum=errsum+err;$USHrhist/aqm_rhist_errchk.sh yearly
    else
        echo "Yearly emission is not the right time to HPSS archive"

@@ -17,11 +17,6 @@ cont:
 
 set filetype = ncf
 
-rm -f /tmp/__csum_dir_$ctime
-if (-f /tmp/__csum_dir_a_$ctime) then
-   rm -f /tmp/__csum_dir_a_$ctime
-endif
-
 if (! -f $outfname) then
    setenv file_update N
 else
@@ -87,9 +82,9 @@ if ($count > 0) then
         @ n = 1
         while ($n < $remaining)
           if ($n == 1) then
-             echo $argv[$lc] > /tmp/__csum_file_$ctime
+             echo $argv[$lc] > $DATA/__csum_file_$ctime
           else
-             echo $argv[$lc] >> /tmp/__csum_file_$ctime
+             echo $argv[$lc] >> $DATA/__csum_file_$ctime
           endif
           @ n++
           @ lc++
@@ -110,9 +105,9 @@ setenv n_dif_file $n_dif_file
 @ n = 0
 while ($n < $n_dif_file)
   @ n++
-  set loc_file = `head -n $n /tmp/__csum_file_$ctime | tail -n 1 | sed 's/f://' `
-  ls -1 $loc_file* > /tmp/__csum_dir_$ctime
-  set count = `wc -l /tmp/__csum_dir_$ctime`
+  set loc_file = `head -n $n $DATA/__csum_file_$ctime | tail -n 1 | sed 's/f://' `
+  ls -1 $loc_file* > $DATA/__csum_dir_$ctime
+  set count = `wc -l $DATA/__csum_dir_$ctime`
 
   if ($n == 1) then
      setenv numfile $count[1]
@@ -122,10 +117,10 @@ while ($n < $n_dif_file)
   while ($j < $count[1])
     @ j++
     set fname = `printf "infile%2.2d_%3.3d\n" $n $j`
-    setenv $fname `head -n $j /tmp/__csum_dir_$ctime | tail -n  1`
+    setenv $fname `head -n $j $DATA/__csum_dir_$ctime | tail -n  1`
   end
 
-  rm -f /tmp/__csum_dir_$ctime
+  rm -f $DATA/__csum_dir_$ctime
 end
 
 goto cont

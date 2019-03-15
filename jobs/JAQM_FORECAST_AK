@@ -28,7 +28,7 @@ export FIXaqm=$HOMEaqm/fix
 export UTILaqm=$HOMEaqm/util
 
 export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
+export RUN=${RUN:-AK}
 
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}

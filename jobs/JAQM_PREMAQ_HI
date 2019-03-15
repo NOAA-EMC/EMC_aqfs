@@ -28,7 +28,7 @@ export FIXaqm=$HOMEaqm/fix
 export UTILaqm=$HOMEaqm/util
 
 export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
+export RUN=${RUN:-HI}
 
 
 export DAYOFYEAR=`date2jday.sh $PDY`
@@ -43,8 +43,8 @@ export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
 export NGAC_DIR=${NGAC_DIR:-$COMROOTp2/ngac/prod}
 export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/${envir}/emission}
-#XXW export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/${envir}}
-export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit4cmaq/${envir}}
+export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/prod}
+#export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit4cmaq/${envir}}
 
 mkdir -p $COMOUT
 

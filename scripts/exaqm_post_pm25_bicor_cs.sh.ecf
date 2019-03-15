@@ -192,7 +192,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
  export FORT51=aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp
  ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
 
- echo `ls -l  aqm.${cycle}.max_1hr_pm25.227.bc.grib2.temp | awk '{print $5} '` > filesize
+ echo `ls -l  aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
  export FORT11=aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp
  export FORT12="filesize"
@@ -212,7 +212,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
  export FORT51=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp
  ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
 
- echo `ls -l  aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp | awk '{print $5} '` > filesize
+ echo `ls -l  aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
 # export FORT11=aqm.${cycle}.24hpm25-ave.227.bc.grib2.temp
  export FORT11=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp
