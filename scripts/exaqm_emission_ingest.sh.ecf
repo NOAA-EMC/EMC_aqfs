@@ -279,9 +279,79 @@ if (( $next_month == 01 )) || (( $next_month == 05 )); then
    #################################
    # Yearly emission files are fine
    #################################
-  if [ $sendmail = 'Y' ]; then
+ if [ $sendmail = 'Y' ]; then 
    subject="The yearly ARL AQM emission files have been successfully copied"
    echo "The yearly ARL AQM emission files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
    cat email_body |mail -s "$subject" $maillist
-  fi
+ fi
+fi
+
+###############################################################
+# This section checks and copies the jtable files
+###############################################################
+
+if (( $next_month == 01 )); then
+   # where the yearly jtable directory
+
+   in_dir=$DCOMIN/JTable/$next_year
+   out_dir=$COMOUT/cb05_Jtable
+
+   #    copy yearly jtable files from /dcom to /com
+   # dcom directory check
+   if [ ! -d "$in_dir" ]; then
+     if [ $sendmail = 'Y' ]; then
+       subject="Warning --- AQM yearly jtable /dcom directory not exist"
+       echo " Warning --- /dcom yearly jtable directory $in_dir not found" > email_body
+       cat email_body |mail -s "$subject" $maillist
+     fi
+       exit "Warning- dcom yearly jtable directory $in_dir not found"
+   fi
+
+   # dcom directory files check
+   jno_files_in_dcom=`ls $in_dir/* | wc -l`
+   if (( $jno_files_in_dcom == 0 )); then
+     if [ $sendmail = 'Y' ]; then
+       subject="Warning --- No ARL AQM yearly jtable file in /dcom directory"
+       echo " Warning --- No ARL AQM yearly jtable file in $in_dir" > email_body
+       cat email_body |mail -s "$subject" $maillist
+     fi
+       exit "Warning- dcom yearly jtable files in $in_dir not found"
+   fi
+
+   mkdir -p -m 775 $out_dir
+   cp -p $in_dir/* $out_dir/.
+
+   # check the file number
+   jno_file_in_com=`ls $out_dir/aqm_jtable_$next_year* | wc -l`
+   if (( $jno_file_in_com != $number_days_next_year )); then
+     if [ $sendmail = 'Y' ]; then 
+       echo " the number files copied to com= $jno_file_in_com
+       echo " the number files should be in com= $number_days_next_year
+
+       subject="FATAL --- Number of ARL AQM yearly jtable file is not correct"
+       echo " FATAL ERROR --- Number of ARL AQM yearly jtable file in $in_dir is not correct" > email_body
+       cat email_body |mail -s "$subject" $maillist
+     fi 
+       err_exit "FATAL ERROR- number of yearly jtable files in $out_dir is not correct"
+   fi
+
+   # check the file size
+   jtable_filesize=`ls -l $out_dir/aqm_jtable_${next_year}* | cut -d' ' -f5 | sort -u | wc -l`
+   if (( $jtable_filesize != 1 )); then
+     if [ $sendmail = 'Y' ]; then 
+       subject="FATAL --- The yearly ARL AQM jtable file sizes are different"
+       echo " FATAL ERROR --- The yearly ARL AQM jtable file sizes in $out_dir are different" > email_body
+       cat email_body |mail -s "$subject" $maillist
+     fi  
+       err_exit "FATAL ERROR- the yearly jtable file sizes are different"
+   fi
+
+   #################################
+   # Yearly jtable files are fine
+   #################################
+ if [ $sendmail = 'Y' ]; then 
+   subject="The yearly ARL AQM jtable files have been successfully copied"
+   echo "The yearly ARL AQM jtable files have been successfully copied from $in_dir to $out_dir and $out_dir_hps. Please double check and validate." > email_body
+   cat email_body |mail -s "$subject" $maillist
+ fi
 fi
