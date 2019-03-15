@@ -142,6 +142,7 @@ fi
 # check availablity of fires inside CONUS domain before call hms fire emission 
 #  if there is no file, then go to 
 #  if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
+if [ $Mn -ge 5 ] && [ $Mn -le 9 ] ; then
   if [ ${cyc} = '00' ]  
   then
    smoke_emis9=${smoke_emis}/smokecs.$PDYm1
@@ -189,9 +190,10 @@ fi
    fi     
   fi
   else
-   echo "no HYSPLIT fire emissions availabe for CMAQ"
+   echo "WARNING: NO HYSPLIT fire emissions available for CMAQ: $file_emitime!!"
   fi 
 
+fi
 ########################################################
 msg='ENDED NORMALLY.'
 postmsg "$jlogfile" "$msg"

@@ -25,7 +25,7 @@ export FIXaqm=$HOMEaqm/fix
 export UTILaqm=$HOMEaqm/util
 
 export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
+export RUN=${RUN:-AK}
 
 export COMINnam=${COMINnam:-$(compath.py nam/prod/nam.$PDY)}
 export COMINnamm1=${COMINnamm1:-$(compath.py nam/prod/nam.$PDYm1)}

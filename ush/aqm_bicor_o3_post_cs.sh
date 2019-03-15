@@ -47,9 +47,10 @@ then
     for pmfile in $DATA/aqm.t${cyc}z.awpozcon*bc*.grib2;do
         ifile=$(basename ${pmfile})
         cp -rp ${ifile} $COMOUT/
-        if [ "$SENDDBN" = 'YES' ]; then
-            $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
-        fi
+        # JY - remove all ozone hourly /com data alert  - 11/05/201
+        # if [ "$SENDDBN" = 'YES' ]; then
+        #    $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/${ifile}
+        # fi
     done
 fi
 

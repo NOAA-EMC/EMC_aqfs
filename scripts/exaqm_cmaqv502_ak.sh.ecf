@@ -531,7 +531,7 @@ then
 else
    msg="$pgm completed normally"
    echo "$PDY" "done" >$COMOUT/aqm.${cycle}.log
-   sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+   postmsg "$jlogfile" "$msg"
 fi
 
 echo Exiting $0

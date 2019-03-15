@@ -58,8 +58,7 @@ export HOMErhist=${HOMErhist:-${NWROOT}/cmaq.${cmaq_ver}}
 export USHrhist=${USHrhist:-$HOMErhist/ush}
 export PARMrhist=${PARMrhist:-$HOMErhist/parm}
 
-#XXW export RUN_DAY=${RUN_DAY:-16}
-export RUN_DAY=${RUN_DAY:-10}
+export RUN_DAY=${RUN_DAY:-16}
 
 export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
 

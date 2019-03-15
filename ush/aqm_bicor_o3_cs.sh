@@ -10,9 +10,10 @@
 ######################################################################
 set -xa
 
-export OMP_STACKSIZE=60000000
+export OMP_STACKSIZE=58000000
 export OMP_NUM_THREADS=16
 export MKL_NUM_THREADS=16
+export KMP_AFFINITY=disabled
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 

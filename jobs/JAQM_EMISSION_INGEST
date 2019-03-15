@@ -56,8 +56,7 @@ export cycle=t12z
 setpdy.sh
 . PDY
 
-#XXW export RUN_DAY=${RUN_DAY:-16}
-export RUN_DAY=${RUN_DAY:-29}
+export RUN_DAY=${RUN_DAY:-16}
 
 export DCOMIN=${DCOMIN:-${DCOMROOT}/us007003/aqm_emission/${envir}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}

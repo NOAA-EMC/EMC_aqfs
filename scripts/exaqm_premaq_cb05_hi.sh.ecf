@@ -46,13 +46,13 @@ if [[ $PX_RA = "T" ]]; then
 fi
 #---------------------------------------------------------------------
 ## Specify the input pollutant data directory:
-if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
-   yyyy=`echo $PDYm1 |cut -c1-4`
-   year_month=`echo $PDYm1 |cut -c1-6`
-elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
+#if [ ${cycle} = 't00z' -o ${cycle} = 't06z' ]; then
+#   yyyy=`echo $PDYm1 |cut -c1-4`
+#   year_month=`echo $PDYm1 |cut -c1-6`
+#elif [ ${cycle} = 't12z' -o ${cycle} = 't18z' ]; then
    yyyy=`echo $PDY |cut -c1-4`
    year_month=`echo $PDY |cut -c1-6`
-fi
+#fi
 
 #------------------ names for tests ----------------
 INPPLTDRY=$INPEMIDIR/$yyyy
