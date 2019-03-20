@@ -465,7 +465,8 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
         ENDIF
 
 !     ELSEIF ( iparm == 208 ) THEN          ! sfc exchange coeff
-     ELSEIF ( itabe == 0 .and. iparm == 195 .and. jdisc == 2 ) THEN          ! sfc exchange coeff     
+!jp     ELSEIF ( itabe == 0 .and. iparm == 195 .and. jdisc == 2 ) THEN          ! sfc exchange coeff     
+     ELSEIF ( itabe == 0 .and. iparm == 12 .and. jdisc == 2 ) THEN          ! sfc exchange coeff     
         IF ( lvl1 == 0 ) THEN
            sfexc(:,:) = scr2d(:,:)
            got_sfexc  = .TRUE.
@@ -581,6 +582,9 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
         IF ( lvl1 == 0 ) THEN
            ptccb(:,:) = NINT(scr2d(:,:))
            got_ptccb  = .TRUE.
+! below added by jp 5/30
+           psccb(:,:) = NINT(scr2d(:,:))
+           got_psccb  = .TRUE.
         ELSE
            GOTO 8100
         ENDIF
@@ -589,38 +593,44 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
   ELSEIF ( ktype == 243 ) THEN      ! convective cloud top
 
 !     IF ( iparm == 1 ) THEN                ! pressure
-     IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure      
+      IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure      
         IF ( lvl1 == 0 ) THEN
            ptcct(:,:) = NINT(scr2d(:,:))
            got_ptcct  = .TRUE.
-        ELSE
-           GOTO 8100
-        ENDIF
-     ENDIF
-
-  ELSEIF ( ktype == 248 ) THEN      ! shallow convective cloud bottom
-
-!     IF ( iparm == 1 ) THEN                ! pressure
-     IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure      
-        IF ( lvl1 == 0 ) THEN
-           psccb(:,:) = NINT(scr2d(:,:))
-           got_psccb  = .TRUE.
-        ELSE
-           GOTO 8100
-        ENDIF
-     ENDIF
-
-  ELSEIF ( ktype == 249 ) THEN      ! shallow convective cloud top
-
-!     IF ( iparm == 1 ) THEN                ! pressure
-     IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure     
-        IF ( lvl1 == 0 ) THEN
+!below added by jp 5/30
            pscct(:,:) = NINT(scr2d(:,:))
            got_pscct  = .TRUE.
+
         ELSE
            GOTO 8100
         ENDIF
      ENDIF
+
+!jp  ELSEIF ( ktype == 248 ) THEN      ! shallow convective cloud bottom
+!  ELSEIF ( ktype == 242 ) THEN      ! use convective cloud bottom !jp
+
+!!     IF ( iparm == 1 ) THEN                ! pressure
+!     IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure      
+!1        IF ( lvl1 == 0 ) THEN
+!           psccb(:,:) = NINT(scr2d(:,:))
+!           got_psccb  = .TRUE.
+!        ELSE
+!           GOTO 8100
+!        ENDIF
+!     ENDIF
+
+!!jp  ELSEIF ( ktype == 249 ) THEN      ! shallow convective cloud top
+!  ELSEIF ( ktype == 243 ) THEN      ! use convective cloud top !jp
+
+!!     IF ( iparm == 1 ) THEN                ! pressure
+!     IF ( itabe == 3 .and. iparm == 0 .and. jdisc == 0 ) THEN                ! pressure     
+!        IF ( lvl1 == 0 ) THEN
+!           pscct(:,:) = NINT(scr2d(:,:))
+!           got_pscct  = .TRUE.
+!        ELSE
+!           GOTO 8100
+!        ENDIF
+!     ENDIF
 
   ELSEIF ( ktype == 251 ) THEN      ! deep convective cloud bottom
 

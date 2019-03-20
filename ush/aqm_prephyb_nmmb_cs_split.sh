@@ -29,8 +29,11 @@ export pgm=aqm_nmm_prep
 export FORT21="$FIXaqm/aqm_grid138.txt"
 export gridspecs_138="lambert:263:33:45 236.718:468:12000 21.017:288:12000"
 
+export infile=$COMINfv3/gfs.t${cyc}z.master.grb2f0${fhr}
 
-$WGRIB2 $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
+
+#$WGRIB2 $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
+$WGRIB2 $infile | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $infile > ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB2 inputs_${fhr}.grib -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv inputs_${fhr}.grib.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
 #$WGRIB inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type s -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
 $WGRIB2 inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \

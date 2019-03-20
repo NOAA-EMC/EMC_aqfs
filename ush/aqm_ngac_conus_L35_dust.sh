@@ -63,7 +63,8 @@ then
 else
  export METEO3D=$COMINm1/aqm.t12z.metcro3d.ncf
 fi
-export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
+#export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
+export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_FV3_35L.ncf
 
 
 export BND2=$outdir/aqm_conus_geos_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files

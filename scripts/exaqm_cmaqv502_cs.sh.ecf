@@ -44,8 +44,10 @@ CFG=CMAQ-v502
 MECH=cb05tucl_ae6_aq
 APPL=D502b
 
-export NPCOL_NPROW="24 24"
-export nprocs=576
+#export NPCOL_NPROW="24 24"
+export NPCOL_NPROW="48 24"
+#export nprocs=576
+export nprocs=1152
 
 if [ "${FCST}" = "YES" ]
 then
@@ -244,12 +246,12 @@ DISP=delete
 BCpath=$COMIN
 EMISpath=$COMIN
 METpath=$COMIN
-# JVALpath=${INPEMIDIR}/cb05_Jtable
+JVALpath=${INPEMIDIR}/cb05_Jtable
 OMIpath=${FIXaqm}/phot
 
 OUTDIR=$COMOUT
 
-# JVALfile=JTABLE_${STDATE}
+JVALfile=JTABLE_${STDATE}
 
 #ozone column data
 OMIfile=OMI.dat
@@ -407,7 +409,7 @@ export   INIT_AERO_1=$INIT_GASC_1
 export   INIT_NONR_1=$INIT_GASC_1
 export   INIT_TRAC_1=$INIT_GASC_1
 export   OMI=$OMIpath/$OMIfile
-# export   XJ_DATA=$JVALpath/$JVALfile
+export   XJ_DATA=$JVALpath/$JVALfile
 
 if [[ ${cycle} = 't00z'  || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
  export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
@@ -416,7 +418,7 @@ else
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ] ; then
-  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
+  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf
 fi
 
 export   BNDY_AERO_1=$BNDY_GASC_1
@@ -491,7 +493,9 @@ postmsg "$jlogfile" "$msg"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-aprun -n576 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+#aprun -n576 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+aprun -n1152 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+#aprun -n576 -N24 /usr/bin/valgrind  --leak-check=yes $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
 export err=$?
 
 #------------------------------------------------------
@@ -530,7 +534,7 @@ then
 else
    msg="$pgm completed normally"
    echo "$PDY" "done" >$COMOUT/aqm.${cycle}.log
-   postmsg "$jlogfile" "$msg"
+   sh $utilscript/postmsg.sh "$jlogfile" "$msg"
 fi
 
 echo Exiting $0

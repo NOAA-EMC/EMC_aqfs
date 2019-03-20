@@ -48,9 +48,9 @@ SUBROUTINE check_flags
     ELSE IF ( .NOT. ( got_v_vel(n) ) ) THEN   ! vertical velocity
       field = 'V_VEL'
       GOTO 8000
-    ELSE IF ( .NOT. ( got_tke(n) ) ) THEN     ! turbulent kinetic energy
-      field = 'TKE'
-      GOTO 8000
+!jp0    ELSE IF ( .NOT. ( got_tke(n) ) ) THEN     ! turbulent kinetic energy
+!      field = 'TKE'
+!jp9      GOTO 8000
    ! ELSE IF ( .NOT. ( got_clwmr(n) ) ) THEN   ! cloud water mixing ratio
    !   field = 'CLWMR'
    !   GOTO 8000
