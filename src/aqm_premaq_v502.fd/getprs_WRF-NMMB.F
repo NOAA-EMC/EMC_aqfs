@@ -24,6 +24,9 @@ SUBROUTINE getprs
 
   REAL                         :: aeta2, z0, z1
   real, allocatable            :: zk(:)
+  real, allocatable            :: tmp9(:),geohgt9(:),u_grda9(:),v_grda9(:)
+  real, allocatable            :: v_vel9(:),spc_h9(:),c_ice9(:),t_cdc9(:),o3mr9(:)
+  real, allocatable            :: tke9(:),kth9(:),clwmr9(:),rwmr9(:),snmr9(:)
   
   EXTERNAL       ENVYN
 
@@ -85,7 +88,21 @@ SUBROUTINE getprs
   IF (VERT_INTERP) THEN
      write(*,*) 'perform vertical interpolation'
      if ( .not. allocated(zk) ) allocate(zk(kx))
-
+     if ( .not. allocated(tmp9) ) allocate(tmp9(kx))
+     if ( .not. allocated(geohgt9) ) allocate(geohgt9(kx))
+     if ( .not. allocated(u_grda9) ) allocate(u_grda9(kx))
+     if ( .not. allocated(v_grda9) ) allocate(v_grda9(kx))
+     if ( .not. allocated(v_vel9) ) allocate(v_vel9(kx))
+     if ( .not. allocated(spc_h9) ) allocate(spc_h9(kx))
+     if ( .not. allocated(c_ice9) ) allocate(c_ice9(kx))
+     if ( .not. allocated(t_cdc9) ) allocate(t_cdc9(kx))
+     if ( .not. allocated(o3mr9) ) allocate(o3mr9(kx))
+     if ( .not. allocated(tke9) ) allocate(tke9(kx))
+     if ( .not. allocated(kth9) ) allocate(kth9(kx))
+     if ( .not. allocated(clwmr9) ) allocate(clwmr9(kx))
+     if ( .not. allocated(rwmr9) ) allocate(rwmr9(kx))
+     if ( .not. allocated(snmr9) ) allocate(snmr9(kx))
+       
 !$omp parallel do
 
   DO j = 1, jx
@@ -124,21 +141,35 @@ SUBROUTINE getprs
            z1=zk(k)-izk
            z0=1-z1
 
-           tmp(i,j,k)=z0*tmp(i,j,izk)+z1*tmp(i,j,izk1)           ! temperature
-           geohgt(i,j,k)=z0*geohgt(i,j,izk)+z1*geohgt(i,j,izk1)  ! geopotential height
-           u_grda(i,j,k)=z0*u_grda(i,j,izk)+z1*u_grda(i,j,izk1)  ! u wind
-           v_grda(i,j,k)=z0*v_grda(i,j,izk)+z1*v_grda(i,j,izk1)  ! v wind
-           v_vel(i,j,k)=z0*v_vel(i,j,izk)+z1*v_vel(i,j,izk1)     ! vertical wind
-           spc_h(i,j,k)=z0*spc_h(i,j,izk)+z1*spc_h(i,j,izk1)     ! specific humidity
-           c_ice(i,j,k)=z0*c_ice(i,j,izk)+z1*c_ice(i,j,izk1)     ! cloud ice
-           t_cdc(i,j,k)=z0*t_cdc(i,j,izk)+z1*t_cdc(i,j,izk1)     ! cloud cover
-           o3mr(i,j,k)=z0*o3mr(i,j,izk)+z1*o3mr(i,j,izk1)        ! ozone
-           tke(i,j,k)=z0*tke(i,j,izk)+z1*tke(i,j,izk1)           ! TKE
-           kth(i,j,k)=z0*kth(i,j,izk)+z1*kth(i,j,izk1)           ! KH
-           clwmr(i,j,k)=z0*clwmr(i,j,izk)+z1*clwmr(i,j,izk1)     ! cloud water mixing ratio
-           rwmr(i,j,k)=z0*rwmr(i,j,izk)+z1*rwmr(i,j,izk1)        ! rain water mixing ratio
-           snmr(i,j,k)=z0*snmr(i,j,izk)+z1*snmr(i,j,izk1)        ! snow mixing ratio
+           tmp9(k)=z0*tmp(i,j,izk)+z1*tmp(i,j,izk1)           ! temperature
+           geohgt9(k)=z0*geohgt(i,j,izk)+z1*geohgt(i,j,izk1)  ! geopotential height
+           u_grda9(k)=z0*u_grda(i,j,izk)+z1*u_grda(i,j,izk1)  ! u wind
+           v_grda9(k)=z0*v_grda(i,j,izk)+z1*v_grda(i,j,izk1)  ! v wind
+           v_vel9(k)=z0*v_vel(i,j,izk)+z1*v_vel(i,j,izk1)     ! vertical wind
+           spc_h9(k)=z0*spc_h(i,j,izk)+z1*spc_h(i,j,izk1)     ! specific humidity
+           c_ice9(k)=z0*c_ice(i,j,izk)+z1*c_ice(i,j,izk1)     ! cloud ice
+           t_cdc9(k)=z0*t_cdc(i,j,izk)+z1*t_cdc(i,j,izk1)     ! cloud cover
+           o3mr9(k)=z0*o3mr(i,j,izk)+z1*o3mr(i,j,izk1)        ! ozone
+           tke9(k)=z0*tke(i,j,izk)+z1*tke(i,j,izk1)           ! TKE
+           kth9(k)=z0*kth(i,j,izk)+z1*kth(i,j,izk1)           ! KH
+           clwmr9(k)=z0*clwmr(i,j,izk)+z1*clwmr(i,j,izk1)     ! cloud water mixing ratio
+           rwmr9(k)=z0*rwmr(i,j,izk)+z1*rwmr(i,j,izk1)        ! rain water mixing ratio
+           snmr9(k)=z0*snmr(i,j,izk)+z1*snmr(i,j,izk1)        ! snow mixing ratio
         ENDDO
+         tmp(i,j,2:kx-1)=tmp9(2:kx-1)
+         geohgt(i,j,2:kx-1)=geohgt9(2:kx-1)
+         u_grda(i,j,2:kx-1)=u_grda9(2:kx-1)
+         v_grda(i,j,2:kx-1)=v_grda9(2:kx-1)
+         v_vel(i,j,2:kx-1)=v_vel9(2:kx-1)
+         spc_h(i,j,2:kx-1)=spc_h9(2:kx-1)
+         c_ice(i,j,2:kx-1)=c_ice9(2:kx-1)
+         t_cdc(i,j,2:kx-1)=t_cdc9(2:kx-1)
+         o3mr(i,j,2:kx-1)=o3mr9(2:kx-1)
+         tke(i,j,2:kx-1)=tke9(2:kx-1)
+         kth(i,j,2:kx-1)=kth9(2:kx-1)
+         clwmr(i,j,2:kx-1)=clwmr9(2:kx-1)
+         rwmr(i,j,2:kx-1)=rwmr9(2:kx-1)
+         snmr(i,j,2:kx-1)=snmr9(2:kx-1)
      ENDDO
   ENDDO
 

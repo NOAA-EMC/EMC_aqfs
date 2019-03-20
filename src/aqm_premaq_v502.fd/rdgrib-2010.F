@@ -272,9 +272,12 @@ SUBROUTINE rdgrib (iunit, gribflnm, iuniti, gribflnmi, ivar,  hdate)
     WRITE (odate, '(i4, a, i2.2, a, i2.2, a, i2.2, a, i2.2, a)') &
       year, '-', month, '-', day, '-', hour, ':', minute, ':00.0000'
 
+     print*,"hjp880,fcstdate=",fcstdate,"odate=", &
+        odate,"fcs=",fcst
+
     CALL geth_newdate (fcstdate, odate, 3600*fcst)
-!    print*,"fcstdate=",fcstdate
-!    print*,"hdate=",hdate    
+    print*,"hjp881,fcstdate=",fcstdate
+    print*,"hjp882,hdate=",hdate    
 
     IF ( fcstdate /= hdate ) THEN
        GOTO 8000
@@ -326,9 +329,11 @@ SUBROUTINE rdgrib (iunit, gribflnm, iuniti, gribflnmi, ivar,  hdate)
 !    print*,"gfld%discipline=",gfld%discipline 
 !    print*, "jdisc=",jdisc  
 
-!    if (jdisc == 2) then
-!     print*,itabe,iparm,ktype,lvl1,ztype,lvl2
-!    endif
+    if ( ktype == 242 ) then
+     print*,"hjp111=","itabe=",itabe,"iparm=",iparm,&
+            "jdisc=",jdisc,"ktype=",ktype,"lvl1=",lvl1,&
+            "ztype=",ztype,"lvl2=",lvl2
+    endif
     
     
 !     print*, kg,jdisc,itabe,iparm

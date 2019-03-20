@@ -30,8 +30,9 @@ program aqm_post_maxi_bias_cor_grib2
 ! added by JP  
    character  infile1*200,infile2*200,infile3*200
    character  varname*10,ymd*8,ch_cyc*2,ch_chk*2
+   character  ch_chk1*2
    integer    diag, imax,jmax
-   integer    icyc,iyear,imonth,iday,ihour,base_year,ichk
+   integer    icyc,iyear,imonth,iday,ihour,base_year,ichk,ichk1
    integer    nowdate,nowtime
    integer    nowdate9,nowtime9,iyear9,imonth9,iday9
    integer    ierr,mday,ier
@@ -164,6 +165,7 @@ program aqm_post_maxi_bias_cor_grib2
    call get_command_argument (1, ymd)
    call get_command_argument (2, ch_cyc)
    call get_command_argument (3, ch_chk)
+   call get_command_argument (4, ch_chk1)
 
 
 !
@@ -172,6 +174,7 @@ program aqm_post_maxi_bias_cor_grib2
    read(ymd(7:8),*)iday
    read(ch_cyc(1:2),*)icyc
    read(ch_chk(1:2),*)ichk
+   read(ch_chk1(1:2),*)ichk1
    ihour=icyc
 
 !   if ( icyc .le. 9 ) then
@@ -261,19 +264,23 @@ program aqm_post_maxi_bias_cor_grib2
           bc_op(i,j,3:nhours) = indata1(i,j,1,1:46)
        enddo  
       enddo 
-    elseif ( icyc .eq. 12 ) then
+   elseif ( icyc .eq. 12 ) then
      do i = 1, imax
       do j = 1, jmax
       if ( ichk .eq. 1 ) then
         bc_op(i,j,1:2)  = indata2(i,j,1,5:6)      ! from 05z and 06z at 00z run
       else
-        bc_op(i,j,1:2)  = indata2(i,j,1,17:18)   ! using previous day 12z file
+        bc_op(i,j,1:2)  = indata2(i,j,1,17:18)    ! using previous day 12z file
       endif
-      bc_op(i,j,3:8)  = indata3(i,j,1,1:6)      ! from 07-12z at 06z run
-      bc_op(i,j,9:nhours) = indata1(i,j,1,1:40) ! from 12z run
+      if ( ichk1 .eq. 1 ) then
+        bc_op(i,j,3:8)  = indata3(i,j,1,1:6)      ! from 01-06 hour at 06z run
+      else
+        bc_op(i,j,3:8)  = indata3(i,j,1,19:24)      ! from 19-24hr at previous day 12z run
+      endif
+        bc_op(i,j,9:nhours) = indata1(i,j,1,1:40) ! from 12z run
       enddo
      enddo
-    endif
+   endif
 !
 !-- set file unit
 
@@ -462,7 +469,7 @@ program aqm_post_maxi_bias_cor_grib2
 !    idrstmpl(4)=15        ! Decimal scale factor
      idrstmpl(5)=0         !
      idrstmpl(6)=1         !
-     idrstmpl(7)=0         ! Missing value management used (see Code Table 5.5)
+     idrstmpl(7)=1         ! Missing value management used (see Code Table 5.5)
      idrstmpl(8)=0         ! Primary missing value substitute
      idrstmpl(9)=0         ! Secondary missing value substitute
      idrstmpl(11)=0        !

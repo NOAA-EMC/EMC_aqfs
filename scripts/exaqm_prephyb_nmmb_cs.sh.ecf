@@ -39,19 +39,15 @@ fhr=$fhr
 
 while [ $fhr9 -le $hr_max ]
 do
-  if [ $fhr9 -le 9 ]
-  then
-   fhr="0"$fhr9
-  else
-   fhr=$fhr9 
-  fi
-
+  fhr=$fhr9 
+  typeset -Z2 fhr
+ 
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    if [ -s $COMINfv3/gfs.${cycle}.master.grb2f0$fhr ]
     then
-      echo  $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      echo  $COMINfv3/gfs.${cycle}.master.grb2f0$fhr "exists!"
       break
     else
       let "ic=ic+1"
@@ -60,7 +56,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINnam/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINfv3/gfs.${cycle}.master.grb2f0$fhr"
     fi
   done
  let "fhr9=fhr9+1"

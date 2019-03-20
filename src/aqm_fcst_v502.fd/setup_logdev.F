@@ -51,7 +51,8 @@ C                        removed deprecated TRIMLEN
 
       CHARACTER( 48 ) :: EQNAME
       CHARACTER(  8 ) :: PRESTR = 'CTM_LOG_'
-      CHARACTER(  3 ) :: CMYPE
+!jp      CHARACTER(  3 ) :: CMYPE
+      CHARACTER(  4 ) :: CMYPE
       CHARACTER( 96 ) :: IOLOGEQ
       CHARACTER(  8 ) :: APPL = 'CTM_APPL'
 
@@ -66,7 +67,8 @@ C                        removed deprecated TRIMLEN
 
       IF ( MYPE .NE. 0 ) THEN
          CALL NAMEVAL ( APPL, EQNAME )
-         WRITE ( CMYPE, '(I3.3)' ) MYPE
+!jp         WRITE ( CMYPE, '(I3.3)' ) MYPE
+         WRITE ( CMYPE, '(I4.4)' ) MYPE
          IF ( APPL .NE. EQNAME(1:8 ) ) THEN
             IOLOGEQ = PRESTR // CMYPE // '.' // TRIM( EQNAME )
          ELSE

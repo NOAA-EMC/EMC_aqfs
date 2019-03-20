@@ -2,7 +2,7 @@ module load ncep
 
 module purge
 
-module load ../modulefiles/CMAQ/v5.1.0
+module load ../modulefiles/CMAQ/v5.2.0
 
 BASE=`pwd`
 
