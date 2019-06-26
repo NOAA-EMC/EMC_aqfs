@@ -44,13 +44,10 @@ CFG=CMAQ-v502
 MECH=cb05tucl_ae6_aq
 APPL=D502b
 
-#export NPCOL_NPROW="24 24"
 export NPCOL_NPROW="48 24"
-#export nprocs=576
 export nprocs=1152
 
-if [ "${FCST}" = "YES" ]
-then
+if [ "${FCST}" = "YES" ]; then
 
 case $cyc in
  00) restart_file1=$COMINm1/aqm.t18z.cgrid.ncf
@@ -76,7 +73,7 @@ case $cyc in
      restart_file5=$COMINm2/aqm.t12z.cgrid.ncf
      restart_log5=$COMINm2/aqm.t12z.log
      soil_file=$COMIN/aqm.t00z.soil06.ncf     
-     NSTEPS=480000;;
+     NSTEPS=720000;;
  12) restart_file1=$COMINm1/aqm.t12z.cgrid_r.ncf #using previous day 06z rerun as IC
      restart_log1=$COMINm1/aqm.t12z.log
      restart_file2=$COMIN/aqm.t06z.cgrid.ncf
@@ -85,10 +82,8 @@ case $cyc in
      restart_log3=$COMINm1/aqm.t12z.log
      restart_file4=$COMINm1/aqm.t06z.cgrid.ncf
      restart_log4=$COMINm1/aqm.t06z.log
-#     restart_file5=$COMINm2/aqm.t12z.cgrid.ncf
-#     restart_log5=$COMINm2/aqm.t12z.log
      soil_file=$COMIN/aqm.t06z.soil06.ncf        
-     NSTEPS=480000;;
+     NSTEPS=720000;;
  18) restart_file1=$COMIN/aqm.t12z.cgrid.ncf
      restart_log1=$COMIN/aqm.t12z.log
      restart_file2=$COMIN/aqm.t06z.cgrid.ncf
@@ -97,8 +92,6 @@ case $cyc in
      restart_log3=$COMINm1/aqm.t12z.log
      restart_file4=$COMINm1/aqm.t06z.cgrid.ncf
      restart_log4=$COMINm1/aqm.t06z.log
-#     restart_file5=$COMINm2/aqm.t12z.cgrid.ncf
-#     restart_log5=$COMINm2/aqm.t12z.log
      soil_file=$COMIN/aqm.t12z.soil06.ncf
      NSTEPS=060000;;
 esac
@@ -218,7 +211,7 @@ export CLD_DIAG=N            #> write cloud diagnostic file [ default: N ]
 export CTM_AERDIAG=Y #N         #> aerosol diagnostic file [ default: N ]
 export CTM_PHOTDIAG=N        #> photolysis diagnostic file [ default: N ]
 export CTM_SSEMDIAG=N        #> sea-salt emissions diagnostic file [ default: N ]
-export CTM_WB_DUST=N #Y         #> use inline windblown dust emissions [ default: Y ]
+export CTM_WB_DUST=Y         #> use inline windblown dust emissions [ default: Y ]
 export CTM_ERODE_AGLAND=Y    #> use agricultural activity for windblown dust [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
@@ -232,7 +225,7 @@ export CTM_SFC_HONO=Y        #> Surface HONO interaction [ default: Y ]; ignore 
 export CTM_DEPV_FILE=Y #N       #> write diagnostic file for deposition velocities [ default: N ]
 export CTM_BIOGEMIS=Y        #> calculate in-line biogenic emissions [ default: N ]
 export B3GTS_DIAG=Y          #> write biogenic mass emissions diagnostic file [ default: N ]; ignore if CTM_BIOGEMIS = N
-export CTM_PT3DEMIS=N #Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
+#export CTM_PT3DEMIS=Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
 export PT3DDIAG=Y            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
 export PT3DFRAC=N            #> optional layer fractions diagnostic (play) file(s) [ default: N]; ignore if CTM_PT3DEMIS = N
 export IOAPI_LOG_WRITE=F     #> turn on excess WRITE3 logging [ options: T | F ]
@@ -282,8 +275,7 @@ OMIfile=OMI.dat
       fi
    done   
    
-if [ "$FCST" = "YES" ]
-then
+if [ "$FCST" = "YES" ]; then
 export GRID_CRO_2D=$COMIN/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=$COMIN/aqm.${cycle}.grddot2d.ncf
 export MET_CRO_2D=$COMIN/aqm.${cycle}.metcro2d.ncf
@@ -308,7 +300,7 @@ export MET_CRO_2D=$COMINm1/aqm.${cycle}.metcro2d.ncf
 export MET_CRO_3D=$COMINm1/aqm.${cycle}.metcro3d.ncf
 export MET_DOT_3D=$COMINm1/aqm.${cycle}.metdot3d.ncf
 export MET_BDY_3D=$COMINm1/aqm.${cycle}.metbdy3d.ncf
-export EMISfile=$COMINm1/aqm.${cycle}.emission_r.ncf
+export EMISfile=$COMINm1/aqm.${cycle}.emission.ncf
 
 $FSYNC $COMINm1/aqm.${cycle}.grdcro2d.ncf  # synchronize the nodes
 $FSYNC $COMINm1/aqm.${cycle}.grddot2d.ncf
@@ -316,9 +308,44 @@ $FSYNC $COMINm1/aqm.${cycle}.metbdy3d.ncf
 $FSYNC $COMINm1/aqm.${cycle}.metcro2d.ncf
 $FSYNC $COMINm1/aqm.${cycle}.metcro3d.ncf
 $FSYNC $COMINm1/aqm.${cycle}.metdot3d.ncf
-$FSYNC $COMINm1/aqm.${cycle}.emission_r.ncf
+$FSYNC $COMINm1/aqm.${cycle}.emission.ncf
 
 fi
+
+## fire emission
+if [ "$FCST" = "YES" ]; then
+ if [ $cyc -eq 00 ]; then FIRE_DIR=$COMINm1
+  FIRE_SUFFIX=t12z
+ else
+  FIRE_DIR=$COMIN
+  if [ $cyc -eq 18 ]; then 
+   FIRE_SUFFIX=t12z
+  else
+   FIRE_SUFFIX=$cycle
+  fi 
+ fi 
+
+else
+  FIRE_DIR=$COMINm1   # 06z run for yesterday only
+  FIRE_SUFFIX=${cycle}
+fi
+
+ if [ -s $FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" = "NO" ]; then
+   export CTM_PT3DEMIS=Y 
+   export NPTGRPS=1          #> Number of elevated source groups
+   export STK_GRPS_01=$FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_location_cs_r.ncf
+   export STK_EMIS_01=$FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf
+ elif [ -s $FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" = "YES" ]; then 
+    export CTM_PT3DEMIS=Y
+    export NPTGRPS=1          #> Number of elevated source groups
+    export STK_GRPS_01=$FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_location_cs.ncf
+    export STK_EMIS_01=$FIRE_DIR/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf
+ else
+   export CTM_PT3DEMIS=N
+ fi
+   export LAYP_STDATE=$STDATE
+   export LAYP_STTIME=$STTIME
+   export LAYP_NSTEPS=$NSTEPS
 
 if [ "$INITIAL_RUN" = "N" ]
 then
@@ -335,6 +362,15 @@ if [[ "$INITIAL_RUN" = "N" ]]; then
    export ICFILE=$DATA/CONC.${APPL}.ncf
 else    
    export ICFILE=$FIXaqm/aqm_conus_12km_cgrid_v502_init.ncf
+fi
+
+if [ $CTM_ERODE_AGLAND = Y ]; then
+   export DUST_LU_1=$FIXaqm/LANDA_US12_442X265
+   export DUST_LU_2=$FIXaqm/LAND_TOTALS_US12_442X265
+
+   export CROPMAP01=$FIXaqm/aqm_CROPMAP01_cs
+   export CROPMAP04=$FIXaqm/aqm_CROPMAP04_cs
+   export CROPMAP08=$FIXaqm/aqm_CROPMAP08_cs
 fi
 
 # In-line biogenic emissions configuration
@@ -493,9 +529,9 @@ postmsg "$jlogfile" "$msg"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-#aprun -n576 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+
 aprun -n1152 -N24 $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
-#aprun -n576 -N24 /usr/bin/valgrind  --leak-check=yes $EXECaqm/aqm_fcst_v502 >> $pgmout 2>errfile
+
 export err=$?
 
 #------------------------------------------------------
@@ -513,6 +549,10 @@ then
  mv $DATA/AERODIAM.${CTM_APPL} $COMOUT/aqm.${cycle}.aerodiam.ncf
  mv $DATA/B3GTS_S.${CTM_APPL}  $COMOUT/aqm.${cycle}.b3gt2.ncf
  mv $DATA/SOILOUT.${CTM_APPL}  $COMOUT/aqm.${cycle}.soil06.ncf
+ mv $DATA/CTM_DUST_EMIS_1 $COMOUT/aqm.${cycle}.dustemis.ncf
+ if [ -s $DATA/CTM_PT3D_DIAG ]; then
+  mv $DATA/CTM_PT3D_DIAG $COMOUT/aqm.${cycle}.pt3d_diag.ncf
+ fi 
 fi
 if [ "$SENDCOM" = 'YES' ] && [ "${FCST}" = "NO" ]
 then
@@ -526,6 +566,11 @@ then
  mv $DATA/AERODIAM.${CTM_APPL} $COMOUTm1/aqm.${cycle}.aerodiam_r.ncf
  mv $DATA/B3GTS_S.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.b3gt2_r.ncf
  mv $DATA/SOILOUT.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.soil06_r.ncf
+ mv $DATA/CTM_DUST_EMIS_1 $COMOUTm1/aqm.${cycle}.dustemis_r.ncf
+ if [ -s $DATA/CTM_PT3D_DIAG ]; then
+  mv $DATA/CTM_PT3D_DIAG $COMOUTm1/aqm.${cycle}.pt3d_diag_r.ncf
+ fi 
+
 fi
 
 if [ $err -ne 0 ]

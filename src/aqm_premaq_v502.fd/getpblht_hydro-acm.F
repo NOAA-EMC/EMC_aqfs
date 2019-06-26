@@ -207,7 +207,7 @@ SUBROUTINE acmpblht (c, r, wspd, tstv)
         xpbl2(c,r) = MAX( pbl , zf(1), 100. )
 
      else
-        xpbl2(c,r) = MAX( pbl , zf(1),  50. )
+        xpbl2(c,r) = MAX( pbl , zf(1), 100. )
      endif
   endif
 

@@ -102,9 +102,9 @@ C                   Aitken    Accum     Coarse     Min_Concs   Density  |  |  | 
 C                  --------- --------- ---------   ---------- -------   +  +  +   + ----- -------- -------- ------ ------ ------
      & spcs_type((/'ASO4I  ','ASO4J  ','ASO4K  '/), conmin_so4, 1800.0, F, F, F, -2,  3.0,'SOLUTE','PSO4  ',(/0.000,1.000,0.000/)),
      & spcs_type((/'ANO3I  ','ANO3J  ','ANO3K  '/), conmin_set, 1800.0, F, F, F, -1,  3.0,'SOLUTE','PNO3  ',(/0.000,1.000,0.000/)),
-     & spcs_type((/'ACLI   ','ACLJ   ','ACLK   '/), conmin_set, 2200.0, F, F, F, -1,  0.0,'SOLUTE','PCL   ',(/0.000,1.000,0.000/)),
+     & spcs_type((/'ACLI   ','ACLJ   ','ACLK   '/), conmin_set, 2200.0, F, F, F, -1, 1.37,'SOLUTE','PCL   ',(/0.000,1.000,0.000/)),
      & spcs_type((/'ANH4I  ','ANH4J  ','ANH4K  '/), conmin_set, 1800.0, F, F, F,  1,  3.0,'SOLUTE','PNH4  ',(/0.000,1.000,0.000/)),
-     & spcs_type((/'ANAI   ','ANAJ   ','       '/), conmin_set, 2200.0, F, F, F,  1,  0.0,'SOLUTE','PNA   ',(/0.000,1.000,0.000/)),
+     & spcs_type((/'ANAI   ','ANAJ   ','       '/), conmin_set, 2200.0, F, F, F,  1, 1.37,'SOLUTE','PNA   ',(/0.000,1.000,0.000/)),
      & spcs_type((/'       ','AMGJ   ','       '/), conmin_set, 2200.0, F, F, F,  2,  1.0,'DUST  ','PMG   ',(/0.000,1.000,0.000/)),
      & spcs_type((/'       ','AKJ    ','       '/), conmin_set, 2200.0, F, F, F,  1,  1.0,'DUST  ','PK    ',(/0.000,1.000,0.000/)),
      & spcs_type((/'       ','ACAJ   ','       '/), conmin_set, 2200.0, F, F, F,  2,  1.0,'DUST  ','PCA   ',(/0.000,1.000,0.000/)),
@@ -137,9 +137,9 @@ C                  --------- --------- ---------   ---------- -------   +  +  + 
      & spcs_type((/'       ','AOLGAJ ','       '/), conmin_set, 2000.0, F, T, F,  0,  4.0,'DUST  ','      ',(/0.000,0.000,0.000/)),
      & spcs_type((/'       ','AOLGBJ ','       '/), conmin_set, 2000.0, F, T, F,  0,  4.0,'DUST  ','      ',(/0.000,0.000,0.000/)),
      & spcs_type((/'       ','AORGCJ ','       '/), conmin_set, 2000.0, F, T, F,  0,  4.0,'DUST  ','      ',(/0.000,0.000,0.000/)),
-     & spcs_type((/'       ','       ','ASOIL  '/), conmin_set, 2600.0, F, F, F,  0,  0.0,'DUST  ','      ',(/0.000,0.000,1.000/)),
-     & spcs_type((/'       ','       ','ACORS  '/), conmin_cor, 2200.0, F, F, F,  0,  0.0,'DUST  ','PMC   ',(/0.000,0.000,1.000/)),
-     & spcs_type((/'       ','       ','ASEACAT'/), conmin_cor, 2200.0, F, F, F,  1,  0.0,'SOLUTE','      ',(/0.000,0.000,1.000/))/)
+     & spcs_type((/'       ','       ','ASOIL  '/), conmin_set, 2600.0, F, F, F,  0,  0.6,'DUST  ','      ',(/0.000,0.000,1.000/)),
+     & spcs_type((/'       ','       ','ACORS  '/), conmin_cor, 2200.0, F, F, F,  0,  0.6,'DUST  ','PMC   ',(/0.000,0.000,1.000/)),
+     & spcs_type((/'       ','       ','ASEACAT'/), conmin_cor, 2200.0, F, F, F,  1, 1.37,'SOLUTE','      ',(/0.000,0.000,1.000/))/)
 
 C Sea-Salt Speciation factors
       Real, Parameter :: aerospc_ssf( n_mode, n_aerospc ) = Reshape (

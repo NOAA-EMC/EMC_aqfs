@@ -5,15 +5,13 @@
 # Script name:         exaqm_premaq.sh
 # Script description:  Run premaq emissions processing for CMAQ
 #
-# Author:      Marina Tsidulko and Pius Lee Org: NP22 Date: 2004-03-31
-#
 # Abstract: This script runs premaq emissions processing
 #
 # Script history log:
 # 2003-07-03    Marina Tsidulko, initial version
 # 2003-07-15    Julia Zhu, modified for production  
 # 2004-03-31    Pius Lee, netcdf independence and gfs ozone blending
-# 2017-02-18    Jianping Huang, modified fori cmaq v5.0.2 on Cray 
+# 2017-02-18    Jianping Huang, modified for cmaq v5.0.2 on Cray 
 #####################################################################
 set -xa
 
@@ -89,11 +87,11 @@ case $cyc in
  00) export endfhr=06
      export endday=$PDY
      export soil_input=$COMINm1/aqm.t18z.soil06.ncf;;
- 06) export endfhr=48
-     export endday=$PDYp2
+ 06) export endfhr=72
+     export endday=$PDYp3
      export soil_input=$COMIN/aqm.t00z.soil06.ncf;;
- 12) export endfhr=48 #24
-     export endday=$PDYp2 #$PDYp1
+ 12) export endfhr=72 #24
+     export endday=$PDYp3 #$PDYp1
      export soil_input=$COMIN/aqm.t06z.soil06.ncf;;
  18) export endfhr=06
      export endday=$PDYp1
@@ -413,7 +411,6 @@ done
 export IOAPI_CHECK_HEADERS=F
 export EXECUTION_ID=PREMAQ
 export NOTCDF_FATAL=F
-#export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf
 export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf
 if [[ $MKGRID = "T" ]]; then
   export GRID_BDY_2D_G1=$DATA/GRIDBDY2D
@@ -427,15 +424,12 @@ export MET_BDY_3D_G1=$DATA/METBDY3D
 export MET_CRO_2D_G1=$DATA/METCRO2D
 export MET_CRO_3D_G1=$DATA/METCRO3D
 export MET_DOT_3D_G1=$DATA/METDOT3D
-#export CHEM_BDY_3D_G1=$DATA/CHEMBDY3D
-#export CHEM_CRO_3D_G1=$DATA/CHEMCRO3D
 
 #---------------------------------------------------------------------
 # Set input file names.
 #---------------------------------------------------------------------
 export LANDA_G1=$FIXaqm/aqm_LANDA_${OUTGRID}_igbp2010_new.ncf
 if [[ $MKBC = "T" ]]; then
-#export BNDY_GASC_1=$FIXaqm/aqm_lbc_geos_2006${SMM}.nmmb.ncf 
 export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf 
 fi
 
@@ -635,16 +629,16 @@ if [ "$SENDCOM" = 'YES' ]; then
 
 fi
 
-cd $DATA
+#cd $DATA
 
 #setup.sh
 
-rm -rf $DATA/chkreads.log
+#rm -rf $DATA/chkreads.log
 
-export LOGFILE=$DATA/chkreads.log
+#export LOGFILE=$DATA/chkreads.log
 
-$USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
-export err=$?; err_chk
+#$USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
+#export err=$?; err_chk
 #######################################################
 #if [[  ${cycle} = 't06z'  ]] ; then
 #$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY

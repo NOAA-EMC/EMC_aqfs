@@ -84,7 +84,7 @@ C Local variables:
       CHARACTER(  8 ) :: APPL = 'CTM_APPL'
       CHARACTER( 48 ) :: EQNAME
       CHARACTER(  6 ) :: PRESTR = 'FLOOR_'
-      CHARACTER(  3 ) :: CMYPE
+      CHARACTER(  4 ) :: CMYPE
       CHARACTER( 96 ), SAVE :: DEVNAME ! Name of output file.
 
       INTEGER, SAVE :: OUTDEV    ! FORTRAN unit number for neg conc ascii file
@@ -124,7 +124,7 @@ C-----------------------------------------------------------------------
 !           WRITE( LOGDEV,'(5X, A, I9)' ) XMSG, JTIME
 !        END IF
          CALL NAMEVAL ( APPL, EQNAME )
-         WRITE( CMYPE,'(I3.3)' ) MYPE
+         WRITE( CMYPE,'(I4.4)' ) MYPE
          DEVNAME = PRESTR // CMYPE // '.' // TRIM( EQNAME )
 
       END IF

@@ -539,14 +539,15 @@ C Get soil type index (LWMASK = 0 for water)
             if ( lwmask( c,r ) .gt. 0.0 ) then
                j = nint( sltyp( c,r ) )
 CCCCCCCC kludge (fixed in wrf-px after 4 Mar 11)
-               if ( j .gt. 4 ) j = j + 1   ! PX combines "silt" with "silt loam"
-
+              if ( j .gt. 4 ) j = j + 1   ! PX combines "silt" with "silt loam"
+              if ( j. gt. 12 ) j=13 ! fix the issue of soil mapping between PX and NOAH
 C Calculate maximum amount of the adsorbed water
 C    w` = 0.0014(%clay)**2 + 0.17(%clay)
 C    Fecan et al. 1999 Annales Geophys.,17,144-157.
-!              wmax( c,r ) = ( 0.0014 * clayc( j ) + 0.17 ) * clayc( j ) <-error
+!             wmax( c,r ) = ( 0.0014 * clayc( j ) + 0.17 ) * clayc( j ) !  <-error
 C clayc in [Kg/Kg] -> wmax in [Kg/Kg]
-               wmax( c,r ) = ( 0.14 * clayc( j ) + 0.17 ) * clayc( j )
+!              wmax( c,r ) = ( 0.14 * clayc( j ) + 0.17 ) * clayc( j )
+        wmax( c,r )=(0.0014*(clayc(j)*100.)**2+0.17*(clayc(j)*100.)) ! wmxax in %
 
 C    log(F/G) = 0.134(%clay)-6
 C    F/G (vertical to horizontal flux) ratio is a function of clay content 0~20%
@@ -1036,16 +1037,16 @@ C Change soil moisture units from volumetric (m**3/m**3) to gravimetric (Kg/Kg)
      &                      * 1000.0 / ( 2600.0 * ( 0.511 + 0.126 * sandc( j ) ) )
 
 C Soil moisture effect on U*t
-!              if ( 100.0 * soimt( c,r ) .le. wmax( c,r ) ) then
-               if ( soimt( c,r ) .le. wmax( c,r ) ) then   ! wmax in [Kg/Kg]
+              if ( 100.0 * soimt( c,r ) .le. wmax( c,r ) ) then
+!               if ( soimt( c,r ) .le. wmax( c,r ) ) then   ! wmax in [Kg/Kg]
                   fmoit( c,r ) = 1.0
                else if ( soimt( c,r ) .le. soilml( j,1 ) ) then
 C The following formula is based on soimt in [Kg/Kg] and wmax in [%]
-!                 fmoit( c,r ) = sqrt( 1.0 + 1.21
-!    &                         * ( 100.0 * soimt( c,r ) - wmax( c,r ) )**0.68 )
-C wmax is in [Kg/Kg]
-                  fmoit( c,r ) = sqrt( 1.0 + 27.7195
-     &                         * ( soimt( c,r ) - wmax( c,r ) ) ** 0.68 )
+                 fmoit( c,r ) = sqrt( 1.0 + 1.21
+     &                   * ( 100.0 * soimt( c,r ) - wmax( c,r ) )**0.68 )
+C wmax is in [Kg/Kg]%
+!                  fmoit( c,r ) = sqrt( 1.0 + 1.21
+!     &                         * ( soimt( c,r ) - wmax( c,r ) ) ** 0.68 )
                end if
 
 C Dust occurs where erodible land exists, soil moisture is less than saturation,

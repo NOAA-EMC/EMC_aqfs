@@ -24,8 +24,8 @@ MODULE file
   INTEGER,       PARAMETER     :: iuniti     =  510
 
   CHARACTER*80                 :: file_gd
-  CHARACTER*80                 :: files_in   ( 49 )
-  CHARACTER*80                 :: index_in   ( 49 )
+  CHARACTER*80                 :: files_in   ( 73 )
+  CHARACTER*80                 :: index_in   ( 73 )
   CHARACTER*80,  PARAMETER     :: file_nml   = 'namelist.premaq'
 
   LOGICAL                      :: makegrid

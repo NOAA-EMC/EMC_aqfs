@@ -777,7 +777,7 @@ C *** Inputs to subroutine HCOND3
 
 C *** Outputs from HCOND3: size-dependent term in the condensational-growth 
 C     expressions defined in Equations A13-A14 of [Binkowski & Shankar,1995]
-      REAL( 8 ) :: FCONC_SO4( N_MODE,2 )  ! All sizes 2nd and 3rd moments
+      REAL( 8 ) :: FCONC_SO4(2, N_MODE)  ! All sizes 2nd and 3rd moments
       REAL( 8 ) :: FCONCM1_SO4       ! reciprocals of total SO4 cond rates
 
 C *** Modal partition factors [ dimensionless ]
@@ -1005,17 +1005,17 @@ C     Equations A13-A14 of Binkowski & Shankar (1995).
        
       DO I = 1, N_MODE
          CALL HCOND3( AM0( I ), AM1( I ), AM2( I ),
-     &                DV_SO4, ALPHSULF, CBAR_SO4, FCONC_SO4( I,: ) )
+     &                DV_SO4, ALPHSULF, CBAR_SO4, FCONC_SO4( :,I ) )
       END DO 
 
       IF ( .NOT. HYBRID ) THEN
-         FCONC_SO4( N_MODE,1 ) = 0.0D0
-         FCONC_SO4( N_MODE,2 ) = 0.0D0
+         FCONC_SO4( 1, N_MODE ) = 0.0D0
+         FCONC_SO4( 1, N_MODE ) = 0.0D0
       END IF
 
       DO I = 1, N_MODE
-         GRFAC1( I ) = FCONC_SO4( I,1 )
-         GRFAC2( I ) = FCONC_SO4( I,2 )
+         GRFAC1( I ) = FCONC_SO4( 1,I )
+         GRFAC2( I ) = FCONC_SO4( 2,I )
       END DO
 
 C *** New Particle Production
@@ -1042,7 +1042,7 @@ C     condensation of sulfuric acid vapor on existing particles, based
 C     on Equations A21 and A23 of Binkowski & Shankar (1995).
          TMP = 0.0
          DO I = 1, N_MODE
-            TMP = TMP + FCONC_SO4( I,2 )
+            TMP = TMP + FCONC_SO4( 2, I )
          END DO
 
          XH2SO4 = SO4RATE / TMP
@@ -1070,11 +1070,11 @@ C     coarse mode (hybrid and dynamic schemes) is computed by difference,
 C     to avoid mass conservation violations arising from numerical error.
       TMP = 0.0
       DO I = 1, N_MODE
-         TMP = TMP + FCONC_SO4( I,2 )
+         TMP = TMP + FCONC_SO4( 2, I )
       END DO
 
       FCONCM1_SO4  = 1.0D0 / TMP
-      OMEGA_AT_SO4 = FCONCM1_SO4 * FCONC_SO4( 1,2 )
+      OMEGA_AT_SO4 = FCONCM1_SO4 * FCONC_SO4( 2,1 )
       OMEGA_AC_SO4 = FCONCM1_SO4 * FCONC_SO4( 2,2 )
 
 C *** Growth values for mode merge condition
@@ -1125,10 +1125,10 @@ C *** Calculate the size-dependent terms in the condensational-
 C     growth factor expressions for sulfate using 
 C     Equations A13-A14 of Binkowski & Shankar (1995). 
                CALL HCOND3( AM0( 3 ), AM1( 3 ), AM2( 3 ), DV_SO4, ALPHSULF, 
-     &                      CBAR_SO4, FCONC_SO4( 3,: ) )  ! adapted from Eq A14
+     &                      CBAR_SO4, FCONC_SO4( :,3 ) )  ! adapted from Eq A14
 
-               GRFAC1( 3 ) = FCONC_SO4( 3,1 ) 
-               GRFAC2( 3 ) = FCONC_SO4( 3,2 ) 
+               GRFAC1( 3 ) = FCONC_SO4( 1,3 ) 
+               GRFAC2( 3 ) = FCONC_SO4( 2,3 ) 
 
 !           END IF               ! if ISTEP .GT. 1
 

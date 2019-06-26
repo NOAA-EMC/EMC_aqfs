@@ -1,6 +1,6 @@
 module purge
 
-module load ../../modulefiles/CMAQ/v5.2.0
+module load ../../modulefiles/CMAQ/v5.2.1
 
 module list
 
@@ -13,7 +13,7 @@ set -ax
 ##########################
 for src in ioapi_v31 
 do
- model_ver=v5.2.0
+ model_ver=v5.2.1
  export BASEDIR=${BASE}/aqm_ioapi_v31
  export BIN=Linux3_x86_64intel
  export IOAPI_OFFSET_64=YES

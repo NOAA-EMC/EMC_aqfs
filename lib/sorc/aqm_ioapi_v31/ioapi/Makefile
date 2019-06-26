@@ -67,8 +67,8 @@
 
 .SUFFIXES: .m4 .c .F .f .mod
 
-BASEDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.0/lib/sorc/aqm_ioapi_v31
-INSTDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.0/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+BASEDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.1/lib/sorc/aqm_ioapi_v31
+INSTDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.1/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
 
 IODIR  = ${BASEDIR}/ioapi
 
@@ -80,7 +80,7 @@ FIXDIR  = ${IODIR}/fixed_src
 
 # Architecture dependent stuff
 
-include /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.0/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
+include /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.1/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
 
 DEFINEFLAGS = $(ARCHFLAGS) $(PARFLAGS)
 

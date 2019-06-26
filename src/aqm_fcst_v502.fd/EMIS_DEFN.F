@@ -264,11 +264,11 @@ C 3D point source emissions (N_SPC_EMIS+1 serves as the null map for PTEM_MAP)
             SUCCESS = .FALSE.; RETURN
          END IF
 
-         IF ( PT3DEMIS ) THEN
-            EMLYRS = 1
-         ELSE
+!ytang   IF ( PT3DEMIS ) THEN
+!            EMLYRS = 1
+!         ELSE
             EMLYRS = EMLAYS
-         END IF
+!         END IF
 
          IF ( N_SPC_EMIS .LE. 0 ) THEN
             XMSG = 'There are no emissions: VDEMIS is set to zero' ! below
