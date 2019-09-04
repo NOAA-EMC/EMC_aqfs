@@ -1,32 +1,40 @@
 !---convert HMS-Blueksy V1 emission to CMAQ Point source
-! Author: Youhua Tang   Oct,2015   
+! Author: Youhua Tang   Apr, 2019
       include 'PARMS3.EXT'      ! i/o API
       include 'FDESC3.EXT'      ! i/o API
       include 'IODECL3.EXT'     ! i/o API
-
-      integer, parameter :: nspecies=50,nhms=3
+      include 'netcdf.inc'
+      
+      integer, parameter :: nspecies=50,nhms=7
       integer startdate,secsdiff
       logical hgtin,em24hr_ext    ! whether extend the wildfire spots >=24 hr to longer period
       real tdiurnal(24),tfraction(72),dfrac(3)
-      character aline*200,prefix*200,suffix*80,emtimefile*200
+      character aline*200,prefix*200,suffix*80,efilein*200
       character*16 emname(nspecies),hmsname(nhms),ctmp,echar(nspecies),
      1 gdnam
+      integer istart3d(3),icount3d(3)
+      data istart3d/1,1,1/
      
-      data hmsname/'pm25','pmcoarse','co'/ !'ch4','nmhc'/
+      data hmsname/'CO','NOx','SO2','NH3','OC','BC','PM2.5'/ 
       data dfrac/1.,1.,1./  ! daily fraction
       
+      double precision, allocatable :: emhold(:,:)
       integer, allocatable :: jday_fire(:),jtime_fire(:),irow(:),icol(:)    ! file starting date/time
      1 ,ifip(:),lmajor(:),lping(:),istack(:)
       real,allocatable :: sfact(:,:),val(:),fireemis(:,:,:),
      1 fireduration(:),firearea(:),hflux(:,:),firelat(:),firelon(:),
-     2 xloca(:),yloca(:),badval(:)    
-      
-      namelist /control/prefix,suffix,nfiles,emtimefile,em24hr_ext,
-     1 startdate,nduration,tdiurnal,dfrac,emi_factor,emname
+     2 xloca(:),yloca(:),badval(:),lufrac(:,:,:),gbbepx(:,:,:),frp(:,:)
+     3 ,xlat(:,:),xlon(:,:),forestfrac(:,:),tlon(:),tlat(:) 
+      namelist /control/efilein,markutc,burnarea_ratio,frpfactor,  ! frp factor to hflux
+     1 startdate,nduration,tdiurnal,dfrac,emname
+
+      data r_earth/6370997./
+
+      piconv=atan(1.)*4/180.  ! degree to radian
       
       call aq_blank(16*nspecies,emname)
        
-      open(7,file='bluesky2emis-aero.ini',status='old')
+      open(7,file='gbbepx2pts.ini',status='old')
       read(7,control)
       call aq_find(nspecies,' ',emname,lpsec,iflag)
       if(iflag.eq.0) then
@@ -45,14 +53,7 @@
       jstime=jhour*10000
       print*,'jsdate,jstime=',jsdate,jstime,jyear
       
-      allocate(sfact(nhms,nemis),val(nemis),jday_fire(nfiles),
-     1 jtime_fire(nfiles),fireemis(nfiles,nemis,nduration),
-     2 firearea(nfiles),hflux(nfiles,nduration),firelat(nfiles),
-     3 firelon(nfiles),xloca(nfiles),yloca(nfiles),irow(nfiles),
-     4 icol(nfiles),ifip(nfiles))
-
-      fireemis(:,:,:)=0.
-      hflux(:,:)=0.
+      allocate(sfact(nhms,nemis),val(nemis))
       sfact(:,:)=0.
       call aq_locate(7,'Species Converting Factor',iflag)
       if(iflag.ne.0) then
@@ -87,160 +88,181 @@
       xorig=sngl(xorig3d)
       yorig=sngl(yorig3d)
       
-c      if(index(gdnam3d,'CON_12').ge.1.or.
-c     1   index(gdnam3d,'AQF_CONU').ge.1) then
-c        gdnam='CON_12'
-c      else if (index(gdnam3d,'COL_04').ge.1) then
-c        gdnam='COL_04'
-c      else
-c       print*,'unknown grid ',gdnam3d
-c       stop
-c      endif
       call envstr('GRID_NAME','GRID name','CON_12',gdnam,ios)
       IF(.NOT.LAMBERT(GDNAM, P_ALP3d, P_BET3d, P_GAM3d,
-     1       XCENT3D, YCENT3D )) stop      
-
-!-- EMTIMES file
-      open(7,file=trim(emtimefile),status='old')
-      read(7,*)
-      read(7,'(a200)')aline
-      if(index(aline,'HGT(m)').ge.1) then
-       hgtin=.true.
-      else
-       hgtin=.false.
-      endif  
-      read(7,*)iyear,imonth,idate,ihour,iduration,irecords
-      if(irecords.ne.nfiles) then
-       print*,'inconsistent file numbers ',nfiles,
-     1  iyear,imonth,idate,ihour,iduration,irecords
-       print*,'will process as is '
-      endif
-      
-      mfire=1
-      noaafirefile=1
-      do n=1,min(nfiles,irecords)
-       if(hgtin) then
-       read(7,*)iyear,imonth,idate,ihour,iminutes,iduration,flat,
-     1   flon,hgt,frate,farea,fheat
-       else
-       read(7,*)iyear,imonth,idate,ihour,iminutes,iduration,flat,
-     1   flon,frate,farea,fheat
-       endif
-!       print*,'read emtime file ',n,nfiles,flat,flon,iduration
-!   NOAA fire files
-       
- 11    write(ctmp,'(i4.4)')noaafirefile
-       open(8,file=trim(prefix)//ctmp(1:4)//trim(suffix),status='old')
-       read(8,*)
-       read(8,'(a200)')aline
-       read(aline(17:200),*)flat2
-       read(8,'(a200)')aline
-       read(aline(17:200),*)flon2
-       if(abs(flat-flat2).ge.1e-5.or.abs(flon-flon2).ge.1e-5) then
-        print*,' inconsistent lat/lon n1,n2,flat,flat2,flon,flon2=',
-     1	 n, noaafilefile, flat,flat2,flon,flon2
-        close(8)
-	noaafirefile=noaafirefile+1
-	goto 11
-       endif	
-       read(8,*)
-       read(8,'(a200)')aline
-       read(aline(17:200),*)farea2
-       do i=1,9
-        read(8,*)
+     1       XCENT3D, YCENT3D )) stop
+      allocate(xlat(imax,jmax),xlon(imax,jmax),lufrac(imax,jmax,24),  ! USGS 24 category landuse fractions
+     1  forestfrac(imax,jmax)) 
+      if(.not.read3('TOPO','LAT',1,sdate3d,stime3d,xlat)) stop
+      if(.not.read3('TOPO','LON',1,sdate3d,stime3d,xlon)) stop
+      xlatmin=minval(xlat)
+      xlatmax=maxval(xlat)
+      xlonmin=minval(xlon)
+      xlonmax=maxval(xlon)
+      do i=1,24
+       write(ctmp,"('LUFRAC_',i2.2)")i
+       if(.not.read3('TOPO',trim(ctmp),1,sdate3d,stime3d,
+     1  lufrac(1,1,i))) stop
+      enddo 
+      do i=1,imax
+       do j=1,jmax
+       forestfrac(i,j)=lufrac(i,j,11)   ! Deciduous Broadleaf Forest
+     1    +  lufrac(i,j,12)              ! Deciduous Needleleaf Forest
+     2    +  lufrac(i,j,13)              ! Evergreen Broadleaf Forest
+     3    +  lufrac(i,j,14)              ! Evergreen Needleleaf Forest
+     4    +  lufrac(i,j,15)              ! Mixed Forest
+!     5    +  lufrac(i,j,8)               ! shrubland
        enddo
-       read(8,'(a200)')aline
-       if(index(aline,'time, heat, pm25, pm10, pm, co, co2, ch4, nmhc,')
-     1  .lt.1.and.index(aline,
-     2  'time_period, total_heat, total_pm25, total_pm10, total_pm,'//
-     3  ' total_co, total_co2, total_ch4, total_nmhc,').lt.1) then
-        print*,'file header',n,' error'
-	print*,aline   
-	stop
-       endif
-       read(8,*)
-       read(8,*)fminute2,fheat2,fpm25,fpm10,fpm,fco,fco2,fch4,fnmhc
-       close(8)
-       noaafirefile=noaafirefile+1
+      enddo
        
-       if(.not.LL2LAM(flon,flat,x,y)) stop
+!   gbbepx file input
+      print*,'read gbbepx file'
+      iflag=nf_open(trim(efilein),NF_NOWRITE,id_file) ! open file
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      print*,'id_file=',id_file
+      iflag=nf_inq_dimid(id_file,'Latitude',id_nlat)        ! dimension ID
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      iflag=nf_inq_dimlen(id_file,id_nlat,nlat)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      
+      iflag=nf_inq_dimid(id_file,'Longitude',id_nlon)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      iflag=nf_inq_dimlen(id_file,id_nlon,nlon)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      
+      allocate(tlon(nlon),tlat(nlat))
+      
+c      iflag=nf_inq_varid(id_file,'Time',id_time)
+c      iflag=nf_get_var_real(id_file,id_time,atime)
+c      if(iflag.ne.NF_NOERR) stop  
+          
+      iflag=nf_inq_varid(id_file,'Latitude',id_lat)
+      iflag=nf_get_var_real(id_file,id_lat,tlat)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      tlatint=(tlat(nlat)-tlat(1))/(nlat-1)
+      
+      iflag=nf_inq_varid(id_file,'Longitude',id_lon)
+      iflag=nf_get_var_real(id_file,id_lon,tlon)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      tlonint=(tlon(nlon)-tlon(1))/(nlon-1)
+      
+      icount3d(1)=nlon
+      icount3d(2)=nlat
+      icount3d(3)=1
+      
+      allocate(emhold(nlon,nlat),gbbepx(nlon,nlat,nhms),frp(nlon,nlat))
+      print*,'nlon,nlat=',nlon,nlat
+      do i=1,nhms
+       print*,'read ',hmsname(i)
+       iflag=nf_inq_varid(id_file,trim(hmsname(i)),id_tmp)
+       if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      iflag=nf_get_vara_double(id_file,id_tmp,istart3d,icount3d,emhold)
+       if(iflag.ne.NF_NOERR) call handle_err(iflag)
+       gbbepx(1:nlon,1:nlat,i)=sngl(emhold(1:nlon,1:nlat))
+      enddo
+      iflag=nf_inq_varid(id_file,'MeanFRP',id_tmp)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      iflag=nf_get_vara_double(id_file,id_tmp,istart3d,icount3d,emhold)
+      if(iflag.ne.NF_NOERR) call handle_err(iflag)
+      frp(1:nlon,1:nlat)=sngl(emhold(1:nlon,1:nlat))
+      iflag=nf_close(id_file)
+      
+!! start processing
+
+      nfiles=imax*jmax*2  ! maximum of locations for 0.1x0.1 inside the 5x domain
+      
+      allocate( jday_fire(nfiles),
+     1 jtime_fire(nfiles),fireemis(nfiles,nemis,nduration),
+     2 firearea(nfiles),hflux(nfiles,nduration),firelat(nfiles),
+     3 firelon(nfiles),xloca(nfiles),yloca(nfiles),irow(nfiles),
+     4 icol(nfiles),ifip(nfiles))
+
+      fireemis(:,:,:)=0.
+      hflux(:,:)=0.
+
+      print*,'start processing'
+      mfire=1
+      do i=1,nlon
+       jloop: do j=1,nlat
+       
+       if(tlon(i).ge.xlonmin.and.tlon(i).le.xlonmax.and.
+     1    tlat(j).ge.xlatmin.and.tlat(j).le.xlatmax.and.
+     2     maxval(gbbepx(i,j,:)).ge.0) then
+
+       if(.not.LL2LAM(tlon(i),tlat(j),x,y)) stop
        xind=(x-xorig)/ddx+0.5
        yind=(y-yorig)/ddx+0.5
-       
-       print*,'process file ',n,nfiles,flat,flon,iduration
-       
-       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1) cycle  ! out of domain
+c       print*,'mfire,i,j,tlon(i),tlat(j),xind,yind=',
+c     1    mfire,i,j,tlon(i),tlat(j),xind,yind,gbbepx(i,j,:)
+       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1) 
+     1  cycle jloop  ! out of domain
 
        xloca(mfire)=x
        yloca(mfire)=y
        icol(mfire)=nint(xind)
        irow(mfire)=nint(yind)
-       firearea(mfire)=farea2 ! acres/day
-       firelon(mfire)=flon
-       firelat(mfire)=flat
-       ifip(mfire)=88880+13+int(flon/15.-0.5)
        
-       lst=nint(ihour+iminutes/60.+flon/15.)              ! local time
+       tlon1=tlon(i)-0.5*tlonint
+       tlon2=tlon(i)+0.5*tlonint
+       tlat1=tlat(j)-0.5*tlatint
+       tlat2=tlat(j)+0.5*tlatint
+       tarea=r_earth**2*abs(sin(tlat1*piconv)-
+     1 sin(tlat2*piconv))*abs(tlon1-tlon2)*piconv    ! area in m2
+
+       firearea(mfire)=tarea/4046.86*burnarea_ratio                            ! acres/day
+       
+       firelon(mfire)=tlon(i)
+       firelat(mfire)=tlat(j)
+       ifip(mfire)=88880+13+int(tlon(i)/15.-0.5)
+       
+       lst=jhour+nint(tlon(i)/15)
        if(lst.lt.0) lst=lst+24
        if(lst.ge.24) lst=lst-24
        
-       tfraction(1:72)=0.
-       do mtime=1,iduration/100
-        tfraction(mtime)=tdiurnal(lst+1)*dfrac(mtime/24+1)
-	lst=lst+1
-	if(lst.ge.24) lst=lst-24
-       enddo
-       mtime=mtime-1
-       sumfraction=sum(tfraction)
-       tfraction(1:mtime)=tfraction(1:mtime)/sumfraction  ! hourly fraction
-
-       timediff=secsdiff(jsdate,jstime,iyear*1000+
-     1  julian(iyear,imonth,idate),ihour*10000+iminutes*100)/3600.   ! time difference in fractional hour
-       if(timediff.lt.0) then
-        print*,'fire time and start time wrong ',jsdate,jstime,iyear,
-     1	imonth,idate,ihour,timediff
-        stop
-       endif
-
-       if(timediff.ge.1) then
-         hflux(mfire,1:int(timediff))=0.
-	 fireemis(mfire,1:nemis,1:int(timediff))=0.
-       endif
-       
-       do ktime=1,mtime
-        ktindex=ktime+int(timediff)
-        hflux(mfire,ktindex)=fheat2*tfraction(ktime)/3600.  ! BTU/hr -> BTU/s
-	do L=1,nemis
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! PM25 kg/hr -> g/s
-     1	   fpm25*1000/3600*sfact(1,L)*tfraction(ktime)
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! PMcoarse kg/hr -> g/s
-     1	   amax1(fpm10-fpm25,0.)*1000/3600*sfact(2,L)*tfraction(ktime)
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! CO kg/hr -> moles/s
-     1	   fco*1000/3600*sfact(3,L)*tfraction(ktime)
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! CH4 kg/hr -> moles/s
-     1	   fch4*1000/3600*sfact(4,L)*tfraction(ktime)
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! NMHC kg/hr -> moles/s
-     1	   fnmhc*1000/3600*sfact(5,L)*tfraction(ktime)
-        enddo
-       enddo
-
-       do ktime=ktindex+1,nduration
-        if(mtime.ge.24.and.em24hr_ext) then   ! longer than 24 hours
-         fireemis(mfire,1:nemis,ktime)=fireemis(mfire,1:nemis,ktindex)
-     1    *emi_factor
-	 hflux(mfire,ktime)=hflux(mfire,ktindex)
-	else
-	 fireemis(mfire,1:nemis,ktime)=0.
-	 hflux(mfire,ktime)=0.	
+       marklst=markutc+nint(tlon(i)/15)  ! gbbepx marking local time 
+       if(marklst.lt.0) marklst=marklst+24
+       if(marklst.ge.24) marklst=marklst-24
+             
+       mtime: do m=1,nduration
+c       tratio=tdiurnal(lst+1)/tdiurnal(marklst)*dfrac(min(m/24+1,3))
+        tratio=tdiurnal(lst+1)/maxval(tdiurnal)*dfrac(min(m/24+1,3))   ! assume the  VIIRS detection is the maximum during the day
+        if(tratio.ge.40) then
+	  print*,'tratio too big ',tratio,lst,jhour,markutc,marklst,
+     1	    tdiurnal(lst+1),tdiurnal(marklst),dfrac(min(m/24+1,3))
+          stop
+	else if (tratio.lt.1e-6) then  
+	 print*,'tratio is too small ',tratio,lst,jhour,markutc,
+     1	 marklst,tdiurnal(lst+1),tdiurnal(marklst),dfrac(min(m/24+1,3))
+         stop
 	endif
-       enddo	 
-
-       mfire=mfire+1   ! actual fire inside of domain       
+c       print*,'m,tratio=',m,tratio,tdiurnal(lst+1),dfrac(min(m/24+1,3)),
+c    1	 forestfrac(nint(xind),nint(yind)) 
+        if(frp(i,j).gt.0) hflux(mfire,m)=frp(i,j)*947.82    ! MW -> BTU/s
+     1    *frpfactor*tratio
        
+        if(forestfrac(nint(xind),nint(yind)).le.0.4.and.m.gt.10)  
+     1	   exit mtime ! skip non-forest fire 
+	
+         do L1=1,nhms
+	  do L2=1,nemis
+          fireemis(mfire,L2,m)=fireemis(mfire,L2,m)+gbbepx(i,j,L1)*
+     1	    sfact(L1,L2)*tarea*tratio
+	  enddo
+	 enddo 
+	 lst=lst+1
+	 if(lst.ge.24) lst=lst-24
+       enddo mtime
+c        print*,'mfire,i,j,tlon(i),tlat(j),xind,yind,frp(i,j)=',
+c     1  mfire,i,j,tlon(i),tlat(j),xind,yind,frp(i,j),hflux(mfire,1),
+c     2  tratio
+       mfire=mfire+1   ! actual fire inside of domain
+       endif
+       enddo jloop
       enddo
-      close(7)
-      print*,'mfire=',mfire
+
+      print*,'total fire points',mfire
 !---stack file header
+
       allocate(badval(mfire),istack(mfire),lmajor(mfire),lping(mfire))
       lmajor(:)=1
       lping(:)=0
@@ -450,4 +472,10 @@ c***********************************************************************
  8    continue
 100   format(80a1)
 200   format(2x,'iunit=',i3,2x,80a1)
+      end
+
+      subroutine handle_err(iflag)
+      character*80 NF_STRERROR
+      print*,'error occurred in netcdf ',iflag, NF_STRERROR(iflag)
+      stop
       end

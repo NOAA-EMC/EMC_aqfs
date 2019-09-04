@@ -31,8 +31,8 @@ export METCRO2D=${COMIN}/aqm.${cycle}.metcro2d.ncf
 
 case $cyc in
  00) export n_durhr=6;;
- 06) export n_durhr=48;;
- 12) export n_durhr=48;;
+ 06) export n_durhr=72;;
+ 12) export n_durhr=72;;
  18) export n_durhr=6;;
 esac
 

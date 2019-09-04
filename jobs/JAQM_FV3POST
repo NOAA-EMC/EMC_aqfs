@@ -164,7 +164,7 @@ then
 # Execute the Script
 #########################################################
 #$SCRgfs/ex${RUN}_nceppost.sh.ecf
-$SCRgfs/ex${RUN}_fv3gfs_post.sh.ecf
+$SCRgfs/exaqm_fv3gfs_post.sh.ecf
 
 else
 # this section for hours 024 from previous cycle (f006 when cycle is 6-hourly)
