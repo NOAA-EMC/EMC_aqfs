@@ -224,10 +224,10 @@ c      endif
      2     *emi_factor
          fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! CO kg/hr -> moles/s
      1	   fco*1000/3600*sfact(3,L)*tfraction(ktime)*emi_factor
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! CH4 kg/hr -> moles/s
-     1	   fch4*1000/3600*sfact(4,L)*tfraction(ktime)*emi_factor
-         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! NMHC kg/hr -> moles/s
-     1	   fnmhc*1000/3600*sfact(5,L)*tfraction(ktime)*emi_factor
+!         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! CH4 kg/hr -> moles/s
+!     1	   fch4*1000/3600*sfact(4,L)*tfraction(ktime)*emi_factor
+!         fireemis(mfire,L,ktindex)=fireemis(mfire,L,ktindex)+    ! NMHC kg/hr -> moles/s
+!     1	   fnmhc*1000/3600*sfact(5,L)*tfraction(ktime)*emi_factor
         enddo
        enddo
 

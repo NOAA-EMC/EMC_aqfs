@@ -635,21 +635,29 @@ C If wildfire, allocate and fire parameters (assumes only one file group)
             SUCCESS = .FALSE.; RETURN
          END IF
 
+         WRITE( LOGDEV,* )"hjp777=","ZSTATIC=",ZSTATIC,
+     +        "SDATE=",SDATE,"STIME=",STIME,
+     +         "JDATE=",JDATE,"JITME=",JTIME
          IF ( ZSTATIC ) THEN ! Read time-independent ZF and ZH for non-hydrost Met data
 
             DO N = 1, NPTGRPS
 
 C Compute per-source heights
 
+Cjp        print*,"hjp114=,SDATE=",SDATE,"STIME=",STIME,"JITME=",JTIME
+         WRITE( LOGDEV,* ) "hjp114=,SDATE=",SDATE,"STIME=",STIME,
+     +            "JDATE=",JDATE,"JITME=",JTIME
 C Get un-gridding matrices for cross and dot point met data
                CALL RETRIEVE_IOAPI_HEADER( GC3NAME, JDATE, JTIME )
-               CALL READGC3 ( 'X3HT0M', SDATE, STIME, XBUF )
+cjp               CALL READGC3 ( 'X3HT0M', SDATE, STIME, XBUF )
+               CALL READGC3 ( 'X3HT0M', JDATE, JTIME, XBUF )
                CALL BMATVEC( METCGRID, MY_NSRC( N ), EMLYRS,
      &                       BILIN_DATA( N )%NX,
      &                       BILIN_DATA( N )%CX,
      &                       XBUF, PTMET_DATA( N )%ZH )
 
-               CALL READGC3 ( 'X3HT0F', SDATE, STIME, XBUF )
+cjp               CALL READGC3 ( 'X3HT0F', SDATE, STIME, XBUF )
+               CALL READGC3 ( 'X3HT0F', JDATE, JTIME, XBUF )
                CALL BMATVEC( METCGRID, MY_NSRC( N ), EMLYRS,
      &                       BILIN_DATA( N )%NX,
      &                       BILIN_DATA( N )%CX,
@@ -869,11 +877,15 @@ C Ensure that the model and stack groups emissions timestamp dates stay synchron
             END IF
 
             DO V = 1, NVARS_EMIS( N )
+          WRITE( XMSG,*)"hjp888,JDATE=",JDATE,"JTIME=",JTIME,
+     +          "SDATE=",SDATE,"STIME=",STIME,
+     +           "LOC_STKDATE=",LOC_STKDATE 
                VNAME = STKSPC( N )%ARRY( V )
                IF ( .NOT. INTERPX( STKENAME( N ), VNAME, PNAME,
      &                             1,1, MY_STRT_SRC( N ),MY_END_SRC( N ), 1,1,
 !    &                             STKDATE( N ), JTIME,
-     &                             LOC_STKDATE, JTIME,
+!jp     &                             LOC_STKDATE, JTIME,
+     &                             JDATE, JTIME,
      &                             STKEMIS( N )%ARRY( 1,V ) ) ) THEN
                   XMSG = 'Could not read ' // TRIM( VNAME ) //
      &                   ' from ' // TRIM( STKENAME( N ) )
@@ -887,7 +899,8 @@ C Ensure that the model and stack groups emissions timestamp dates stay synchron
                   IF ( .NOT. INTERPX( STKENAME( N ), VNAME, PNAME,
      &                                1,1, MY_STRT_SRC( N ),MY_END_SRC( N ), 1,1,
 !    &                                STKDATE( N ), JTIME,
-     &                                LOC_STKDATE, JTIME,
+!jp     &                                LOC_STKDATE, JTIME,
+     &                                JDATE, JTIME,
      &                                FIREVAR( 1 )%ARRY( 1,V ) ) ) THEN
                      XMSG = 'Could not read ' // TRIM( VNAME ) //
      &                      ' from ' // TRIM( STKENAME( N ) )
