@@ -38,6 +38,8 @@ export Yr1=`echo ${PDYm1} | cut -c1-4`
 export Yrmn1=`echo ${PDYm1} | cut -c1-6`
 export Yr2=`echo ${PDYm2} | cut -c1-4`
 export Yrmn2=`echo ${PDYm2} | cut -c1-6`
+export Yr3=`echo ${PDYm3} | cut -c1-4`
+export Yrmn3=`echo ${PDYm3} | cut -c1-6`
 
 
 export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
@@ -45,12 +47,14 @@ export COMINbicordat=${COMINbicordat:-${COMROOT}/${NET}/${envir}}
 export COMINbicor=${COMINbicor:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
 export COMINbicorm1=${COMINbicorm1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
 export COMINbicorm2=${COMINbicorm2:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn2}}
+export COMINbicorm3=${COMINbicorm3:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn3}}
 
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 export COMOUTbicor=${COMOUTbicor:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn}}
 export COMOUTbicorm1=${COMOUTbicorm1:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn1}}
 export COMOUTbicorm2=${COMOUTbicorm2:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn2}}
+export COMOUTbicorm3=${COMOUTbicorm3:-${COMROOT}/${NET}/${envir}/bcdata.${Yrmn3}}
 
 if [ -e  $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 ] ; then
  echo "$COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 exists !"
@@ -60,13 +64,14 @@ fi
 
 cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx021 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
 cp -rp ${DCOMROOT}/us007003/${PDYm2}/b008/xx021 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
+cp -rp ${DCOMROOT}/us007003/${PDYm3}/b008/xx021 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
 
 # export PCOM=${PCOM:-${PCOMROOT}/${NET}}
 export PCOM=${PCOM:-${COMOUT}/wmo}
 
 export pgmout=OUTPUT.$$
 
-mkdir -p $COMOUT $PCOM $COMOUTbicorm1 $COMOUTbicorm2
+mkdir -p $COMOUT $PCOM $COMOUTbicorm1 $COMOUTbicorm2 $COMOUTbicorm3
 
 env
 

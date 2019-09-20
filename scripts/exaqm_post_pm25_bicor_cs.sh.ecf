@@ -133,8 +133,8 @@ typeset -Z2 fhr
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=48;;
- 12) endfhr=48;;
+ 06) endfhr=72;;
+ 12) endfhr=72;;
  18) endfhr=06;;
 esac
 
