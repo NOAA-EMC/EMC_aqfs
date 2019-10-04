@@ -39,7 +39,7 @@ export pgmout=OUTPUT.$$
 
 env
 
-${HOMEaqm}/scripts/exaqm_prephyb_nmmb_ak.sh.ecf
+${HOMEaqm}/scripts/exaqm_prephyb_fv3gfs_ak.sh.ecf
 export err=$?; err_chk
 
 msg="JOB $job HAS COMPLETED NORMALLY."
