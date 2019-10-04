@@ -27,8 +27,8 @@ export UTILaqm=$HOMEaqm/util
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
-export COMINnam=${COMINnam:-$(compath.py nam/prod/nam.$PDY)}
-export COMINnamm1=${COMINnamm1:-$(compath.py nam/prod/nam.$PDYm1)}
+export COMINfv3=${COMINfv3:-$(compath.py gfs/prod/gfs.$PDY)}
+export COMINfv3m1=${COMINfv3m1:-$(compath.py gfs/prod/gfs.$PDYm1)}
 export COMIN=${COMIN:-$(compath.py ${NET}/${envir}/$RUN.$PDY)}
 
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/$RUN.$PDY}
@@ -39,7 +39,7 @@ export pgmout=OUTPUT.$$
 
 env
 
-${HOMEaqm}/scripts/exaqm_prephyb_nmmb_cs.sh.ecf
+${HOMEaqm}/scripts/exaqm_prephyb_fv3gfs_cs.sh.ecf
 export err=$?; err_chk
 
 msg="JOB $job HAS COMPLETED NORMALLY."

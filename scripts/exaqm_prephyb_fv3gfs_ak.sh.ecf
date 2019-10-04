@@ -16,17 +16,18 @@
 # 2013-05-03    Jianping Huang, modified for transition to WCOSS 
 #               use mpmd instead four J jobs
 # 2017-01-24    Jianping Huang rewrote for using on Cray 
+# 2019-09-28   J.Huang modifed for FV3GFS
 ######################################################################
 set -x
 
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-export pgm=aqm_cs_pregen
+export pgm=aqm_ak_pregen
 
 cd $DATA
 
-echo "Start of NMMB_prdgen Job"
+echo "Start of FV3GFS_prdgen Job"
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
   hr_max=6
@@ -39,9 +40,13 @@ fhr=$fhr
 
 while [ $fhr9 -le $hr_max ]
 do
-  fhr=$fhr9 
-  typeset -Z2 fhr
- 
+  if [ $fhr9 -le 9 ]
+  then
+   fhr="0"$fhr9
+  else
+   fhr=$fhr9 
+  fi
+
   ic=0
   while [ $ic -lt 300 ]
   do
@@ -66,7 +71,7 @@ done
  while [ $NPOE  -le 7 ] 
  do  
  rm -f poescript.$NPOE
- echo "$USHaqm/aqm_prephyb_nmmb_cs_split.sh  \"$NPOE\" &" >>poescript
+ echo "$USHaqm/aqm_prephyb_fv3gfs_ak_split.sh  \"$NPOE\" &" >>poescript
  let NPOE=${NPOE}+1
  done
  
