@@ -3,7 +3,7 @@
 #  UNIX Script Documentation Block
 #                      .
 # Script name:         aqm_bicor_pm25_cs.sh 
-# Script description:  is usd to do bias correctio for PM2.5 
+# Script description:  is used to do bias correctio for PM2.5 
 #
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #

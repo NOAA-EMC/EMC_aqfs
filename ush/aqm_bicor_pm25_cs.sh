@@ -3,7 +3,7 @@
 #  UNIX Script Documentation Block
 #                      .
 # Script name:         aqm_bicor_pm25_cs.sh 
-# Script description:  is usd to do bias correctio for PM2.5 
+# Script description:  is used to do bias correctio for PM2.5 
 #
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #
@@ -33,8 +33,9 @@ rm -rf data
 mkdir -p data sites data/coords
 
 ln -s $PARMaqm/aqm.*grdcro2d.ncf  data/coords/
+# Oct 21 2019 H-C Huang config files never use *12z.list*
 #ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.06z.list sites/sites.valid.20170818.12z.list
-ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.06z.list sites/sites.valid.pm25.20170818.12z.list
+ln -s $PARMaqm/aqm_sites.valid.pm25.20190815.06z.list sites/sites.valid.pm25.20190815.06z.list
 
 ln -s ${COMINbicordat}/bcdata* data/
 
