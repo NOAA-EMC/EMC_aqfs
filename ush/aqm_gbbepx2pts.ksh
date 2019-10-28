@@ -28,15 +28,17 @@ fi
 
 if [ $FCST = "NO" ] ; then
  FIREDATE=$PDYm1
+ emisfile=GBBEPx_all01GRID.emissions_v003_$PDYm1.nc
  COMIN9=$COMINm1
-else
- FIREDATE=$PDY
+elif [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDY.nc ]; then
  COMIN9=$COMIN
+ emisfile=GBBEPx_all01GRID.emissions_v003_$PDY.nc
+ FIREDATE=$PDY 
+ else [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm1.nc ] 
+ COMIN9=$COMIN
+ emisfile=GBBEPx_all01GRID.emissions_v003_$PDYm1.nc
+ FIREDATE=$PDYm1
 fi
-
-#if [ -s $COMIN9/GBBEPx_addVIIRS.emisX.001.$FIREDATE.n ]; then
-# emisfile=GBBEPx_addVIIRS.emisX.001.$FIREDATE.nc
-# FIREDATE=
 
 cat>gbbepx2pts.ini<<!
 &control

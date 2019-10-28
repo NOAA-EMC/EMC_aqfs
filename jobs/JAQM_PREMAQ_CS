@@ -68,12 +68,12 @@ fi
 fi
 
 #if [ $Mn -ge 4 ] && [ $Mn -le 9 ] ; then
- if [ $cycle = "t06z" -o $cycle = "t12z" ] ; then
+# if [ $cycle = "t06z" -o $cycle = "t12z" ] ; then
  # aprun -n 1 $USHaqm/aqm_bluesky2emis-aero.ksh
    aprun -n 1 $USHaqm/aqm_gbbepx2pts.ksh
  
   export err=$?; err_chk
- fi 
+# fi 
 #fi
 
 msg="JOB $job HAS COMPLETED NORMALLY."
