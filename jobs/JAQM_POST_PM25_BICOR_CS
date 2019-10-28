@@ -30,6 +30,7 @@ export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc}`  # 1 year 
 export BC_STDAY=`echo $TMP_STDAY | cut -c1-8`
+export BC_STDAY=20190801
 
 export Yr=`echo ${PDY} | cut -c1-4`
 export Mn=`echo ${PDY} | cut -c5-6`
