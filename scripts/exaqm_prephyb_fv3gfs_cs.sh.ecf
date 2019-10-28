@@ -22,7 +22,7 @@ set -x
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-export pgm=aqm_ak_pregen
+export pgm=aqm_cs_pregen
 
 cd $DATA
 
@@ -31,7 +31,7 @@ echo "Start of NMMB_prdgen Job"
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
   hr_max=6
  else
-  hr_max=48
+  hr_max=72
  fi
 
 fhr9=0
@@ -39,19 +39,15 @@ fhr=$fhr
 
 while [ $fhr9 -le $hr_max ]
 do
-  if [ $fhr9 -le 9 ]
-  then
-   fhr="0"$fhr9
-  else
-   fhr=$fhr9 
-  fi
-
+  fhr=$fhr9 
+  typeset -Z2 fhr
+ 
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 ]
+    if [ -s $COMINfv3/gfs.${cycle}.master.grb2f0$fhr ]
     then
-      echo  $COMINnam/nam.${cycle}.bgrd3d$fhr.tm00 "exists!"
+      echo  $COMINfv3/gfs.${cycle}.master.grb2f0$fhr "exists!"
       break
     else
       let "ic=ic+1"
@@ -60,17 +56,17 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINnam/nam.${cycle}.bgrd3d$fhr.tm00"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINfv3/gfs.${cycle}.master.grb2f0$fhr"
     fi
   done
  let "fhr9=fhr9+1"
 done
 
  let NPOE=1
- while [ $NPOE  -le 4 ] 
+ while [ $NPOE  -le 7 ] 
  do  
  rm -f poescript.$NPOE
- echo "$USHaqm/aqm_prephyb_nmmb_ak_split.sh  \"$NPOE\" &" >>poescript
+ echo "$USHaqm/aqm_prephyb_fv3gfs_cs_split.sh  \"$NPOE\" &" >>poescript
  let NPOE=${NPOE}+1
  done
  
