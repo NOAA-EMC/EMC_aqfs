@@ -82,7 +82,7 @@ $COPYGB2  -g "$grid227" -x  -i"1 1"  aqm.${cycle}.max_8hr_o3_bc.148.grib2 aqm.${
 
 #==========
 #if [ "${envir}" = "para" .or. "${envir}" = "para5" ] ;
-if [ "${envir}" = "para5" ] ;
+if [ "${envir}" = "para13" ] ;
 then
   echo "copying to developer's personal directory"
  if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then

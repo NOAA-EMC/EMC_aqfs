@@ -39,7 +39,7 @@ aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.
 export err=$?;err_chk
 
 
-if [ "${envir}" = 'para5' ] ; 
+if [ "${envir}" = 'para13' ] ; 
 then
  cp $DATA/out/ozone.corrected*  ${COMOUT_grib} 
 fi

@@ -23,7 +23,7 @@ program aqm_post_maxi_bias_cor_grib2
 ! Local variables.
 
    character outfile*200,grib_id*3
-   integer nhours,nhours8, nt,nowtime8
+   integer nhours,nhours8, nt,nowtime8,total_day
    integer dims_in4(4), dims_in3(3)
 !   logical fail1, fail2
 
@@ -317,7 +317,8 @@ program aqm_post_maxi_bias_cor_grib2
      listsec1(8)=iday      ! Reference time - Day
      listsec1(9)=icyc      ! Reference time - Hour
      
-   do mday = 1, nhours/24 
+   total_day=nhours/24
+   do mday = 1, total_day 
 !     if ( varlist(1) .eq. 'O3_8h_max' ) then
 !       do i = 1, imax
 !        do j = 1, jmax
@@ -514,16 +515,17 @@ program aqm_post_maxi_bias_cor_grib2
       enddo
     endif
 
-    if ( varlist(L) .eq. 'O3_8h_max' ) then
-     do i = 1, imax
-      do j = 1, jmax
-         if (mday .eq. 1 ) then
-          o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:mday*24))  ! daily 8hr_ave max
-         elseif (mday .eq. 2 ) then
-          o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday-1)*24+17))
-         endif
-      enddo
-      enddo
+    if ( varlist(L) .eq. 'O3_8h_max' ) then   ! day 1 to total_day-1 has full 24 o3_8h_ave available
+                                              ! last day only has 17 o3_8h_ave available (nhour-24:nhour-7)
+       do i = 1, imax
+          do j = 1, jmax
+             if ( mday .eq. total_day ) then
+                o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday-1)*24+17))  ! last day using remaining 17 o3_8h_ave
+             else
+                o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday)*24)) ! &2 8hr_max has full 24 o3_8h_ave
+             endif
+          enddo
+        enddo
     elseif ( varlist(L) .eq. 'pm25_24h_ave' ) then
      do i = 1, imax
        do j = 1, jmax
