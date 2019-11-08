@@ -54,28 +54,28 @@ program aqm_post_maxi_bias_cor_grib2
    integer defnum
    integer ibin_scl, idec_scl,inumbits
 
-    integer,dimension(100) :: igdstmpl
-    integer,dimension(100) :: ipdstmpl
-    integer,dimension(100) :: idrstmpl
+   integer,dimension(100) :: igdstmpl
+   integer,dimension(100) :: ipdstmpl
+   integer,dimension(100) :: idrstmpl
 !
-    integer ideflist(1)
-    real(4) coordlist(1)
+   integer ideflist(1)
+   real(4) coordlist(1)
 !
-    character*1 cgrib1(max_bytes)
-    character*1 cgrib2(max_bytes)
+   character*1 cgrib1(max_bytes)
+   character*1 cgrib2(max_bytes)
 !
-    logical*1 bmap(nx,ny)
+   logical*1 bmap(nx,ny)
 !
-    real(4),dimension(nx*ny) :: fld1
-    real(4),dimension(nx*ny) :: fld2
-    logical*1,dimension(nx*ny) :: bmap1 
+   real(4),dimension(nx*ny) :: fld1
+   real(4),dimension(nx*ny) :: fld2
+   logical*1,dimension(nx*ny) :: bmap1 
 
-    integer ifilw1,ifilw2,lengrib,lonstt,lonlst,latstt,latlst
+   integer ifilw1,ifilw2,lengrib,lonstt,lonlst,latstt,latlst
 !    integer yy,mm,dd,hh,mn,sc
-    real(4) :: dxval
+   real(4) :: dxval
 
-    character*50 gdss(400)
-    integer GRID, kgdss(200), lengds,im,jm,jf,ibmap1
+   character*50 gdss(400)
+   integer GRID, kgdss(200), lengds,im,jm,jf,ibmap1
 !-------------------------------------------------------------------
 
    integer status
@@ -100,56 +100,54 @@ program aqm_post_maxi_bias_cor_grib2
    real(dp), allocatable :: work(:,:)
    logical, allocatable :: LB1(:)
 !
-    real(4) :: fldscl
-    real(4),parameter :: SPVAL=9.9e10
+   real(4) :: fldscl
+   real(4),parameter :: SPVAL=9.9e10
 
-    character*16 cmaqspec(ncmaq),varlist(ncmaq)
-    real     gipds1(ncmaq),gipds2(ncmaq),&
-             gipds27(ncmaq)
+   character*16 cmaqspec(ncmaq),varlist(ncmaq)
+   real     gipds1(ncmaq),gipds2(ncmaq),&
+            gipds27(ncmaq)
 
 !    logical  ave1hr
 
-    integer indexcmaq(ncmaq),id_gribdomain,L,L2,nspcmaq  !
+   integer indexcmaq(ncmaq),id_gribdomain,L,L2,nspcmaq  !
 
-    data cmaqspec(1),gipds1(1),gipds2(1),gipds27(1)/'O3_1h_max',14,200,23/
-    data cmaqspec(2),gipds1(2),gipds2(2),gipds27(2)/'O3_8h_max',14,201,23/
-    data cmaqspec(3),gipds1(3),gipds2(3),gipds27(3)/'pm25_24h_ave',13,193,23/
-    data cmaqspec(4),gipds1(4),gipds2(4),gipds27(4)/'pm25_1h_max',14,202,23/
+   data cmaqspec(1),gipds1(1),gipds2(1),gipds27(1)/'O3_1h_max',14,200,23/
+   data cmaqspec(2),gipds1(2),gipds2(2),gipds27(2)/'O3_8h_max',14,201,23/
+   data cmaqspec(3),gipds1(3),gipds2(3),gipds27(3)/'pm25_24h_ave',13,193,23/
+   data cmaqspec(4),gipds1(4),gipds2(4),gipds27(4)/'pm25_1h_max',14,202,23/
 
-    data varlist/ncmaq*'     '/
+   data varlist/ncmaq*'     '/
 
-    namelist /control/varlist,outfile,id_gribdomain
+   namelist /control/varlist,outfile,id_gribdomain
 
-    open(7,file='bias_cor_max.ini')
-    read(7,control)
-    close(7)
+   open(7,file='bias_cor_max.ini')
+   read(7,control)
+   close(7)
 
 !--- cmaq species
 
-    do L=1,ncmaq
-     if(varlist(L).ne.'    ') then
+   do L=1,ncmaq
+      if(varlist(L).ne.'    ') then
 
-       do L2=1,ncmaq
-         if(varlist(L).eq.cmaqspec(L2)) exit
-       enddo
-       if(L2.gt.ncmaq) then
-        print*,'wrong varlist ', varlist(L)
-        stop
-       endif
-        indexcmaq(L)=L2
+         do L2=1,ncmaq
+            if(varlist(L).eq.cmaqspec(L2)) exit
+         enddo
+         if(L2.gt.ncmaq) then
+            print*,'wrong varlist ', varlist(L)
+            stop
+         endif
+         indexcmaq(L)=L2
       else
-        exit
+         exit
       endif
-     enddo
+   enddo
 
-    nspcmaq=L-1
+   nspcmaq=L-1
 
-    if(nspcmaq.lt.1) then
+   if(nspcmaq.lt.1) then
       print*,'no CMAQ species provided'
 !       stop
-    endif
-
-
+   endif
 
 !jp   character*1,allocatable :: cgrib1(:),cgrib2(:)
 
@@ -191,9 +189,9 @@ program aqm_post_maxi_bias_cor_grib2
 ! Read 4-D file variable.  Use generic Netcdf reader.
 ! Input array is auto-allocated.
    if ( varlist(1) .eq. 'O3_1h_max' .or.  varlist(1) .eq. 'O3_8h_max' ) then
-     write(varname,'(a2)')'O3'
+      write(varname,'(a2)')'O3'
    elseif ( varlist(1) .eq. 'pm25_24h_ave' .or. varlist(1) .eq. 'pm25_1h_max' ) then
-     write(varname,'(a4)')'pm25'
+      write(varname,'(a4)')'pm25'
    endif
 
    if (diag >= 3) print *
@@ -207,11 +205,11 @@ program aqm_post_maxi_bias_cor_grib2
    call read_netcdf_var (infile1, varname, diag, indata1, status)
 
    if ( icyc .eq. 6 ) then
-    call read_netcdf_var (infile2, varname, diag, indata2, status)
+      call read_netcdf_var (infile2, varname, diag, indata2, status)
    endif
    if ( icyc .eq. 12 ) then
-    call read_netcdf_var (infile2, varname, diag, indata2, status)
-    call read_netcdf_var (infile3, varname, diag, indata3, status)
+      call read_netcdf_var (infile2, varname, diag, indata2, status)
+      call read_netcdf_var (infile3, varname, diag, indata3, status)
    endif
     
 
@@ -225,8 +223,8 @@ program aqm_post_maxi_bias_cor_grib2
 ! This check is needed to prevent crash, in addition to the check inside
 ! read_netcdf_var, in case the very first file is invalid.
 
-   dims_in4   = shape (indata1)			! get dims of input array
-   dims_in3   = dims_in4( (/ 1,2,4 /) )		! omit vestigial LAY dimension
+   dims_in4   = shape (indata1)              ! get dims of input array
+   dims_in3   = dims_in4( (/ 1,2,4 /) )      ! omit vestigial LAY dimension
 
    imax       = dims_in4(1)
    jmax       = dims_in4(2)
@@ -237,7 +235,7 @@ program aqm_post_maxi_bias_cor_grib2
 ! Omit the vestigial LAY dimension.
 ! Round from double to single precision, using default rounding mode.
 
-   nhours = size (indata1, 4)
+   nhours  = size (indata1, 4)
    nhours8 = nhours - 7
 
    allocate (bc_data(imax,jmax))
@@ -288,14 +286,14 @@ program aqm_post_maxi_bias_cor_grib2
 !
 !-- set file unit
 
-      ifilw1=51
-      write(grib_id,'(i3.3)')id_gribdomain
-      call baopen(ifilw1,trim(outfile)//'.'//grib_id//&
+   ifilw1=51
+   write(grib_id,'(i3.3)')id_gribdomain
+   call baopen(ifilw1,trim(outfile)//'.'//grib_id//&
              '.grib2',ierr)
-      if(ierr.ne.0) then
-       print*,'can not open ',trim(outfile)
-       stop 2001
-      endif
+   if(ierr.ne.0) then
+      print*,'can not open ',trim(outfile)
+      stop 2001
+   endif
 
 !
 !-- ------------------------------------------------------
@@ -311,11 +309,11 @@ program aqm_post_maxi_bias_cor_grib2
 !    enddo
 !   endif
 
-     base_year=iyear
-     listsec1(6)=iyear    ! Reference time - Year (4 digits)
-     listsec1(7)=imonth      ! Reference time - Month
-     listsec1(8)=iday      ! Reference time - Day
-     listsec1(9)=icyc      ! Reference time - Hour
+   base_year=iyear
+   listsec1(6)=iyear     ! Reference time - Year (4 digits)
+   listsec1(7)=imonth    ! Reference time - Month
+   listsec1(8)=iday      ! Reference time - Day
+   listsec1(9)=icyc      ! Reference time - Hour
      
    total_day=nhours/24
    do mday = 1, total_day 
@@ -340,327 +338,334 @@ program aqm_post_maxi_bias_cor_grib2
 !         maxval (o3)
 !    end if
 
-    if (diag >= 3) print *, 'read_gridded_aqm: Return.'
+      if (diag >= 3) print *, 'read_gridded_aqm: Return.'
 
 !-----------------------------------------------------------------------
 
-     nowtime=(ihour+1)*10000
+      nowtime=(ihour+1)*10000
 !      do nt=1,nhours
 
-     GRID=148
-    if(GRID.eq.148) then   !For HRRR grid
-       im=442
-       jm=265
+      GRID=148
+      if(GRID.eq.148) then   !For HRRR grid
+         im=442
+         jm=265
          jf=im*jm
-    else
-       call makgds(GRID, kgdss, gdss, lengds, ier)
-       im=kgdss(2)
-       jm=kgdss(3)
-       jf=kgdss(2)*kgdss(3)
-    end if
+      else
+         call makgds(GRID, kgdss, gdss, lengds, ier)
+         im=kgdss(2)
+         jm=kgdss(3)
+         jf=kgdss(2)*kgdss(3)
+      end if
 !
-    cgrib1=''
-    cgrib2=''
+      cgrib1=''
+      cgrib2=''
 
 !-----Grib2 file header information
 !-- section 0:
-     listsec0(1)=0       ! Discipline: table 0.0
-     listsec0(2)=2       ! grib edition number
+      listsec0(1)=0       ! Discipline: table 0.0
+      listsec0(2)=2       ! grib edition number
 !
 !-- section 1:
-     listsec1(1)=7       ! Identification of orginating center (Table0)(7:ncep)
-     listsec1(2)=0       ! Identification of orginating subcenter(ON388-TableC) (4:emc)
-     listsec1(3)=2       ! GRIB master tables version number (Table 1.0)(11:May 2013 version)
-     listsec1(4)=1       ! Version number of GRIB local tables used to augment Master Tables (Table 1.1)
-     listsec1(5)=1       ! Significance of reference time (Table 1.2) (0:ana 1:fcst 2:vrfy)
+      listsec1(1)=7       ! Identification of orginating center (Table0)(7:ncep)
+      listsec1(2)=0       ! Identification of orginating subcenter(ON388-TableC) (4:emc)
+      listsec1(3)=2       ! GRIB master tables version number (Table 1.0)(11:May 2013 version)
+      listsec1(4)=1       ! Version number of GRIB local tables used to augment Master Tables (Table 1.1)
+      listsec1(5)=1       ! Significance of reference time (Table 1.2) (0:ana 1:fcst 2:vrfy)
 ! following need to be changed !
 !    listsec1(6)=iyear    ! Reference time - Year (4 digits)
-!    listsec1(7)=imonth      ! Reference time - Month
-!    listsec1(8)=iday      ! Reference time - Day
-!    listsec1(9)=icyc      ! Reference time - Hour
+!    listsec1(7)=imonth   ! Reference time - Month
+!    listsec1(8)=iday     ! Reference time - Day
+!    listsec1(9)=icyc     ! Reference time - Hour
 !    listsec1(9)=INT(nowtime/10000)      ! Reference time - Hour
-     listsec1(10)=0     ! Reference time - Minute
-     listsec1(11)=0     ! Reference time - Second
-     listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
-     listsec1(13)=1      ! Type of processed data (Table 1.4) (0:ana products 1:fcst products 2:ana & fcst 3: cntl fcst)
+      listsec1(10)=0      ! Reference time - Minute
+      listsec1(11)=0      ! Reference time - Second
+      listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
+      listsec1(13)=1      ! Type of processed data (Table 1.4) (0:ana products 1:fcst products 2:ana & fcst 3: cntl fcst)
 
 !     call gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
 !     call gribcreate(cgrib2,max_bytes,listsec0,listsec1,ierr)
 !
 !-- section 3: grid definition section
-     igds(1)=0           ! Source of grid definition (Table 3.0) (0:specified in the code)
-     igds(2)=nx*ny       ! Number of grid points in the defined grid
-     igds(3)=0           ! Number of octets for optional list of numbers defining number of points
-     igds(4)=0           ! Interpretation of list of numbers defining number of points
+      igds(1)=0           ! Source of grid definition (Table 3.0) (0:specified in the code)
+      igds(2)=nx*ny       ! Number of grid points in the defined grid
+      igds(3)=0           ! Number of octets for optional list of numbers defining number of points
+      igds(4)=0           ! Interpretation of list of numbers defining number of points
 !-- example: Gaussian Lat/lon
-     igds(5)=30          ! Grid definition template number (Table 3.1) (0:Lat/lon, 30:Lambert 40:Gaussian)
-   if( igds(5)==30) then
-     igdstmpllen=22
-     igdstmpl=0
+      igds(5)=30          ! Grid definition template number (Table 3.1) (0:Lat/lon, 30:Lambert 40:Gaussian)
+      if( igds(5)==30) then
+         igdstmpllen=22
+         igdstmpl=0
 !
 !-- set up grid definition template 3.30
-     igdstmpl=0
-     igdstmpl(1)=6       ! Shape of the Earth (Table 3.2) (6:Shape of the Earth = 6,371,229.0 m)
-     igdstmpl(8)=nx      ! Ni . number of points along a paralell
-     igdstmpl(9)=ny      ! Nj . number of points along a meridian
-     igdstmpl(10)=21821000      ! Basic angle of the initial production domain
-     igdstmpl(11)=239372000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
+         igdstmpl=0
+         igdstmpl(1)=6       ! Shape of the Earth (Table 3.2) (6:Shape of the Earth = 6,371,229.0 m)
+         igdstmpl(8)=nx           ! Ni . number of points along a paralell
+         igdstmpl(9)=ny           ! Nj . number of points along a meridian
+         igdstmpl(10)=21821000    ! Basic angle of the initial production domain
+         igdstmpl(11)=239372000   ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
 !jp     latstt=56
-     latstt=8
-     lonstt=33000000
-     latlst=-88541961
-     lonlst=358125000
-     dxval=1875000
-     igdstmpl(12)=latstt ! La1 - latitude of first grid point
-     igdstmpl(13)=lonstt ! Lo1 - longitude of first grid point
-     igdstmpl(14)=263000000
-     igdstmpl(15)=12000000
-     igdstmpl(16)=12000000
-     igdstmpl(17)=0
-     igdstmpl(18)=64
-     igdstmpl(19)=33000000
-     igdstmpl(20)=45000000
-     igdstmpl(21)=0
-     igdstmpl(22)=0
-    endif
-     defnum=1             ! Used if igds(3) .ne. 0. The number of entries in array ideflist
-     ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
+         latstt=8
+         lonstt=33000000
+         latlst=-88541961
+         lonlst=358125000
+         dxval=1875000
+         igdstmpl(12)=latstt      ! La1 - latitude of first grid point
+         igdstmpl(13)=lonstt      ! Lo1 - longitude of first grid point
+         igdstmpl(14)=263000000
+         igdstmpl(15)=12000000
+         igdstmpl(16)=12000000
+         igdstmpl(17)=0
+         igdstmpl(18)=64
+         igdstmpl(19)=33000000
+         igdstmpl(20)=45000000
+         igdstmpl(21)=0
+         igdstmpl(22)=0
+      endif
+      defnum=1              ! Used if igds(3) .ne. 0. The number of entries in array ideflist
+      ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
 !     call addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
 !
 !-- section 4: product definition section
-     ipdstmpl=0
-     ipdsnum=8             ! Product Definition Template Number (Table 4.0) (0:Analysis or forecast at a horizontal level or in a horizontal layer at a point in time)
-     ipdstmpllen=29        ! pdt template length
-!    ipdstmpl(1)=13        ! catogory
-!    ipdstmpl(2)=193       ! parameter
-     ipdstmpl(3)=2         ! Type of generating process (Table 4.3) (0:ana, 1:ic, 2:fcst)
-     ipdstmpl(4)=0         ! Background generating process identifier
-     ipdstmpl(5)=211        ! Analysis or forecast generating process identified (ON388TableA)
-     ipdstmpl(6)=0         ! Hours of observational data cutoff after reference time
-     ipdstmpl(7)=0         ! Minutes of observational data cutoff after reference time
-     ipdstmpl(8)=1         ! Indicator of unit of time range (Table 4.4) (0:minute, 1:hour 2:day)
+      ipdstmpl=0
+      ipdsnum=8             ! Product Definition Template Number (Table 4.0) (0:Analysis or forecast at a horizontal level or in a horizontal layer at a point in time)
+      ipdstmpllen=29        ! pdt template length
+!    ipdstmpl(1)=13          ! catogory
+!    ipdstmpl(2)=193         ! parameter
+      ipdstmpl(3)=2         ! Type of generating process (Table 4.3) (0:ana, 1:ic, 2:fcst)
+      ipdstmpl(4)=0         ! Background generating process identifier
+      ipdstmpl(5)=211       ! Analysis or forecast generating process identified (ON388TableA)
+      ipdstmpl(6)=0         ! Hours of observational data cutoff after reference time
+      ipdstmpl(7)=0         ! Minutes of observational data cutoff after reference time
+      ipdstmpl(8)=1         ! Indicator of unit of time range (Table 4.4) (0:minute, 1:hour 2:day)
 !    ipdstmpl(9)=(5-icyc)+(mday-1)*24         ! Forecast time in units defined by ipdstmpl(8)
-     ipdstmpl(10)=104      ! Type of first fixed surface (see Code table 4.5)(100:isobaric leve)
-     ipdstmpl(11)=4        ! Scale factor of first fixed surface
-     ipdstmpl(12)=10000    ! Scaled value of first fixed surface
-     ipdstmpl(13)=255      ! Type of first second surface (see Code table 4.5) (100:isobaric level)
-     ipdstmpl(14)=0        ! Scale factor of second fixed surface
-     ipdstmpl(15)=0        ! Scaled value of second fixed surface
-!    ipdstmpl(16)=iyear    !  Year
-!    ipdstmpl(17)=imonth   !  Month
-!    ipdstmpl(18)=iday+mday     !  Date
-     ipdstmpl(19)=4        !  Forecast hour
-     ipdstmpl(20)=0        !
-     ipdstmpl(21)=0        !
-     ipdstmpl(22)=1        !
-     ipdstmpl(23)=0        !
-     ipdstmpl(24)=0        !
-     ipdstmpl(25)=2        !
-     ipdstmpl(26)=1        !
-     ipdstmpl(27)=23        !
-     ipdstmpl(28)=255      !
-     ipdstmpl(29)=0        !
+      ipdstmpl(10)=104      ! Type of first fixed surface (see Code table 4.5)(100:isobaric leve)
+      ipdstmpl(11)=4        ! Scale factor of first fixed surface
+      ipdstmpl(12)=10000    ! Scaled value of first fixed surface
+      ipdstmpl(13)=255      ! Type of first second surface (see Code table 4.5) (100:isobaric level)
+      ipdstmpl(14)=0        ! Scale factor of second fixed surface
+      ipdstmpl(15)=0        ! Scaled value of second fixed surface
+!    ipdstmpl(16)=iyear      !  Year
+!    ipdstmpl(17)=imonth     !  Month
+!    ipdstmpl(18)=iday+mday  !  Date
+      ipdstmpl(19)=4        !  Forecast hour
+      ipdstmpl(20)=0        !
+      ipdstmpl(21)=0        !
+      ipdstmpl(22)=1        !
+      ipdstmpl(23)=0        !
+      ipdstmpl(24)=0        !
+      ipdstmpl(25)=2        !
+      ipdstmpl(26)=1        !
+      ipdstmpl(27)=23       !
+      ipdstmpl(28)=255      !
+      ipdstmpl(29)=0        !
 
 !
-     numcoord=0            ! Number of coordinate values after template
-     coordlist=0.          ! Optional list of coordinate values
+      numcoord=0            ! Number of coordinate values after template
+      coordlist=0.          ! Optional list of coordinate values
 !
 !-- section 5: Data Representation Section
-     idrstmpl=0
-     idrsnum=3             ! Data representation section template number (Table5.0) (3:Grid Point Data - Complex Packing and Spatial Differencing)
-     idrstmpllen=18        ! Length of Data representation section
-!    idrstmpl(2)=0         ! Binary scale factor
-     idrstmpl(3)=3         ! Decimal scale factor
-!    idrstmpl(4)=15        ! Decimal scale factor
-     idrstmpl(5)=0         !
-     idrstmpl(6)=1         !
-     idrstmpl(7)=1         ! Missing value management used (see Code Table 5.5)
-     idrstmpl(8)=0         ! Primary missing value substitute
-     idrstmpl(9)=0         ! Secondary missing value substitute
-     idrstmpl(11)=0        !
-     idrstmpl(12)=5        !
-     idrstmpl(13)=1        !
-     idrstmpl(14)=1        !
-!     idrstmpl(15)=255       !
-     idrstmpl(16)=5        !
-     idrstmpl(17)=2
-     idrstmpl(18)=2
+      idrstmpl=0
+      idrsnum=3             ! Data representation section template number (Table5.0) (3:Grid Point Data - Complex Packing and Spatial Differencing)
+      idrstmpllen=18        ! Length of Data representation section
+!    idrstmpl(2)=0           ! Binary scale factor
+      idrstmpl(3)=3         ! Decimal scale factor
+!    idrstmpl(4)=15          ! Decimal scale factor
+      idrstmpl(5)=0         !
+      idrstmpl(6)=1         !
+      idrstmpl(7)=1         ! Missing value management used (see Code Table 5.5)
+      idrstmpl(8)=0         ! Primary missing value substitute
+      idrstmpl(9)=0         ! Secondary missing value substitute
+      idrstmpl(11)=0        !
+      idrstmpl(12)=5        !
+      idrstmpl(13)=1        !
+      idrstmpl(14)=1        !
+!      idrstmpl(15)=255      !
+      idrstmpl(16)=5        !
+      idrstmpl(17)=2
+      idrstmpl(18)=2
 !
 !-- section 6:
-     ibmap=255             ! Bit-map indicator (Table 6.0) (0:A bit map applies, 255:A bit map does not apply)
+      ibmap=255             ! Bit-map indicator (Table 6.0) (0:A bit map applies, 255:A bit map does not apply)
 
-    do L = 1, nspcmaq
+      do L = 1, nspcmaq
 
-       call gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
-
-       call addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
+         call gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
+         call addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,ideflist,idefnum,ierr)
 
 !  calculaet 8hr_ave o3
 
-    if ( varlist(L) .eq. 'O3_8h_max' ) then
-     do nt=1,nhours-7
-      do i=1,imax
-       do j=1,jmax
-          o3_8h_ave(i,j,nt)=sum(bc_op(i,j,nt:nt+7))/8       ! 8hr running ave
-       enddo
-      enddo
-     enddo
-    endif
+         if ( varlist(L) .eq. 'O3_8h_max' ) then
+            do nt=1,nhours-7
+               do i=1,imax
+                  do j=1,jmax
+                     o3_8h_ave(i,j,nt)=sum(bc_op(i,j,nt:nt+7))/8       ! 8hr running ave
+                  enddo
+               enddo
+            enddo
+         endif
 
-    if ( varlist(L) .eq. 'O3_1h_max' ) then
-     do i = 1, imax
-      do j = 1, jmax
-         o3_1h_max(i,j,mday) = maxval(bc_op(i,j,(mday-1)*24+1:mday*24))  ! daily 8hr_ave max
-      enddo
-      enddo
-    endif
+         if ( varlist(L) .eq. 'O3_1h_max' ) then
+            do i = 1, imax
+               do j = 1, jmax
+                  o3_1h_max(i,j,mday) = maxval(bc_op(i,j,(mday-1)*24+1:mday*24))  ! daily 8hr_ave max
+               enddo
+            enddo
+         endif
 
-    if ( varlist(L) .eq. 'O3_8h_max' ) then   ! day 1 to total_day-1 has full 24 o3_8h_ave available
+         if ( varlist(L) .eq. 'O3_8h_max' ) then   ! day 1 to total_day-1 has full 24 o3_8h_ave available
                                               ! last day only has 17 o3_8h_ave available (nhour-24:nhour-7)
-       do i = 1, imax
-          do j = 1, jmax
-             if ( mday .eq. total_day ) then
-                o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday-1)*24+17))  ! last day using remaining 17 o3_8h_ave
-             else
-                o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday)*24)) ! &2 8hr_max has full 24 o3_8h_ave
-             endif
-          enddo
-        enddo
-    elseif ( varlist(L) .eq. 'pm25_24h_ave' ) then
-     do i = 1, imax
-       do j = 1, jmax
-         pm25_24h_ave(i,j,mday) = sum(bc_op(i,j,(mday-1)*24+1:mday*24))/24.
-         pm25_1h_max(i,j,mday) = maxval(bc_op(i,j,(mday-1)*24+1:mday*24))  ! daily 8hr_ave max
-       enddo
-      enddo
-    endif
+            do i = 1, imax
+               do j = 1, jmax
+                  if ( mday .eq. total_day ) then
+                     o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday-1)*24+17))  ! last day using remaining 17 o3_8h_ave
+                  else
+                     o3_8h_max(i,j,mday) = maxval(o3_8h_ave(i,j,(mday-1)*24+1:(mday)*24)) ! &2 8hr_max has full 24 o3_8h_ave
+                  endif
+               enddo
+            enddo
+         elseif ( varlist(L) .eq. 'pm25_24h_ave' ) then
+            do i = 1, imax
+               do j = 1, jmax
+                  pm25_24h_ave(i,j,mday) = sum(bc_op(i,j,(mday-1)*24+1:mday*24))/24.
+                  pm25_1h_max(i,j,mday) = maxval(bc_op(i,j,(mday-1)*24+1:mday*24))  ! daily 8hr_ave max
+               enddo
+            enddo
+         endif
 
-     if ( varlist(L) .eq. 'O3_1h_max' ) then
-      do j=1,ny
-       do i=1,nx
-          fld1(i+(j-1)*nx)=o3_1h_max(i,j,mday) *1000.  ! ppmv -> ppbv
-       enddo
-      enddo
-     endif 
+         if ( varlist(L) .eq. 'O3_1h_max' ) then
+            do j=1,ny
+               do i=1,nx
+                  fld1(i+(j-1)*nx)=o3_1h_max(i,j,mday) *1000.  ! ppmv -> ppbv
+               enddo
+            enddo
+         endif 
 
-     if ( varlist(L) .eq. 'O3_8h_max' ) then
-      do j=1,ny
-       do i=1,nx
-          fld1(i+(j-1)*nx)=o3_8h_max(i,j,mday) *1000.  ! ppmv -> ppbv
-       enddo
-      enddo
-     endif
+         if ( varlist(L) .eq. 'O3_8h_max' ) then
+            do j=1,ny
+               do i=1,nx
+                  fld1(i+(j-1)*nx)=o3_8h_max(i,j,mday) *1000.  ! ppmv -> ppbv
+               enddo
+            enddo
+         endif
 
-     if ( varlist(L) .eq. 'pm25_24h_ave' ) then
-      do j=1,ny
-       do i=1,nx
-         fld1(i+(j-1)*nx)=pm25_24h_ave(i,j,mday) 
-       enddo
-      enddo
-     endif
+         if ( varlist(L) .eq. 'pm25_24h_ave' ) then
+            do j=1,ny
+               do i=1,nx
+                 fld1(i+(j-1)*nx)=pm25_24h_ave(i,j,mday) 
+               enddo
+            enddo
+         endif
 
-     if ( varlist(L) .eq. 'pm25_1h_max' ) then
-       do j=1,ny
-        do i=1,nx
-         fld1(i+(j-1)*nx)=pm25_1h_max(i,j,mday)
-        enddo
-       enddo
-     endif
+         if ( varlist(L) .eq. 'pm25_1h_max' ) then
+            do j=1,ny
+               do i=1,nx
+                  fld1(i+(j-1)*nx)=pm25_1h_max(i,j,mday)
+               enddo
+            enddo
+         endif
 
-     ipdstmpl(1)=gipds1(indexcmaq(L))
-     ipdstmpl(2)=gipds2(indexcmaq(L))
-     if (mday .eq. total_day .and. varlist(L).eq.'O3_8h_max' .and. icyc .eq. 6) then
-      ipdstmpl(27)=18
-     else
-      ipdstmpl(27)=gipds27(indexcmaq(L))
-     endif
-     ipdstmpl(24)=0       ! 
-     if ( varlist(L).eq.'O3_8h_max') then
+         !! Max 1-hr
+         !! ipdstmpl(9)                 is the starting hour time range
+         !! Min(ipdstmpl(9)+23, nhours) is the end hour of time range
+         !!
+         !! Max 8-hr
+         !! nowtime8                is the starting hour time range
+         !! nowtime8 + ipdstmpl(27) is the end hour of time range
+         ipdstmpl(1)=gipds1(indexcmaq(L))
+         ipdstmpl(2)=gipds2(indexcmaq(L))
+         if (mday .eq. total_day .and. varlist(L).eq.'O3_8h_max' .and. icyc .eq. 6) then
+            ipdstmpl(27)=18
+         else
+            ipdstmpl(27)=gipds27(indexcmaq(L))
+         endif
+
+         ipdstmpl(24)=0       ! 
+         if ( varlist(L).eq.'O3_8h_max') then
         !! Ho-Chun Huang nowtime8=11-icyc+(mday-1)*24 
-        nowtime8=12-icyc+(mday-1)*24 !! change to be consistent ot raw post
-        ipdstmpl(19)=markutc+8-1+(mday-1)*24
-        if ( mday .eq. total_day .and. icyc .eq. 6 ) then
-           ipdstmpl(19)=11-5
-        else
-           ipdstmpl(19)=11   ! used to be 12
-        end if
-print *,"=====================TESTING TESTING ================================"
-print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
-print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
-print *,"=====================TESTING TESTING ================================"
-     elseif ( varlist(L).eq.'O3_1h_max') then
-        nowtime8=5-icyc+(mday-1)*24
-!jp        ipdstmpl(19)=markutc-1
-        ipdstmpl(19)=markutc
-     else
-        nowtime8=5-icyc+(mday-1)*24
-        ipdstmpl(19)=markutc-1
-!jp        ipdstmpl(19)=markutc
-     endif
+            nowtime8=12-icyc+(mday-1)*24 !! change to be consistent ot raw post
+            ipdstmpl(19)=markutc+8-1+(mday-1)*24
+            if ( mday .eq. total_day .and. icyc .eq. 6 ) then
+               ipdstmpl(19)=11-5
+            else
+               ipdstmpl(19)=11   ! used to be 12
+            end if
+!! print *,"=====================TESTING TESTING ================================"
+!! print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
+!! print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
+!! print *,"=====================TESTING TESTING ================================"
+         elseif ( varlist(L).eq.'O3_1h_max') then
+            nowtime8=5-icyc+(mday-1)*24
+!jp         ipdstmpl(19)=markutc-1
+            ipdstmpl(19)=markutc
+         else
+            nowtime8=5-icyc+(mday-1)*24
+            ipdstmpl(19)=markutc-1
+!jp         ipdstmpl(19)=markutc
+         endif
 
-     ipdstmpl(9)= nowtime8
-     if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. total_day ) then
-       ipdstmpl(19)=icyc
-print *,"=====================TESTING TESTING ================================"
-print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
-print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
-print *,"=====================TESTING TESTING ================================"
-     endif
+         ipdstmpl(9)= nowtime8
+         if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. total_day ) then
+            ipdstmpl(19)=icyc
+!! print *,"=====================TESTING TESTING ================================"
+!! print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
+!! print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
+!! print *,"=====================TESTING TESTING ================================"
+         endif
 
 !jp0
-     nowdate9=date_index(iyear, imonth, iday, base_year, calendar)
-     call next_time(nowdate9,nowtime,240000)
-     call index_to_date(nowdate9,iyear9, imonth9, iday9, base_year, calendar)
+         nowdate9=date_index(iyear, imonth, iday, base_year, calendar)
+         call next_time(nowdate9,nowtime,240000)
+         call index_to_date(nowdate9,iyear9, imonth9, iday9, base_year, calendar)
 
-     ipdstmpl(16)=iyear9                       ! Year
-     ipdstmpl(17)=imonth9                      !  Month
-     ipdstmpl(18)=iday9
+         ipdstmpl(16)=iyear9                       ! Year
+         ipdstmpl(17)=imonth9                      !  Month
+         ipdstmpl(18)=iday9
 !jp9
 
 
 ! below is used for get bits for grib2
-      if (maxval(fld1)==minval(fld1))then
-         idrsnum=0
-          print*,' changing to simple packing for constant fields'
-       end if
-       ibmap1=255
-       bmap1=.true.
-       if(any(fld1>=SPVAL))then
-         ibmap1=0
-         where(abs(fld1)>=SPVAL)bmap1=.false.
-       endif
+         if (maxval(fld1)==minval(fld1))then
+            idrsnum=0
+            print*,' changing to simple packing for constant fields'
+         end if
+         ibmap1=255
+         bmap1=.true.
+         if(any(fld1>=SPVAL))then
+            ibmap1=0
+            where(abs(fld1)>=SPVAL)bmap1=.false.
+         endif
 
-       fldscl=5.0
+         fldscl=5.0
 
-       call g2getbits(ibmap1,fldscl,size(fld1),bmap1,fld1,ibin_scl,idec_scl,inumbits)
+         call g2getbits(ibmap1,fldscl,size(fld1),bmap1,fld1,ibin_scl,idec_scl,inumbits)
 
-       idrstmpl(2)=ibin_scl   !
-       idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
-       idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
+         idrstmpl(2)=ibin_scl   !
+         idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
+         idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
 
-      call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
-                          coordlist,numcoord,idrsnum,idrstmpl, &
-                          idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
-      call gribend(cgrib1,max_bytes,lengrib,ierr)
+         call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, &
+                              coordlist,numcoord,idrsnum,idrstmpl, &
+                              idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
+         call gribend(cgrib1,max_bytes,lengrib,ierr)
 
-      call wryte(ifilw1, lengrib, cgrib1)
+         call wryte(ifilw1, lengrib, cgrib1)
 
-    end do  ! L loop
+      end do  ! L loop %Varlist% 
 
-     nowdate=date_index(iyear, imonth, iday, base_year, calendar)
+      nowdate=date_index(iyear, imonth, iday, base_year, calendar)
 
-     print*,"hjp991,iday=",iday
+      print*,"hjp991,iday=",iday
 
-     call next_time(nowdate,nowtime,240000)
-     call index_to_date(nowdate,iyear, imonth, iday, base_year, calendar)
+      call next_time(nowdate,nowtime,240000)
+      call index_to_date(nowdate,iyear, imonth, iday, base_year, calendar)
     
-     print*,"hjp992,iday=",iday
+      print*,"hjp992,iday=",iday
 
-     end do   ! mday loop
+   end do   ! mday loop
      
-     print*,"it is done ! jphuang" 
+   print*,"it is done ! jphuang" 
          
-     end program aqm_post_maxi_bias_cor_grib2 
+end program aqm_post_maxi_bias_cor_grib2 
 
 !-----------------------------------------------------------------------
        subroutine g2getbits(ibm,scl,len,bmap,g,ibs,ids,nbits)

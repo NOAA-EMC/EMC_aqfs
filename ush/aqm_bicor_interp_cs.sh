@@ -19,7 +19,7 @@ mkdir -p data/coords site-lists
 mkdir -p out/ozone/$Yr
 
 #===================================================`
-ln -s $PARMaqm/sites.valid.ozone.20170531.06z.list  $DATA/site-lists
+ln -s $PARMaqm/sites.valid.ozone.20190815.06z.list  $DATA/site-lists
 ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data/coords
 ln -s $PARMaqm/aqm_config.interp.ozone.0707.8-vars  $DATA
 ln -s ${COMINbicor}   $DATA/data

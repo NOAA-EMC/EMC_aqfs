@@ -67,7 +67,7 @@ then
     done
 fi
 
-if [ "$envir" = "para5" ] ; then
+if [ "$envir" = "para13" ] ; then
 
 if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then
  cp $DATA/aqm.t${cyc}z.pm25*bc*.grib2 $COMOUT_grib/${RUN}.$PDY
