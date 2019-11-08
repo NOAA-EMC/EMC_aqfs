@@ -53,7 +53,7 @@ export pgmout=OUTPUT.$$
 env
 
 if [ "${FCST}" = "YES" ]; then
-# aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
+ aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
 
 # $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
 #  export  err=$?; err_chk
