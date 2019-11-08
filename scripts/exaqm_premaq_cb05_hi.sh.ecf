@@ -405,7 +405,7 @@ done
 export IOAPI_CHECK_HEADERS=F
 export EXECUTION_ID=PREMAQ
 export NOTCDF_FATAL=F
-export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.nmmb.ncf
+export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.fv3.ncf
 if [[ $MKGRID = "T" ]]; then
   export GRID_BDY_2D_G1=$DATA/GRIDBDY2D
   export GRID_BDY_3D_G1=$DATA/GRIDBDY3D
@@ -426,7 +426,7 @@ export MET_DOT_3D_G1=$DATA/METDOT3D
 #---------------------------------------------------------------------
 export LANDA_G1=$FIXaqm/aqm_LANDA_${OUTGRID}_new.ncf
 if [[ $MKBC = "T" ]]; then
-export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.nmmb.ncf
+export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.fv3.ncf
 fi
 
 #---------------------------------------------------------------------

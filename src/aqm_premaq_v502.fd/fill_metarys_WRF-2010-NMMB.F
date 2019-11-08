@@ -731,6 +731,7 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
            pdbot(:,:) = scr2d(:,:)
            got_pd  = .TRUE.
         ELSE
+          write(6,*)'error get PD/PDTOP. lvl2,neta1,nmlays,kpds71,kpds72=',lvl2,neta1,nmlays,kpds71,kpds72
            GOTO 8100
         ENDIF
      ENDIF
@@ -787,6 +788,7 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
       GOTO 1001
 
  8100 WRITE (6,9100) iparm, ktype, lvl1
+      write(6,*)'itabe,ztype,jdisc,lvl2=',itabe,ztype,jdisc,lvl2
       GOTO 1001
 
  8200 WRITE (6,9200) iparm, ktype, lvl1
