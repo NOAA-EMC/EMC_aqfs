@@ -10,7 +10,7 @@ cyc=00
 
 #cycledate=${1:-$nowdate}$cyc
 cycledate=${1:-$PDY}$cyc
-
+RUN=${RUN:-aqm}
 cyear=`echo $cycledate | cut -c1-4`
 cmonth=`echo $cycledate | cut -c5-6`
 cdate=`echo $cycledate | cut -c7-8`
@@ -73,18 +73,27 @@ Species converting Factor
 
 EOF
 
-export TOPO=$FIXaqm/aqm.grdcro2d_new.ncf
-if [ -s $COMIN/aqm.t${cyc}z.metcro3d.ncf ] ; 
-then
+if [ -s $COMIN/aqm.t${cyc}z.metcro3d.ncf ] ; then
  export METEO3D=$COMIN/aqm.t${cyc}z.metcro3d.ncf
+ export TOPO=$COMIN/aqm.t${cyc}z.grdcro2d.ncf
 else
  export METEO3D=$COMINm1/aqm.t12z.metcro3d.ncf
+ export TOPO=$COMINm1/aqm.t12z.grdcro2d.ncf
 fi
-export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 
-
-#export BND2=$outdir/aqm_conus_geos_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
-export BND2=$outdir/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
+if [ $RUN = 'aqm' ]; then
+ export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
+ export BND2=$outdir/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
+elif [ $RUN = 'HI' ]; then
+ export BND1=$FIXaqm/HI_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.fv3.ncf
+ export BND2=$outdir/aqm_HI_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+elif [ $RUN = 'AK' ]; then
+ export BND1=$FIXaqm/aqm_AK_cb05_ae4_mean_${cmonth}.35L.ncf
+ export BND2=$outdir/aqm_AK_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+else
+ echo " unknown domain $RUN "
+ exit 1
+fi
 #export CHECK2D=$outdir/check_ngac_dust_${cyear}${cmonth}${cdate}_35L.ncf
 export CHECK2D=$outdir/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 

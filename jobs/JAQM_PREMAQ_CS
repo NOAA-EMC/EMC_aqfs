@@ -60,7 +60,7 @@ aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
 # if [ $cycle = "t06z" ] ; then
  if [ $cycle = "t00z" ] ; then
 #  aprun -n 1 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-  aprun -n 1 $USHaqm/aqm_fv3chem_conus_L35.sh $PDY
+  aprun -n 1 $USHaqm/aqm_fv3chem_L35.sh $PDY
   err=$?; err_chk
  fi
 fi

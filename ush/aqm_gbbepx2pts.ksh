@@ -34,7 +34,7 @@ elif [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDY.nc ]; then
  COMIN9=$COMIN
  emisfile=GBBEPx_all01GRID.emissions_v003_$PDY.nc
  FIREDATE=$PDY 
- else [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm1.nc ] 
+elif [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm1.nc ]; then 
  COMIN9=$COMIN
  emisfile=GBBEPx_all01GRID.emissions_v003_$PDYm1.nc
  FIREDATE=$PDYm1
@@ -53,7 +53,7 @@ tdiurnal=0.03033772, 0.03033772, 0.03033772, 0.03033772, 0.03033772,
        0.05724098, 0.07441328, 0.09158558, 0.09730967, 0.06868918,
        0.04006869, 0.03434459, 0.03033772, 0.03033772, 0.03033772,
        0.03033772, 0.03033772, 0.03033772, 0.03033772 
-dfrac=1.00,0.25,0.25
+dfrac=0.25,0.25,0.25
 emname='CO','NO','NO2','SO2','NH3','PEC','POC','PMOTHR','PNO3','PSO4',
 'PAL','PCA','PCL','PFE','PK','PMG','PMN','PNA','PNCOM','PNH4','PSI','PTI'
 /
@@ -78,15 +78,30 @@ Species Converting Factor
 !
 
 export IOAPI_ISPH=19
-export GRID_NAME=AQF_CONUS
-export GRIDDESC=$COMIN/aqm_griddesc05
-export TOPO=$FIXaqm/aqm_gridcro2d.landfac.5x.ncf
 
-# output
-#export STACK_GROUP=$COMIN/stack_groups_ptfire_${PDY}.5x.ncf
-#export PTFIRE=$COMIN/inln_mole_ptfire_${PDY}.5x.ncf
-export STACK_GROUP=aqm.$cycle.fire_location_cs.ncf
-export PTFIRE=aqm.$cycle.fire_emi_cs.ncf
+if [ $RUN = 'aqm' ]; then
+ export GRIDDESC=$PARMaqm/aqm_griddesc05
+ export GRID_NAME=AQF_CONUS
+ export TOPO=$FIXaqm/aqm_gridcro2d.landfac.5x.ncf
+ DD='cs'
+elif [ $RUN = 'HI' ]; then
+ export GRIDDESC=$PARMaqm/aqm_griddescHI
+ export GRID_NAME=AQF_HI
+ export TOPO=$FIXaqm/aqm_gridcro2d.landfac.HI.ncf
+ DD=$RUN
+elif [ $RUN = 'AK' ]; then
+ export GRIDDESC=$PARMaqm/aqm_griddescAK
+ export GRID_NAME=AQF_AK
+ export TOPO=$FIXaqm/aqm_gridcro2d.landfac.AK.ncf
+ DD=$RUN
+else
+ echo " unknown domain $RUN "
+ exit 1
+fi 
+ 
+ 
+export STACK_GROUP=aqm.$cycle.fire_location_$DD.ncf
+export PTFIRE=aqm.$cycle.fire_emi_$DD.ncf
 
 startmsg
 $EXECaqm/aqm_gbbepx2pts
@@ -109,8 +124,8 @@ if [ -s $PTFIRE -a -s $STACK_GROUP ]; then
 #  mv $DATA/aqm*fire*ncf $CHK_DIR
   cp -rp $DATA/aqm*fire*ncf $CHK_DIR
  else
-  mv $DATA/aqm.$cycle.fire_location_cs.ncf $CHK_DIR/aqm.$cycle.fire_location_cs_r.ncf
-  mv $DATA/aqm.$cycle.fire_emi_cs.ncf $CHK_DIR/aqm.$cycle.fire_emi_cs_r.ncf
+  mv $DATA/aqm.$cycle.fire_location_cs.ncf $CHK_DIR/aqm.$cycle.fire_location_${DD}_r.ncf
+  mv $DATA/aqm.$cycle.fire_emi_cs.ncf $CHK_DIR/aqm.$cycle.fire_emi_${DD}_r.ncf
  fi
 
 else

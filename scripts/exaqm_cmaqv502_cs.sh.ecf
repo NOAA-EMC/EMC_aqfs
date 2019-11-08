@@ -314,7 +314,8 @@ fi
 
 ## fire emission
 if [ "$FCST" = "YES" ]; then
- if [ $cyc -eq 00 ]; then FIRE_DIR=$COMINm1
+ if [ $cyc -eq 00 ]; then 
+  FIRE_DIR=$COMINm1
   FIRE_SUFFIX=t12z
 #  FIRE_SUFFIX=t06z
  else
@@ -554,7 +555,7 @@ then
  mv $DATA/SOILOUT.${CTM_APPL}  $COMOUT/aqm.${cycle}.soil06.ncf
  mv $DATA/CTM_DUST_EMIS_1 $COMOUT/aqm.${cycle}.dustemis.ncf
  if [ -s $DATA/CTM_PT3D_DIAG ]; then
-  mv $DATA/CTM_PT3D_DIAG $COMOUT/aqm.${cycle}.pt3d_diag.ncf
+  mv $DATA/CTM_PT3D_DIAG $COMOUT/aqm.${cycle}.fireemis_diag.ncf
  fi 
 fi
 if [ "$SENDCOM" = 'YES' ] && [ "${FCST}" = "NO" ]
@@ -571,7 +572,7 @@ then
  mv $DATA/SOILOUT.${CTM_APPL}  $COMOUTm1/aqm.${cycle}.soil06_r.ncf
  mv $DATA/CTM_DUST_EMIS_1 $COMOUTm1/aqm.${cycle}.dustemis_r.ncf
  if [ -s $DATA/CTM_PT3D_DIAG ]; then
-  mv $DATA/CTM_PT3D_DIAG $COMOUTm1/aqm.${cycle}.pt3d_diag_r.ncf
+  mv $DATA/CTM_PT3D_DIAG $COMOUTm1/aqm.${cycle}.fireemis_diag_r.ncf
  fi 
 
 fi
