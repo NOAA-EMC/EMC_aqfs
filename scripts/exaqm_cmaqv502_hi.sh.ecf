@@ -449,7 +449,7 @@ if [ -s $COMIN/aqm_HI_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
 elif [ -s $COMINm1/aqm_HI_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then  
  export BNDY_GASC_1=$COMINm1/aqm_HI_geos_fv3chem_aero_${PDYm1}_35L.ncf
 else
- export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.nmmb.ncf
+ export BNDY_GASC_1=$FIXaqm/HI_80X52_mean_2002${SMM}_GEOSCHEM-35L-tracer.fv3.ncf
 fi
 
 export BNDY_AERO_1=$BNDY_GASC_1
