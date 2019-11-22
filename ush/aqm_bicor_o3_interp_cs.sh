@@ -7,6 +7,7 @@
 #
 # Author:  Jianping Huang  07-10-2015 
 #
+# H.-C. Huang  Nov 22 2019   Use new site list sites.valid.ozone.20190815.06z.list
 ######################################################################
 set -xa
 

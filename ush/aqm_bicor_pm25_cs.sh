@@ -7,6 +7,7 @@
 #
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #
+# H.-C. Huang  Nov 22 2019   Use new site list sites.valid.pm25.20190815.06z.list
 ######################################################################
 set -xa
 

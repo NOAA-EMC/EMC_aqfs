@@ -61,12 +61,7 @@ else
  mkdir -p $COMOUTbicor/grid/$PDY
 fi
 
-if [ -e $f1 ]; then
  cp $DATA/$f1 $COMOUTbicor/grid/$PDY
-else
-   echo "can not find $DATA/$f1"
-   exit 
-fi
 ##  cp $DATA/$f2 $COMOUTbicor/grid/$PDY
  cp $DATA/$f3 $COMOUTbicor/grid/$PDY
 ##  cp $DATA/$f4 $COMOUTbicor/grid/$PDY
