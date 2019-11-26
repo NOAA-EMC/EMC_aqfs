@@ -176,7 +176,7 @@ forecast start day for weight generation = 31
 
 * Last forecast hour to calculate test forecasts for weight generation.
 
-last forecast hour for weight generation = 48
+last forecast hour for weight generation = 72
 
 *-------------------------------------------------
 * Debug and diagnostic settings.

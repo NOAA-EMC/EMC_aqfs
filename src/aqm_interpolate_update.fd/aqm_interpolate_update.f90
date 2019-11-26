@@ -145,7 +145,7 @@ program interpolate_update
 
    print*,"hjp999,cycle_time=",cycle_time 
    if ( cycle_time .eq. 6 .or. cycle_time .eq. 12 ) then
-     nhours = 48 
+     nhours = 72 
    else
      nhours  = 6
    endif

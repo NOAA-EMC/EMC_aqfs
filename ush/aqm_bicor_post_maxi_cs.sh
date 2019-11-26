@@ -25,6 +25,7 @@ ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc  a.nc
 #export CMAQBCFILE1=$COMIN/pm2.5.corrected.${PDY}.${cyc}z.nc
 
 export chk=1 
+export chk1=1 
 # today 00z file exists otherwise chk=0
 
 cat >bias_cor_max.ini <<EOF1
@@ -45,13 +46,19 @@ if [ $cyc =  '06' ]; then
 fi
 
 if [ $cyc = '12' ] ; then
- if [ -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc ]; then 
-  ln -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc  b.nc
- else
-  ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
-  chk=0
- fi
-  ln -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc  c.nc
+   if [ -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc ]; then
+      ln -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc  b.nc
+   else
+      ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
+      chk=0
+   fi
+##   ln -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc  c.nc
+   if [ -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc ]; then
+      ln -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc  c.nc
+   else
+      ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  c.nc
+      chk1=0
+   fi
 fi
 #-------------------------------------------------
 
@@ -59,7 +66,7 @@ fi
 #-------------------------------------------------
 rm -rf errfile
 startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} $cyc $chk 
+$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} ${cyc} ${chk} ${chk1}
 export err=$?;err_chk
 
 
@@ -68,7 +75,7 @@ export err=$?;err_chk
 $WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PMTF"   | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 
 $WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PDMAX1" | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2 
 
-if qm.t${cyc}z.grib2_pm25_bc.227 $COMOUT/[ "$envir" = "para5" ] ; then
+if [ "$envir" = "para13" ] ; then
   cp $DATA/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2  $COMOUT_grib/${RUN}.$PDY/
   cp $DATA/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2   $COMOUT_grib/${RUN}.$PDY/
 fi

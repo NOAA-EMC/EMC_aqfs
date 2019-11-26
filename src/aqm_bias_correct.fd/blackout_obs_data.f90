@@ -6,6 +6,8 @@
 ! system for CMAQ forecast outputs.
 !
 ! 2017-jun-05	Original version.  By Dave Allured, NOAA/OAR/ESRL/PSD/CIRES.
+! 2019-jul-05	Bug fix.  Fix handling of blackout intervals that overlap
+!		  ends of the available obs time range.
 !
 ! This routine sets all obs input data to missing values, within
 ! the specified problematic time interval, such as around the
@@ -59,7 +61,7 @@ subroutine blackout_obs_data (obs, vmiss, obs_start_date, obs_end_date, &
    integer mon_end, day_end, hour_end
    integer year1, month1, day1
    integer year2, month2, day2
-   integer year, ntimes, ti1, ti2, ind1, ind2
+   integer year, ntimes, ti1, ti2, ti1a, ti2a, ind1, ind2
    integer time_dim, nsites_valid, nmiss
 
    real (dp) vmin, vmax, percent_miss
@@ -107,6 +109,7 @@ subroutine blackout_obs_data (obs, vmiss, obs_start_date, obs_end_date, &
       ind2 = date_index (year, mon_end,   day_end,   base_year, calendar)
 
 ! Get obs time indices for hours to black out.
+! Get the virtual window within the current year.
 
       ti1 = 24 * (ind1 - obs_start_date) + hour_start
       ti2 = 24 * (ind2 - obs_start_date) + hour_end
@@ -126,17 +129,26 @@ subroutine blackout_obs_data (obs, vmiss, obs_start_date, obs_end_date, &
          call exit (1)
       end if
 
-! If within obs time range, set blackout times to missing values.
+! Constrain the virtual time window to the available obs time range.
 
-      if ( (ti1 <= ntimes) .and. (ti2 >= 1) ) then
+      ti1a = max (ti1, 1)
+      ti2a = min (ti2, ntimes)
+
+! If the actual constrained window is within available obs time range,
+! set obs within actual window to missing values.
+
+      if (ti1a <= ti2a) then	   ! window is zero or negative if out of range
          if (diag >= 2) then
             fmt1 = "(3x, a, i4, 2('-',i2.2), i3.2, a, i4, 2('-',i2.2), i3.2," &
                // " a, i0, a, i0)"
             print fmt1, 'Set obs to missing: ', year, mon_start, day_start, &
                hour_start, 'Z to ', year, mon_end, day_end, hour_end, &
-               'Z, time indices ', ti1, '-', ti2
+               'Z, time indices ', ti1, ' to ', ti2
+            if ( (ti1 /= ti1a) .or. (ti2 /= ti2a) ) &
+               print '(8x,3(a,i0))', '(Constrained to available obs time' &
+                  // ' range, actual time indices ', ti1a, ' to ', ti2a, ')'
          end if
-         obs (ti1:ti2,:) = vmiss
+         obs (ti1a:ti2a,:) = vmiss
          changed = .true.
       end if
 
