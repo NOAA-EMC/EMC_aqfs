@@ -7,6 +7,9 @@
 !            2) calculate daily max and daily averaged PM2.5 
 !            3) calculate daily 8hr_ave max PM2.5
 !
+!  Ho-Chun Huang     Oct 23 2019   eplace hardwire day2 to total_day
+!  Ho-Chun Huang     NOV 26 2019   Update ipdstmpl(19) to be consistent with raw model for 
+!                                  max_1hr_o3 and max_8hr_o3
 !------------------------------------------------------------------------------
 program aqm_post_maxi_bias_cor_grib2 
 
@@ -595,8 +598,10 @@ program aqm_post_maxi_bias_cor_grib2
 !! print *,"=====================TESTING TESTING ================================"
          elseif ( varlist(L).eq.'O3_1h_max') then
             nowtime8=5-icyc+(mday-1)*24
+!! Ho-Chun Huang Nov 26 2019, Jainping's PARA13 code use markutc-1
 !jp         ipdstmpl(19)=markutc-1
-            ipdstmpl(19)=markutc
+!hc            ipdstmpl(19)=markutc
+            ipdstmpl(19)=markutc-1
          else
             nowtime8=5-icyc+(mday-1)*24
             ipdstmpl(19)=markutc-1
@@ -604,13 +609,14 @@ program aqm_post_maxi_bias_cor_grib2
          endif
 
          ipdstmpl(9)= nowtime8
-         if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. total_day ) then
-            ipdstmpl(19)=icyc
+!! Ho-Chun Huang Nov 26 2019, Jainping's PARA13 code comment out this section
+!!         if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. total_day ) then
+!!          ipdstmpl(19)=icyc
 !! print *,"=====================TESTING TESTING ================================"
 !! print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
 !! print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
 !! print *,"=====================TESTING TESTING ================================"
-         endif
+!!       endif
 
 !jp0
          nowdate9=date_index(iyear, imonth, iday, base_year, calendar)
