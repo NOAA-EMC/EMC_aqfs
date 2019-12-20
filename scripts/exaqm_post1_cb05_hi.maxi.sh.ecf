@@ -102,6 +102,8 @@ export err=$?;err_chk
 $WGRIB2 aqm-pm25_24hr.196.grib2 |grep "PMTF"   | $WGRIB2 -i aqm-pm25_24hr.196.grib2 -grib aqm.${cycle}.24hrpm25-ave.196.grib2
 export err=$?;err_chk
 
+if [ "1" = "2" ] ; then
+ 
 for hr in 1 8
 do
 
@@ -192,6 +194,7 @@ ${TOCGRIB2SUPER} < $PARMaqm/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.196
           fi
        fi
 
+fi
 #done
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
@@ -210,3 +213,4 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
   $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.${cycle}.ave_24hr_pm25.196.grib2
  fi
 fi
+

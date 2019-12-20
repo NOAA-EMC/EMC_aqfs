@@ -1,6 +1,6 @@
 #!/bin/ksh
 
-set -ax 
+#set -ax 
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
  export  hr_list1="00"
@@ -50,7 +50,8 @@ export infile=$COMINfv3/gfs.t${cyc}z.master.grb2f0${fhr}
 
 $WGRIB2 $infile | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $infile > ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB2 inputs_${fhr}.grib -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv inputs_${fhr}.grib.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
-$WGRIB2 inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
+#$WGRIB2 inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
+$WGRIB2 inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type s -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
     -new_grid_interpolation bilinear -if ":(WEASD|APCP|NCPCP|ACPCP|SNOD):" -new_grid_interpolation budget -fi \
     -if ":(TMP:surface|VEG|CCOND|SFEXC|PRES:tropopause|LAI|HPBL|HGT:planetary boundary layer):" -new_grid_interpolation neighbor -fi \
     -new_grid ${gridspecs_140} aqm.t${cyc}z.nmm${fhr}.tm00.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile

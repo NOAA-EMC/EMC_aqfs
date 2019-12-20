@@ -337,7 +337,8 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
            ncpcp(:,:) = scr2d(:,:)
            ncpcp(:,:) = ncpcp(:,:) * 0.1   ! convert from mm to cm
            scr2d(:,:) = ncpcp(:,:)
-           IF ( (ipcp.eq.1).or.( sum(scr2d).lt.sum(rnold))) THEN
+!jp           IF ( (ipcp.eq.1).or.( sum(scr2d).lt.sum(rnold))) THEN
+           IF ( ipcp.eq.1 ) THEN
               ncpcp = MAX(0.0,  ncpcp)     ! accum bucket just emptied
            ELSE
               ncpcp = MAX(0.0, (ncpcp-rnold)) ! incremental total
@@ -354,7 +355,8 @@ SUBROUTINE fill_metarys (jdisc,itabe,iparm,ktype,ztype,lvl1,lvl2,ipcp)
            acpcp(:,:) = scr2d(:,:)
            acpcp(:,:) = acpcp(:,:) * 0.1   ! convert from mm to cm
            scr2d(:,:) = acpcp(:,:)
-           IF (( ipcp.eq.1).or.(sum(scr2d).lt.sum(rcold)) ) THEN
+!jp           IF (( ipcp.eq.1).or.(sum(scr2d).lt.sum(rcold)) ) THEN
+           IF ( ipcp.eq.1 ) THEN
               acpcp = MAX(0.0,  acpcp)     ! accum bucket just emptied
            ELSE
               acpcp = MAX(0.0, (acpcp-rcold)) ! incremental total

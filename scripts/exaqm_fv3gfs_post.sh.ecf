@@ -34,10 +34,10 @@ cd $DATA
 msg="HAS BEGUN on `hostname`"
 postmsg "$jlogfile" "$msg"
 
-export POSTGPSH=${POSTGPSH:-$USHgfs/gfs_nceppost.sh}
+export POSTGPSH=${POSTGPSH:-$USHgfs/aqm_gfs_nceppost.sh}
 export GFSDOWNSH=${GFSDOWNSH:-$USHgfs/fv3gfs_downstream_nems.sh}
 export GFSDWNSH=${GFSDWNSH:-$USHgfs/fv3gfs_dwn_nems.sh}
-export TRIMRH=${TRIMRH:-$USHgfs/trim_rh.sh}
+export TRIMRH=${TRIMRH:-$USHgfs/aqm_trim_rh.sh}
 
 ############################################################
 #  Define Variables:

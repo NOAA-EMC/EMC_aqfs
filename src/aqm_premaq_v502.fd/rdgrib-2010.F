@@ -296,7 +296,8 @@ SUBROUTINE rdgrib (iunit, gribflnm, iuniti, gribflnmi, ivar,  hdate)
 
 !    IF ( ( ksec1(16) == 4 ) .AND. ( ksec1(15) - ksec1(14) == 1 ) ) THEN
     IF ( gfld%ipdtnum == 8 ) THEN
-      IF (( gfld%ipdtmpl(27) - gfld%ipdtmpl(9) == 1 ) ) THEN    
+!jp      IF (( gfld%ipdtmpl(27) - gfld%ipdtmpl(9) == 1 ) ) THEN    
+      IF (( gfld%ipdtmpl(27) == 1 ) ) THEN    
        ipcp = 1  ! accumulated precip is 1-h total...don't subtract prev hr
       ELSE
        ipcp = 0
