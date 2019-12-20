@@ -79,7 +79,7 @@ Species Converting Factor
 
 export IOAPI_ISPH=19
 export GRID_NAME=AQF_CONUS
-export GRIDDESC=$COMIN/aqm_griddesc05
+export GRIDDESC=$COMINm1/aqm_griddesc05
 export TOPO=$FIXaqm/aqm_gridcro2d.landfac.5x.ncf
 
 # output

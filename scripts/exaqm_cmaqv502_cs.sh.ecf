@@ -457,7 +457,7 @@ else
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ] ; then
-  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf
+  export BNDY_GASC_1=$FIXaqm/aqm_conus_12km_geos_2006${SMM}_static_gfs_35L.ncf
 fi
 
 export   BNDY_AERO_1=$BNDY_GASC_1

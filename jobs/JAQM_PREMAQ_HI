@@ -53,20 +53,19 @@ export pgmout=OUTPUT.$$
 env
 
 if [ "${FCST}" = "YES" ]; then
-aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
-  export  err=$?; err_chk
-# if [ $cycle = "t06z" ] ; then
-## if [ $cycle = "t12z" ] ; then 
-##  aprun -n 1 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-##  err=$?; err_chk
-## fi
+ aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
+
+# $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
+#  export  err=$?; err_chk
+
+ if [ $cycle = "t00z" ] ; then
+# if [ $cycle = "t12z" ] ; then   # LBC
+  $USHaqm/aqm_fv3chem_L35.sh
+  err=$?; err_chk
+ fi
 fi
 
-#if [ $cycle = "t06z" ] && [ "${FCST}" = "NO" ] ; then
-##if [ $cycle = "t12z" ] && [ "${FCST}" = "NO" ] ; then
-## aprun -n 1 $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
-## export err=$?; err_chk
-##fi
+$USHaqm/aqm_gbbepx2pts.ksh
 
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
