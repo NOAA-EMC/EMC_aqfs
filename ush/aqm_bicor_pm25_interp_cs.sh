@@ -7,6 +7,7 @@
 #
 # Author:  Jianping Huang  07-10-2015 
 #
+# H.-C. Huang  Nov 22 2019   Use new site list sites.valid.pm25.20190815.06z.list
 ######################################################################
 set -xa
 
@@ -20,7 +21,7 @@ mkdir -p out/pm25/$Yr
 
 #===================================================`
 #ln -s $PARMaqm/sites.valid.pm25.20170531.06z.list  $DATA/site-lists
-ln -s $PARMaqm/aqm_sites.valid.pm25.20170818.06z.list  $DATA/site-lists/sites.valid.pm25.20170818.06z.list
+ln -s $PARMaqm/aqm_sites.valid.pm25.20190815.06z.list  $DATA/site-lists/sites.valid.pm25.20190815.06z.list
 ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data/coords
 ln -s $PARMaqm/aqm_config.interp.pm25.0707.9-vars  $DATA
 ln -s ${COMINbicor}   $DATA/data

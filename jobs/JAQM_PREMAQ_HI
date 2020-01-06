@@ -52,20 +52,20 @@ export pgmout=OUTPUT.$$
  
 env
 
-if [ "${FCST}" = "YES" ]; then
+#if [ "${FCST}" = "YES" ]; then
  aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
 
 # $HOMEaqm/scripts/exaqm_premaq_cb05_hi.sh.ecf
 #  export  err=$?; err_chk
 
- if [ $cycle = "t00z" ] ; then
+# if [ $cycle = "t00z" ] ; then
 # if [ $cycle = "t12z" ] ; then   # LBC
-  $USHaqm/aqm_fv3chem_L35.sh
-  err=$?; err_chk
- fi
-fi
+#  $USHaqm/aqm_fv3chem_L35.sh
+#  err=$?; err_chk
+# fi
+#fi
 
-$USHaqm/aqm_gbbepx2pts.ksh
+#$USHaqm/aqm_gbbepx2pts.ksh
 
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"

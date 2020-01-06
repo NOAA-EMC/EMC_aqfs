@@ -3,7 +3,7 @@
 #  UNIX Script Documentation Block
 #                      .
 # Script name:         aqm_bicor_pm25_cs.sh 
-# Script description:  is usd to do bias correctio for PM2.5 
+# Script description:  is used to do bias correctio for PM2.5 
 #
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #
@@ -11,8 +11,8 @@
 set -xa
 
 export OMP_STACKSIZE=58000000
-export OMP_NUM_THREADS=16
-export MKL_NUM_THREADS=16
+export OMP_NUM_THREADS=24
+export MKL_NUM_THREADS=24
 export KMP_AFFINITY=disabled
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
@@ -35,11 +35,11 @@ ln -s $PARMaqm/aqm.*grdcro2d.ncf  data/coords/
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
-aprun -n 1 -d 16 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.8pred.equal-weights  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.8pred.equal-weights  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 
-if [ "${envir}" = 'para5' ] ; 
+if [ "${envir}" = 'para13' ] ; 
 then
  cp $DATA/out/ozone.corrected*  ${COMOUT_grib} 
 fi
