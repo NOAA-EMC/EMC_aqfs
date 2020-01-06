@@ -24,9 +24,10 @@
 * In template specifications, codes YYYY, MM, DD, and HH will be
 * replaced with date and time info.
 *
+* H.-C. Huang  Nov 22 2019   Use new site list sites.valid.pm25.20190815.06z.list
 *--------------------------------------------------------------------------
 
-station file         = site-lists/sites.valid.pm25.20170818.06z.list
+station file         = site-lists/sites.valid.pm25.20190815.06z.list
 grid coordinate file = data/coords/aqm.t12z.grdcro2d.ncf
 interp file template = out/pm25/YYYY/forecasts.interp.YYYYMMDD.HHz.nc
 

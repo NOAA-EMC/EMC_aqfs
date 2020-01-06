@@ -8,6 +8,10 @@
 # Author:  Jianping Huang 06/29/2015 
 #  8/14/2017
 #
+#
+# H.-C. Huang  Oct 21 2019   Remove the lines of Spec_humid.${cycle}.ncf and UV_wind.${cycle}.ncf
+#                            Per email instruction of Dave Allure ESRL/GSD on October 21 2019
+#
 ######################################################################
 set -xa
 
@@ -39,8 +43,7 @@ cd $DATA
  fi
 
 #------------------------------------------------------
-if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]
-then
+if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
  echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
 else
  startmsg
@@ -48,19 +51,20 @@ else
  export err=$?; err_chk
 
  f1=aqm.${cycle}.O3_pm25.ncf
- f2=Spec_humid.${cycle}.ncf
+##  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
- f4=UV_wind.${cycle}.ncf
+##  f4=UV_wind.${cycle}.ncf
  
 if [ -e $COMOUTbicor/grid/$PDY ] ; then
  echo " $COMOUTbicor/grid/$PDY exits "
 else
  mkdir -p $COMOUTbicor/grid/$PDY
 fi
+
  cp $DATA/$f1 $COMOUTbicor/grid/$PDY
- cp $DATA/$f2 $COMOUTbicor/grid/$PDY
+##  cp $DATA/$f2 $COMOUTbicor/grid/$PDY
  cp $DATA/$f3 $COMOUTbicor/grid/$PDY
- cp $DATA/$f4 $COMOUTbicor/grid/$PDY
+##  cp $DATA/$f4 $COMOUTbicor/grid/$PDY
 
 fi
 
@@ -99,8 +103,8 @@ export fhr=01
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=48;;
- 12) endfhr=48;;
+ 06) endfhr=72;;
+ 12) endfhr=72;;
  18) endfhr=06;;
 esac
 
@@ -159,7 +163,7 @@ if [ "$SENDDBN" = 'YES' ] ; then
   fi
 fi
 
-if [ "${envir}" = 'para5' ] ;
+if [ "${envir}" = 'para13' ] ;
 then
   echo "copying to developer's personal directory"
  if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then

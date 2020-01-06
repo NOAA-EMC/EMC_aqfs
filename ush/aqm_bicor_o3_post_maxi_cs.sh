@@ -24,6 +24,7 @@ fi
 ln -s $COMOUT/ozone.corrected.${PDY}.${cyc}z.nc  a.nc 
 
 export chk=1 
+export chk1=1 
 # today 00z file exists otherwise chk=0
 
 cat >bias_cor_max.ini <<EOF1
@@ -37,22 +38,28 @@ EOF1
 #outfile='aqm.${cycle}.max_o3_bc'
 
 if [ $cyc =  '06' ]; then
- if [ -s $COMOUT/ozone.corrected.${PDY}.00z.nc ]; then
-   ln -s  $COMOUT/ozone.corrected.${PDY}.00z.nc  b.nc 
- else 
-   ln -s $COMOUTm1/ozone.corrected.${PDYm1}.12z.nc  b.nc
-   chk=0
- fi
+   if [ -s $COMOUT/ozone.corrected.${PDY}.00z.nc ]; then
+      ln -s  $COMOUT/ozone.corrected.${PDY}.00z.nc  b.nc
+   else
+      ln -s $COMOUTm1/ozone.corrected.${PDYm1}.12z.nc  b.nc
+      chk=0
+   fi
 fi
 
 if [ $cyc = '12' ] ; then
- if [ -s $COMOUT/ozone.corrected.${PDY}.00z.nc ]; then 
-  ln -s $COMOUT/ozone.corrected.${PDY}.00z.nc  b.nc
- else
-  ln -s $COMOUTm1/ozone.corrected.${PDYm1}.12z.nc  b.nc
-  chk=0
- fi
-  ln -s $COMOUT/ozone.corrected.${PDY}.06z.nc  c.nc
+   if [ -s $COMOUT/ozone.corrected.${PDY}.00z.nc ]; then
+      ln -s $COMOUT/ozone.corrected.${PDY}.00z.nc  b.nc
+   else
+      ln -s $COMOUTm1/ozone.corrected.${PDYm1}.12z.nc  b.nc
+      chk=0
+   fi
+##   ln -s $COMOUT/ozone.corrected.${PDY}.06z.nc  c.nc
+   if [ -s $COMOUT/ozone.corrected.${PDY}.06z.nc ]; then
+      ln -s $COMOUT/ozone.corrected.${PDY}.06z.nc  c.nc
+   else
+      ln -s $COMOUTm1/ozone.corrected.${PDYm1}.12z.nc  c.nc
+      chk1=0
+   fi
 fi
 #-------------------------------------------------
 
@@ -60,7 +67,7 @@ fi
 #-------------------------------------------------
 rm -rf errfile
 startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} $cyc $chk 
+$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} ${cyc} ${chk} ${chk1}
 export err=$?;err_chk
 
 # split into max_1h and max_8h files and copy to grib227
@@ -75,7 +82,7 @@ $COPYGB2  -g "$grid227" -x  -i"1 1"  aqm.${cycle}.max_8hr_o3_bc.148.grib2 aqm.${
 
 #==========
 #if [ "${envir}" = "para" .or. "${envir}" = "para5" ] ;
-if [ "${envir}" = "para5" ] ;
+if [ "${envir}" = "para13" ] ;
 then
   echo "copying to developer's personal directory"
  if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then
