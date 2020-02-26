@@ -605,6 +605,15 @@ export err=$?;err_chk
 let "soilhr=soilhr-1"
 typeset -Z2 soilhr
 
+## SNOWCOVER ADJUST
+cp -p $OUTFILE $COMOUT/aqm.${cycle}.emission_0.ncf
+mv $DATA/chkreads.log $DATA/chkreads-0.log
+export EMIS3D=$OUTFILE
+export METC2D=$MET_CRO_2D_G1
+
+$EXECaqm/aqm_snowdust_2016
+export err=$?;err_chk
+
 if [ "$SENDCOM" = 'YES' ]; then
     cp $DATA/aqm.${cycle}.nmm00.tm00 $COMOUT/aqm.${cycle}.nmm00.tm00
     cp $DATA/aqm.${cycle}.nmm06.tm00 $COMOUT/aqm.${cycle}.nmm06.tm00
