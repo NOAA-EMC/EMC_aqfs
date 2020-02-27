@@ -11,13 +11,13 @@ if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
  export  hr_list6="05"
  export  hr_list7="06"
 else
- export  hr_list1="00 07 14 21 28 35 42 49 56 63 70" 
- export  hr_list2="01 08 15 22 29 36 43 50 57 64 71"
- export  hr_list3="02 09 16 23 30 37 44 51 58 65 72"
- export  hr_list4="03 10 17 24 31 38 45 52 59 66" 
- export  hr_list5="04 11 18 25 32 39 46 53 60 67" 
- export  hr_list6="05 12 19 26 33 40 47 54 61 68" 
- export  hr_list7="06 13 20 27 34 41 48 55 62 69" 
+ export  hr_list1="00 07 14 21 28 35 42 " 
+ export  hr_list2="01 08 15 22 29 36 43 "
+ export  hr_list3="02 09 16 23 30 37 44 "
+ export  hr_list4="03 10 17 24 31 38 45 " 
+ export  hr_list5="04 11 18 25 32 39 46 " 
+ export  hr_list6="05 12 19 26 33 40 47 " 
+ export  hr_list7="06 13 20 27 34 41 48 " 
 fi
 
 export h_seg=$1
@@ -38,7 +38,7 @@ export pgm=aqm_nmm_prep
 export FORT21="$FIXaqm/aqm_grid138.txt"
 export gridspecs_138="lambert:263:33:45 236.718:468:12000 21.017:288:12000"
 
-export infile=$COMINfv3/gfs.t${cyc}z.master.grb2f0${fhr}
+export infile=$COMINfv3/fv3sar.t${cyc}z.conus.natlev.f${fhr}.grib2
 
 
 #$WGRIB2 $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $COMINnam/nam.t${cyc}z.bgrd3d${fhr}.tm00 > ${pgmout}.${fhr}.$h_seg 2>errfile
@@ -46,8 +46,8 @@ $WGRIB2 $infile | grep -F -f ${FORT21} | $WGRIB2 -i -grib inputs_${fhr}.grib $in
 $WGRIB2 inputs_${fhr}.grib -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv inputs_${fhr}.grib.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
 #$WGRIB inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type s -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
 $WGRIB2 inputs_${fhr}.grib.uv -set_bitmap 1 -set_grib_type c3 -new_grid_winds grid -new_grid_vectors "UGRD:VGRD:USTM:VSTM" \
-    -new_grid_interpolation bilinear -if ":(WEASD|APCP|NCPCP|ACPCP|SNOD):" -new_grid_interpolation budget -fi \
-    -if ":(TMP:surface|VEG|CCOND|SFEXC|PRES:tropopause|LAI|HPBL|HGT:planetary boundary layer):" -new_grid_interpolation neighbor -fi \
+    -new_grid_interpolation bilinear -if ":(WEASD|APCP|NCPCP|SNOD):" -new_grid_interpolation budget -fi \
+    -if ":(TMP:surface|VEG|SFEXC|PRES:tropopause|HPBL|HGT:planetary boundary layer):" -new_grid_interpolation neighbor -fi \
     -new_grid ${gridspecs_138} aqm.t${cyc}z.nmm${fhr}.tm00.uv >> ${pgmout}.${fhr}.$h_seg 2>errfile
 $WGRIB2 aqm.t${cyc}z.nmm${fhr}.tm00.uv -new_grid_vectors "UGRD:VGRD:USTM:VSTM" -submsg_uv aqm.t${cyc}z.nmm${fhr}.tm00 >> ${pgmout}.${fhr}.$h_seg 2>errfile
 

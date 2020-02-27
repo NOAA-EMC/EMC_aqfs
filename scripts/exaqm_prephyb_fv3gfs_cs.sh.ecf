@@ -16,6 +16,7 @@
 # 2013-05-03    Jianping Huang, modified for transition to WCOSS 
 #               use mpmd instead four J jobs
 # 2017-01-24    Jianping Huang rewrote for using on Cray 
+# 2020-02-25    Jianping Huang modfied for using fv3sar on Cray 
 ######################################################################
 set -x
 
@@ -26,12 +27,12 @@ export pgm=aqm_cs_pregen
 
 cd $DATA
 
-echo "Start of NMMB_prdgen Job"
+echo "Start of FV3SAR_prdgen Job"
 
 if [ ${cycle} = 't00z' -o ${cycle} = 't18z' ]; then
   hr_max=6
  else
-  hr_max=72
+  hr_max=48
  fi
 
 fhr9=0
@@ -45,9 +46,9 @@ do
   ic=0
   while [ $ic -lt 300 ]
   do
-    if [ -s $COMINfv3/gfs.${cycle}.master.grb2f0$fhr ]
+    if [ -s $COMINfv3/fv3sar.${cycle}.conus.natlev.f$fhr.grib2 ]
     then
-      echo  $COMINfv3/gfs.${cycle}.master.grb2f0$fhr "exists!"
+      echo  $COMINfv3/fv3sar.${cycle}.conus.natlev.f$fhr.grib2 "exists!"
       break
     else
       let "ic=ic+1"
@@ -56,7 +57,7 @@ do
 
     if [ $ic -ge 180 ]
     then
-      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINfv3/gfs.${cycle}.master.grb2f0$fhr"
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:$COMINfv3/fv3sar.${cycle}.conus.natlev.f$fhr.grib2"
     fi
   done
  let "fhr9=fhr9+1"
