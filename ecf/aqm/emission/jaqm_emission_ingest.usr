@@ -1,0 +1,184 @@
+%comment - ecf user variables
+COM = gpfs/hps/nco/ops/com
+COMPATH: = 
+DBNLOG: = 
+E = p
+ECF_LOGHOST = tecflow1
+ECF_VERSION = 4.7.1
+ENVIR = eval
+KEEPDATA:NO = NO
+MAILTO: = 
+PDY: = 
+PROJ = CMAQ
+PROJENVIR = T2O
+QUEUESERV = prod_transfer
+SENDDBN:YES = YES
+SENDDBN_NTC:YES = YES
+%end - ecf user variables
+#BSUB -J paqm_emission_ingest
+#BSUB -o /gpfs/hps/nco/ops/com/output/eval/today/aqm_emission_ingest.o%J
+#BSUB -e /gpfs/hps/nco/ops/com/output/eval/today/aqm_emission_ingest.o%J
+#BSUB -L /bin/sh
+#BSUB -q prod_transfer
+#BSUB -cwd /tmp
+#BSUB -W 02:30
+#BSUB -P CMAQ-T2O
+#BSUB -M 2500
+
+set -xe  # print commands as they are executed and enable signal trapping
+
+# Variables needed for communication with ecFlow
+export ECF_NAME=/para12/aqm/emission/jaqm_emission_ingest
+#export ECF_HOST=t10z1
+export ECF_HOST=tecflow1
+export ECF_PORT=31415
+export ECF_PASS=wbICKlVV
+export ECF_TRYNO=2
+export ECF_RID=$LSB_JOBID
+
+# Tell ecFlow we have started
+# POST_OUT variable enables LSF post_exec to communicate with ecFlow
+if [ -d /opt/modules ]; then
+    # WCOSS TO4 (Cray XC40)
+    . /opt/modules/default/init/sh
+    module load ecflow
+    POST_OUT=/gpfs/hps/tmpfs/ecflow/ecflow_post_in.$LSB_BATCH_JID
+elif [ -d /usrx/local/Modules ]; then
+    # WCOSS Phase 1 & 2 (IBM iDataPlex)
+    . /usrx/local/Modules/default/init/sh
+    module load ecflow
+    POST_OUT=/var/lsf/ecflow_post_in.$LSB_BATCH_JID
+else
+    # WCOSS Phase 3 (Dell PowerEdge)
+    . /usrx/local/prod/lmod/lmod/init/sh
+    module load ips/18.0.1.163 ecflow/4.7.1
+    POST_OUT=/var/lsf/ecflow_post_in.$USER.$LSB_BATCH_JID
+fi
+ecflow_client --init=${ECF_RID}
+
+cat > $POST_OUT <<ENDFILE
+ECF_NAME=${ECF_NAME}
+ECF_HOST=${ECF_HOST}
+ECF_PORT=${ECF_PORT}
+ECF_PASS=${ECF_PASS}
+ECF_TRYNO=${ECF_TRYNO}
+ECF_RID=${ECF_RID}
+ENDFILE
+
+# Define error handler
+ERROR() {
+  set +ex
+  if [ "$1" -eq 0 ]; then
+     msg="Killed by signal (likely via bkill)"
+  else
+     msg="Killed by signal $1"
+  fi
+  ecflow_client --abort="$msg"
+  echo $msg
+  echo "Trap Caught" >>$POST_OUT
+  trap $1; exit $1
+}
+# Trap all error and exit signals
+trap 'ERROR $?' ERR EXIT
+
+# envir-xc40.h
+export job=${job:-$LSB_JOBNAME} #Can't use $job in filenames!
+export jobid=${jobid:-$job.$LSB_JOBID}
+
+export RUN_ENVIR=${RUN_ENVIR:-nco}
+export envir=eval
+export SENDDBN=${SENDDBN:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-YES}
+
+module load prod_envir prod_util
+
+case $envir in
+  prod)
+    export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
+    export DATAROOT=${DATAROOT:-/gpfs/hps2/nco/ops/tmpnwprd}
+    if [ "$SENDDBN" == "YES" ]; then
+       export DBNROOT=/iodprod/dbnet_siphon  # previously set in .bash_profile
+    else
+       export DBNROOT=${UTILROOT}/fakedbn
+    fi
+    ;;
+  eval)
+    export envir=para
+    export jlogfile=${jlogfile:-${COMROOT}/logs/${envir}/jlogfile}
+    export DATAROOT=${DATAROOT:-/gpfs/hps2/nco/ops/tmpnwprd}
+    if [ "$SENDDBN" == "YES" ]; then
+       export DBNROOT=${UTILROOT}/para_dbn
+       SENDDBN_NTC=NO
+    else
+       export DBNROOT=${UTILROOT}/fakedbn
+    fi
+    ;;
+  para|test)
+    export jlogfile=${jlogfile:-${COMROOT}/logs/${envir}/jlogfile}
+    export DATAROOT=${DATAROOT:-/gpfs/hps2/nco/ops/tmpnwprd}
+    export DBNROOT=${UTILROOT}/fakedbn
+    ;;
+  *)
+    ecflow_client --abort="ENVIR must be prod, para, eval, or test [envir.h]"
+    exit
+    ;;
+esac
+
+export NWROOT=/gpfs/hps/nco/ops/nw${envir}
+export PCOMROOT=$PCOMROOT/${envir}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+export KEEPDATA=${KEEPDATA:-NO}
+
+if [ -n "" ]; then export PDY=${PDY:-}; fi
+if [ -n "" ]; then export COMPATH=${COMPATH:-}; fi
+if [ -n "" ]; then export MAILTO=${MAILTO:-}; fi
+if [ -n "" ]; then export DBNLOG=${DBNLOG:-}; fi
+
+# versions file for cmaq sets $cmaq_ver
+model=cmaq
+. ${NWROOT:?}/versions/${model:?}.ver
+eval export HOME${model}=${NWROOT}/${model}.\${${model}_ver:?}
+
+set -x
+
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#########################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#########################################
+export RUN_DAY=17
+
+${HOMEcmaq}/jobs/JAQM_EMISSION_INGEST
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+ecflow_client --complete  # Notify ecFlow of a normal end
+trap 0                    # Remove all traps
+exit 0                    # End the shell
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that copy the AQM emission 
+#  files from /dcom to /com and validate the file size
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

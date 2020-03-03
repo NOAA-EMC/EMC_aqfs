@@ -1,0 +1,93 @@
+#!/bin/ksh
+#
+. $MODULESHOME/init/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date -u
+
+############################################
+# Set up environment for AIR QUALITY FCST
+############################################
+export NET=aqm
+export RUN=aqm
+############################################
+
+export sendmail=${sendmail:-Y}
+
+#####################################
+export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
+mkdir -p $DATA
+cd $DATA
+
+####################################
+# File To Log Msgs
+####################################
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
+
+####################################
+# Determine Job Output Name on System
+####################################
+export pgmout="OUTPUT.$$"
+
+export cycle=${cycle:-t${cyc}z}
+
+export SENDCOM=${SENDCOM:-YES}
+
+####################################
+# Path to HOME Directory
+####################################
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+
+###################################
+# Set up the UTILITIES
+###################################
+#module load prod_util
+#module load grib_util
+
+# Run setup to initialize working directory and utility scripts
+msg="JOB $job HAS BEGUN"
+postmsg "$jlogfile" "$msg"
+
+# Run setpdy and initialize PDY variables
+export cycle=t12z
+setpdy.sh
+. PDY
+
+export RUN_DAY=${RUN_DAY:-16}
+
+export DCOMbase=${DCOMbase:-${DCOMROOT:?}/prod}
+export DCOMIN=${DCOMIN:-${DCOMbase}/aqm_emission}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}
+export COMOUThps=${COMOUThps:-/gpfs/hps/nco/ops/com/${NET}/${envir}/emission}
+env
+
+#############################################################
+# get the current day
+##############################################################
+current_day=`date +%d`
+echo " the current day= $current_day"
+
+#############################################################
+# execute the script
+#############################################################
+if (( ${current_day} == ${RUN_DAY} ))
+then
+   $HOMEaqm/scripts/exaqm_emission_ingest.sh.ecf
+fi
+
+#cat $pgmout
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+###################################
+# Remove temp directories
+###################################
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
+  rm -rf $DATA
+fi
+
+date

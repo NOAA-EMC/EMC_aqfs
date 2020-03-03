@@ -1,0 +1,59 @@
+#BSUB -J %E%aqm_forecast_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -q %QUEUE%
+#BSUB -M 3000
+#BSUB -cwd /tmp
+#BSUB -W 01:50
+#BSUB -P %PROJ%-%PROJENVIR%
+#BSUB -extsched 'CRAYLINUX[]'
+#
+%include <head.h>
+%include <envir-xc40.h>
+
+# versions file for cmaq sets $cmaq_ver
+model=cmaq
+%include <model_ver.h>
+
+set -x
+
+. /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel
+module load iobuf/${iobuf_ver}
+module list
+
+export NODES=24
+export IOBUF_PARAMS="12M:verbose"
+
+ulimit -s unlimited
+
+export cyc=%CYC%
+export FCST=YES
+
+${HOMEcmaq}/jobs/JAQM_FORECAST_CS
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

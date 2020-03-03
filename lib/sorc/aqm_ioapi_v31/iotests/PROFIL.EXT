@@ -1,0 +1,26 @@
+C.........................................................................
+C Version "@(#)$Header$"
+C EDSS/Models-3 M 3TESTS.  Copyright (C) 2002 MCNC
+C All Rights Reserved.
+C.........................................................................
+
+        INTEGER          , PARAMETER::  NLEVS = 200
+        INTEGER          , PARAMETER::  NSTNS = 400
+
+        INTEGER         STNCNT
+        INTEGER         IDLIST( NSTNS )
+        INTEGER         LVLCNT( NSTNS )
+        REAL             XLONS( NSTNS )
+        REAL             YLATS( NSTNS )
+        REAL             ELEVS( NSTNS )
+        REAL             VARS1( NLEVS, NSTNS )
+        REAL             VARS2( NLEVS, NSTNS )
+        REAL             VARS3( NLEVS, NSTNS )
+        REAL             VARS4( NLEVS, NSTNS )
+        REAL             VARS5( NLEVS, NSTNS )
+        
+        COMMON / BAR / STNCNT, IDLIST, LVLCNT, XLONS, YLATS, ELEVS,
+     &                 VARS1,  VARS2,  VARS3,  VARS4, VARS5
+
+C.........................................................................
+

@@ -1,0 +1,57 @@
+#BSUB -J %E%aqm_emission_ingest
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -L /bin/sh
+#BSUB -q %QUEUESERV%
+#BSUB -cwd /tmp
+#BSUB -W 02:30
+#BSUB -P %PROJ%-%PROJENVIR%
+#BSUB -M 2500
+
+%include <head.h>
+%include <envir-xc40.h>
+
+# versions file for cmaq sets $cmaq_ver
+model=cmaq
+%include <model_ver.h>
+
+set -x
+
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#########################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#########################################
+
+
+${HOMEcmaq}/jobs/JAQM_EMISSION_INGEST
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that copy the AQM emission 
+#  files from /dcom to /com and validate the file size
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

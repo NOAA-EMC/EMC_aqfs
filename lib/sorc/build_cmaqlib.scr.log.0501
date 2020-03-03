@@ -1,0 +1,371 @@
+ncep/1.0(21):ERROR:105: Unable to locate a modulefile for 'ugni'
+ncep/1.0(21):ERROR:105: Unable to locate a modulefile for 'xpmem'
+ncep/1.0(21):ERROR:105: Unable to locate a modulefile for 'dvs'
+ncep/1.0(21):ERROR:105: Unable to locate a modulefile for 'alps'
+Currently Loaded Modulefiles:
+ModuleCmd_List.c(146):FATAL:997: The environment variables LOADEDMODULES and _LMFILES_ have inconsistent lengths.
++ for src in ioapi_v31
++ model_ver=v5.1.4
++ export BASEDIR=/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31
++ BASEDIR=/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31
++ export BIN=Linux3_x86_64intel
++ BIN=Linux3_x86_64intel
++ export IOAPI_OFFSET_64=YES
++ IOAPI_OFFSET_64=YES
++ cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31
++ make configure
+(cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi   ;  sed -e 's|IOAPI_BASE|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31|' -e 's|LIBINSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|BININSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|IOAPI_DEFS||' -e 's|MAKEINCLUDE|include /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel|' -e 's|PVMINCLUDE|include  |' < Makefile.nocpl.sed > Makefile.nocpl ; cp  Makefile.nocpl Makefile )
+(cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/notcdf  ;  sed -e 's|IOAPI_BASE|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31|' -e 's|LIBINSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|BININSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|IOAPI_DEFS||' -e 's|MAKEINCLUDE|include /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel|' -e 's|PVMINCLUDE|include  |' < Makefile.sed            > Makefile )
+(cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/m3tools ;  sed -e 's|IOAPI_BASE|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31|' -e 's|LIBINSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|BININSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|IOAPI_DEFS||' -e 's|MAKEINCLUDE|include /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel|' -e 's|PVMINCLUDE|include  |' < Makefile.nocpl.sed > Makefile.nocpl ; cp  Makefile.nocpl Makefile )
+(cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/iotests ;  sed -e 's|IOAPI_BASE|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31|' -e 's|LIBINSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|BININSTALL|/gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel|' -e 's|IOAPI_DEFS||' -e 's|MAKEINCLUDE|include /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel|' -e 's|PVMINCLUDE|include  |' < Makefile.nocpl.sed > Makefile.nocpl ; cp  Makefile.nocpl Makefile )
++ cd ioapi
++ make -f Makefile clobber
+rm -f /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel/libioapi.a
++ make -f Makefile
+cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel; ar rv libioapi.a bilin.o bmatvec.o chkfil3.o ckdesc3.o ckfile3.o ckgeom.o ckname.o cktflag3.o close3.o crdict3.o crtbuf3.o currstep.o dble2real.o dmatvec.o dscgrid.o dt2str.o filchk3.o find1.o find2.o find3.o find4.o findc.o findr1.o findr2.o findr3.o findr4.o flush3.o gcd.o gctp.o getdble.o getmenu.o getnum.o getreal.o getstr.o getyn.o grdchk3.o gridops.o hhmmss.o index1.o initblk3.o inqatt3.o intg2real.o intlist.o ioparms3.o kfindx.o kfopen.o lambert.o lblank.o len2.o ll2utm.o locat1.o locat2.o locat3.o locat4.o locatc.o locatr1.o locatr2.o locatr3.o locatr4.o lustr.o m3warn.o name2fid.o opnlist3.o pcoef.o pgrdsum.o pmatvec.o poly.o promptdfile.o promptffile.o promptgrid.o promptmfile.o rdatt3.o rdbndary.o rdbuf3.o rdcustom.o rddict3.o rdgrdded.o rdiddata.o rdsmatrx.o rdtflag.o readsmet.o realist.o scanint.o sec2time.o setsphere.o str2dble.o skipl.o smatvec.o splitline.o str2int.o str2real.o strlist.o sync3.o syncfid.o synchtao.o time2sec.o trimlen.o ungridb.o ungridi.o upcase.o utm2ll.o wratt3.o wrbndary.o wrbuf3.o wrcustom.o wrdict3.o wrgrdded.o wriddata.o wrsmatrx.o wrtflag.o xtbuf3.o xtract3.o year4.o chkbuf3.o cbarnes1.o cbarnesN.o check3.o crtfil3.o crlf.o crtkf.o currec.o daymon.o ddtvar3.o ddtvar3v.o desc3.o getdate.o getdfile.o getefile.o getffile.o init3.o initlog3.o interp3.o isdstime.o jstep3.o julian.o junit.o kfread.o kfwrite.o m3abort.o m3err.o m3exit.o m3msg2.o mmddyy.o nextime.o open3.o opnfil3.o opnlog3.o opnkf.o rdgrnest.o rdprofil.o rdvars.o read3.o read4d.o secsdiff.o shut3.o wkday.o wrgrnest.o write3.o write4d.o wrpatch.o wrprofil.o wrvars.o yr2day.o bufint3.o check3c.o close3c.o currstepc.o daymonc.o ddtvar3c.o desc3c.o dscgridc.o dt2strc.o envgets.o filchk3c.o findsc.o get_endian.o getdfilec.o getdttime.o getefilec.o hhmmssc.o init3c.o inqatt3c.o interp3c.o iobin3.o julianc.o locatsc.o m3errc.o m3exitc.o m3mesgc.o m3warnc.o mmddyyc.o nameval.o nextimec.o open3c.o rdatt3c.o read3c.o read4dc.o rmfile.o sec2timec.o secsdiffc.o shut3c.o sortic.o sortir.o sortis.o sync3c.o systemf.o time2secc.o wkdayc.o wratt3c.o write3c.o write4dc.o xtract3c.o  m3utilio.o matxatts.o ; ranlib libioapi.a
+ar: creating libioapi.a
+a - bilin.o
+a - bmatvec.o
+a - chkfil3.o
+a - ckdesc3.o
+a - ckfile3.o
+a - ckgeom.o
+a - ckname.o
+a - cktflag3.o
+a - close3.o
+a - crdict3.o
+a - crtbuf3.o
+a - currstep.o
+a - dble2real.o
+a - dmatvec.o
+a - dscgrid.o
+a - dt2str.o
+a - filchk3.o
+a - find1.o
+a - find2.o
+a - find3.o
+a - find4.o
+a - findc.o
+a - findr1.o
+a - findr2.o
+a - findr3.o
+a - findr4.o
+a - flush3.o
+a - gcd.o
+a - gctp.o
+a - getdble.o
+a - getmenu.o
+a - getnum.o
+a - getreal.o
+a - getstr.o
+a - getyn.o
+a - grdchk3.o
+a - gridops.o
+a - hhmmss.o
+a - index1.o
+a - initblk3.o
+a - inqatt3.o
+a - intg2real.o
+a - intlist.o
+a - ioparms3.o
+a - kfindx.o
+a - kfopen.o
+a - lambert.o
+a - lblank.o
+a - len2.o
+a - ll2utm.o
+a - locat1.o
+a - locat2.o
+a - locat3.o
+a - locat4.o
+a - locatc.o
+a - locatr1.o
+a - locatr2.o
+a - locatr3.o
+a - locatr4.o
+a - lustr.o
+a - m3warn.o
+a - name2fid.o
+a - opnlist3.o
+a - pcoef.o
+a - pgrdsum.o
+a - pmatvec.o
+a - poly.o
+a - promptdfile.o
+a - promptffile.o
+a - promptgrid.o
+a - promptmfile.o
+a - rdatt3.o
+a - rdbndary.o
+a - rdbuf3.o
+a - rdcustom.o
+a - rddict3.o
+a - rdgrdded.o
+a - rdiddata.o
+a - rdsmatrx.o
+a - rdtflag.o
+a - readsmet.o
+a - realist.o
+a - scanint.o
+a - sec2time.o
+a - setsphere.o
+a - str2dble.o
+a - skipl.o
+a - smatvec.o
+a - splitline.o
+a - str2int.o
+a - str2real.o
+a - strlist.o
+a - sync3.o
+a - syncfid.o
+a - synchtao.o
+a - time2sec.o
+a - trimlen.o
+a - ungridb.o
+a - ungridi.o
+a - upcase.o
+a - utm2ll.o
+a - wratt3.o
+a - wrbndary.o
+a - wrbuf3.o
+a - wrcustom.o
+a - wrdict3.o
+a - wrgrdded.o
+a - wriddata.o
+a - wrsmatrx.o
+a - wrtflag.o
+a - xtbuf3.o
+a - xtract3.o
+a - year4.o
+a - chkbuf3.o
+a - cbarnes1.o
+a - cbarnesN.o
+a - check3.o
+a - crtfil3.o
+a - crlf.o
+a - crtkf.o
+a - currec.o
+a - daymon.o
+a - ddtvar3.o
+a - ddtvar3v.o
+a - desc3.o
+a - getdate.o
+a - getdfile.o
+a - getefile.o
+a - getffile.o
+a - init3.o
+a - initlog3.o
+a - interp3.o
+a - isdstime.o
+a - jstep3.o
+a - julian.o
+a - junit.o
+a - kfread.o
+a - kfwrite.o
+a - m3abort.o
+a - m3err.o
+a - m3exit.o
+a - m3msg2.o
+a - mmddyy.o
+a - nextime.o
+a - open3.o
+a - opnfil3.o
+a - opnlog3.o
+a - opnkf.o
+a - rdgrnest.o
+a - rdprofil.o
+a - rdvars.o
+a - read3.o
+a - read4d.o
+a - secsdiff.o
+a - shut3.o
+a - wkday.o
+a - wrgrnest.o
+a - write3.o
+a - write4d.o
+a - wrpatch.o
+a - wrprofil.o
+a - wrvars.o
+a - yr2day.o
+a - bufint3.o
+a - check3c.o
+a - close3c.o
+a - currstepc.o
+a - daymonc.o
+a - ddtvar3c.o
+a - desc3c.o
+a - dscgridc.o
+a - dt2strc.o
+a - envgets.o
+a - filchk3c.o
+a - findsc.o
+a - get_endian.o
+a - getdfilec.o
+a - getdttime.o
+a - getefilec.o
+a - hhmmssc.o
+a - init3c.o
+a - inqatt3c.o
+a - interp3c.o
+a - iobin3.o
+a - julianc.o
+a - locatsc.o
+a - m3errc.o
+a - m3exitc.o
+a - m3mesgc.o
+a - m3warnc.o
+a - mmddyyc.o
+a - nameval.o
+a - nextimec.o
+a - open3c.o
+a - rdatt3c.o
+a - read3c.o
+a - read4dc.o
+a - rmfile.o
+a - sec2timec.o
+a - secsdiffc.o
+a - shut3c.o
+a - sortic.o
+a - sortir.o
+a - sortis.o
+a - sync3c.o
+a - systemf.o
+a - time2secc.o
+a - wkdayc.o
+a - wratt3c.o
+a - write3c.o
+a - write4dc.o
+a - xtract3c.o
+a - m3utilio.o
+a - matxatts.o
++ make -f Makefile install
+echo "Installing in /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel" ; cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel; cp libioapi.a ../../../libaqm_ioapi.a; cp /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel/*mod ../../../include; 
+Installing in /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
++ make -f Makefile clobber
+rm -f /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel/libioapi.a
++ for src in pario se_snl
++ cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_pario
++ make -f Makefile clobber
+/bin/rm -f *.a *.o *.mod
+rm -f libaqm_pario.a
++ make -f Makefile
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pinterpb_mod.o pinterpb_mod.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o piomaps_mod.o piomaps_mod.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o alloc_data_mod.o alloc_data_mod.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o boundary.o boundary.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o get_write_map.o get_write_map.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o growbuf.o growbuf.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o gtndxhdv.o gtndxhdv.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o interpol.o interpol.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pinterpb.o pinterpb.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pio_init.o pio_init.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pio_re_init.o pio_re_init.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pm3err.o pm3err.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pm3exit.o pm3exit.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pm3warn.o pm3warn.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pshut3.o pshut3.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pwrite3.o pwrite3.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o ptrwrite3.o ptrwrite3.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o pwrgrdd.o pwrgrdd.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o readbndy.o readbndy.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o subdmap.o subdmap.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o wrsubmap.o wrsubmap.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o parutilio.o parutilio.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel  -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I /opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include  -c pinterpb_mod.o
+ifort: warning #10145: no action performed for file 'pinterpb_mod.o'
+ar -rv  -o libaqm_pario.a pinterpb_mod.o piomaps_mod.o alloc_data_mod.o boundary.o get_write_map.o growbuf.o gtndxhdv.o interpol.o pinterpb.o pio_init.o pio_re_init.o pm3err.o pm3exit.o pm3warn.o pshut3.o pwrite3.o ptrwrite3.o pwrgrdd.o readbndy.o subdmap.o wrsubmap.o parutilio.o
+ar: creating libaqm_pario.a
+a - pinterpb_mod.o
+a - piomaps_mod.o
+a - alloc_data_mod.o
+a - boundary.o
+a - get_write_map.o
+a - growbuf.o
+a - gtndxhdv.o
+a - interpol.o
+a - pinterpb.o
+a - pio_init.o
+a - pio_re_init.o
+a - pm3err.o
+a - pm3exit.o
+a - pm3warn.o
+a - pshut3.o
+a - pwrite3.o
+a - ptrwrite3.o
+a - pwrgrdd.o
+a - readbndy.o
+a - subdmap.o
+a - wrsubmap.o
+a - parutilio.o
+chmod 644 libaqm_pario.a
++ make -f Makefile install
+cp libaqm_pario.a ../../.; cp *mod ../../include/.
++ make -f Makefile clobber
+/bin/rm -f *.a *.o *.mod
+rm -f libaqm_pario.a
++ for src in pario se_snl
++ cd /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_se_snl
++ make -f Makefile clobber
+rm -f *.a se_comm_info_ext.o se_disp_info_ext.o se_domain_info_ext.o se_pe_info_ext.o se_subgrid_info_ext.o se_reconfig_grid_info_ext.o se_bndy_copy_info_ext.o se_internal_util_module.o se_global_max_module.o se_global_min_module.o se_global_sum_module.o se_util_module.o se_data_send_module.o se_data_recv_module.o se_slice_module.o se_comm_module.o se_gather_module.o se_data_copy_module.o se_reconfig_grid_module.o se_bndy_copy_module.o swap_sandia.o swap_sandia_routines.o se_init_module.o se_term_module.o se_twoway_comm_module.o se_modules.o   *.mod
+rm -f libaqm_se_snl.a
++ make -f Makefile
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_comm_info_ext.o se_comm_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_disp_info_ext.o se_disp_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_domain_info_ext.o se_domain_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_pe_info_ext.o se_pe_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_subgrid_info_ext.o se_subgrid_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_reconfig_grid_info_ext.o se_reconfig_grid_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_bndy_copy_info_ext.o se_bndy_copy_info_ext.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_internal_util_module.o se_internal_util_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_global_max_module.o se_global_max_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_global_min_module.o se_global_min_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_global_sum_module.o se_global_sum_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_util_module.o se_util_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_data_send_module.o se_data_send_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_data_recv_module.o se_data_recv_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_slice_module.o se_slice_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_comm_module.o se_comm_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_gather_module.o se_gather_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_data_copy_module.o se_data_copy_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_reconfig_grid_module.o se_reconfig_grid_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_bndy_copy_module.o se_bndy_copy_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o swap_sandia.o swap_sandia.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o swap_sandia_routines.o swap_sandia_routines.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include    -c -o se_init_module.o se_init_module.F
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_term_module.o se_term_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_twoway_comm_module.o se_twoway_comm_module.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include   -c -o se_modules.o se_modules.f
+ftn -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145   -assume byterecl   -I ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel -I ../../sorc/aqm_ioapi_v31/ioapi/fixed_src -I/opt/cray/mpt/7.2.0/gni/mpich2-intel/140/include  -c se_comm_info_ext.o
+ar -crv -o libaqm_se_snl.a se_comm_info_ext.o se_disp_info_ext.o se_domain_info_ext.o se_pe_info_ext.o se_subgrid_info_ext.o se_reconfig_grid_info_ext.o se_bndy_copy_info_ext.o se_internal_util_module.o se_global_max_module.o se_global_min_module.o se_global_sum_module.o se_util_module.o se_data_send_module.o se_data_recv_module.o se_slice_module.o se_comm_module.o se_gather_module.o se_data_copy_module.o se_reconfig_grid_module.o se_bndy_copy_module.o swap_sandia.o swap_sandia_routines.o se_init_module.o se_term_module.o se_twoway_comm_module.o se_modules.o
+a - se_comm_info_ext.o
+a - se_disp_info_ext.o
+a - se_domain_info_ext.o
+a - se_pe_info_ext.o
+a - se_subgrid_info_ext.o
+a - se_reconfig_grid_info_ext.o
+a - se_bndy_copy_info_ext.o
+a - se_internal_util_module.o
+a - se_global_max_module.o
+a - se_global_min_module.o
+a - se_global_sum_module.o
+a - se_util_module.o
+a - se_data_send_module.o
+a - se_data_recv_module.o
+a - se_slice_module.o
+a - se_comm_module.o
+a - se_gather_module.o
+a - se_data_copy_module.o
+a - se_reconfig_grid_module.o
+a - se_bndy_copy_module.o
+a - swap_sandia.o
+a - swap_sandia_routines.o
+a - se_init_module.o
+a - se_term_module.o
+a - se_twoway_comm_module.o
+a - se_modules.o
+chmod 644  libaqm_se_snl.a
++ make -f Makefile install
+cp libaqm_se_snl.a ../../. ; cp *.mod ../../include/.
++ make -f Makefile clobber
+rm -f *.a se_comm_info_ext.o se_disp_info_ext.o se_domain_info_ext.o se_pe_info_ext.o se_subgrid_info_ext.o se_reconfig_grid_info_ext.o se_bndy_copy_info_ext.o se_internal_util_module.o se_global_max_module.o se_global_min_module.o se_global_sum_module.o se_util_module.o se_data_send_module.o se_data_recv_module.o se_slice_module.o se_comm_module.o se_gather_module.o se_data_copy_module.o se_reconfig_grid_module.o se_bndy_copy_module.o swap_sandia.o swap_sandia_routines.o se_init_module.o se_term_module.o se_twoway_comm_module.o se_modules.o   *.mod
+rm -f libaqm_se_snl.a

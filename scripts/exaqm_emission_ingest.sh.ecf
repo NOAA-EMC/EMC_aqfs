@@ -1,0 +1,354 @@
+#!/bin/bash
+#######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_emission_ingest.sh.ecf
+# Script description:  check the emission files on number of 
+#                      files and file size for monthly, yearly and
+#                      jtable.
+#
+#  #Input Environment Variables:
+#    DCOMIN             # /dcom/us007003/aqm_emission/${envir}
+#    COMOUT             # /com/${NET}/${envir}/emission
+#
+set -x
+
+##################
+# define mail list
+##################
+
+# for the production mailing list
+
+if [ $envir != prod ]; then
+  export maillist=jianbin.yang@noaa.gov
+else
+  export maillist='ncep.list.spa-helpdesk@noaa.gov,youhua.tang@noaa.gov,li.pan@noaa.gov,pius.lee@noaa.gov,jianping.huang@noaa.gov'
+fi
+sendmail=${sendmail:-Y}
+
+# calculate number days of the next month
+days_in_next_month=`cal $(date +%m -d 'next month') $(date +%Y) | grep -v '[A-Za-z]' | wc -w`
+echo "number days in the next month= $days_in_next_month"
+
+# calculate next month
+next_month=`date +'%m' -d 'next month'`
+echo " the next month= $next_month"
+
+#  calculate next year 
+next_year=`date +%Y -d 'next year'`
+echo " the next year= $next_year"
+
+# get the current year 
+current_year=`date +%Y`
+echo " the current year= $current_year"
+
+# get the current day  
+current_day=`date +%d`
+echo " the current day= $current_day"
+
+if (( $next_month == 01 )); then
+   yyyymm=$next_year$next_month
+else
+   yyyymm=$current_year$next_month
+fi
+
+echo " the next month emission file directory= $yyyymm"
+
+number_days_next_year=`date -d "$next_year/12/31" +"%j"`
+echo "number days of the next year= $number_days_next_year"
+
+
+###############################################################
+# This section checks and copies the monthly emission files
+###############################################################
+i=1
+#i=0
+if [ $i -eq 1 ]; then
+#where the monthly emission directory
+in_dir=$DCOMIN/$yyyymm
+out_dir=$COMOUT/$yyyymm
+
+#    copy monthly emission files from /dcom to /com
+# dcom directory check
+if [ ! -d "$in_dir" ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- AQM monthly emission /dcom directory not exist"
+    echo " FATAL ERROR --- /dcom monthly emission directory $in_dir not found" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi 
+    err_exit "FATAL ERROR- dcom monthly emission directory $in_dir not found"
+fi
+ 
+# dcom directory files check
+no_files_in_dcom=`ls $in_dir/* | wc -l`
+
+if (( $no_files_in_dcom == 0 )); then
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- No ARL AQM monthly emission file in /dcom directory"
+    echo " FATAL ERROR --- No ARL AQM monthly emission file in $in_dir" > email_body
+    cat email_body |maili.py -s "$subject" $maillist
+   fi
+    err_exit "FATAL ERROR- No ARL AQM monthly emission file in $in_dir"
+fi
+ 
+mkdir -p -m 775 $out_dir
+# JY - will comment out the following two lines ??
+cp -p $in_dir/*AK* $out_dir/.
+cp -p $in_dir/*HI* $out_dir/.
+cp -p $in_dir/*CONUS* $out_dir/.
+
+# check the file number monthly directory
+
+no_file_in_com=`ls $out_dir/* | wc -l`
+#no_file_shouldbe=$(( 4 * $days_in_next_month ))
+no_file_shouldbe=6
+
+if [ $no_file_in_com -lt $no_file_shouldbe ]; then
+    echo " the number files copied to com= $no_file_in_com "
+    echo " the number files should be in com= $no_file_shouldbe "
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- number of ARL AQM monthly emission files is incorrect"
+    echo " FATAL ERROR --- number of ARL AQM monthly emission files in $out_dir is incorrect" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+    err_exit "FATAL ERROR- number of ARL AQM monthly emission files in $out_dir is incorrect"
+fi
+ 
+# check the file size
+total_filesize_in_AK=`du -bc $out_dir/*AK* | tail -1 | cut -f1`
+small_filesize_in_AK=`ls -l $out_dir/*AK* | cut -d' ' -f5 | sort -u | head -1`
+
+if [ $total_filesize_in_AK -lt 5000000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="Warning --- total file sizes of ARL AQM monthly AK domain emission are too small"
+    echo " Warning --- total file sizes of ARL AQM monthly AK domain in $out_dir are too small" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+   echo " Warning --- total file sizes of ARL AQM monthly AK domain in $out_dir are too small"
+fi
+ 
+if [ $small_filesize_in_AK -lt 280000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- the file size of ARL AQM monthly AK domain emission is incorrect"
+    echo " FATAL ERROR --- the file size of ARL AQM monthly AK domain in $out_dir is incorrect" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+    err_exit "FATAL ERROR- the monthly emission AK domain file size is not large enough"
+fi
+ 
+total_filesize_in_HI=`du -bc $out_dir/*HI* | tail -1 | cut -f1`
+small_filesize_in_HI=`ls -l $out_dir/*HI* | cut -d' ' -f5 | sort -u | head -1`
+ 
+if [ $total_filesize_in_HI -lt 600000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="Warning --- total file sizes of ARL AQM monthly HI domain emission are too small"
+    echo " Warning --- total file sizes of ARL AQM monthly HI domain in $out_dir are too small" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+   echo " Warning --- total file sizes of ARL AQM monthly HI domain in $out_dir are too small"
+fi
+ 
+if [ $small_filesize_in_HI -lt 36000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- the file size of ARL AQM monthly HI domain emission is incorrect"
+    echo " FATAL ERROR --- the file size of ARL AQM monthly HI domain in $out_dir is incorrect" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi 
+    err_exit "FATAL ERROR- the monthly emission HI domain file size is not large enough"
+fi
+ 
+total_filesize_in_CONUS=`du -bc $out_dir/*CONUS* | tail -1 | cut -f1`
+small_filesize_in_CONUS=`ls -l $out_dir/*CONUS* | cut -d' ' -f5 | sort -u | head -1`
+
+if [ $total_filesize_in_CONUS -lt 30000000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="Warning --- total file sizes of ARL AQM monthly CONUS domain emission are too small"
+    echo " Warning --- total file sizes of ARL AQM monthly CONUS domain in $out_dir too small" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+   echo " Warning --- total file sizes of ARL AQM monthly CONUS domain in $out_dir too small"
+fi
+ 
+if [ $small_filesize_in_CONUS -lt 1100000000 ]; then
+   if [ $sendmail = 'Y' ]; then 
+    subject="FATAL --- the file size of ARL AQM monthly CONUS domain emission is incorrect"
+    echo " FATAL ERROR --- the file size of ARL AQM monthly CONUS domain in $out_dir is incorrect" > email_body
+    cat email_body |mail.py -s "$subject" $maillist
+   fi
+    err_exit "FATAL ERROR- the monthly emission CONUS domain file size is not large enough"
+fi
+ 
+#################################
+# Monthly emission files are fine
+#################################
+ if [ $sendmail = 'Y' ]; then
+ subject="The monthly ARL AQM emission files have been successfully copied"
+ echo "The monthly ARL AQM emission files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
+ cat email_body |mail.py -s "$subject" $maillist
+ fi 
+fi
+
+###############################################################
+# This section checks and copies the yearly emission files
+###############################################################
+
+#next_month=01
+#next_year=2018
+if (( $next_month == 01 )) || (( $next_month == 05 )); then
+   #where the yearly emission directory
+  if (( $next_month == 01 )); then
+   in_dir=$DCOMIN/$next_year
+   out_dir=$COMOUT/$next_year
+
+   # define the input tar file from ARL
+   input_tarfile=aqm_point_${next_year}.tar
+  else
+   in_dir=$DCOMIN/$current_year
+   out_dir=$COMOUT/$current_year
+
+   # define the input tar file from ARL
+   input_tarfile=aqm_point_${current_year}.tar
+  fi 
+   #    copy yearly emission files from /dcom to /com
+   # dcom directory check
+   if [ ! -d "$in_dir" ]; then
+     if [ $sendmail = 'Y' ]; then  
+       subject="FATAL --- AQM yearly emission /dcom directory not exist"
+       echo " FATAL ERROR --- /dcom yearly emission directory $in_dir not found" > email_body
+       cat email_body |mail.py -s "$subject" $maillist
+     fi
+       err_exit "FATAL ERROR- dcom yearly emission directory $in_dir not found"
+   fi
+
+   # dcom directory files check
+   yno_files_in_dcom=`ls $in_dir/* | wc -l`
+   if (( $yno_files_in_dcom == 0 )); then
+     if [ $sendmail = 'Y' ]; then 
+       subject="FATAL --- No ARL AQM yearly emission file in /dcom directory"
+       echo " FATAL ERROR --- No ARL AQM yearly emission file in $in_dir" > email_body
+       cat email_body |mail.py -s "$subject" $maillist
+     fi 
+       err_exit "FATAL ERROR- No ARL AQM yearly emission file in $in_dir"
+   fi
+
+   mkdir -p -m 775 $out_dir
+   cp -pr $in_dir/${input_tarfile} $out_dir/.
+   
+   cd $out_dir
+   tar -xvf ${input_tarfile} 
+   cd $DATA
+
+   # check the lookup table file number
+   yno_lookup_file_in_com=`ls $out_dir/aqm_lookup_table* | wc -l`
+   if (( $yno_lookup_file_in_com < 4 )); then
+      if [ $sendmail = 'Y' ]; then  
+       subject="Warning --- number of yearly lookup table files is not correct"
+       echo " Warning --- number of yearly lookup table files in $out_dir is not correct" > email_body
+       cat email_body |mail.py -s "$subject" $maillist
+      fi
+       #err_exit "FATAL ERROR- number of yearly lookup table files in $out_dir is not correct"
+   fi
+ 
+   # check the static file number
+   yno_static_file_in_com=`ls $out_dir/aqm_static* | wc -l`
+   if (( $yno_static_file_in_com < 10 )); then
+      if [ $sendmail = 'Y' ]; then  
+       subject="FATAL ERROR --- number of yearly static files is not correct"
+       echo " FATAL ERROR --- number of yearly static files in $out_dir is not correct" > email_body
+       cat email_body |mail.py -s "$subject" $maillist
+      fi  
+       err_exit "FATAL ERROR- number of yearly static files in $out_dir is not correct"
+   fi
+ 
+   # check the pnts file number
+   yno_pnts_file_in_com=`ls $out_dir/*pnt* | wc -l`
+   if (( $yno_pnts_file_in_com < 12 )); then
+      if [ $sendmail = 'Y' ]; then  
+       subject="FATAL ERROR --- number of yearly pnts files is not correct"
+       echo " FATAL ERROR --- number of yearly pnts files in $out_dir is not correct" > email_body
+       cat email_body |mail.py -s "$subject" $maillist
+      fi 
+       err_exit "FATAL ERROR- number of yearly pnts files in $out_dir is not correct"
+   fi
+ 
+   #################################
+   # Yearly emission files are fine
+   #################################
+ if [ $sendmail = 'Y' ]; then 
+   subject="The yearly ARL AQM emission files have been successfully copied"
+   echo "The yearly ARL AQM emission files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
+   cat email_body |mail.py -s "$subject" $maillist
+ fi
+fi
+
+
+## No Jtable files is no longer needed in the cmaq.v5.1 version
+################################################################
+## This section checks and copies the jtable files
+################################################################
+
+#if (( $next_month == 01 )); then
+#   # where the yearly jtable directory
+#
+#   in_dir=$DCOMIN/JTable/$next_year
+#   out_dir=$COMOUT/cb05_Jtable
+#
+#   #    copy yearly jtable files from /dcom to /com
+#   # dcom directory check
+#   if [ ! -d "$in_dir" ]; then
+#     if [ $sendmail = 'Y' ]; then
+#       subject="Warning --- AQM yearly jtable /dcom directory not exist"
+#       echo " Warning --- /dcom yearly jtable directory $in_dir not found" > email_body
+#       cat email_body |mail.py -s "$subject" $maillist
+#     fi
+#       exit "Warning- dcom yearly jtable directory $in_dir not found"
+#   fi
+#
+#   # dcom directory files check
+#   jno_files_in_dcom=`ls $in_dir/* | wc -l`
+#   if (( $jno_files_in_dcom == 0 )); then
+#     if [ $sendmail = 'Y' ]; then
+#       subject="Warning --- No ARL AQM yearly jtable file in /dcom directory"
+#       echo " Warning --- No ARL AQM yearly jtable file in $in_dir" > email_body
+#       cat email_body |mail.py -s "$subject" $maillist
+#     fi
+#       exit "Warning- dcom yearly jtable files in $in_dir not found"
+#   fi
+#
+#   mkdir -p -m 775 $out_dir
+#   cp -p $in_dir/* $out_dir/.
+#
+#   # check the file number
+#   jno_file_in_com=`ls $out_dir/aqm_jtable_$next_year* | wc -l`
+#   if (( $jno_file_in_com != $number_days_next_year )); then
+#     if [ $sendmail = 'Y' ]; then 
+#       echo " the number files copied to com= $jno_file_in_com
+#       echo " the number files should be in com= $number_days_next_year
+#
+#       subject="FATAL --- Number of ARL AQM yearly jtable file is not correct"
+#       echo " FATAL ERROR --- Number of ARL AQM yearly jtable file in $in_dir is not correct" > email_body
+#       cat email_body |mail.py -s "$subject" $maillist
+#     fi 
+#       err_exit "FATAL ERROR- number of yearly jtable files in $out_dir is not correct"
+#   fi
+#
+#   # check the file size
+#   jtable_filesize=`ls -l $out_dir/aqm_jtable_${next_year}* | cut -d' ' -f5 | sort -u | wc -l`
+#   if (( $jtable_filesize != 1 )); then
+#     if [ $sendmail = 'Y' ]; then 
+#       subject="FATAL --- The yearly ARL AQM jtable file sizes are different"
+#       echo " FATAL ERROR --- The yearly ARL AQM jtable file sizes in $out_dir are different" > email_body
+#       cat email_body |mail.py -s "$subject" $maillist
+#     fi  
+#       err_exit "FATAL ERROR- the yearly jtable file sizes are different"
+#   fi
+#
+#   #################################
+#   # Yearly jtable files are fine
+#   #################################
+# if [ $sendmail = 'Y' ]; then 
+#   subject="The yearly ARL AQM jtable files have been successfully copied"
+#   echo "The yearly ARL AQM jtable files have been successfully copied from $in_dir to $out_dir. Please double check and validate." > email_body
+#   cat email_body |mail.py -s "$subject" $maillist
+# fi
+#fi

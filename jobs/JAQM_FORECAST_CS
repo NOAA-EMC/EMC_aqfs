@@ -1,0 +1,76 @@
+#!/bin/ksh
+
+source /opt/modules/default/init/ksh
+#module load prod_util
+
+
+date
+export PS4=' $SECONDS + '
+set -x
+
+export DATA=${DATA:-${DATAROOT:?}/$jobid}
+mkdir -p $DATA
+cd $DATA
+
+export cycle=${cycle:-t${cyc}z}
+setpdy.sh
+. PDY
+
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export USHaqm=$HOMEaqm/ush
+export EXECaqm=$HOMEaqm/exec
+export PARMaqm=$HOMEaqm/parm
+export FIXaqm=$HOMEaqm/fix
+export UTILaqm=$HOMEaqm/util
+
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
+
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMINm2=${COMINm2:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm2}}
+export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
+
+export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
+
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+
+export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
+
+mkdir -p $COMOUT
+
+export pgmout=OUTPUT.$$
+
+export KEEPDATA=YES
+
+env
+
+###################################################
+# Execute the Script
+###################################################
+if [ ! -s ${COMINm1}/aqm.t${cyc}z.emission_r.ncf ] && [ $cyc == '06' ] && [ $FCST = NO ]; then
+ echo "No BlueSky-calcuated fle emissions for 24-hr reanalysis run at 06z cycle"
+else
+ ${HOMEaqm}/scripts/exaqm_cmaqv502_cs.sh.ecf
+ export err=$?; err_chk
+fi
+##################################################
+cat $pgmout
+
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$jlogfile" "$msg"
+
+###################################
+# Remove temp directories
+###################################
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
+  rm -rf $DATA
+fi
+
+date

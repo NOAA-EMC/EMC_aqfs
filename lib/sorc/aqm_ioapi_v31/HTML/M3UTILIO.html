@@ -1,0 +1,257 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<META NAME="MSSmartTagsPreventParsing" CONTENT="TRUE"> 
+<TITLE>MODULE M3UTILIO</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" 
+      TOPMARGIN="15" 
+      MARGINHEIGHT="15" 
+      LEFTMARGIN="15" 
+      MARGINWIDTH="15">
+
+<!--#include virtual="/INCLUDES/header.html" -->
+
+<H1>   <EM>New!!</EM> Fortran-90 <CODE>MODULE M3UTILIO</CODE> </H1>
+
+<H2>Summary</H2>
+
+    <BLOCKQUOTE>
+    Fortran-90 style <CODE>MODULE M3UTILIO</CODE> does the &quot;proper
+    F90 way&quot; of encapsulating the Models-3 I/O&nbsp;API parameter,
+    data structure, and function-declarations, in a way that nested
+    Fortran <CODE>USE &lt;module&gt;</CODE> constructs do not interact
+    with older Fortran <CODE>INCLUDE</CODE> statements to generate
+    multiple-declaration errors at compile time.
+    <P>
+
+    The issue is that when one has two or more Fortran-90
+    <CODE>MODULE</CODE>s, say <CODE>MODULE&nbsp;A</CODE> that
+    <CODE>USE</CODE>s <CODE>MODULE&nbsp;B</CODE>, where both of these
+    need access to facilities provded by the
+    <A HREF = "INCLUDE.html">standard I/O&nbsp;API 
+    <CODE>INCLUDE</CODE> files</A> <CODE>PARMS3.EXT</CODE>,
+    <CODE>FDESC3.EXT</CODE>, and/or <CODE>IODECL3.EXT</CODE>, there is
+    a problem:  if <CODE>MODULE&nbsp;B</CODE> <CODE>INCLUDE</CODE>s
+    these, it introduces an artificial dependency of 
+    <CODE>MODULE&nbsp;A</CODE> upon <CODE>MODULE&nbsp;B</CODE>: where
+    should the <CODE>INCLUDE</CODE> statements be placed (if they appear
+    in both <CODE>MODULE</CODE>s, the compiler will complain that
+    variables and functions have repeated declarations, which is
+    illegal.  The problem is even worse if <CODE>MODULE&nbsp;A</CODE> 
+    <CODE>USE</CODE>s a third <CODE>MODULE&nbsp;C</CODE>, independent
+    of <CODE>B</CODE>, that also needs I/O&nbsp;API <CODE>INCLUDE</CODE>
+    files:  one can't necessarily make <CODE>C USE B</CODE>, or vice versa.
+    <P>
+
+    However, the Fortran-90 <CODE>USE</CODE> construct does not have
+    this problem:  <CODE>MODULE</CODE>s  <CODE>A</CODE>,
+    <CODE>B</CODE>, and <CODE>C</CODE> can all have statements
+    <CODE>USE&nbsp;M3UTILIO</CODE> without causing multiple-declaration
+    problems:  the recognition that these statements provide one common
+    set of declarations is now built into the Fortran-90 (and later)
+    language, in a way not possible at all for Fortran-77 (and that
+    must be managed manually by the programmer with <VAR>#ifdef</VAR>s
+    for the corresponding C <VAR>#include</VAR> construct).
+    <P>
+    </BLOCKQUOTE> 
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<H2>Contents of <CODE>MODULE M3UTILIO</CODE></H2>
+
+    <BLOCKQUOTE>
+    <CODE>MODULE M3UTILIO</CODE> itself includes, and therefore
+    replaces the <CODE>INCLUDE</CODE> of the following Models-3
+    I/O&nbsp;API <CODE>INCLUDE</CODE> files:  
+    <BLOCKQUOTE><DL>
+        <DT><VAR><CODE><A HREF = "INCLUDE.html#parms">PARMS3.EXT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF = "INCLUDE.html#fdesc">FDESC3.EXT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF = "INCLUDE.html#iodecl">IODECL3.EXT</A></CODE></VAR>
+    </DL></BLOCKQUOTE>
+
+    It further provides Fortran-90 style <CODE>INTERFACE</CODE> blocks
+    for the following list of routines (basically, all of the public
+    routines in the I/O&nbsp;API whose usage does not require 
+    <VAR>&quot;void pointer&quot;</VAR> arguments -- note that the
+    <CODE>BUFFER</CODE> argument for <A HREF= "WRITE3.html">WRITE3()</A>
+    does not have a single specified type;  it may be
+    <CODE>INTEGER, REAL,</CODE> or <CODE>DOUBLE&nbsp;PRECISION</CODE>,
+    and may have an arbitrary number of dimensions, instead of being
+    restricted (as an <CODE>INTERFACE</CODE> would require) to one
+    single possibility like a 3-D <CODE>REAL&nbsp;BUFFER(:,:,:)</CODE>,
+    or requiring over three thousand lines of &quot;wrapper&quot; code
+    to support the implied polymorphism.  (<CODE>IODECL3.EXT</CODE>
+    is invoked from this <CODE>MODULE</CODE> to provide the
+    <CODE>EXTERNAL</CODE> declarations for these polymorphic routines,
+    but not full interface blocks.)
+    <BLOCKQUOTE><DL>
+        <DT><VAR><CODE><A HREF="BILIN.html">BILIN</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="BMATVEC.html">BMATVEC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="CURSTEP.html">CURREC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="CURSTEP.html">CURSTEP</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="DAYMON.html">DAYMON</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="DMATVEC.html">DMATVEC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="DSCGRID.html">DSCGRID and DSCOORD</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="DT2STR.html">DT2STR</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ENVDBLE.html">ENVDBLE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ENVINT.html">ENVINT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ENVREAL.html">ENVREAL</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ENVSTR.html">ENVSTR</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ENVYN.html">ENVYN</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FINDC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FIND1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FIND2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FIND3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FIND4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FINDR1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FINDR2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FINDR3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="FINDS.html">FINDR4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GCD.html">GCD</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETDATE.html">GETDATE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETDBLE.html">GETDBLE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETDFILE.html">GETDFILE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETEFILE.html">GETEFILE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETFFILE.html">GETFFILE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETMENU.html">GETMENU</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETNUM.html">GETNUM</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETREAL.html">GETREAL</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETSTR.html">GETSTR</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GETYN.html">GETYN</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="GRDCHK3.html">GRDCHK3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="HHMMSS.html">HHMMSS</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="INDEX1.html">INDEX1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="INDEX1.html">INDEXINT1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LISTS.html">INTLIST</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="ISDST.html">ISDST</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="JSTEP3.html">JSTEP3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="JULIAN.html">JULIAN</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="JUNIT.html">JUNIT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LAMBERT.html">LAMBERT</A></CODE>
+                                              and related routines</VAR>
+        <DT><VAR><CODE><A HREF="LBLANK.html">LBLANK</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCAT1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCAT2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCAT3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCAT4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCATC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCATR1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCATR2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCATR3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LOCATS.html">LOCATR4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LUSTR.html">LUSTR</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3EXIT.html">M3EXIT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3MESG.html">M3FLUSH</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3MESG.html">M3MESG</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3MESG.html">M3MSG2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3MESG.html">M3PARAG</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3MESG.html">M3PROMPT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="M3WARN.html">M3WARN</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="MMDDYY.html">MMDDYY</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="NEXTIME.html">NEXTIME</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="PCOEF.html">PCOEF</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="PMATVEC.html">PMATVEC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="POLY.html">POLY</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="PROMPTDFILE.html">PROMPTDFILE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="PROMPTFFILE.html">PROMPTFFILE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="PROMPTMFILE.html">PROMPTMFILE</A></CODE></VAR>
+        <DT><VAR><CODE>PROMPTGRID()</CODE></VAR>
+        <DT><VAR><CODE><A HREF="LISTS.html">REALIST</A></CODE></VAR>
+        <DT><VAR><CODE>SCANINT()</CODE></VAR>
+        <DT><VAR><CODE><A HREF="SEC2TIME.html">SEC2TIME</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SECSDIFF.html">SECSDIFF</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SETENV.html">SETENVVAR</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTIC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTI1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTI2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTI3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTI4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTR1</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTR2</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTR3</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="SORTI.html">SORTR4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="STR2S.html">STR2DBLE</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="STR2S.html">STR2INT</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="STR2S.html">STR2REAL</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="LISTS.html">STRLIST</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="TIME2SEC.html">TIME2SEC</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="UNGRIDB.html">UNGRIDB</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="UNGRIDB.html">UNGRIDI</A></CODE></VAR>
+        <DT><VAR><CODE>UPCASE()</CODE></VAR>
+        <DT><VAR><CODE><A HREF="WKDAY.html">WKDAY</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="YEAR4.html">YEAR4</A></CODE></VAR>
+        <DT><VAR><CODE><A HREF="YR2DAY.html">YR2DAY</A></CODE></VAR>
+        <DT>and more...
+    </DL></BLOCKQUOTE>
+
+    It also provides four cleanly-coded public parsing-utility
+    routines that replace various less-well-conceived SMOKE&nbsp;1.x
+    library-routines,and new utility routines for grid-description
+    checking and for integer unsorted-table lookup:
+    <BLOCKQUOTE><DL>
+        <DT><VAR><CODE>SUBROUTINE SPLITLINE(&nbsp;LINE,&nbsp;NMAX,&nbsp;N,&nbsp;FIELD,&nbsp;EFLAG&nbsp;)</CODE></VAR><BR>
+            <BLOCKQUOTE><CODE>
+            CHARACTER(LEN=*), INTENT(  IN )::  LINE<BR>
+            INTEGER,          INTENT(  IN )::  NMAX<BR>
+            INTEGER,          INTENT( OUT )::  N<BR>
+            CHARACTER(LEN=*), INTENT( OUT )::  FIELD( NMAX )<BR>
+            LOGICAL,          INTENT( OUT )::  EFLAG
+            </CODE></BLOCKQUOTE>
+        <DD>split a line into fields, ignoring comments<P>
+
+        <DT><VAR><CODE>SUBROUTINE FIXFIELD</CODE></VAR>
+            <BLOCKQUOTE><CODE>
+            CHARACTER(LEN=*), INTENT( INOUT )::  FIELD
+            </CODE></BLOCKQUOTE>
+        <DD>fixup, replacing blanks and &quot;missing&quot;s
+            in character-string fields by zeros<P>
+
+        <DT><VAR><CODE>REAL FUNCTION KEYVAL</CODE></VAR>
+            <BLOCKQUOTE><CODE>
+            CHARACTER(LEN=*), INTENT( IN ) :: KEY
+            </CODE></BLOCKQUOTE>
+        <DD>search for <CODE>REAL</CODE> key-value in I/O&nbsp;API file
+        descriptive header <CODE>FDESC3D</CODE> array.<P>
+
+        <DT><VAR><CODE>KEYSTR</CODE></VAR>
+            <BLOCKQUOTE><CODE>
+            </CODE></BLOCKQUOTE>
+        <DD>search for REAL key-value in I/O&nbsp;API file
+        descriptive header <CODE>FDESC3D</CODE> array.<P>
+
+    </DL></BLOCKQUOTE>
+    <P>
+
+    Note that in retro-fitting <CODE>MODULE&nbsp;M3UTILIO</CODE>
+    into existing codes, one must not only remove all of the
+    <CODE>INCLUDE</CODE> statements associated with the standard
+    I/O&nbsp;API <CODE>PARMS3.EXT</CODE>, <CODE>FDESC3.EXT</CODE>,
+    and/or <CODE>IODECL3.EXT</CODE>, one must also remove any (now
+    extra) declarations of the functions with explicit
+    <CODE>INTERFACE</CODE>s from the list given above.
+    <P>
+
+    </BLOCKQUOTE>
+
+
+<HR> <!- ------------------------------------------------------------- ->
+
+<A HREF = "AA.html"> 
+To: <STRONG>Models-3/EDSS I/O API:   The Help Pages</STRONG> 
+</A><P>
+
+  
+Send comments to 
+<A HREF = "mailto:cjcoats@email.unc.edu"> <ADDRESS> 
+          Carlie J. Coats, Jr. <br> 
+          cjcoats@email.unc.edu  </ADDRESS> </A><P> 
+
+<!--#include virtual="/INCLUDES/footer.html" -->
+
+      
+</BODY>
+</HTML>
+

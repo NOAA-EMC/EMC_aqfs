@@ -1,0 +1,38 @@
+module purge
+
+module load ../../modulefiles/CMAQ/v5.1.4
+
+module list
+
+sleep 1
+
+BASE=`pwd`
+
+set -ax
+
+##########################
+for src in ioapi_v31 
+do
+ model_ver=v5.1.4
+ export BASEDIR=${BASE}/aqm_ioapi_v31
+ export BIN=Linux3_x86_64intel
+ export IOAPI_OFFSET_64=YES
+ cd ${BASE}/aqm_${src}
+ make configure
+ cd ioapi
+ make -f Makefile clobber
+ make -f Makefile
+ make -f Makefile install
+ make -f Makefile clobber
+done
+
+##############################
+for src in pario se_snl
+do
+ cd ${BASE}/aqm_${src}
+ make -f Makefile clobber
+ make -f Makefile
+ make -f Makefile install
+ make -f Makefile clobber
+done
+

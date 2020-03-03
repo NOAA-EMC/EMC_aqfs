@@ -1,0 +1,13 @@
+!  coords --line:  name; type, P-alpha, P-beta, P-gamma, xcent, ycent
+ 'LAM_39N_95W'
+     2    3.0000000D+01    6.0000000D+01   -9.5000000D+01   -9.5000000D+01    3.9000000D+01
+ '                '!  end coords.  grids:  name; xorig, yorig, xcell, ycell, ncols, nrows, nthik
+ 'REALTIME01_CRO'
+ 'LAM_39N_95W'  -2.5425000E+06  -1.8225000E+06   4.5000000E+04   4.5000000E+04   114    82     1
+ 'REALTIME01_DOT'
+ 'LAM_39N_95W'  -2.5650000E+06  -1.8450000E+06   4.5000000E+04   4.5000000E+04   115    83     1
+ 'REALTIME02_CRO'
+ 'LAM_39N_95W'   6.2250000E+05  -1.1325000E+06   1.5000000E+04   1.5000000E+04    98    98     1
+ 'REALTIME02_DOT'
+ 'LAM_39N_95W'   6.1500000E+05  -1.1400000E+06   1.5000000E+04   1.5000000E+04    99    99     1
+ '                '                !  end grids.

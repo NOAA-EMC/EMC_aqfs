@@ -1,0 +1,18 @@
+
+C....................................................................
+C  INCLUDE FILE  CTEST.EXT
+C
+C  CONTAINS:  
+C
+C  DEPENDENT UPON:  
+C
+C  REVISION HISTORY:
+C
+C....................................................................
+
+        
+        INTEGER         FOO, BAR
+        COMMON   /QUX / FOO, BAR
+
+C................   end   DUMMY.EXT   ....................................
+
