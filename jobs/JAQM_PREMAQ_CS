@@ -54,8 +54,8 @@ env
 if [ "${FCST}" = "YES" ]; then
 aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
   export  err=$?; err_chk
- if [ $cycle = "t06z" ] ; then
-  aprun -n 1 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
+ if [ $cycle = "t00z" ] ; then
+  aprun -n 1 $USHaqm/aqm_fv3chem_conus_L35.sh $PDY
   err=$?; err_chk
  fi
 fi

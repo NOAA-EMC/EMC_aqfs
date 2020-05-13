@@ -12,8 +12,8 @@
 #
 .SUFFIXES: .m4 .c .F .f
 #
-BASEDIR = /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31
-INSTDIR = /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+BASEDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/sorc/aqm_ioapi_v31
+INSTDIR = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/sorc/aqm_ioapi_v31/Linux3_x86_64intel
 
 SRCDIR  = $(BASEDIR)/notcdf
 IODIR   = $(BASEDIR)/ioapi
@@ -22,7 +22,7 @@ OBJDIR  = $(BASEDIR)/$(BIN)
 # Architecture dependent stuff
 # Assumes FC is an f90 (otherwise, "make f77").
 #
-include /gpfs/hps/nco/ops/nwpara/cmaq.v5.1.4/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
+include /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/sorc/aqm_ioapi_v31/ioapi/Makeinclude.Linux3_x86_64intel
 #
 #
 #

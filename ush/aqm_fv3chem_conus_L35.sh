@@ -4,11 +4,6 @@ set -xa
 
 cd $DATA
 
-cyc=00
-
-#nowdate=`${NDATE}| cut -c1-8`
-
-#cycledate=${1:-$nowdate}$cyc
 cycledate=${1:-$PDY}$cyc
 
 cyear=`echo $cycledate | cut -c1-4`
@@ -17,12 +12,12 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-if [ -s ${FV3CHEM_DIR}/gfs.${PDY}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDY}/00
-elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm1}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm1}/00
-elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm2}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm2}/00
+if [ -s ${FV3CHEM_DIR}/gfs.${PDY}/$cyc/gfs.t${cyc}z.atmf120.nemsio ]; then
+  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDY}/${cyc}
+elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm1}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
+  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm1}/${cyc}
+elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm2}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
+  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm2}/${cyc}
 else
  echo " can not find $FV3CHEMFOLDER/gfs.t${cyc}z.atmf120.nemsio "
  exit 1

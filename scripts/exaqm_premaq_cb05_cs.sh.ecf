@@ -628,10 +628,10 @@ export LOGFILE=$DATA/chkreads.log
 $USHaqm/aqm_premaq_cb05_winddust_snowcover_hms_emission_cs.sh
 export err=$?; err_chk
 #######################################################
-if [[  ${cycle} = 't06z'  ]] ; then
-$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-export err=$?; err_chk
-fi
+#if [[  ${cycle} = 't06z'  ]] ; then
+#$USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
+#export err=$?; err_chk
+#fi
 
 ########################################################
 msg='ENDED NORMALLY.'
