@@ -7,7 +7,7 @@ module load ../modulefiles/CMAQ/v5.1.8
 BASE=`pwd`
 
 ##########################
-for src in premaq_v502 fengsha_2016 fengsha_merge_2016 snowdust_2016 fire_checking_2016 fire_fcst_1 fire_fcst_2 fire_analy_1 fire_analy_2 fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 fv3chem_dlbc csum chg rdgrbwt_aot_CHA_g2  
+for src in premaq_v502 fengsha_2016 fengsha_merge_2016 snowdust_2016 fire_checking_2016 fire_fcst_1 fire_fcst_2 fire_analy_1 fire_analy_2 fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 gefsaero_dlbc csum chg rdgrbwt_aot_CHA_g2  
 do
 cd ${BASE}/aqm_${src}.fd
 make -f Makefile clobber

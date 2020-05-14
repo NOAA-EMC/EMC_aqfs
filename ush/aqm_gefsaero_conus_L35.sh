@@ -12,14 +12,14 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-if [ -s ${FV3CHEM_DIR}/gfs.${PDY}/$cyc/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDY}/${cyc}
-elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm1}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm1}/${cyc}
-elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm2}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
-  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm2}/${cyc}
+if [ -s ${GEFSAERO_DIR}/gfs.${PDY}/$cyc/gfs.t${cyc}z.atmf120.nemsio ]; then
+  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDY}/${cyc}
+elif [ -s ${GEFSAERO_DIR}/gfs.${PDYm1}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
+  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDYm1}/${cyc}
+elif [ -s ${GEFSAERO_DIR}/gfs.${PDYm2}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
+  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDYm2}/${cyc}
 else
- echo " can not find $FV3CHEMFOLDER/gfs.t${cyc}z.atmf120.nemsio "
+ echo " can not find $GEFSAEROFOLDER/gfs.t${cyc}z.atmf120.nemsio "
  exit 1
 fi 
 
@@ -28,20 +28,20 @@ if [ ! -s $outdir ]; then
  mkdir -p $outdir
 fi 
  
-cat > ngac-bnd-nemsio.ini <<EOF
+cat > gefs-bnd-nemsio.ini <<EOF
 &control
  begyear=$cyear  
  begdate=$cjulian
  begtime=$cyc    
  dtstep=6        
- numts = 31
+ numts = 21
  bndname='NO2','NO','O3','NO3','OH','HO2','N2O5','HNO3','HONO','PNA',
  'H2O2','CO','SO2','SULF','PAN','FACD','AACD','PACD','UMHP','MGLY',
  'OPEN','CRES','FORM','ALD2','PAR','OLE','TOL','ISOP','ETH','XYL',
  'ASO4J','ASO4I','ASOIL','NH3','NUMATKN','NUMACC','NUMCOR',
  'SRFATKN','SRFACC','AOTHRJ',AECJ,APOCJ
  checkname='AOTHRJ','ASOIL','AECJ','APOCJ'
- mofile='$FV3CHEMFOLDER/gfs.t${cyc}z.atmf','.nemsio'
+ mofile='$GEFSAEROFOLDER/gfs.t${cyc}z.atmf','.nemsio'
  checklayer=1    
 &end
 
@@ -76,11 +76,11 @@ fi
 export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 
 
-export BND2=$outdir/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
-export CHECK2D=$outdir/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+export BND2=$outdir/aqm_conus_geos_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
+export CHECK2D=$outdir/check_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
 rm -rf chkreads.log
 
 startmsg
-$EXECaqm/aqm_fv3chem_dlbc  >> $pgmout 2>errfile 
+$EXECaqm/aqm_gefsaero_dlbc  >> $pgmout 2>errfile 
 export err=$?;err_chk

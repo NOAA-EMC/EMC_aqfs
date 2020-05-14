@@ -41,7 +41,7 @@ export COMINm1=${COMINm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 export COMOUT=${COMOUT:-$COMROOT/$NET/$envir/$RUN.$PDY}
 export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
-export NGAC_DIR=${NGAC_DIR:-$(compath.py ngac/prod)}
+export GEFSAERO_DIR=${GEFSAERO_DIR:-$(compath.py GEFS/prod)}
 export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/${envir}/emission}
 export smoke_emis=${smoke_emis:-$(compath.py hysplit/prod)}
 
@@ -55,7 +55,7 @@ if [ "${FCST}" = "YES" ]; then
 aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
   export  err=$?; err_chk
  if [ $cycle = "t00z" ] ; then
-  aprun -n 1 $USHaqm/aqm_fv3chem_conus_L35.sh $PDY
+  aprun -n 1 $USHaqm/aqm_gefsaero_conus_L35.sh $PDY
   err=$?; err_chk
  fi
 fi
