@@ -12,14 +12,12 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-if [ -s ${GEFSAERO_DIR}/gfs.${PDY}/$cyc/gfs.t${cyc}z.atmf120.nemsio ]; then
-  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDY}/${cyc}
-elif [ -s ${GEFSAERO_DIR}/gfs.${PDYm1}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
-  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDYm1}/${cyc}
-elif [ -s ${GEFSAERO_DIR}/gfs.${PDYm2}/${cyc}/gfs.t${cyc}z.atmf120.nemsio ]; then
-  GEFSAEROFOLDER=${GEFSAERO_DIR}/gfs.${PDYm2}/${cyc}
+if [ -s   ${COMINgefs}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
+  GEFSAEROFOLDER=${COMINgefs}/${cyc}/chem/sfcsig
+elif [ -s ${COMINgefsm1}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
+  GEFSAEROFOLDER=${COMINgefsm1}/${cyc}/chem/sfcsig
 else
- echo " can not find $GEFSAEROFOLDER/gfs.t${cyc}z.atmf120.nemsio "
+ echo " can not find $GEFSAEROFOLDER/geaer.t${cyc}z.atmf120.nemsio "
  exit 1
 fi 
 
@@ -41,7 +39,7 @@ cat > gefs-bnd-nemsio.ini <<EOF
  'ASO4J','ASO4I','ASOIL','NH3','NUMATKN','NUMACC','NUMCOR',
  'SRFATKN','SRFACC','AOTHRJ',AECJ,APOCJ
  checkname='AOTHRJ','ASOIL','AECJ','APOCJ'
- mofile='$GEFSAEROFOLDER/gfs.t${cyc}z.atmf','.nemsio'
+ mofile='$GEFSAEROFOLDER/geaer.t${cyc}z.atmf','.nemsio'
  checklayer=1    
 &end
 
