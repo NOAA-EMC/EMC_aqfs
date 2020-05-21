@@ -6,23 +6,23 @@
 !   for GOCART output in NEMS-IO format 
 !
 !   Author: Youhua Tang
-!
+!   Revisions
 !-------------------------------------------------------------------------------------
       
       use nemsio_module
-      
+
       include 'PARMS3.EXT'      ! i/o API
       include 'FDESC3.EXT'      ! i/o API
       include 'IODECL3.EXT'     ! i/o API
 
-      parameter(maxfile=300,nspecies=100,ngocart=6)
+      parameter(maxfile=300,nspecies=100,ngocart=10)
 
       real sfact(ngocart,nspecies),val(nspecies),  &
          checkfact(ngocart,nspecies)
 
       real,allocatable  :: glon(:,:), glat(:,:),tmpa(:)
       real,allocatable  :: pgocart(:,:,:),vgocart(:,:,:), press(:,:,:),  &
-       work(:), work2(:), work3(:), xlat(:,:), xlon(:,:), bnd(:,:,:),    &
+       worka(:),workb(:),workc(:), work(:), work2(:), work3(:), xlat(:,:), xlon(:,:), bnd(:,:,:),    &
        tmpbnd(:,:,:),bndcoord(:,:,:), checkcoord(:,:,:),checksp(:,:,:), &
        airgocart(:,:,:),tgocart(:,:,:)
       
@@ -35,7 +35,7 @@
        idate(7),tlmeta,iret
       logical ingocart,lflag,extrameta,indexfind(nspecies)
            
-      data gocartname/'o3mr','du001','du002','du003','du004','du005'/
+      data gocartname/'o3mr','dust1','dust2','dust3','dust4','dust5','bc1','bc2','oc1','oc2'/
        
       data indexfind/nspecies*.false./
       
@@ -56,7 +56,7 @@
       checkfact(1:ngocart,1:nspecies)=0.
 ! read converting information
 
-      open(7,file='ngac-bnd-nemsio.ini')
+      open(7,file='gefs-bnd-nemsio.ini')
       read(7,control)
       nowdate=begyear*1000+begdate   ! YYYYDDD
       nowtime=begtime*10000          ! HHMMSS      
@@ -245,20 +245,15 @@
        do while(inowtime.ne.jfiletime)
         call daymon(nowdate,mmonth,mday)
 	
-!	write(aline,'(a,i4.4,3i2.2,a)')trim(mofile(1)),nowdate/1000, &
-!	mmonth,mday,nowtime/10000,trim(mofile(2))
-	if(jfhour.gt.100) then
-	 write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
-	else 
-         write(aline,'(a,i2.2,a)')trim(mofile(1)),jfhour,trim(mofile(2))
-	endif 
+       write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
+
        if(mtime.gt.1) call nemsio_close(gfile)
-       call nemsio_open(gfile,trim(aline),'READ',iret=iret)
+       print*, aline
+       call nemsio_open(gfile,trim(aline),'READ',iret=iret,gdatatype="bin4")
        if(iret.ne.0) then
          print*,'failed to open ',trim(aline)
 	 stop
        endif	 
-    
       call nemsio_getfilehead(gfile,iret=iret,nrec=nrec,dimx=im,	  &
          dimy=jm,dimz=lm,idate=idate,gdatatype=gdatatype,gtype=gtype,	  &
         modelname=modelname,nfhour=nfhour,nfminute=nfminute,		  &
@@ -292,7 +287,10 @@
 	 
 	 allocate(glon(igocart,jgocart))
 	 allocate(glat(igocart,jgocart))
-	 allocate(work(igocart*jgocart))
+	 allocate(worka(igocart*jgocart))
+         allocate(workb(igocart*jgocart))
+         allocate(workc(igocart*jgocart))
+         allocate(work(igocart*jgocart))
 	 allocate(work2(igocart*jgocart))
 	 allocate(work3(igocart*jgocart))
 	 allocate(tmpa(kgocart),STAT=ierr)
@@ -323,7 +321,7 @@
 
        print*,' Gocart Latitude, Longtitude interval:',glatint,glonint
 
-       if(iprint.eq.1) open(27,file='du002.bin',form='unformatted',&
+       if(iprint.eq.1) open(27,file='dust2.bin',form='unformatted',&
          access='direct',recl=igocart*jgocart*4)
 	 
 !---calculating lateral boundary horizontal index in GOCART coordinate
@@ -405,22 +403,28 @@
 !     1  nowtime*10000,press)) stop
 !       endif
        endif
-
-       do k=1,kgocart
-        call nemsio_readrecv(gfile,'pres','mid layer',k,work, &   ! pressure in Pa
-     	  iret=iret)
+       call nemsio_readrecv(gfile,'pres','sfc',1, worka, &   ! surface pressure in Pa
+          iret=iret)
         if(iret.ne.0) then
-         print*,'read gocart pres failed ',k
-	 stop
+         print*,iret,'read gocart pressfc failed '
+         stop
         endif
 
+       workc=worka*0.0   !initialize the summed pressure to zero at first level
+       do k=1,kgocart
+        call nemsio_readrecv(gfile,'dpres','mid layer',k,workb, &   ! delta pressure in Pa
+     	  iret=iret)
+        if(iret.ne.0) then
+         print*,'read gocart dpres failed ',k
+	 stop
+        endif
+        workc=workc+workb   !sum delta pressure
 	call nemsio_readrecv(gfile,'tmp','mid layer',k,work2, &  ! temperature in K
      	  iret=iret)
         if(iret.ne.0) then
 	 print*,'error reading gocart temperature ',k
 	 stop
-        endif
-	
+        endif	
 	call nemsio_readrecv(gfile,'spfh','mid layer',k,work3, &  ! specific humidity (kg/kg)
      	  iret=iret)
         if(iret.ne.0) then
@@ -430,14 +434,13 @@
 	
 	do i=1,igocart
 	 do j=1,jgocart
-	  pgocart(i,j,k)=work(i+(j-1)*igocart)
+          pgocart(i,j,k)=worka(i+(j-1)*igocart) - workc(i+(j-1)*igocart)  
 	  tgocart(i,j,k)=work2(i+(j-1)*igocart)
 	  tv=work2(i+(j-1)*igocart)*(1+0.608*amax1(work3(i+(j-1)*igocart),1.e-15))  ! virtual temperature
 	  airgocart(i,j,k)=pgocart(i,j,k)/tv/287.04*1000 ! air density in g/m3  R= 287.04 m3 Pa /kg/K
 	 enddo
 	enddo  
        enddo
-       	 
        do i=1,lenbnd         ! find vertical index
         if(i.le.imax+1) then
          ix=i
@@ -528,14 +531,15 @@
 	   stop
           endif
 
-        if(gocartname(L1).eq.'du002'.and.iprint.eq.1.and.k.eq.1) then
+        if(gocartname(L1).eq.'dust2'.and.iprint.eq.1.and.k.eq.1) then
 	 write(27,rec=(mtime-1)*2+1)work
 	 write(27,rec=mtime*2) airgocart(:,:,1)
 	endif 
             
  	 do i=1,igocart
 	  do j=1,jgocart
-	   vgocart(i,j,k)=work(i+(j-1)*igocart)*airgocart(i,j,k)*1e6    ! g/g -> ug/m3
+!	   vgocart(i,j,k)=work(i+(j-1)*igocart)*airgocart(i,j,k)*1e6    ! Operational NGAC unit conversion:  g/g -> ug/m3
+           vgocart(i,j,k)=work(i+(j-1)*igocart)   ! FV3-Chem aerosol units already in -> ug/m3  
 	   if(vgocart(i,j,k).gt.1e18) vgocart(i,j,k)=0. ! for undefine bug
 	   
            if(gocartname(L1).eq.'so2') vgocart(i,j,k)=work(i+(j-1)*igocart)*1e6/64*28.97   ! kg/kg -> ppmV
@@ -544,7 +548,7 @@
 	 enddo
 	enddo 
 
-!        if(gocartname(L1).eq.'du002'.and.iprint.eq.1) &
+!        if(gocartname(L1).eq.'dust2'.and.iprint.eq.1) &
 !	 write(27,rec=mtime)vgocart(:,:,1)
 	
 	  	   
