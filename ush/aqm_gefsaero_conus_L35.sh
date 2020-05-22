@@ -12,14 +12,31 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-if [ -s   ${COMINgefs}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
-  GEFSAEROFOLDER=${COMINgefs}/${cyc}/chem/sfcsig
-elif [ -s ${COMINgefsm1}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
-  GEFSAEROFOLDER=${COMINgefsm1}/${cyc}/chem/sfcsig
-else
- echo " can not find $GEFSAEROFOLDER/geaer.t${cyc}z.atmf120.nemsio "
- exit 1
-fi 
+if [ $cyc -eq 06 ] ;  then 
+ if [ -s   ${COMINgefs}/00/chem/sfcsig/geaer.t00z.atmf120.nemsio ]; then
+#  GEFSAEROFOLDER=${COMINgefs}/00/chem/sfcsig
+  pmofile=${COMINgefs}/00/chem/sfcsig/geaer.t00z.atmf
+ elif [ -s ${COMINgefsm1}/18/chem/sfcsig/geaer.t18z.atmf120.nemsio ]; then
+  pmofile=${COMINgefsm1}/18/chem/sfcsig/geaer.t18z.atmf
+#  GEFSAEROFOLDER=${COMINgefsm1}/18/chem/sfcsig
+ else
+  echo " can not find geaer.atmf*.nemsio for ${PDY}$cyc "
+  exit 1
+ fi 
+fi
+
+if [ $cyc -eq 12 ] ;  then
+ if [ -s   ${COMINgefs}/06/chem/sfcsig/geaer.t06z.atmf120.nemsio ]; then
+#  GEFSAEROFOLDER=${COMINgefs}/06/chem/sfcsig
+  pmofile=${COMINgefs}/06/chem/sfcsig/geaer.t06z.atmf
+ elif [ -s ${COMINgefs}/00/chem/sfcsig/geaer.t00z.atmf120.nemsio ]; then
+#  GEFSAEROFOLDER=${COMINgefs}/00/chem/sfcsig
+  pmofile=${COMINgefs}/00/chem/sfcsig/geaer.t00z.atmf
+ else
+  echo " can not find geaer.atmf*.nemsio for ${PDY}$cyc "
+  exit 1
+ fi
+fi
 
 outdir=$COMOUT
 if [ ! -s $outdir ]; then
@@ -39,7 +56,7 @@ cat > gefs-bnd-nemsio.ini <<EOF
  'ASO4J','ASO4I','ASOIL','NH3','NUMATKN','NUMACC','NUMCOR',
  'SRFATKN','SRFACC','AOTHRJ',AECJ,APOCJ
  checkname='AOTHRJ','ASOIL','AECJ','APOCJ'
- mofile='$GEFSAEROFOLDER/geaer.t${cyc}z.atmf','.nemsio'
+ mofile='$pmofile','.nemsio'
  checklayer=1    
 &end
 
@@ -74,8 +91,8 @@ fi
 export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 
 
-export BND2=$outdir/aqm_conus_geos_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
-export CHECK2D=$outdir/check_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf
+export BND2=$outdir/aqm_conus_geos_gefs_aero_${PDY}${cyc}_35L.ncf        # output bnd files
+export CHECK2D=$outdir/check_gefs_aero_${PDY}${cyc}_35L.ncf
 
 rm -rf chkreads.log
 

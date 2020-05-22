@@ -409,10 +409,12 @@ export   INIT_TRAC_1=$INIT_GASC_1
 export   OMI=$OMIpath/$OMIfile
 # export   XJ_DATA=$JVALpath/$JVALfile
 
-if [[ ${cycle} = 't00z'  || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
-export BNDY_GASC_1=$COMINm1/aqm_conus_geos_gefs_aero_${PDYm1}_35L.ncf
-else
-export BNDY_GASC_1=$COMIN/aqm_conus_geos_gefs_aero_${PDY}_35L.ncf
+if [[ ${cycle} = 't00z' || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
+export BNDY_GASC_1=$COMINm1/aqm_conus_geos_gefs_aero_${PDYm1}12_35L.ncf
+ elif [[ ${cycle} = 't18z' ]] ; then
+ export BNDY_GASC_1=$COMIN/aqm_conus_geos_gefs_aero_${PDY}12_35L.ncf
+ else 
+export BNDY_GASC_1=$COMIN/aqm_conus_geos_gefs_aero_${PDY}${cyc}_35L.ncf
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ] ; then

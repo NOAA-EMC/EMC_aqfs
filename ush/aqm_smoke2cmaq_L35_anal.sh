@@ -10,10 +10,8 @@ nowdate=`$NDATE | cut -c1-8`
 ic=0
 while [ $ic -lt 60 ]
 do
-# if [ -s ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar ]
  if [ -s ${COMINhysplit}/files_fires_cs.t${cyc}z.tar ]
   then
-#    echo  ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar "exists!"
     echo  ${COMINhysplit}/files_fires_cs.t${cyc}z.tar "exists!"
      break
   else
@@ -40,15 +38,12 @@ EOF
  
 #export PDYp1=$PDY
 
-#if [ -s ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar ] ; then
 if [ -s ${COMINhysplit}/files_fires_cs.t${cyc}z.tar ] ; then
-# cp ${smoke_emis}/smokecs.$PDYp1/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
  cp ${COMINhysplit}/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
 else
  echo "No files_fires_cs.tar from HYSPLIT/BlueSky"
  exit 
 fi
-#if [ -s ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z ] ; then
 if [ -s ${COMINhysplit}/EMITIMES.t${cyc}z ] ; then
  cp ${COMINhysplit}/EMITIMES.t${cyc}z $DATA/EMITIMES
 else
