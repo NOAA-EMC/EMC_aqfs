@@ -41,9 +41,11 @@ export COMINm1=${COMINm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 export COMOUT=${COMOUT:-$COMROOT/$NET/$envir/$RUN.$PDY}
 export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
-export GEFSAERO_DIR=${GEFSAERO_DIR:-$(compath.py GEFS/prod)}
+export COMINgefs=${COMINgefs:-$(compath.py gefs/prod/gefs.$PDY)}
+export COMINgefsm1=${COMINgefsm1:-$(compath.py gefs/prod/gefs.$PDY)}
 export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/${envir}/emission}
-export smoke_emis=${smoke_emis:-$(compath.py hysplit/prod)}
+export COMINhysplit=${COMINhysplit:-$(compath.py hysplit/prod/smokecs.$PDY)}
+export COMINhysplitm1=${COMINhysplitm1:-$(compath.py hysplit/prod/smokecs.$PDYm1)}
 
 mkdir -p $COMOUT
 
@@ -60,6 +62,7 @@ aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
  fi
 fi
 
+#if [ $Mn -ge 5 ] && [ $Mn -le 9 ] ; then
 if [ $Mn -ge 7 ] && [ $Mn -le 9 ] ; then
  if [ $cycle = "t06z" ] && [ "${FCST}" = "NO" ] ; then
   aprun -n 1 $USHaqm/aqm_smoke2cmaq_L35_anal.sh $PDY
