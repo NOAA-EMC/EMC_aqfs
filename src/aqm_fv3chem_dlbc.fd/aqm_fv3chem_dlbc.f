@@ -56,7 +56,7 @@
       checkfact(1:ngocart,1:nspecies)=0.
 ! read converting information
 
-      open(7,file='ngac-bnd-nemsio.ini')
+      open(7,file='gefs-bnd-nemsio.ini')
       read(7,control)
       nowdate=begyear*1000+begdate   ! YYYYDDD
       nowtime=begtime*10000          ! HHMMSS      

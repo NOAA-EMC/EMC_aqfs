@@ -449,11 +449,9 @@ export   OMI=$OMIpath/$OMIfile
 export   XJ_DATA=$JVALpath/$JVALfile
 
 if [[ ${cycle} = 't00z'  || "${FCST}" = "NO" ]] ; then    ## if FCST=NO then use previous day LBC for 24-rerun
-# export BNDY_GASC_1=$COMINm1/aqm_conus_geos_ngac_dust_${PDYm1}_35L.ncf
- export BNDY_GASC_1=$COMINm1/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
+ export BNDY_GASC_1=$COMINm1/aqm_conus_geos_gefs_aero_${PDYm1}_35L.ncf
 else
-# export BNDY_GASC_1=$COMIN/aqm_conus_geos_ngac_dust_${PDY}_35L.ncf
- export BNDY_GASC_1=$COMIN/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+ export BNDY_GASC_1=$COMIN/aqm_conus_geos_gefs_aero_${PDY}_35L.ncf
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ] ; then

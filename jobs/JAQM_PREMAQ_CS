@@ -41,10 +41,15 @@ export COMINm1=${COMINm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 export COMOUT=${COMOUT:-$COMROOT/$NET/$envir/$RUN.$PDY}
 export COMOUTm1=${COMOUTm1:-$COMROOT/$NET/$envir/$RUN.$PDYm1}
 
-export FV3CHEM_DIR=${FV3CHEM_DIR:-$COMROOTp2/ngac/prod}
+#export FV3CHEM_DIR=${FV3CHEM_DIR:-$COMROOTp2/ngac/prod}
+export COMINgefs=${COMINgefs:-$(compath.py gefs/prod/gefs.$PDY)}
+export COMINgefsm1=${COMINgefsm1:-$(compath.py gefs/prod/gefs.$PDY)}
 export INPEMIDIR=${INPEMIDIR:-$COMROOT/$NET/${envir}/emission}
-export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/prod}
+
+#export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit/prod}
 #export smoke_emis=${smoke_emis:-$COMROOTp2/hysplit4cmaq/${envir}}
+export COMINhysplit=${COMINhysplit:-$(compath.py hysplit/prod/smokecs.$PDY)}
+export COMINhysplitm1=${COMINhysplitm1:-$(compath.py hysplit/prod/smokecs.$PDYm1)}
 
 mkdir -p $COMOUT
 
@@ -56,17 +61,17 @@ env
 if [ "${FCST}" = "YES" ]; then
 aprun -n 1 $HOMEaqm/scripts/exaqm_premaq_cb05_cs.sh.ecf
   export  err=$?; err_chk
- if [ $cycle = "t06z" ] ; then
-# if [ $cycle = "t00z" ] ; then
+# if [ $cycle = "t06z" ] ; then
+ if [ $cycle = "t00z" ] ; then
 #  aprun -n 1 $USHaqm/aqm_ngac_conus_L35_dust.sh $PDY
-  aprun -n 1 $USHaqm/aqm_fv3chem_conus_L35.sh $PDY
+  aprun -n 1 $USHaqm/aqm_gefsaero_conus_L35.sh $PDY
   err=$?; err_chk
  fi
 fi
 
 
 #if [ $Mn -ge 4 ] && [ $Mn -le 9 ] ; then
-# if [ $cycle = "t06z" -o $cycle = "t12z" ] ; then
+# if [ $cycle = "t00z"  ] ; then
    aprun -n 1 $USHaqm/aqm_gbbepx2pts.ksh
    export err=$?; err_chk
 # fi 

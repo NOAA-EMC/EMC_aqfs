@@ -34,10 +34,14 @@ elif [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDY.nc ]; then
  COMIN9=$COMIN
  emisfile=GBBEPx_all01GRID.emissions_v003_$PDY.nc
  FIREDATE=$PDY 
- else [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm1.nc ] 
+ elif [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm1.nc ]; then 
  COMIN9=$COMIN
  emisfile=GBBEPx_all01GRID.emissions_v003_$PDYm1.nc
  FIREDATE=$PDYm1
+ else [ -s $COMIN/GBBEPx_all01GRID.emissions_v003_$PDYm2.nc ]
+ COMIN9=$COMIN
+ emisfile=GBBEPx_all01GRID.emissions_v003_$PDYm2.nc
+ FIREDATE=$PDYm2
 fi
 
 cat>gbbepx2pts.ini<<!

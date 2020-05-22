@@ -396,8 +396,8 @@ do
 # x3=0 ---> Standard 3-hourly or 12-hourly output
 #           Only master grib files are needed for the hourly files
 #      if [ $x3 -eq 0 ] ; then
-       export fhr
-       $USHgfs/gfs_transfer.sh
+#       export fhr
+#       $USHgfs/gfs_transfer.sh
 #      fi
     fi
     rm pgbfile* pgifile* tfile prmsl h5wav
