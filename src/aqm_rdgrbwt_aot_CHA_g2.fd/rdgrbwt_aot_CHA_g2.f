@@ -4,77 +4,65 @@
 !c
 !c    modified by jphuang to read in cmaq5.0.2 output
 !c                  and write out AOD in grib2 on 4/20
-
+!
+!     June 10 2020   Ho-Chun Huang   Modified for CB6 with direct-read-in
+!                                    of AOT from v5.3.1 FCST output 
+!                                    aqm.t12z.rj_1.ncf, "AOD_W550_ANGST".
       include 'PARMS3.EXT'      ! i/o API
       include 'FDESC3.EXT'      ! i/o API
       include 'IODECL3.EXT'     ! i/o API
 
-       parameter(izmax=35)
+      integer, parameter :: izmax=35
 
-       integer imon,idy,ihr,iyr,icyc,itime,
-     &         iseek,llgrib,llskip,kf,mm,dd,yyyy,cyc,fhr,status
-       integer, allocatable :: lpbl(:)
-      integer, parameter :: naerospec=7, ncmaq=13, nmet=11
-      character*16 aerospec(naerospec),varlist(ncmaq),metlist(nmet), 
-     +      cmaqspec(ncmaq),metspec(nmet)
-       real conv_ratio(ncmaq)
+      integer :: imon,idy,ihr,iyr,icyc,itime
+      integer :: iseek,llgrib,llskip,kf,mm,dd,yyyy,cyc,fhr,istatus
 
-       real,allocatable ::  var(:),vnt(:),Uwind(:,:),
-     &                      Vwind(:,:),work(:,:),
-     &      gpht(:,:,:),pblh(:),Usum(:),Vsum(:),wdspeed(:),
-     &      ext_m(:,:,:),aot(:,:),sigmas(:)
+      real, allocatable ::  aod550(:,:)
 
-      character*200 outfile,ozonecatfile
+!!      character*200 outfile,ozonecatfile
+      character*200 outfile
       character chtmp*2,grib_id*3
-      integer nout,ibm,ibitm
-      integer kpds(200),kgds(200),gribid(ncmaq),gribtb(ncmaq), 
-     +     mgribid(nmet),mgribtb(nmet)
-      logical i3dvar(ncmaq),mi3dvar(nmet),iflag
+!!      integer :: nout, ibm, ibitm
+      integer, dimension(200)   :: kpds,   kgds
+!!      integer, dimension(ncmaq) :: gribid,  gribtb
+!!      integer, dimension(nmet)  :: mgribid, mgribtb
+      logical  :: iflag
 
-      integer imax,jmax,kmax ,ii, jj, kk
-      integer iyear,imonth,iday,ihour,base_year,nt
-      integer lengrib
-      integer nowdate,nowtime
-      integer nowdate1,nowtime1,idate,idate1
-      integer ierr,ier
+      integer :: imax,jmax,kmax ,ii, jj, kk
+      integer :: iyear,imonth,iday,ihour,base_year,nt
+      integer :: lengrib
+      integer :: nowdate,nowtime
+      integer :: nowdate1,nowtime1,idate,idate1
+      integer :: ierr,ier
 
-       integer indexcmaq(ncmaq),indexmet(nmet),istime(4),ietime(4)  !file start and ending in YYYYDDD0H
+      integer :: istime  !file start and ending in YYYYDDD0H
 
 ! grib2
-      integer listsec0(2)
-      integer listsec1(13)
-      integer igds(5)
-      integer igdstmpllen
-      integer ipdstmpllen
-      integer idrstmpllen
-      integer idrsnum,ibmap,numcoord,ipdsnum,idefnum
-      integer ibin_scl,idec_scl,inumbits
+      integer :: listsec0(2)
+      integer :: listsec1(13)
+      integer :: igds(5)
+      integer :: igdstmpllen
+      integer :: ipdstmpllen
+      integer :: idrstmpllen
+      integer :: idrsnum,ibmap,numcoord,ipdsnum,idefnum
+      integer :: ibin_scl,idec_scl,inumbits
 
-      integer,dimension(100) :: igdstmpl
-      integer,dimension(100) :: ipdstmpl
-      integer,dimension(100) :: idrstmpl
+      integer, dimension(100) :: igdstmpl
+      integer, dimension(100) :: ipdstmpl
+      integer, dimension(100) :: idrstmpl
 
-       character*1,allocatable  ::cgrib1(:),cgrib2(:)
-       logical*1 , allocatable ::bmap(:,:)
-       logical*1 , allocatable ::bmap1(:)
-       integer ibmap1
-       real(4),allocatable :: fld1(:),fld2(:)
-       real(4) :: dxval, fldscl
-       real(4),parameter :: SPVAL=9.9e10
+      real*4, parameter :: SPVAL=9.9e10
+      character*1, allocatable :: cgrib1(:),cgrib2(:)
+      logical*1  , allocatable :: bmap(:,:)
+      logical*1  , allocatable :: bmap1(:)
+      real*4     , allocatable :: fld1(:),fld2(:)
+      real*4                   :: dxval, fldscl
+      integer ibmap1
 
+      character*14 fout1*15, date*10, fname*19, Dn2*3, Dcyc*3
+      character*3  ch_im,ch_jm
+      INTEGER, EXTERNAL :: ENVINT
 
-
-!       dimension jpds(25),jgds(25),kpds(25),kgds(25),
-!     &           ifsig(izmax)
-        real ifsig(izmax+1)
-
-       character*14 fout1*15, date*10, fname*19, Dn2*3, Dcyc*3
-       character*3 ch_im,ch_jm
-        logical*1,allocatable :: lb(:) 
-       INTEGER, EXTERNAL :: ENVINT
-
-!      namelist /control/varlist,metlist,outfile,nlayers,id_gribdomain,& !   (table A)
-!                         ave1hr,ozonecatfile
       namelist /control/outfile,nlayers,id_gribdomain !   (table A)
 
       open(7,file='cmaq2grib2_aot.ini')
@@ -82,118 +70,47 @@
       close(7)
 
 
-c  modifed by jphuang 02/01/2010
-        data ifsig/1.000000, 0.995253, 0.990479, 0.985679, 0.980781,
-     +             0.975782, 0.970684, 0.960187, 0.954689, 0.936895,
-     +             0.930397, 0.908404, 0.888811, 0.862914, 0.829314,
-     +             0.786714, 0.735314, 0.645814, 0.614214, 0.582114,
-     +             0.549714, 0.511711, 0.484394, 0.451894, 0.419694,   
-     +             0.388094, 0.356994, 0.326694, 0.297694, 0.270694,
-     +             0.245894, 0.223694, 0.203594, 0.154394, 0.127094,
-     +             0.089794/
-       imon= ENVINT('mm',' ',mm,status)
-       idy = ENVINT('dd',' ',dd,status)
-       iyr = ENVINT('yyyy',' ',yyyy,status)
-       icyc= ENVINT('cyc',' ',cyc,status)
-       ihr = icyc
-       icyc= 100+ icyc
-       write(Dcyc,'(i3)') icyc
-       itime = ENVINT('fhr',' ',fhr,status)
+      imon= ENVINT('mm',' ',mm,istatus)
+      idy = ENVINT('dd',' ',dd,istatus)
+      iyr = ENVINT('yyyy',' ',yyyy,istatus)
+      icyc= ENVINT('cyc',' ',cyc,istatus)
+      ihr = icyc
+      icyc= 100+ icyc
+      write(Dcyc,'(i3)') icyc
+      itime = ENVINT('fhr',' ',fhr,istatus)
 
-        print*, iyr,imon,idy,ihr,"icyc=",icyc
+      print*, iyr,imon,idy,ihr,"icyc=",icyc
 
-        call getarg(1,ch_im)
-        read(ch_im,'(i3)')im
-        call getarg(2,ch_jm)
-        read(ch_jm,'(i3)')jm
-        print*,"im=",im,"jm=",jm,"jf=",jf
+      call getarg(1,ch_im)
+      read(ch_im,'(i3)')im
+      call getarg(2,ch_jm)
+      read(ch_jm,'(i3)')jm
+      print*,"im=",im,"jm=",jm
     
-!        allocate(lpbl(jf))
-!        allocate(var(jf),vnt(jf),Uwind(jf,izmax),Vwind(jf,izmax) )
-!        allocate(gpht(jf,izmax),pblh(jf),Usum(jf),Vsum(jf),wdspeed(jf))
-!        allocate (ext_m(jf,izmax),aot(jf))
-!        allocate (lb(jf))
-        nD2 = 100 + itime
-        write(Dn2,'(i3)') nD2
-        iunit=10
+      nD2 = 100 + itime
+      write(Dn2,'(i3)') nD2
+      iunit=10
 !==============================================================================
-!jp added by jphuang 04/20/2016
-!--- cmaq species
-
-!jp0      do L=1,ncmaq
-!       if(varlist(L).ne.'    ') then
-!
-!         do L2=1,ncmaq
-!          if(varlist(L).eq.cmaqspec(L2)) exit
-!         enddo
-!         if(L2.gt.ncmaq) then
-!          print*,'wrong varlist ', varlist(L)
-!          stop
-!         endif
-!         indexcmaq(L)=L2
-!
-!       else
-!        exit
-!       endif
-!      enddo
-
-!      nspcmaq=L-1
-
-!      if(nspcmaq.lt.1) then
-!       print*,'no CMAQ species provided'
-!!       stop
-!jp9      endif
-
-!-----met species
-
-!jp0      do L=1,nmet
-!       if(metlist(L).ne.'    ') then
-!         do L2=1,nmet
-!          if(metlist(L).eq.metspec(L2)) exit
-!         enddo
-!         if(L2.gt.nmet) then
-!          print*,'wrong metlist ', metlist(L)
-!          stop
-!         endif
-!         indexmet(L)=L2
-!
-!       else
-!        exit
-!       endif
-!      enddo
-!
-!      nspcmet=L-1
-!jp9      if(nspecmet.lt.1) print*,'no met species provided'
-
 ! open files
+!==============================================================================
 
-      if(.not.OPEN3('CHEM3D',FSREAD3,'pathway')) then
-       print*,'open input file error for CHEM3D'
-       stop
+      if(.not.OPEN3('CHEM2D',FSREAD3,'pathway')) then
+         print*,'open input file error for CHEM2D'
+         stop
       endif
 
-      if (.not. DESC3('CHEM3D') ) then   ! get grid information from CMAQ output
-       print*, 'Error getting info from CHEM3D'
-       stop
+      if (.not. DESC3('CHEM2D') ) then   ! get grid information from CMAQ output
+         print*, 'Error getting info from CHEM2D'
+         stop
       endif
-
-!jp0   do L=1,ncmaq
-!       do L2=1,nvars3d
-!        if(vname3d(L2).eq.cmaqspec(L).and.units3d(L2)(1:3).eq.'ppm') conv_ratio(L)=0.000001 ! convert ppm to mol/mol
-!       enddo
-!      enddo
-
-!      if(id_gribdomain.eq.148.and.     &
-!       (ncols3d.ne.442.or.nrows3d.ne.265)) then
-!        print*,'5x domain dimension does not match'
-!        stop
-!jp9      endif
 
       if(tstep3d.ne.10000) then
-       print*,'need hourly input in CMAQFILEs'
-       stop
+         print*,'need hourly input in CMAQFILEs'
+         stop
       endif
 
+      write(*,'(''READ IN ncols3d '', i3.3, '' nrows3d = '', i3.3, 
+     &          ''nlays3d = '', i3.3)') ncols3d, nrows3d, nlays3d
       imax=ncols3d
       jmax=nrows3d
       kmax=nlays3d
@@ -202,92 +119,37 @@ c  modifed by jphuang 02/01/2010
       nx=imax
       ny=jmax
 
-      allocate(ext_m(imax,jmax,kmax))
-      allocate(work(imax,jmax))
-      allocate(aot(imax,jmax))
-      allocate(gpht(imax,jmax,kmax))
+      allocate(aod550(imax,jmax))
 
       allocate(cgrib1(max_bytes))
       allocate(cgrib2(max_bytes))
       allocate(bmap(imax,jmax))
       allocate(bmap1(nx*ny))
-!      allocate(ibmap1(nx*ny))
       allocate(fld1(nx*ny))
       allocate(fld2(nx*ny))
      
-
       if(nlayers.gt.kmax) then
-       print*,'nlayers too high ', nlayers, kmax
-       stop
+         print*,'nlayers too high ', nlayers, kmax
+         stop
       endif
-
-      allocate(sigmas(kmax))
-      do k=1,kmax
-!       sigmas(k)=0.5*(vglvs3d(k)+vglvs3d(k+1))
-        sigmas(k)=vglvs3d(k)
-      enddo
 
       nowsdate=sdate3d
       nowstime=stime3d
       maxrec1=mxrec3d
 
-      print*,"hjp999,nowsdate=",nowsdate,"nowstime=",nowstime
+      print*,"nowsdate=",nowsdate,"nowstime=",nowstime
+      print*,"maxrec1=",maxrec1
 
-      istime(1)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
+      istime=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
 
       ntmpdate=sdate3d
       ntmptime=stime3d
    
       icyc=INT(ntmptime/10000)
-      do n=1,mxrec3d-1
-       call nextime(ntmpdate,ntmptime,tstep3d)
-      enddo
-      ietime(1)=ntmpdate*100+ntmptime/10000   ! file end time in YYYYDDDHH
 
-!      if(nspcmet.ge.1) then
-       if(.not.OPEN3('METCRO3D',FSREAD3,'rdgrbwt_aot_CHA_g2')) stop
-       if(.not.DESC3('METCRO3D')) stop
-
-       if(ncols3d.ne.imax.or.nrows3d.ne.jmax.or.nlays3d.lt.nlayers) then
-         print*,'METCRO3D dimenison mismatch with acon file',ncols3d,nrows3d,nlays3d
-         stop
-       endif
-
-       istime(2)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
-       ntmpdate=sdate3d
-       ntmptime=stime3d
-       do n=1,mxrec3d-1
-        call nextime(ntmpdate,ntmptime,tstep3d)
-       enddo
-       ietime(2)=ntmpdate*100+ntmptime/10000   ! file end time in YYYYDDDHH
-
-       if(istime(2).gt.istime(1).or.ietime(2).lt.ietime(1)) then
-        print*,'METCRO3D time mismatch',istime(2),ietime(2),istime(1),ietime(1)
-        stop
-       endif
-
-!jp0    if(.not.OPEN3('METCRO2D',FSREAD3,'rdgrbwt_aot_CHA_g2')) stop
-!       if(.not.DESC3('METCRO2D')) stop
-
-!       if(ncols3d.ne.imax.or.nrows3d.ne.jmax) then
-!         print*,'METCRO2D dimenison mismatch ',ncols3d,nrows3d
-!         stop
-!       endif
-
-!       istime(3)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
-!       ntmpdate=sdate3d
-!       ntmptime=stime3d
-!       do n=1,mxrec3d-1
-!        call nextime(ntmpdate,ntmptime,tstep3d)
-!       enddo
-!       ietime(3)=ntmpdate*100+ntmptime/10000   ! file end time in YYYYDDDHH
-!       if(istime(3).gt.istime(1).or.ietime(3).lt.ietime(1)) then
-!        print*,'METCRO2D time mismatch',istime(3),ietime(3),istime(1),ietime(1)
-!        stop
-!jp9    endif
-!jp      endif
-!jp ==========================================================================
+!==========================================================================
 ! add grib2 header information
+!==========================================================================
 
 !-- section 0:
       listsec0(1)=0       ! Discipline: table 0.0
@@ -300,12 +162,12 @@ c  modifed by jphuang 02/01/2010
       listsec1(4)=1       ! Version number of GRIB local tables used to augment Master Tables (Table 1.1)
       listsec1(5)=1       ! Significance of reference time (Table 1.2)(0:ana 1:fcst 2:vrfy)
 ! following need to be changed !
-      jjdate=int(istime(1)/100)
+      jjdate=int(istime/100)
       call daymon(jjdate,imonth1,idate1)
-      listsec1(6)=int(istime(1)/100000)
+      listsec1(6)=int(istime/100000)
       listsec1(7)=imonth1
       listsec1(8)=idate1
-      listsec1(9)=mod(istime(1),100)-1
+      listsec1(9)=mod(istime,100)-1
       listsec1(10)=00     ! Reference time - Minute
       listsec1(11)=00     ! Reference time - Second
       listsec1(12)=0      ! Production status of data (Table 1.3) (0:opn products 1:opn test products)
@@ -320,76 +182,76 @@ c  modifed by jphuang 02/01/2010
 !-- example: Gaussian Lat/lon
       igds(5)=30          ! Grid definition template number (Table 3.1)(0:Lat/lon, 30:Lambert 40:Gaussian)
       if( igds(5)==30) then
-        igdstmpllen=22
-        igdstmpl=0
+         igdstmpllen=22
+         igdstmpl=0
 
 !-- set up grid definition template 3.30
-        igdstmpl=0
-        igdstmpl(1)=6       ! Shape of the Earth (Table 3.2) (6:Shape of the Earth = 6,371,229.0 m)
-        igdstmpl(8)=nx      ! Ni . number of points along a paralell
-        igdstmpl(9)=ny      ! Nj . number of points along a meridian
-       if ( id_gribdomain .eq. 148 ) then
-        igdstmpl(10)=21821000      ! Basic angle of the initial production domain
-        igdstmpl(11)=239372000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
-        latstt=8
-        lonstt=33000000
-        latlst=-88541961
-        lonlst=358125000
-        dxval=1875000
-        igdstmpl(12)=latstt ! La1 - latitude of first grid point
-        igdstmpl(13)=lonstt ! Lo1 - longitude of first grid point
-        igdstmpl(14)=263000000
-        igdstmpl(15)=12000000
-        igdstmpl(16)=12000000
-        igdstmpl(17)=0
-        igdstmpl(18)=64
-        igdstmpl(19)=33000000
-        igdstmpl(20)=45000000
-        igdstmpl(21)=0
-        igdstmpl(22)=0
-      elseif ( id_gribdomain .eq. 140 ) then
-        igdstmpl(10)=53020000      ! Basic angle of the initial production domain
-        igdstmpl(11)=193523000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
-!       latstt=8
-!       lonstt=33000000
-!       latlst=-88541961
-!       lonlst=358125000
-!       dxval=1875000
-        igdstmpl(12)=8
-        igdstmpl(13)=57000000
-        igdstmpl(14)=211400000
-        igdstmpl(15)=12000000
-        igdstmpl(16)=12000000
-        igdstmpl(17)=0
-        igdstmpl(18)=64
-        igdstmpl(19)=57000000
-        igdstmpl(20)=63000000
-        igdstmpl(21)=0
-        igdstmpl(22)=0
-      elseif ( id_gribdomain .eq. 139 ) then
-        igdstmpl(10)=17721000      ! Basic angle of the initial production domain
-        igdstmpl(11)=198027000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
-!       latstt=8
-!       lonstt=33000000
-!       latlst=-88541961
-!       lonlst=358125000
-!       dxval=1875000
-        igdstmpl(12)=8 ! La1 - latitude of first grid point
-        igdstmpl(13)=19000000 ! Lo1 - longitude of first grid point
-        igdstmpl(14)=202500000
-        igdstmpl(15)=12000000
-        igdstmpl(16)=12000000
-        igdstmpl(17)=0
-        igdstmpl(18)=64
-        igdstmpl(19)=19000000
-        igdstmpl(20)=21000000
-        igdstmpl(21)=0
-        igdstmpl(22)=0
-      endif
+         igdstmpl=0
+         igdstmpl(1)=6       ! Shape of the Earth (Table 3.2) (6:Shape of the Earth = 6,371,229.0 m)
+         igdstmpl(8)=nx      ! Ni . number of points along a paralell
+         igdstmpl(9)=ny      ! Nj . number of points along a meridian
+         if ( id_gribdomain .eq. 148 ) then
+            igdstmpl(10)=21821000      ! Basic angle of the initial production domain
+            igdstmpl(11)=239372000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
+            latstt=8
+            lonstt=33000000
+            latlst=-88541961
+            lonlst=358125000
+            dxval=1875000
+            igdstmpl(12)=latstt ! La1 - latitude of first grid point
+            igdstmpl(13)=lonstt ! Lo1 - longitude of first grid point
+            igdstmpl(14)=263000000
+            igdstmpl(15)=12000000
+            igdstmpl(16)=12000000
+            igdstmpl(17)=0
+            igdstmpl(18)=64
+            igdstmpl(19)=33000000
+            igdstmpl(20)=45000000
+            igdstmpl(21)=0
+            igdstmpl(22)=0
+         elseif ( id_gribdomain .eq. 140 ) then
+            igdstmpl(10)=53020000      ! Basic angle of the initial production domain
+            igdstmpl(11)=193523000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
+!           latstt=8
+!           lonstt=33000000
+!           latlst=-88541961
+!           lonlst=358125000
+!           dxval=1875000
+            igdstmpl(12)=8
+            igdstmpl(13)=57000000
+            igdstmpl(14)=211400000
+            igdstmpl(15)=12000000
+            igdstmpl(16)=12000000
+            igdstmpl(17)=0
+            igdstmpl(18)=64
+            igdstmpl(19)=57000000
+            igdstmpl(20)=63000000
+            igdstmpl(21)=0
+            igdstmpl(22)=0
+         elseif ( id_gribdomain .eq. 139 ) then
+            igdstmpl(10)=17721000      ! Basic angle of the initial production domain
+            igdstmpl(11)=198027000      ! Subdivisions of basic angle used to define extreme longitudes and latitudes, and direction increments
+!           latstt=8
+!           lonstt=33000000
+!           latlst=-88541961
+!           lonlst=358125000
+!           dxval=1875000
+            igdstmpl(12)=8 ! La1 - latitude of first grid point
+            igdstmpl(13)=19000000 ! Lo1 - longitude of first grid point
+            igdstmpl(14)=202500000
+            igdstmpl(15)=12000000
+            igdstmpl(16)=12000000
+            igdstmpl(17)=0
+            igdstmpl(18)=64
+            igdstmpl(19)=19000000
+            igdstmpl(20)=21000000
+            igdstmpl(21)=0
+            igdstmpl(22)=0
+         endif
 
       endif
-        idefnum=1             ! Used if igds(3) .ne. 0. The number of entries in array ideflist
-        ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
+      idefnum=1             ! Used if igds(3) .ne. 0. The number of entries in array ideflist
+      ideflist=0            ! Used if igds(3) .ne. 0. number of grid points contained in each row ( or column ), Dummy array otherwise
 !
 !-- section 4: product definition section
       ipdstmpl=0
@@ -470,201 +332,92 @@ c  modifed by jphuang 02/01/2010
 
       do nt=1,maxrec1
 
-       nowdate1=nowsdate
-       nowtime1=nowstime
+         nowdate1=nowsdate
+         nowtime1=nowstime
 
-!       print*,"hjp551,nowdate1=",nowdate1,"nowtime1=",
+!        print*,"hjp551,nowdate1=",nowdate1,"nowtime1=",
 !     +     nowtime1
-       call daymon(nowdate1,imonth1,idate1)
+         call daymon(nowdate1,imonth1,idate1)
 
-       ipdstmpl(15)=nt-1     ! Forecast time in units defined by
+         ipdstmpl(15)=nt-1     ! Forecast time in units defined by
 
-!       if(ave1hr) then
-        write(chtmp,'(i2.2)')nt
-        ipdstmpl(28)=1
-!       else
-!        write(chtmp,'(i2.2)')nt-1
-!         ipdstmpl(28)=0
-!       endif
+         write(chtmp,'(i2.2)')nt
+         ipdstmpl(28)=1
 
-       write(grib_id,'(i3.3)')id_gribdomain
-       call baopen(51,trim(outfile)//'.f'//chtmp//'.'//grib_id//
-     +                   '.grib2',ierr)
+         write(grib_id,'(i3.3)')id_gribdomain
+         call baopen(51,trim(outfile)//'.f'//chtmp//'.'//grib_id//
+     +                     '.grib2',ierr)
 
-       if(ierr.ne.0) then
-        print*,'can not open ',
-     +          trim(outfile)//'.f'//chtmp//'.'//grib_id//'.grib2'
-        stop 2001
-       endif
+         if(ierr.ne.0) then
+             print*,'can not open ',
+     +             trim(outfile)//'.f'//chtmp//'.'//grib_id//'.grib2'
+             stop 2001
+         endif
 
-       cgrib1=''
+         cgrib1=''
 
-       ipdstmpl(22)=INT(nowdate1/1000)   ! YEAR (YYYY)
-       ipdstmpl(23)=imonth1              !  Month
-       ipdstmpl(24)=idate1               !  Date
-       ipdstmpl(25)=INT(nowtime1/10000)  !  Forecast hour
+         ipdstmpl(22)=INT(nowdate1/1000)   ! YEAR (YYYY)
+         ipdstmpl(23)=imonth1                !  Month
+         ipdstmpl(24)=idate1                 !  Date
+         ipdstmpl(25)=INT(nowtime1/10000)  !  Forecast hour
 
-       cgrib2=''
-!  
-!  read in height from METCR03D, gpht(ii,jj,kk) 
+         cgrib2=''
+         cgrib1=''
 
-       cgrib1=''
+         call  gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
 
-       call  gribcreate(cgrib1,max_bytes,listsec0,listsec1,ierr)
+         call  addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,
+     +                 ideflist,idefnum,ierr)
 
-       call  addgrid(cgrib1,max_bytes,igds,igdstmpl,igdstmpllen,
-     +          ideflist,idefnum,ierr)
+!!
+!! AOD is in 2D file, set layer=1
+!!
+         if(.not.read3('CHEM2D','AOD_W550_ANGST',1,
+     &                 nowsdate,nowstime,aod550)) stop
 
-       do kk =1, nlayers
+         iseek=0
 
-!  jphuang99
+         do j=1,ny
+            do i=1,nx
+               fld1(i+(j-1)*nx)=aod550(i,j)
+            enddo
+         enddo
 
-       if(.not.read3('CHEM3D','EXT_Mie',kk,nowsdate,nowstime,work)) stop
-        ext_m(1:imax,1:jmax,kk)=work(1:imax,1:jmax)
-       if(.not.read3('METCRO3D','ZF',kk,nowsdate,nowstime,work)) stop
-        gpht(1:imax,1:jmax,kk)=work(1:imax,1:jmax)
+         if (maxval(fld1)==minval(fld1))then
+            idrsnum=0
+            print*,' changing to simple packing for constant fields'
+         end if
+         ibmap1=255
+         bmap1=.true.
+         if(any(fld1>=SPVAL))then
+            ibmap1=0
+            where(abs(fld1)>=SPVAL)bmap1=.false.
+         endif
 
-        enddo   ! kk
+         fldscl=5.0
+!         fldscl=8-alog10(maxval(work))     ! Units decimal scale factor
 
-!jp        fname='aqm.t'//Dcyc(2:3)//'z.mie'//Dn2(2:3)
-!jp        call baopenr(10,fname,ierr)
-!jp        print*,"After open file ",fname
-!         do j=1,jf
-!          vnt(j)=0.0
-!          lpbl(j)=0
-!         enddo
+         call g2getbits(ibmap1,fldscl,size(fld1),bmap1,fld1,ibin_scl,
+     +                  idec_scl,inumbits)
+!         print
+!         *,'idec_scl=',idec_scl,'ibin_scl=',ibin_scl,'number_bits=',inumbits
 
-! Read grib file depending on the value of jpds(5) & jpds(7)
-!                                          offload them first
-        iseek=0
-!jp        call skgb(iunit,iseek,llgrib,llskip)
-! --- TEST check all in argument list
-!       print *,"iunit=",iunit,"iseek=",iseek,"ll=",llgrib,llskip
-!        do while(llgrib.gt.0)
-!jp        call rdgb(iunit,llgrib,llskip,kpds,kgds,kf,lb,var)
-!jp        call skgb(iunit,iseek,llgrib,llskip)
-! --- upload physical height above ground 
-!        do kl=1,kmax
-!         if(kpds(5).eq.8 .and.kpds(6).eq.107.and.kpds(7).
-!     &    eq.ifsig(kl)) then
-!! --- TEST max and min                                  !^^^^
-!          xmax=1e-5
-!          xmin=1e15                                     !VVVV
-!          do igrid=1,jf
-!            gpht(igrid,kl)=var(igrid)
-!! --- TEST max and min                                  !^^^^
-!            if(var(igrid).gt.xmax) xmax=var(igrid)
-!            if(var(igrid).lt.xmin) xmin=var(igrid)      !VVVV
-!          enddo
-!! --- TEST max and min                                        !^^^^
-!!           print*,"level=",ifsig(kl),"max=",xmax,"min=",xmin !VVVV
-!         endif
-!       enddo
+         idrstmpl(2)=ibin_scl   !
+         idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
+         idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
 
+         call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, 
+     +                        coordlist,numcoord,idrsnum,idrstmpl, 
+     +                        idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
+         call gribend(cgrib1,max_bytes,lengrib,ierr)
+         call wryte(51, lengrib, cgrib1)
 
-c --- upload Mie Extinction coefficient
-!        do kl=1,22
-!         if(kpds(5).eq.128.and.kpds(6).eq.107.and.kpds(7).
-!     &    eq.ifsig(kl)) then
-!           do igrid=1,jf
-!              ext_m(igrid,kl)=var(igrid)
-!              ext_m(igrid,kl)=ext_m(igrid,kl)-0.01 !! remove Rayleigh SSOBHA 2005 
-!              ext_m(igrid,kl)=max(ext_m(igrid,kl),0.0) !! remove R
-!           enddo
-!          endif
-!        enddo
-
-c --- determine Aerosol Optical Thickness:
-      do ii=1,imax
-       do jj=1,jmax
-        aot(ii,jj)=0.0
-        do kk=1,kmax
-           ext_m(ii,jj,kk)=ext_m(ii,jj,kk)-0.01 !! remove Rayleigh SSOBHA 2005
-           ext_m(ii,jj,kk)=max(ext_m(ii,jj,kk),0.0) !! remove R
-        if ( kk .eq. 1 )then
-           aot(ii,jj) = aot(ii,jj) + 1e-3*
-     &     gpht(ii,jj,kk)*ext_m(ii,jj,kk)
-        else
-           aot(ii,jj) = aot(ii,jj) + 1e-3*
-     &     (gpht(ii,jj,kk)-gpht(ii,jj,kk-1))*ext_m(ii,jj,kk)
-        endif
-        enddo    ! kk
-       enddo    ! jj
-      enddo     ! ii
-
-       
-       do j=1,ny
-        do i=1,nx
-           fld1(i+(j-1)*nx)=aot(i,j)
-        enddo
-       enddo
-
-      if (maxval(fld1)==minval(fld1))then
-         idrsnum=0
-          print*,' changing to simple packing for constant fields'
-       end if
-       ibmap1=255
-       bmap1=.true.
-       if(any(fld1>=SPVAL))then
-         ibmap1=0
-         where(abs(fld1)>=SPVAL)bmap1=.false.
-       endif
-
-
-       fldscl=5.0
-!       fldscl=8-alog10(maxval(work))     ! Units decimal scale factor
-
-       call g2getbits(ibmap1,fldscl,size(fld1),bmap1,fld1,ibin_scl,
-     +             idec_scl,inumbits)
-!       print
-!       *,'idec_scl=',idec_scl,'ibin_scl=',ibin_scl,'number_bits=',inumbits
-
-       idrstmpl(2)=ibin_scl   !
-       idrstmpl(3)=idec_scl   ! SCALING POWER OF 10
-       idrstmpl(4)=inumbits   ! numbe of bits used for eack packed value
-
-       call addfield(cgrib1,max_bytes,ipdsnum,ipdstmpl,ipdstmpllen, 
-     +                     coordlist,numcoord,idrsnum,idrstmpl, 
-     +                     idrstmpllen,fld1,nx*ny,ibmap,bmap,ierr)
-       call gribend(cgrib1,max_bytes,lengrib,ierr)
-       call wryte(51, lengrib, cgrib1)
-
-       call nextime(nowsdate,nowstime,10000)
-
-       enddo     ! nt
+         call nextime(nowsdate,nowstime,10000)
+      enddo     ! end do nt
 
       iflag=shut3()
 
-!       enddo ! llgrib loop
-!        call baclose(10,ierr)
-
-c --- write out vnt in grib format
-
-!       fout1='aqm.t'//Dcyc(2:3)//'z.aot'//Dn2(2:3)
-!       call baopen(51,fout1,ierr)
-!       kpds(8)=iyr-(iyr/100)*100
-!       kpds(21)=21
-!       kpds(9)=imon
-!       kpds(10)=idy
-!       kpds(11)=ihr
-!       kpds(12)=0
-
-!       kpds(5)=129
-!       kpds(6)=200
-!       kpds(7)=0
-!       kpds(19)=141
-!       kpds(22)=3.7
-!       print*,'prob_aot= ',(aot(i),i=1,10)
-!       call putgb(51,jf,kpds,kgds,lb,aot,iret)
-!       print*,'Finished ',itime,' with enswrite'
-
-
-!        deallocate(lpbl)
-!        deallocate(var,vnt,Uwind,Vwind )
-!        deallocate(gpht,pblh,Usum,Vsum,wdspeed)
-         deallocate (gpht,ext_m,aot)
-!        deallocate (lb)
-
+      deallocate (aod550, cgrib1, cgrib2, bmap, bmap1, fld1, fld2)
       stop
 
       end
