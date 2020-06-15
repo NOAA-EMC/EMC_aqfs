@@ -22,7 +22,7 @@ LIBRARIES = $(IOAPI_LIB) $(NETCDF_LIB) $(NEMSIO_LIB9) $(NEMSIOGFS_LIB) $(BACIO_L
 	   $(W3_LIB)
  
  
-INCLUDES = -I$(LIB_LOC) -I$(NEMSIO_INC) -I$(NEMSIOGFS_INC) -I$(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
+INCLUDES = -I$(LIB_LOC)/include -I$(NEMSIO_INC) -I$(NEMSIOGFS_INC) -I$(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
 
 $(TARGET): $(OBJECTS)
 	$(FC) $(F_FLAGS) -openmp -o $@ $(INCLUDES) $(OBJECTS) $(LIBRARIES)
@@ -30,6 +30,6 @@ $(TARGET): $(OBJECTS)
 clean:
 	rm -f *.mod  
 install: 	
-	-cp $(TARGET)  ../../exec/.
+	-cp -p $(TARGET)  ../../exec/.
 clobber: clean
 	rm -f $(TARGET) 

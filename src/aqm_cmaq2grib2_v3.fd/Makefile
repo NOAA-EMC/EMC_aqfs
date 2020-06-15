@@ -1,4 +1,4 @@
-CMD         =  aqm_cmaq2grib2_v3 
+CMD         =  aqm_cmaq2grib2_v3
 SRCS        =  aqm_cmaq2grib2_v3.f90 
 
 LIB_LOC     = ../../lib
@@ -16,7 +16,7 @@ LIBS   =  $(IOAPI_LIB) \
 	  ${JASPER_LIB} \
 	  ${Z_LIB}
 
-INC    = $(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
+INC    = $(LIB_LOC)/include
 
 FC      = ifort 
 
