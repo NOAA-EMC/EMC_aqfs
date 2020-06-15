@@ -1,12 +1,15 @@
 #!/bin/ksh
+source /opt/modules/default/init/ksh
+module load iobuf
+module load prod_util
 
 date
 export PS4=' $SECONDS + '
 set -x
 
 export DATA=${DATA:-${DATAROOT:?}/$jobid}
-mkdir -p $DATA
-cd $DATA
+mkdir -p ${DATA}
+cd ${DATA}
 
 export cycle=${cycle:-t${cyc}z}
 setpdy.sh
@@ -17,11 +20,11 @@ export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export USHaqm=$HOMEaqm/ush
-export EXECaqm=$HOMEaqm/exec
-export PARMaqm=$HOMEaqm/parm
-export FIXaqm=$HOMEaqm/fix
-export UTILaqm=$HOMEaqm/util
+export USHaqm=${USHaqm:-${HOMEaqm}/ush}
+export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
+export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
+export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
+export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
@@ -36,22 +39,20 @@ export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
-mkdir -p $COMOUT
+mkdir -p ${COMOUT}
 
 export pgmout=OUTPUT.$$
 
 env
 
-$HOMEaqm/scripts/exaqm_post2_cb05_cs.sh.ecf
+${HOMEaqm}/scripts/exaqm_post2_cb6r3_cs.sh.ecf
 export err=$?; err_chk
 
-cat $pgmout
+if [ -s ${pgmout} ]; then cat ${pgmout}; fi
+
 msg="JOB $job HAS COMPLETED NORMALLY."
 postmsg "$jlogfile" "$msg"
 
-if [ "$KEEPDATA" != "YES" ] ; then
-  cd $DATAROOT
-  rm -rf $DATA
-fi
+if [ "$KEEPDATA" != "YES" ] ; then rm -rf ${DATA}; fi
 
 date
