@@ -147,3 +147,5 @@ clean:
 	rm -f *.o *.mod *.il $(MODEL)
 install:
 	-cp -p $(MODEL) ../../exec
+clobber: clean
+	rm -f $(MODEL)

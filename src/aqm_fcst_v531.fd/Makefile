@@ -838,5 +838,8 @@ centralized_io_module.o:	RUNTIME_VARS.o centralized_io_util_module.o \
 		depv_data_module.o crop_data_module.o lus_data_module.o BIDI_MOD.o \
 		GRID_CONF.o em_param_module.o $(BASE_INC)/FILES_CTM.EXT
 %.o: %.mod
+
 install:
 	-cp -p $(EXEC) ../../exec/.
+clobber: clean
+	rm -f $(CMD)

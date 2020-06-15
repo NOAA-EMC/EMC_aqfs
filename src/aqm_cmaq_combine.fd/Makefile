@@ -98,6 +98,9 @@ clean:
 
 install:
 	-cp -p $(EXEC) ../../exec
+
+clobber: clean
+	rm -f $(CMD)
 # dependencies
 
 combine_.o:	module_specdef.o module_file.o module_evaluator.o
