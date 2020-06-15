@@ -19,7 +19,7 @@
 .SUFFIXES:
 .SUFFIXES: .o .f90 .F90
 
-MODEL = aqm_nacc.x
+MODEL = aqm_nacc
 
 FC      = ifort
 NETCDF =  $(NETCDF_DIR)
