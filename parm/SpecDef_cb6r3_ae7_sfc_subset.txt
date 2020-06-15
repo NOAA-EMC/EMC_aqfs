@@ -1,0 +1,145 @@
+!#start   YYYYJJJ  010000
+!#end     YYYYJJJ  000000
+!---  without #layer   n, the default for entire layers ---
+!---      or #layer   -1
+!---  for specfic layer extaraction [2d] add a line of #layer
+!---      only for sfc layer - #layer     1
+!---      only for layer 15  - #layer     15
+!---      only for top layer - #layer     35
+#layer   1
+
+/
+! This Species Definition File is for Use with the COMBINE tool built for 
+! post-processing CMAQ output. It is compatible with CMAQv5.2.
+! Date: May 12 2017
+
+! Output variables that begin with 'PM' represent those in which a size cut was 
+! applied based on modeled aerosol mode parameters.  For example, PM25_NA is all 
+! sodium that falls below 2.5 um diameter. These 'PM' variables are used for 
+! comparisons at IMPROVE and CSN sites.
+
+! Output variables that begin with 'PMAMS' represent the mass that would have
+! been detected  by an Aerosol Mass Spectrometer.
+
+! Output variables beginning with 'A' (aside from AIR_DENS) represent a 
+! combination of aerosol species in which no size cut was applied.  For example, 
+! ASO4IJ is the sum of i-mode and j-mode sulfate.  These 'A' variables are used 
+! for comparisons at CASTNet sites.
+
+! Output variables beginning with 'PMC' refer to the coarse fraction of total PM,
+! computed by summing all modes and subtracting the PM2.5 fraction.  These 'PMC'
+! variables are used for comparisons at SEARCH sites.
+
+! This Species Definition File is just for use with the uncoupled, offline CMAQ,
+! model. If you are processing WRF-CMAQ results, a different Species Definition
+! file is required.
+
+!
+! June 15 2020   Ho-Chun Huang please refer to SpecDef_cb6r3_ae7_ppm_ref.txt for
+!                              original and complete variables definition list.
+!                              NOTE all uncommented species will be output including
+!                                   intemediate species *[0]
+!                              NOTE to convert formula from ppbV to ppmV.
+!
+!                              For computation speed-up, this list explicitly
+!                              spellout composition of each output variables  
+!
+/ File [1]: CMAQ conc/aconc file
+/ File [2]: METCRO3D file
+/ File [3]: PMDIAG/APMDIAG file
+/ File [4]: METCRO2D file
+/
+/new species    ,units     ,expression
+! The character length of species name and units is 16
+                                         
+!-------------------------------------------!
+!--------------- Gases ---------------------!
+!-------------------------------------------!
+O3              ,ppmV      ,O3[1], Ozone
+CO              ,ppmV      ,CO[1], Carbon oxide
+NO              ,ppmV      ,NO[1], Nitrogen oxide
+NO2             ,ppmV      ,NO2[1], Nitrogen dioxide
+NOX             ,ppmV      ,NO[1] + NO2[1], NO + NO2
+NOY             ,ppmV      ,NO[1]+NO2[1]+NO3[1]+2*N2O5[1]+HONO[1]+HNO3[1]+PNA[1] \
+                            +CRON[1]+CLNO2[1]+CLNO3[1]+PAN[1]+PANX[1]+OPAN[1] \
+                            +NTR1[1]+NTR2[1]+INTR[1] \
+                            +(ANO3I[1]+ANO3J[1]+ANO3K[1])/(DENS[2]*(62.0/28.97))/1000.
+! emitted VOCs
+VOC             ,          ,1000.0* (PAR[1] +2.0*ETHA[1] +3.0*PRPA[1] +MEOH[1] \
+                            +2.0*ETH[1] +2.0*ETOH[1] +2.0*OLE[1] +3.0*ACET[1] \
+                            +7.0*TOL[1] +8.0*XYLMN[1] +6.0*BENZENE[1] \
+                            +FORM[1] +3.0*GLY[1] +4.0*KET[1] +2.0*ETHY[1] \
+                            +2.0*ALD2[1] + 2.0*ETHA[1] + 4.0*IOLE[1] + 2.0*ALDX[1] \
+                            +5.0*ISOP[1] + 10.0*TERP[1]+ 10.0*NAPH[1] +10.*APIN[1]), Volatile Organic Compounds
+
+!-------------------------------------------!
+!--------------- Particles -----------------!
+!-------------------------------------------!
+
+!! PM2.5 species computed using modeled size distribution
+PM25_TOT        ,ug m-3    ,(ASO4I[1]+ANO3I[1]+ANH4I[1]+ANAI[1]+ACLI[1] \
+                            +AECI[1]+ALVPO1I[1] + ASVPO1I[1] + ASVPO2I[1] + APOCI[1]     \
+                            +APNCOMI[1] + ALVOO1I[1] + ALVOO2I[1] + ASVOO1I[1]  \
+                            +ASVOO2I[1]+AOTHRI[1])*PM25AT[3] \
+                            +(ASO4J[1]+ANO3J[1]+ANH4J[1]+ANAJ[1]+ACLJ[1] \
+                            +AECJ[1]+ALVPO1J[1] + ASVPO1J[1] + ASVPO2J[1] + APOCJ[1]     \
+                            +ASVPO3J[1] + AIVPO1J[1]  + APNCOMJ[1] \
+                            +AISO1J[1]+ AISO2J[1]  + AISO3J[1]              \
+                            +AMT1J[1]   + AMT2J[1]   + AMT3J[1]   + AMT4J[1]  \
+                            +AMT5J[1]   + AMT6J[1]   + AMTNO3J[1]\
+                            +AMTHYDJ[1] + AGLYJ[1]   + ASQTJ[1]               \
+                            +AORGCJ[1]  + AOLGBJ[1]  + AOLGAJ[1]              \
+                            +ALVOO1J[1] + ALVOO2J[1] + ASVOO1J[1] + ASVOO2J[1]\
+                            +ASVOO3J[1] + APCSOJ[1]  + AAVB1J[1] + AAVB2J[1]\
+                            +AAVB3J[1] + AAVB4J[1]+AOTHRJ[1]+AFEJ[1]+ASIJ[1]  \
+                            +ATIJ[1]+ACAJ[1]+AMGJ[1]+AMNJ[1]+AALJ[1]+AKJ[1])*PM25AC[3] \
+                            +(ASOIL[1]+ACORS[1]+ASEACAT[1]+ACLK[1]+ASO4K[1] \
+                            +ANO3K[1]+ANH4K[1])*PM25CO[3], Total Particulate Matter (fine)
+PM25_CL         ,ug m-3    ,ACLI[1]*PM25AT[3]+ACLJ[1]*PM25AC[3]+ACLK[1]*PM25CO[3], CL Particulate Matter (fine)
+PM25_EC         ,ug m-3    ,AECI[1]*PM25AT[3]+AECJ[1]*PM25AC[3], EC Particulate Matter (fine)
+PM25_NA         ,ug m-3    ,ANAI[1]*PM25AT[3]+ANAJ[1]*PM25AC[3] \
+                            +(0.8373*ASEACAT[1]+0.0626*ASOIL[1]+0.0023*ACORS[1])*PM25CO[3], NA Particulate Matter (fine)
+PM25_MG         ,ug m-3    ,AMGJ[1]*PM25AC[3] \
+                            +(0.0997*ASEACAT[1]+0.0170*ASOIL[1]+0.0032*ACORS[1])*PM25CO[3], MG Particulate Matter (fine)
+PM25_K          ,ug m-3    ,AKJ[1] *PM25AC[3] \
+                            +(0.0310*ASEACAT[1]+0.0242*ASOIL[1]+0.0176*ACORS[1])*PM25CO[3], K Particulate Matter (fine)
+PM25_CA         ,ug m-3    ,ACAJ[1]*PM25AC[3] \
+                            +(0.0320*ASEACAT[1]+0.0838*ASOIL[1]+0.0562*ACORS[1])*PM25CO[3], CA Particulate Matter (fine)
+PM25_NH4        ,ug m-3    ,ANH4I[1]*PM25AT[3]+ANH4J[1]*PM25AC[3]+ANH4K[1]*PM25CO[3], NH4 Particulate Matter (fine)
+PM25_NO3        ,ug m-3    ,ANO3I[1]*PM25AT[3]+ANO3J[1]*PM25AC[3]+ANO3K[1]*PM25CO[3], NO3L Particulate Matter (fine)
+PM25_OC         ,ugC m-3   ,(ALVPO1I[1]/1.39 + ASVPO1I[1]/1.32 + ASVPO2I[1]/1.26 \
+                            +APOCI[1]+ALVOO1I[1]/2.27 + ALVOO2I[1]/2.06  \
+                            +ASVOO1I[1]/1.88 + ASVOO2I[1]/1.73)*PM25AT[3] \
+                            +(ALVPO1J[1]/1.39 + ASVPO1J[1]/1.32 + ASVPO2J[1]/1.26 \
+                            +ASVPO3J[1]/1.21 + AIVPO1J[1]/1.17  + APOCJ[1] \
+                            +AISO1J[1]/2.20  + AISO2J[1]/2.23  + AISO3J[1]/2.80 \
+                            +AMT1J[1]/1.67   + AMT2J[1]/1.67   + AMT3J[1]/1.72  \
+                            +AMT4J[1]/1.53   + AMT5J[1]/1.57   + AMT6J[1]/1.40  \
+                            +AMTNO3J[1]/1.90 + AMTHYDJ[1]/1.54                 \   
+                            +AGLYJ[1]/2.13   + ASQTJ[1]/1.52                    \   
+                            +AORGCJ[1]/2.00  + AOLGBJ[1]/2.10  + AOLGAJ[1]/2.50 \
+                            +ALVOO1J[1]/2.27 + ALVOO2J[1]/2.06 + ASVOO1J[1]/1.88\
+                            +ASVOO2J[1]/1.73 + ASVOO3J[1]/1.60 + APCSOJ[1] /2.00 \    
+                            +AAVB1J[1]/2.70  + AAVB2J[1]/2.35  + AAVB3J[1]/2.17  \
+                            +AAVB4J[1]/1.99)*PM25AC[3], OC Particulate Matter (fine)
+PM25_SOIL       ,ug m-3    ,(2.20*AALJ[1]+2.49*ASIJ[1]+1.63*ACAJ[1]+2.42*AFEJ[1]+1.94*ATIJ[1])*PM25AC[3] \
+                            +ASOIL[1]*PM25CO[3], SOIL Particulate Matter (fine)
+PM25_SO4        ,ug m-3    ,ASO4I[1]*PM25AT[3]+ASO4J[1]*PM25AC[3]+ASO4K[1]*PM25CO[3], SO4 Particulate Matter (fine)
+
+!! PM10.0 and Coarse-Sized Species
+PMC_TOT         ,ug m-3    ,ASO4I[1] + ANO3I[1] + ANH4I[1] + ANAI[1] + ACLI[1] \
+                            +AECI[1] + ALVPO1I[1] + ASVPO1I[1] + ASVPO2I[1] + APOCI[1] \
+                            +APNCOMI[1] + ALVOO1I[1] + ALVOO2I[1] + ASVOO1I[1]  \
+                            +ASVOO2I[1] + AOTHRI[1] + ASO4J[1] + ANO3J[1] + ANH4J[1] \
+                            +ANAJ[1] + ACLJ[1] + AECJ[1] + ALVPO1J[1] + ASVPO1J[1] \
+                            +ASVPO2J[1] + APOCJ[1] + ASVPO3J[1] + AIVPO1J[1]  + APNCOMJ[1] \
+                            +AISO1J[1] + AISO2J[1]  + AISO3J[1] + AMT1J[1] + AMT2J[1] \
+                            +AMT3J[1] + AMT4J[1] + AMT5J[1] + AMT6J[1] + AMTNO3J[1] \
+                            +AMTHYDJ[1] + AGLYJ[1] + ASQTJ[1] + AORGCJ[1]  + AOLGBJ[1]  \
+                            +AOLGAJ[1] + ALVOO1J[1] + ALVOO2J[1] + ASVOO1J[1] + ASVOO2J[1] \
+                            +ASVOO3J[1] + APCSOJ[1]  + AAVB1J[1] + AAVB2J[1]\
+                            +AAVB3J[1] + AAVB4J[1] + AOTHRJ[1] + AFEJ[1] + ASIJ[1]  \
+                            +ATIJ[1] + ACAJ[1] + AMGJ[1] + AMNJ[1] + AALJ[1] + AKJ[1] \
+                            +ASOIL[1] + ACORS[1] + ASEACAT[1] + ACLK[1] + ASO4K[1] \
+                            +ANO3K[1] + ANH4K[1]-PM25_TOT[0], Total Particulate Matter (coarse)
+ 
