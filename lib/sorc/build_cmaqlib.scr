@@ -1,6 +1,6 @@
 module purge
 
-module load ../../modulefiles/CMAQ/v5.2.3
+module load ../../modulefiles/CMAQ/v5.3.1
 
 module list
 
@@ -11,19 +11,23 @@ BASE=`pwd`
 set -ax
 
 ##########################
-for src in ioapi_v31 
+for src in ioapi_v32 
 do
- model_ver=v5.2.3
- export BASEDIR=${BASE}/aqm_ioapi_v31
- export BIN=Linux3_x86_64intel
+ ## model_ver=v5.2.3
+ ## export BASEDIR=${BASE}/aqm_${src}
+ ## export BIN=Linux3_x86_64intel
  export IOAPI_OFFSET_64=YES
+ export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf -L$HDF5_DIR/lib -lhdf5_fortran -lhdf5_hl -lhdf5 -lz"
  cd ${BASE}/aqm_${src}
- make configure
- cd ioapi
- make -f Makefile clobber
- make -f Makefile
- make -f Makefile install
- make -f Makefile clobber
+ make all
+ if [ ! -s Linux2_x86_64ifort/libioapi.a ]; then
+  echo "make failed"
+  exit 1
+ fi
+
+ mv Linux2_x86_64ifort/libioapi.a ../../libaqm_ioapi.a
+ mv Linux2_x86_64ifort/*.mod ../../include
+ mv ioapi/*.EXT ../../include
 done
 
 ##############################
