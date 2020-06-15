@@ -8,7 +8,8 @@ export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf"
 
 BASEDIR=$PWD
 
-for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 snowdust_2016; do
+#for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 snowdust_2016; do
+for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
  cd $BASEDIR/aqm_$src.fd
  make -f Makefile clobber
  make -f Makefile
@@ -17,6 +18,8 @@ for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2gr
 done
 
 ##############################
+module unload module load cray-netcdf/4.3.2
+module load NetCDF-intel-haswell/3.6.3
 module load HDF4-intel-haswell/4.2.8
 module load HDF5-serial-intel-haswell/1.8.9
 module switch  intel/16.3.210
@@ -24,7 +27,7 @@ module switch bufr-intel/11.0.2
 ###############################
 for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
 do
-cd ${BASE}/aqm_${src}.fd
+cd ${BASEDIR}/aqm_${src}.fd
 make -f Makefile clobber
 make -f Makefile
 make -f Makefile install
