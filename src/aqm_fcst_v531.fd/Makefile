@@ -22,7 +22,7 @@
 #
 #------------------------------------------------- 
 
- EXEC = aqm_fcst_v531.x
+ EXEC = aqm_fcst_v531
 
  FC = ifort
  CC = icc

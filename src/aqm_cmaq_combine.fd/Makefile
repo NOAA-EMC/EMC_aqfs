@@ -21,7 +21,7 @@
 #
 #------------------------------------------------- 
 
- EXEC = combine_v531.x
+ EXEC = aqm_combine_v531
 
  FC = ifort
  CC = cc
