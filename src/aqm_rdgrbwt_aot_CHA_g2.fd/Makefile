@@ -16,7 +16,7 @@ LIBS   =  $(IOAPI_LIB) \
 	  ${JASPER_LIB} \
 	  ${Z_LIB}
 
-INC    = $(LIB_LOC)/sorc/aqm_ioapi_v31/ioapi
+INC    = $(LIB_LOC)/include
 
 FC      = ifort 
 

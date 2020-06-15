@@ -7,14 +7,13 @@ LIBNAME = libaqm_se_snl.a
 
 FC = ftn
 MPI_INC = ${CRAY_MPICH2_DIR}/include 
-IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel
-IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
+IOAPI_INC = ../../include
 
 FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise  -diag-disable 6843 -diag-disable 5462 -diag-disable 10145 
 
 DEBUG      =
 
-FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I$(MPI_INC)
+FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC) -I$(MPI_INC)
 
 
 #> the following order is important

@@ -1,26 +1,34 @@
 #!/bin/bash -x
+
 module purge
-module load PrgEnv-intel
-module load cray-netcdf/4.3.2
-module load cray-hdf5/1.8.13
-module load cray-mpich/7.2.0
-module load nemsio-intel/2.2.2
-module load nemsiogfs-intel
-module load bacio-intel/2.0.1
-module load w3emc-intel/2.2.0  w3nco-intel/2.0.6
-module load jasper-gnu-haswell/1.900.1
-module load png-intel-sandybridge
-module use /gpfs/hps/nco/ops/nwtest/lib/modulefiles
-module load g2-intel/3.1.0
+module load ../modulefiles/CMAQ/v5.3.1
 
 export IOAPI_OFFSET_64=YES
 export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf"
 
 BASEDIR=$PWD
 
-for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2; do
-#for src in fcst_v531_debug; do
+for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 snowdust_2016; do
  cd $BASEDIR/aqm_$src.fd
- make
- make install
+ make -f Makefile clobber
+ make -f Makefile
+ make -f Makefile install
+ make -f Makefile clobber
 done
+
+##############################
+module load HDF4-intel-haswell/4.2.8
+module load HDF5-serial-intel-haswell/1.8.9
+module switch  intel/16.3.210
+module switch bufr-intel/11.0.2
+###############################
+for src in subset subc combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
+do
+cd ${BASE}/aqm_${src}.fd
+make -f Makefile clobber
+make -f Makefile
+make -f Makefile install
+make -f Makefile clobber
+done
+###############################
+#

@@ -27,7 +27,8 @@ do
 
  mv Linux2_x86_64ifort/libioapi.a ../../libaqm_ioapi.a
  mv Linux2_x86_64ifort/*.mod ../../include
- mv ioapi/*.EXT ../../include
+ cp -p ioapi/*.EXT ../../include
+ cp -p ioapi/*.h ../../include
 done
 
 ##############################

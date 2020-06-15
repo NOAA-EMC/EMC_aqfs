@@ -8,8 +8,7 @@ LIBNAME     = libaqm_pario.a
 LIOAPI      = ../../libaqm_ioapi.a
 
 MPI_INC    = ${CRAY_MPICH2_DIR}/include
-IOAPI_INC1 = ../../sorc/aqm_ioapi_v31/Linux3_x86_64intel 
-IOAPI_INC2 = ../../sorc/aqm_ioapi_v31/ioapi/fixed_src
+IOAPI_INC = ../../include
 
 FC         = ftn
 FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise 
@@ -18,7 +17,7 @@ FSTD       = -fixed -132 -O3 -override-limits -fno-alias -mp1 -fp-model precise
 #DEBUG      = -g -traceback
 DEBUG      = 
 
-FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC1) -I $(IOAPI_INC2) -I $(MPI_INC) 
+FFLAGS = $(FSTD)  -assume byterecl   -I $(IOAPI_INC) -I $(MPI_INC) 
 
  OBJS= \
   pinterpb_mod.o\

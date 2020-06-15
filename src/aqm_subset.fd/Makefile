@@ -14,7 +14,7 @@ IOAPI_LIB   =../../lib/libaqm_ioapi.a
 NETCDF2      = ${NETCDF}
 NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 
-INCLUDES    = -I ../../lib/sorc/aqm_ioapi_v31/ioapi -I $(NETCDF2)/include -I.
+INCLUDES    = -I ../../lib/include -I $(NETCDF2)/include -I.
 
 # Compiler Flags
 F_FLAGS = -132 -O3 -free -D_LARGE_FILES

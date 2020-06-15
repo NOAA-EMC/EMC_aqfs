@@ -2,7 +2,7 @@ SHELL=/bin/sh
 
 MODEL        = aqm_setup_date_timesp
 
-IOAPI        = ../../lib/sorc/aqm_ioapi_v31/ioapi
+IOAPI        = ../../lib/include
 IOAPI_LIB    = ../../lib/libaqm_ioapi.a
 
 NETCDF2      = ${NETCDF}
