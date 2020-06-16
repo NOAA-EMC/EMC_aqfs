@@ -46,7 +46,7 @@ export INFILE4=${COMOUT}/aqm.${cycle}.metcro2d.ncf
 export OUTFILE=${COMOUT}/aqm.${cycle}.aconc_sfc.ncf
 
 ### ALERT HHC use combine_v531 for NCO delivery -- consistent with executable creation script
-${EXECaqm}/combine_v531
+${EXECaqm}/aqm_combine_v531
 export err=$?;err_chk
 
 #########################################################

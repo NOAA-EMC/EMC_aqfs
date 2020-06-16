@@ -67,7 +67,7 @@ else
    setenv NOTCDF_FATAL F
    setenv ncf N
 endif
-set Exec = $EXECaqm/aqm_combine
+set Exec = $EXECaqm/aqm_bicor_combine
 
 $EXECaqm/aqm_setup_date_timesp  
 

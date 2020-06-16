@@ -709,6 +709,8 @@ case ${imethod} in
         num_row=53 ;;
     11)  num_col=34
         num_row=53 ;;
+    12)  num_col=24
+        num_row=24 ;;
 esac
 let total_procs=${num_col}*${num_row}
 echo "exp method = ${imethod} ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
