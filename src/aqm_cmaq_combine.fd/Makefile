@@ -100,7 +100,7 @@ install:
 	-cp -p $(EXEC) ../../exec
 
 clobber: clean
-	rm -f $(CMD)
+	rm -f $(EXEC)
 # dependencies
 
 combine_.o:	module_specdef.o module_file.o module_evaluator.o

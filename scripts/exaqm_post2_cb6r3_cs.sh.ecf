@@ -1,0 +1,119 @@
+#!/bin/ksh
+######################################################################
+#  UNIX Script Documentation Block
+#                      .
+# Script name:         exaqm_post1_5xozconnmmb.sh
+# Script description:  Run CMAQ post processing 
+#
+# Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
+#
+# Abstract: This script runs CMAQ post processing
+#
+# Script history log:
+# 2003-07-03    Marina Tsidulko
+# 2003-07-15    Julia Zhu, modified for production
+# 2004-03-31    Pius Lee, notcdf and upgrades 
+# 2010-02-01    Jianping Huang  camq2grib and wgrib 
+# 2013-06-29    Jianping Huang  modified for WCOSS 
+# 2017-01-21    Jianping Huang  modified for CMAQ v5.0.2 on Cray 
+# 2020-05-08    Youhua Tang  revise it for CMAQ 5.3.1
+######################################################################
+set -xa
+msg="JOB ${job} HAS BEGUN"
+postmsg "${jlogfile}" "${msg}"
+
+export pgm=aqm_cs_post2
+
+cd ${DATA}
+
+export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
+export XLFRTEOPTS="unit_vars=yes"
+export id_grib=148
+
+#########################################################
+# Part I: Calculate PM2.5 based on CMAQ original output 
+#########################################################
+
+startmsg
+rm -rf ${COMOUT}/aqm.${cycle}.conc_1.ncf
+
+export SPECIES_DEF=${PARMaqm}/SpecDef_cb6r3_ae7_3D_subset.txt
+export INFILE1=${COMOUT}/aqm.${cycle}.conc.ncf
+export INFILE2=${COMOUT}/aqm.${cycle}.metcro3d.ncf
+export INFILE3=${COMOUT}/aqm.${cycle}.pmdiag.ncf
+# export INFILE3=${COMOUT}/aqm.${cycle}.apmdiag.ncf
+export INFILE4=${COMOUT}/aqm.${cycle}.metcro2d.ncf
+
+export OUTFILE=${COMOUT}/aqm.${cycle}.conc_1.ncf
+
+### ALERT HHC use combine_v531 for NCO delivery -- consistent with executable creation script
+${EXECaqm}/combine_v531.x
+export err=$?;err_chk
+
+#########################################################
+# Part II: Convert Machine netcdf format to Grib format
+#	  input file is "${OUTFILE}"
+#########################################################
+
+if [ -s ${OUTFILE} ]; then
+   ln -sf ${OUTFILE} ${DATA}/
+else  
+   err_exit "****FATAL ERROR**** - COULD NOT LOCATE: ${OUTFILE}"
+fi
+
+if [ 1 -eq 2 ]; then
+### ALERT HHC remove comment mark for NCO delivery
+### ecflow_client --event release_bicor
+
+#-------------
+. prep_step
+
+export CHEM3D=${OUTFILE}
+export METCRO3D=${INFILE2}
+export METCRO2D=${INFILE4}
+
+case $cyc in
+ 00) export n_durhr=7;;
+ 06) export n_durhr=73;;
+ 12) export n_durhr=73;;
+ 18) export n_durhr=6;;
+esac
+
+cat >cmaq2grib2.ini <<EOF5
+&control
+varlist='O3','CO','NO','NO2','NOY','VOC','PM25_TOT','PM25_EC','PM25_NH4','PM25_NO3','PM25_OC','PM25_SO4','PMC_TOT'
+metlist='    '
+outfile='aqm.${cycle}.chem_sigma'
+nlayers=35
+id_gribdomain=148
+ave1hr=.false.
+/
+EOF5
+
+startmsg
+${EXECaqm}/aqm_cmaq2grib2_v3.x >> ${pgmout} 2>errfile
+export err=$?;err_chk
+
+case ${cyc} in
+   00) endfhr=06;;
+   06) endfhr=72;;
+   12) endfhr=72;;
+   18) endfhr=06;;
+esac
+
+ic=1
+if [ "${SENDCOM}" == "YES" ]; then
+   while [ ${ic} -le ${endfhr} ]; do
+   fhr=`printf %2.2d ${ic}`
+   mv $DATA/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
+   ((ic++))
+done
+
+fi
+
+fi   ## end  1 -eq 2
+msg='ENDED NORMALLY.'
+postmsg "${jlogfile}" "${msg}"
+
+################## END OF SCRIPT #######################
+exit

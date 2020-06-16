@@ -842,4 +842,4 @@ centralized_io_module.o:	RUNTIME_VARS.o centralized_io_util_module.o \
 install:
 	-cp -p $(EXEC) ../../exec/.
 clobber: clean
-	rm -f $(CMD)
+	rm -f $(EXEC)
