@@ -47,7 +47,7 @@ export INFILE4=${COMOUT}/aqm.${cycle}.metcro2d.ncf
 export OUTFILE=${COMOUT}/aqm.${cycle}.conc_1.ncf
 
 ### ALERT HHC use combine_v531 for NCO delivery -- consistent with executable creation script
-${EXECaqm}/combine_v531.x
+${EXECaqm}/aqm_combine_v531
 export err=$?;err_chk
 
 #########################################################
@@ -91,7 +91,7 @@ ave1hr=.false.
 EOF5
 
 startmsg
-${EXECaqm}/aqm_cmaq2grib2_v3.x >> ${pgmout} 2>errfile
+${EXECaqm}/aqm_cmaq2grib2_v3 >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 case ${cyc} in

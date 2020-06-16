@@ -79,7 +79,7 @@ if [ "${FCST}" == "YES" ]; then
       export  err=$?; err_chk
    ## fi
    ## if [ ! -s ${COMOUT}/aqm.${cycle}.fire_emi_cs.ncf ]; then
-      aprun -n 1 ${USHaqm}/gbbepx2pts.ksh 
+      aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
       export err=$?; err_chk
    ## fi
    ##

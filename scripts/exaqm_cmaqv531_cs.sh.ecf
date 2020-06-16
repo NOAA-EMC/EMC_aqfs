@@ -53,7 +53,7 @@ SMM=`echo ${PDY}| cut -c5-6`
 
 APPL=v531
 ### ALERT HHC use aqm_fcst_${APPL} for NCO delivery -- consistent with executable creation script
-EXEC=aqm_fcst_${APPL}.x
+EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
 

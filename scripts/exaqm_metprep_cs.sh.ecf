@@ -141,7 +141,7 @@ export SOI_CRO=aqm.${cycle}.soicro.ncf
 export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 
 ### ALERT HHC use aqm_nacc for NCO delivery -- consistent with executable creation script
-aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc.x
+aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc
 if [ "${SENDCOM}" = 'YES' ]; then
   mv GRIDDESC  ${COMOUT}/aqm_griddesc05
   mv *.ncf ${COMOUT}

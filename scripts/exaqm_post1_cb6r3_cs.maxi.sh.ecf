@@ -67,7 +67,7 @@ EOF5
 
 startmsg
 ### ALERT HHC use aqm_post_maxi_CHA_grib2_v2 for NCO delivery -- consistent with executable creation script
-$EXECaqm/aqm_post_maxi_CHA_grib2_v2.x   >> ${pgmout} 2>errfile
+$EXECaqm/aqm_post_maxi_CHA_grib2_v2   >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 # interpolate to grid 227
@@ -94,7 +94,7 @@ EOF5
 
 startmsg
 ### ALERT HHC use aqm_post_maxi_CHA_grib2_v2 for NCO delivery -- consistent with executable creation script
-$EXECaqm/aqm_post_maxi_CHA_grib2_v2.x  >> ${pgmout} 2>errfile
+$EXECaqm/aqm_post_maxi_CHA_grib2_v2  >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"

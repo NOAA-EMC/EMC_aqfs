@@ -129,5 +129,5 @@ export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 rm -rf chkreads.log
 
 startmsg
-${EXECaqm}/aqm_fv3chem_dlbc.x  >> ${pgmout} 2>errfile 
+${EXECaqm}/aqm_fv3chem_dlbc  >> ${pgmout} 2>errfile 
 export err=$?;err_chk

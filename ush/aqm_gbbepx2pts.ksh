@@ -135,7 +135,7 @@ else
 fi
 
 startmsg
-${EXECaqm}/aqm_gbbepx2pts.x
+${EXECaqm}/aqm_gbbepx2pts
 export err=$?;err_chk
 
 if [ -s ${PTFIRE} ] && [ -s ${STACK_GROUP} ]; then
