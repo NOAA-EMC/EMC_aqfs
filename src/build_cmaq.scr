@@ -9,7 +9,7 @@ export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf"
 BASEDIR=$PWD
 
 #for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 snowdust_2016; do
-for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
+for src in nacc_parallel_v1 fcst_v531 fv3chem_dlbc fireemis cmaq_cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
  cd $BASEDIR/aqm_$src.fd
  make -f Makefile clobber
  make -f Makefile
