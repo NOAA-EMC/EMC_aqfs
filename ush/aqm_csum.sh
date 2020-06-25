@@ -1,5 +1,6 @@
 #! /bin/csh -f 
 
+set echo
 set temp_time = `date`
 setenv ctime $temp_time[4]
 

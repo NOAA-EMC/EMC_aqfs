@@ -17,18 +17,6 @@ cdate=`echo $cycledate | cut -c7-8`
 cjulian=`/bin/date --date=$cyear'/'$cmonth'/'$cdate +%j`
 typeset -Z3 cjulian
 
-#FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.$cyear$cmonth$cdate/00
-#if [ ! -s $FV3CHEMFOLDER/gfs.t${cyc}z.atmf120.nemsio ]; then
-#if [ -s ${FV3CHEM_DIR}/gfs.${PDY}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-#  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDY}/00
-#elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm1}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-#  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm1}/00
-#elif [ -s ${FV3CHEM_DIR}/gfs.${PDYm2}/00/gfs.t${cyc}z.atmf120.nemsio ]; then
-#  FV3CHEMFOLDER=${FV3CHEM_DIR}/gfs.${PDYm2}/00
-#else
-# echo " can not find $FV3CHEMFOLDER/gfs.t${cyc}z.atmf120.nemsio "
-# exit 1
-#fi 
 if [ -s   ${COMINgefs}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
   GEFSAEROFOLDER=${COMINgefs}/${cyc}/chem/sfcsig
 elif [ -s ${COMINgefsm1}/${cyc}/chem/sfcsig/geaer.t${cyc}z.atmf120.nemsio ]; then
@@ -49,7 +37,7 @@ cat > gefs-bnd-nemsio.ini <<EOF
  begdate=$cjulian
  begtime=$cyc    
  dtstep=6        
- numts = 31
+ numts = 61
  bndname='NO2','NO','O3','NO3','OH','HO2','N2O5','HNO3','HONO','PNA',
  'H2O2','CO','SO2','SULF','PAN','FACD','AACD','PACD','UMHP','MGLY',
  'OPEN','CRES','FORM','ALD2','PAR','OLE','TOL','ISOP','ETH','XYL',
@@ -91,11 +79,11 @@ fi
 export BND1=$FIXaqm/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 
 
-export BND2=$outdir/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
-export CHECK2D=$outdir/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+export BND2=$outdir/aqm_conus_geos_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
+export CHECK2D=$outdir/check_gefs_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
 rm -rf chkreads.log
 
 startmsg
-$EXECaqm/aqm_fv3chem_dlbc  >> $pgmout 2>errfile 
+$EXECaqm/aqm_gefsaero_dlbc  >> $pgmout 2>errfile 
 export err=$?;err_chk

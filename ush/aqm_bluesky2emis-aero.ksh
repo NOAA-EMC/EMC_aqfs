@@ -2,14 +2,14 @@
 
 # 4/18/2019   modified for calculating fire emission to support FV3GFS/CMAQ 
 
-if [ -s ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar ] ; then
- cp -p ${smoke_emis}/smokecs.$PDY/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
+if [ -s ${COMINhysplit}/files_fires_cs.t${cyc}z.tar ] ; then
+ cp -p ${COMINhysplit}/files_fires_cs.t${cyc}z.tar $DATA/files_fires_cs.tar
 else
  echo "No files_fires_cs.tar from HYSPLIT/BlueSky"
  exit 
 fi
-if [ -s ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z ] ; then
- cp -p ${smoke_emis}/smokecs.$PDY/EMITIMES.t${cyc}z $DATA/EMITIMES
+if [ -s ${COMINhysplit}/EMITIMES.t${cyc}z ] ; then
+ cp -p ${COMINhysplit}/EMITIMES.t${cyc}z $DATA/EMITIMES
 else
  echo "No EMITIMES from HYSPLIT/BlueSky"
  exit 1

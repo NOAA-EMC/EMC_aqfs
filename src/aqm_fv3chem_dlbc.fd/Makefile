@@ -1,7 +1,7 @@
  
-TARGET     =  aqm_fv3chem_dlbc
+TARGET     =  aqm_gefsaero_dlbc
 
-OBJECTS = aqm_fv3chem_dlbc.f
+OBJECTS = aqm_gefsaero_dlbc.f
 
 LIB_LOC    = ../../lib
 IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a

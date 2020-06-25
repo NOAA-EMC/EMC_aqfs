@@ -82,7 +82,8 @@ echo ' '
 
 #export err=$?;err_chk
 #startmsg
-$EXECaqm/aqm_subset_x 
+#$EXECaqm/aqm_subset_x 
+/gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.2.3/exec/aqm_subset_x
 #export err=$?;err_chk
 
 exit
@@ -140,7 +141,7 @@ set mr = 0
         else if ("$argv[$lc]" == '-r') then
            @ lc++
            setenv mysrec $argv[$lc]
-           y lc++
+           @ lc++
            setenv myerec $argv[$lc]
            set mr = 1
         else if ("$argv[$lc]" == '-s') then
