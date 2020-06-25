@@ -7,7 +7,7 @@ module load ../modulefiles/CMAQ/v5.2.3
 BASE=`pwd`
 
 ##########################
-for src in premaq_v502 bluesky2emis-aero fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 gefsaero_dlbc csum chg rdgrbwt_aot_CHA_g2 snowdust_2016 
+for src in premaq_v502 gbbepx2pts fcst_v502 post_maxi_CHA_grib2_v2 cmaq2grib2_v2 cmaq2grib2_v3 rdgrbwt_aot_CHA_g2 gefsaero_dlbc csum chg rdgrbwt_aot_CHA_g2 snowdust_2016 
 do
 cd ${BASE}/aqm_${src}.fd
 make -f Makefile clobber
