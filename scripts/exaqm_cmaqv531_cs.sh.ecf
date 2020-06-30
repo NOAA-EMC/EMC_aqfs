@@ -452,17 +452,18 @@ done
 
 ## fire emission
 if [ "$FCST" == "YES" ]; then
-   if [ "${cyc}" == "00" ]; then
-      FIRE_DIR=${COMINm1}
-      FIRE_SUFFIX=t12z
-   else
-      FIRE_DIR=${COMIN}
-      if [ "${cyc}" == "18" ]; then
-         FIRE_SUFFIX=t12z
-      else
-         FIRE_SUFFIX=${cycle}
-      fi
-   fi
+   FIRE_DIR=${COMIN}
+   FIRE_SUFFIX=${cycle}
+##   if [ "${cyc}" == "00" ]; then
+##      FIRE_DIR=${COMINm1}
+##      FIRE_SUFFIX=t12z
+##   else
+##      FIRE_DIR=${COMIN}
+##      if [ "${cyc}" == "18" ]; then
+##         FIRE_SUFFIX=t12z
+##      else
+##      fi
+##   fi
 else
     FIRE_DIR=${COMINm1}   # 06z run for yesterday only
     FIRE_SUFFIX=${cycle}
@@ -739,7 +740,11 @@ if [ "${SENDCOM}" = "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.$
    mv ${DATA}/PMDIAG.${CTM_APPL}     ${COMOUT}/aqm.${cycle}.pmdiag.ncf
    mv ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    mv ${DATA}/B3GTS_S.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.b3gt2.ncf
-   mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.soil24.ncf
+   if [ "${SINGLECYC}" == "YES" ]; then
+      mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.soil24.ncf
+   else
+      mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.soil06.ncf
+   fi
    mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUT}/aqm.${cycle}.dustemis.ncf
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
@@ -755,7 +760,11 @@ if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${C
    mv ${DATA}/PMDIAG.${CTM_APPL}     ${COMOUT}/aqm.${cycle}.pmdiag_r.ncf
    mv ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag_r.ncf
    mv ${DATA}/B3GTS_S.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.b3gt2_r.ncf
-   mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.soil24_r.ncf
+   if [ "${SINGLECYC}" == "YES" ]; then
+      mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.soil24_r.ncf
+   else
+      mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.soil06_r.ncf
+   fi
    mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUT}/aqm.${cycle}.dustemis_r.ncf
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2_r.ncf
