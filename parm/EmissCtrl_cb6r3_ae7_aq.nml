@@ -241,6 +241,7 @@
    ! where vehicle exhaust continues to dominate.
     'EVERYWHERE', 'ALL'          ,'POC'   ,'PCVOC'      ,'GAS' ,6.579,'MASS','a', 
     'EVERYWHERE', 'ALL'          ,'PNCOM' ,'PCVOC'      ,'GAS' ,6.579,'MASS','a', 
+    'EVERYWHERE', 'GRIDDED_RWC'  ,'ALL'   ,'PCVOC'      ,'GAS' ,0.0  ,'MASS','o',
    ! However, the added pcSOA is probably inappropriate for Fire sources, especially
    ! in its current configuration. This pathway should be zeroed out for all fire
    ! and wood-burning related sources.

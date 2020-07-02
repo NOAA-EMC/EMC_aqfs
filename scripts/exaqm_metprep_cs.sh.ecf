@@ -98,6 +98,7 @@ cat>namelist.mcip<<!
   lpv        =  0
   lwout      =  1
   luvbout    =  1
+  ifdiag_pbl = .FALSE.
   mcip_start = '${SYYYY}-${SMM}-${SDD}-${cyc}:00:00.0000'
   mcip_end   = '${EYYYY}-${EMM}-${EDD}-${endcyc}:00:00.0000'
   intvl      =  60
