@@ -14,7 +14,7 @@ echo "It is extracting PM2.5 and met inputs for Bias Correction"
 ## export err=$?;err_chk
 
 startmsg
-$USHaqm/aqm_subset.sh -s "PRSFC TEMPG TEMP2 WSPD10 WDIR10 RGRND RN RC HFX QFX CFRAC CSDSF PBL2" $COMIN/aqm.$cycle.metcro2d.ncf sfc_met_n_PBL.${cycle}.ncf >> $pgmout 2>errfile
+$USHaqm/aqm_subset.sh -s "PRSFC TEMPG TEMP2 WSPD10 WDIR10 RGRND RN RC HFX LH CFRAC PBL" $COMIN/aqm.$cycle.metcro2d.ncf sfc_met_n_PBL.${cycle}.ncf >> $pgmout 2>errfile
 export err=$?;err_chk
 
 #

@@ -19,6 +19,7 @@ do
  export IOAPI_OFFSET_64=YES
  export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf -L$HDF5_DIR/lib -lhdf5_fortran -lhdf5_hl -lhdf5 -lz"
  cd ${BASE}/aqm_${src}
+ make clean
  make all
  if [ ! -s Linux2_x86_64ifort/libioapi.a ]; then
   echo "make failed"

@@ -76,14 +76,11 @@ fi
 env
 
 if [ "${FCST}" == "YES" ]; then
-   ## if [ ! -s ${COMOUT}/aqm.${cycle}.metcro3d.ncf ]; then
-      ${HOMEaqm}/scripts/exaqm_metprep_cs.sh.ecf
-      export  err=$?; err_chk
-   ## fi
-   ## if [ ! -s ${COMOUT}/aqm.${cycle}.fire_emi_cs.ncf ]; then
-      aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
-      export err=$?; err_chk
-   ## fi
+   ${HOMEaqm}/scripts/exaqm_metprep_cs.sh.ecf
+   export  err=$?; err_chk
+
+   aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
+   export err=$?; err_chk
    ##
    ## GEFS 06Z runs after CMAQ 06z Start, can only used GEFS 00Z output for PDY's LBC at 06Z
    ## GEFS 06Z runs using day-1 fire emission, will re-calculate LBC using GEFS 06Z data for PDY [12Z,18Z] & PDY+1 00Z
@@ -92,10 +89,13 @@ if [ "${FCST}" == "YES" ]; then
       aprun -n 1 ${USHaqm}/aqm_fv3chem_conus_L35.sh ${PDY}
       err=$?; err_chk
    fi
-elif [ "${FCST}" == "NO" ] && [ ! -s ${COMOUTm1}/aqm.${cycle}.fire_emi_cs_r.ncf ]; then
+elif [ "${FCST}" == "NO" ]; then
    if [ "${cycle}" == "t06z" ]; then
       aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
       export err=$?; err_chk
+   else
+      echo "ANALYSIS RUN is only applied to t06z cycle"
+      exit 1
    fi
 fi
 

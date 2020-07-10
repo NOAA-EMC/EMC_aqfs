@@ -27,6 +27,7 @@
 * replaced with date and time info.
 *
 * H.-C. Huang  Nov 22 2019   Use new site list sites.valid.ozone.20190815.06z.list
+* H.-C. Huang  Jul 08 2020   Change from PBL2 to PBL in AQMv6 metcro2d ncf
 *--------------------------------------------------------------------------
 
 station file         = site-lists/sites.valid.ozone.20190815.06z.list
@@ -51,7 +52,7 @@ Var table:
 O3       aqm.2      Ozone concentration
 NOX      aqm.2      NOx concentration
 NOY      aqm.2      NOy concentration
-PBL2     met.1      PBL height, ACM2 based Richardson #
+PBL      met.1      PBL height, ACM2 based Richardson #
 RGRND    met.1      Solar radiation reaching surface
 TEMP2    met.1      Temperature, 2 meters
 WDIR10   met.1      Wind direction, 10 meters

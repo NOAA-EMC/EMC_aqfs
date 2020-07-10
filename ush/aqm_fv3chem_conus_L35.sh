@@ -33,6 +33,8 @@ else
    lbc_cyc=t06z
    ## ALERT HHC for 1 cycle testing
    if [ "${FLAG_ONE_CYCLE}" == "YES" ]; then lbc_cyc=t00z; fi ## for one cycle testing
+   ## ALERT for engineering 4 cycle test
+   lbc_cyc=t00z
 fi
 # LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
 let ic=${LBC_INI}
@@ -44,7 +46,7 @@ while [ ${ic} -le ${endhour} ]; do
    if [ -s ${LBCIN}/geaer.${lbc_cyc}.atmf${icnt}.nemsio ]; then
       ln -s ${LBCIN}/geaer.${lbc_cyc}.atmf${icnt}.nemsio geaer.${lbc_cyc}.atmf${icnt}.nemsio
    else
-      echo "WARNING can not find ${LBCIN}/geaer.t${lbc_cyc}.atmf${icnt}.nemsio"
+      echo "WARNING can not find ${LBCIN}/geaer.${lbc_cyc}.atmf${icnt}.nemsio"
    fi
    ## let ic=${ic}+${lbc_int}
    ((ic=ic+${lbc_int}))
@@ -108,18 +110,21 @@ else
          export METEO3D=${COMIN}/aqm.t06z.metcro3d.ncf
          export TOPO=${COMIN}/aqm.t06z.grdcro2d.ncf
       fi
+      ## ALERT for engineering 4 cycle test
+         export METEO3D=${COMIN}/aqm.t12z.metcro3d.ncf
+         export TOPO=${COMIN}/aqm.t12z.grdcro2d.ncf
    fi
 fi
 
 if [ $RUN = 'aqm' ]; then
    export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
-   export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf        # output bnd files
+   export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf   # output CONUS BND files
 elif [ $RUN = 'HI' ]; then
    export BND1=${FIXaqm}/HI_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.fv3.ncf
-   export BND2=${COMOUT}/aqm_HI_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+   export BND2=${COMOUT}/aqm_HI_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf      # output HI    BND files
 elif [ $RUN = 'AK' ]; then
    export BND1=${FIXaqm}/aqm_AK_cb05_ae4_mean_${cmonth}.35L.ncf
-   export BND2=${COMOUT}/aqm_AK_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
+   export BND2=${COMOUT}/aqm_AK_geos_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf      # output AK    BND files
 else
    echo " unknown domain $RUN "
    exit 1
