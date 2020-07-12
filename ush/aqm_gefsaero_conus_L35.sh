@@ -49,7 +49,7 @@ cat > gefs-bnd-nemsio.ini <<EOF
  begdate=$cjulian
  begtime=$cyc    
  dtstep=6        
- numts = 21
+ numts = 20
  bndname='NO2','NO','O3','NO3','OH','HO2','N2O5','HNO3','HONO','PNA',
  'H2O2','CO','SO2','SULF','PAN','FACD','AACD','PACD','UMHP','MGLY',
  'OPEN','CRES','FORM','ALD2','PAR','OLE','TOL','ISOP','ETH','XYL',

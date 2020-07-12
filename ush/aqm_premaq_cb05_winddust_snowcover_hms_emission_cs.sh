@@ -143,7 +143,7 @@ fi
 #  if there is no file, then go to 
 #  if [ ${cyc} = '00' -o  ${cyc} = '06' ]  
 # Change to 12 from 9 foe testing the downstream, 12/17/2019
-if [ $Mn -ge 7 ] && [ $Mn -le 9 ] ; then
+if [ $Mn -ge 6 ] && [ $Mn -le 9 ] ; then
   if [ ${cyc} = '00' ]  
   then
    smoke_emis9=${COMINhysplitm1}
