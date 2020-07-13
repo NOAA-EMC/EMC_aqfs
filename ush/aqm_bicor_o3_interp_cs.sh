@@ -22,11 +22,11 @@ mkdir -p out/ozone/$Yr
 #===================================================`
 ln -s $PARMaqm/sites.valid.ozone.20190815.06z.list  $DATA/site-lists
 ln -s $PARMaqm/aqm.t12z.grdcro2d.ncf    $DATA/data/coords
-ln -s $PARMaqm/aqm_config.interp.ozone.0707.8-vars  $DATA
+ln -s $PARMaqm/aqm_config.interp.ozone.20200718.8-vars  $DATA
 ln -s ${COMINbicor}   $DATA/data
 
 startmsg
-$EXECaqm/aqm_interpolate_update  aqm_config.interp.ozone.0707.8-vars ${cyc}z $PDY $PDY  >> $pgmout 2>errfile 
+$EXECaqm/aqm_interpolate_update  aqm_config.interp.ozone.20200718.8-vars ${cyc}z $PDY $PDY  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 if [ -e ${COMINbicor}/interpolated/ozone/$Yr ] 

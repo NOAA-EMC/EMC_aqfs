@@ -106,7 +106,7 @@ WSPD10           0        100       N      Wind speed, 10 meters
 TEMP2          -50C        50C      N      Temperature, 2 meters
 NOX              0          5       N      NOx concentration
 NOY              0          5       N      NOy concentration
-PBL              0       4500       N      PBL height, ACM2 based Richardson #
+PBL              0       4500       N      PBL from GFSv16 model, in meter
 RGRND            0       1500       N      Solar radiation reaching surface
 
 *pm25             0        250       N      PM2.5 concentration
