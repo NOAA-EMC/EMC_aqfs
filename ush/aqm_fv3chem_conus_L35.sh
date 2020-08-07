@@ -35,7 +35,7 @@ else
    ## ALERT HHC for 1 cycle testing
    if [ "${FLAG_ONE_CYCLE}" == "YES" ]; then lbc_cyc=t00z; fi ## for one cycle testing
 fi
-gefscyc=`echo ${lbc_cyc} | -c2-3`
+gefscyc=`echo ${lbc_cyc} | cut -c2-3`
 # LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
 # Checking GEFS-Aerosol LBC files
 flag_lbc_exist=yes
@@ -55,9 +55,9 @@ while [ ${ic} -le ${endhour} ]; do
    ((ic=ic+${lbc_int}))
 done
 lbccyc=${lbc_cyc}
-if ["${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol files
+if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol files
    /bin/rm -rf geaer.*                      ## clean previous partial links in LBCIN file check above
-   currrent_lbccyc=`echo ${lbc_cyc} | -c2-3`
+   currrent_lbccyc=`echo ${lbc_cyc} | cut -c2-3`
    cdate=${PDY}${current_lbccyc}
    new_lbc_time=$( ${NDATE} -6 ${cdate} )   ## push one cycle back for GEFS output
    new_lbc_day=`echo ${new_lbc_time} | cut -c1-8`
@@ -84,7 +84,7 @@ if ["${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol
       fi
       ((ic=ic+${lbc_int}))
    done
-   if ["${flag_lbc2_exist}" == "yes" ]; then
+   if [ "${flag_lbc2_exist}" == "yes" ]; then
       lbc_day=${new_lbc_day}
       if [ "${RUN_ENVIR}" == "nco" ]; then
          echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
@@ -107,7 +107,7 @@ fi
 ## Use exact timing information of selected GEFS output
 ##
 lbc_cyc=${lbccyc}
-cyc=`echo ${lbc_cyc} | -c2-3`
+cyc=`echo ${lbc_cyc} | cut -c2-3`
 cyear=`echo ${lbc_day} | cut -c1-4`
 cmonth=`echo ${lbc_day} | cut -c5-6`
 cdate=`echo ${lbc_day} | cut -c7-8`
@@ -206,4 +206,8 @@ startmsg
 ${EXECaqm}/aqm_fv3chem_dlbc  >> ${pgmout} 2>errfile 
 export err=$?;err_chk
 
-if [ -s ${BND2} ]; then cp -p ${BND2} ${COMOUT}/${BND2_cyc}; fi
+##
+## Keep record of the LBC used in differretn cycle
+## CMAQ FCST run will always use the latest BND2 of the day, i.e., 12Z produced LBC will replace LBC produced at 06Z
+##
+if [ -s ${BND2} ]; then cp -p ${BND2} ${BND2_cyc}; fi

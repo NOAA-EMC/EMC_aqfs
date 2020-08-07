@@ -12,17 +12,15 @@ set -xa
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
-cd $DATA
+cd ${DATA}
 
-if [ -e ${DATA}/out ] ;
-then
- echo "${DATA}/out exits !"
+if [ -e ${DATA}/out ]; then
+   echo "${DATA}/out exits !"
 else
- mkdir -p ${DATA}/out 
+   mkdir -p ${DATA}/out 
 fi
 
-ln -s $COMOUT/pm2.5.corrected.${PDY}.${cyc}z.nc  a.nc 
-#export CMAQBCFILE1=$COMIN/pm2.5.corrected.${PDY}.${cyc}z.nc
+ln -s ${COMOUT}/pm2.5.corrected.${PDY}.${cyc}z.nc  a.nc 
 
 export chk=1 
 export chk1=1 
@@ -36,51 +34,62 @@ id_gribdomain=148
 /
 EOF1
 
-if [ $cyc =  '06' ]; then
- if [ -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc ]; then
-   ln -s  $COMOUT/pm2.5.corrected.${PDY}.00z.nc  b.nc 
- else 
-   ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
-   chk=0
- fi
-fi
-
-if [ $cyc = '12' ] ; then
-   if [ -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc ]; then
-      ln -s $COMOUT/pm2.5.corrected.${PDY}.00z.nc  b.nc
-   else
-      ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
+flag_run_bicor_max=yes
+## 06z needs b.nc to find current day output from 04Z to 06Z
+if [ "${cyc}" == "06" ]; then
+   if [ -s ${COMOUT}/pm2.5.corrected.${PDY}.00z.nc ]; then
+      ln -s  ${COMOUT}/pm2.5.corrected.${PDY}.00z.nc  b.nc 
+   elif [ -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc ]; then
+      ln -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
       chk=0
+   else 
+      flag_run_bicor_max=no
    fi
-##   ln -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc  c.nc
-   if [ -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc ]; then
-      ln -s $COMOUT/pm2.5.corrected.${PDY}.06z.nc  c.nc
+fi
+
+if [ "${cyc}" == "12" ]; then
+   ## 12z needs b.nc to find current day output from 04Z to 06Z
+   if [ -s ${COMOUT}/pm2.5.corrected.${PDY}.00z.nc ]; then
+      ln -s ${COMOUT}/pm2.5.corrected.${PDY}.00z.nc  b.nc
+   elif [ -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc ]; then
+      ln -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc  b.nc
+      chk=0
    else
-      ln -s $COMOUTm1/pm2.5.corrected.${PDYm1}.12z.nc  c.nc
+      flag_run_bicor_max=no
+   fi
+
+   ## 12z needs c.nc to find current day output from 07Z to 12z
+   if [ -s ${COMOUT}/pm2.5.corrected.${PDY}.06z.nc ]; then
+      ln -s ${COMOUT}/pm2.5.corrected.${PDY}.06z.nc  c.nc
+   elif [ -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc ]; then
+      ln -s ${COMOUTm1}/pm2.5.corrected.${PDYm1}.12z.nc  c.nc
       chk1=0
+   else
+      flag_run_bicor_max=no
    fi
 fi
-#-------------------------------------------------
-
-# write out grib2 format 
-#-------------------------------------------------
-rm -rf errfile
-startmsg
-$EXECaqm/aqm_post_maxi_bias_cor_grib2  ${PDY} ${cyc} ${chk} ${chk1}
-export err=$?;err_chk
-
-
-# split into two files: one for 24hr_ave and one for 1h_max
-
-$WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PMTF"   | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 
-$WGRIB2 aqm-pm25_bc.148.grib2  |grep  "PDMAX1" | $WGRIB2 -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2 
-
-if [ "$envir" = "para13" ] ; then
-  cp $DATA/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2  $COMOUT_grib/${RUN}.$PDY/
-  cp $DATA/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2   $COMOUT_grib/${RUN}.$PDY/
+if [ "${flag_run_bicor_max}" == "yes" ]; then
+   #-------------------------------------------------
+   # write out grib2 format 
+   #-------------------------------------------------
+   rm -rf errfile
+   startmsg
+   ${EXECaqm}/aqm_post_maxi_bias_cor_grib2  ${PDY} ${cyc} ${chk} ${chk1}
+   export err=$?;err_chk
+   
+   
+   # split into two files: one for 24hr_ave and one for 1h_max
+   
+   ${WGRIB2} aqm-pm25_bc.148.grib2  |grep  "PMTF"   | ${WGRIB2} -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 
+   ${WGRIB2} aqm-pm25_bc.148.grib2  |grep  "PDMAX1" | ${WGRIB2} -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2 
+   
+   if [ "$envir" = "para13" ] ; then
+      cp ${DATA}/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2  ${COMOUT}_grib/${RUN}.$PDY/
+      cp ${DATA}/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2   ${COMOUT}_grib/${RUN}.$PDY/
+   fi
+   cp ${DATA}/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 ${COMOUT}/
+   cp ${DATA}/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2  ${COMOUT}/
+else
+   echo "MISSING b.nc and/or c.nc of previous cycle pm2.5.corrected.[PDY|PDYm1].t[00|06]z.nc and can not run ${pgm} maxi"
+   echo "It is possible that this is an initial run for a new experiemnt, require manauel check"
 fi
-  cp $DATA/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 $COMOUT/
-  cp $DATA/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2  $COMOUT/
-
-
-
