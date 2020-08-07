@@ -59,21 +59,22 @@ fi
 ###
 ### ALERT_HHC should count as fhr=endfhr+1
 ###
+metcyc=`echo ${cycle} | cut -c2-3`
 icnt=0
 let tend=${endfhr}
 while [ ${icnt} -le ${tend} ]; do
    fhr=`printf %3.3d ${icnt}`
-   if [ ! -s ${METIN}/gfs.${cycle}.atmf${fhr}.nc ]; then
-      echo "file does not exist: ${METIN}/gfs.${cycle}.atmf${fhr}.nc"
+   if [ ! -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc ]; then
+      echo "file does not exist: ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc"
       exit 1
    else
-      ln -s ${METIN}/gfs.${cycle}.atmf${fhr}.nc gfs.${cycle}.atmf${fhr}.nc
+      ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc gfs.${cycle}.atmf${fhr}.nc
    fi 
-   if [ ! -s ${METIN}/gfs.${cycle}.sfcf${fhr}.nc ]; then
+   if [ ! -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc ]; then
       echo "file does not exist: ${METIN}/gfs.${cycle}.sfcf${fhr}.nc"
       exit 1
    else
-      ln -s ${METIN}/gfs.${cycle}.sfcf${fhr}.nc gfs.${cycle}.sfcf${fhr}.nc
+      ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc gfs.${cycle}.sfcf${fhr}.nc
    fi 
    ((icnt++))
 done

@@ -43,10 +43,12 @@ export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 ## Location of FV3GFS output
 export met_envir=${met_envir:-prod}
 export METIN=${METIN:-$(compath.py gfs/${met_envir}/gfs.${PDY})}
+export METINm1=${METINm1:-$(compath.py gfs/${met_envir}/gfs.${PDYm1})}
 
 ## Location of FV3GEFS-Aerosol output
 export lbc_envir=${lbc_envir:-prod}
 export LBCIN=${LBCIN:-$(compath.py gefs/${lbc_envir}/gefs.${PDY})}
+export LBCINm1=${LBCINm1:-$(compath.py gefs/${lbc_envir}/gefs.${PDYm1})}
 export LBC_INI=${LBC_INI:-0}     ## 1st  LBC file FCST time
 export LBC_END=${LBC_END:-120}   ## Last LBC file FCST time
 export LBC_FREQ=${LBC_FREQ:-3}   ## LBC file output frequency

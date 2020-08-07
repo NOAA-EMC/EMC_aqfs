@@ -56,7 +56,7 @@
       checkfact(1:ngocart,1:nspecies)=0.
 ! read converting information
 
-      open(7,file='ngac-bnd-nemsio.ini')
+      open(7,file='gefs-bnd-nemsio.ini')
       read(7,control)
       nowdate=begyear*1000+begdate   ! YYYYDDD
       nowtime=begtime*10000          ! HHMMSS      
@@ -539,7 +539,7 @@
  	 do i=1,igocart
 	  do j=1,jgocart
 !	   vgocart(i,j,k)=work(i+(j-1)*igocart)*airgocart(i,j,k)*1e6    ! Operational NGAC unit conversion:  g/g -> ug/m3
-           vgocart(i,j,k)=work(i+(j-1)*igocart)   ! FV3-Chem aerosol units already in -> ug/m3  
+           vgocart(i,j,k)=work(i+(j-1)*igocart)   ! GEFS FV3-Chem aerosol units already in -> ug/m3  
 	   if(vgocart(i,j,k).gt.1e18) vgocart(i,j,k)=0. ! for undefine bug
 	   
            if(gocartname(L1).eq.'so2') vgocart(i,j,k)=work(i+(j-1)*igocart)*1e6/64*28.97   ! kg/kg -> ppmV
@@ -664,7 +664,7 @@
 	  enddo
 	 enddo
 	else
-	 print*,'use NGAC bnd for ', bndname(L)	
+	 print*,'use GEFS bnd for ', bndname(L)	
 	endif
 
 
