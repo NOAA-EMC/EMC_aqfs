@@ -182,10 +182,11 @@ else
 fi
 
 ## ALERT HHC July 23 updates 
+##   orig: export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
 ##   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
 ## Make sure the day produced is for PDY and not for GEFS date
 if [ $RUN = 'aqm' ]; then
-   export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
+   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf   # output CONUS BND files
    export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
 elif [ $RUN = 'HI' ]; then
