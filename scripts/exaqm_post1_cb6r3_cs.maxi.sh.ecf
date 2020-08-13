@@ -37,7 +37,7 @@ elif [ -s ${COMINm1}/aqm.t12z.aconc_sfc.ncf ];  then
 elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ];  then
  export CMAQFILE2=${COMINm2}/aqm.t12z.aconc_sfc.ncf
 else  ## 06z and 12z both need CMAQFILE2 to find current day output from 04Z to 06Z
-   echo "WARNING :: ERROR can not find ${CMAQFILE2} for daily MAX AVE computatuion"
+   echo "WARNING :: ERROR can not find CMAQFILE2 for daily MAX AVE computatuion"
    flag_run_maxi=no
 fi
 
@@ -59,7 +59,7 @@ if [ $cyc -eq 12 ]; then
   export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
  else  ## 12z needs CMAQFILE3 to find current day output from 07Z to 12z
  else
-   echo "WARNING :: ERROR can not find ${CMAQFILE2} for daily MAX AVE computatuion"
+   echo "WARNING :: ERROR can not find CMAQFILE3 for daily MAX AVE computatuion"
    flag_run_maxi=no
  fi
 fi
