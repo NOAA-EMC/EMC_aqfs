@@ -56,7 +56,7 @@ while [ ${ic} -le ${endhour} ]; do
 done
 lbccyc=${lbc_cyc}
 if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol files
-   /bin/rm -rf geaer.*                      ## clean previous partial links in LBCIN file check above
+   /bin/rm -rf ${DATA}/geaer.*                      ## clean previous partial links in LBCIN file check above
    currrent_lbccyc=`echo ${lbc_cyc} | cut -c2-3`
    cdate=${PDY}${current_lbccyc}
    new_lbc_time=$( ${NDATE} -6 ${cdate} )   ## push one cycle back for GEFS output
@@ -187,14 +187,16 @@ fi
 ## Make sure the day produced is for PDY and not for GEFS date
 if [ $RUN = 'aqm' ]; then
    export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
-   export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf   # output CONUS BND files
+   export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
    export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
 elif [ $RUN = 'HI' ]; then
    export BND1=${FIXaqm}/HI_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.fv3.ncf
-   export BND2=${COMOUT}/aqm_HI_geos_fv3chem_aero_${PDY}_35L.ncf      # output HI    BND files
+   export BND2=${COMOUT}/aqm_HI_geos_fv3chem_aero_${PDY}_35L.ncf                   # output HI    BND files
+   export BND2_cyc=${COMOUT}/aqm_HI_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output HI    BND files with cycle information
 elif [ $RUN = 'AK' ]; then
    export BND1=${FIXaqm}/aqm_AK_cb05_ae4_mean_${cmonth}.35L.ncf
-   export BND2=${COMOUT}/aqm_AK_geos_fv3chem_aero_${PDY}_35L.ncf      # output AK    BND files
+   export BND2=${COMOUT}/aqm_AK_geos_fv3chem_aero_${PDY}_35L.ncf                   # output AK    BND files
+   export BND2_cyc=${COMOUT}/aqm_AK_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output AK    BND files with cycle information
 else
    echo " unknown domain $RUN "
    exit 1
