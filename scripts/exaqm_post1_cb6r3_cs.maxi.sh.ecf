@@ -58,21 +58,20 @@ if [ $cyc -eq 12 ]; then
  elif [ -s ${COMINm2}/aqm.t12z.aconc_sfc.ncf ] ; then
   export CMAQFILE3=${COMINm2}/aqm.t12z.aconc_sfc.ncf
  else  ## 12z needs CMAQFILE3 to find current day output from 07Z to 12z
- else
    echo "WARNING :: ERROR can not find CMAQFILE3 for daily MAX AVE computatuion"
    flag_run_maxi=no
  fi
 fi
 
 if [ "${flag_run_maxi}" == "yes" ]; then
-   cat >cmaq-maxi2grib.ini <<EOF5
-   &control
-   markutc=05
-   outfile='aqm-maxi.148.grib2'
-   varlist='o3_1hr','o3_8hr'
-   id_gribdomain=148
-   /
-   EOF5
+cat >cmaq-maxi2grib.ini <<EOF5
+&control
+markutc=05
+outfile='aqm-maxi.148.grib2'
+varlist='o3_1hr','o3_8hr'
+id_gribdomain=148
+/
+EOF5
    
    startmsg
    ### ALERT HHC use aqm_post_maxi_CHA_grib2_v2 for NCO delivery -- consistent with executable creation script
@@ -92,14 +91,14 @@ if [ "${flag_run_maxi}" == "yes" ]; then
    
    # write out pm2.5 in grib2 format
    
-   cat >cmaq-maxi2grib.ini <<EOF5
-   &control
-   markutc=05
-   outfile='aqm-pm25_24hr.148.grib2'
-   varlist='pm25_1hr','pm25_24hr'
-   id_gribdomain=148
-   /
-   EOF5
+cat >cmaq-maxi2grib.ini <<EOF5
+&control
+markutc=05
+outfile='aqm-pm25_24hr.148.grib2'
+varlist='pm25_1hr','pm25_24hr'
+id_gribdomain=148
+/
+EOF5
    
    startmsg
    ### ALERT HHC use aqm_post_maxi_CHA_grib2_v2 for NCO delivery -- consistent with executable creation script
@@ -232,5 +231,4 @@ if [ "${flag_run_maxi}" == "yes" ]; then
 else
    echo "MISSING aconc_sfc.ncf of previous cycle and can not run ${pgm}"
    echo "It is possible that this is an initial run for a new experiemnt, require manauel check"
-fi
 fi
