@@ -57,7 +57,7 @@ done
 lbccyc=${lbc_cyc}
 if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol files
    /bin/rm -rf ${DATA}/geaer.*                      ## clean previous partial links in LBCIN file check above
-   currrent_lbccyc=`echo ${lbc_cyc} | cut -c2-3`
+   current_lbccyc=`echo ${lbc_cyc} | cut -c2-3`
    cdate=${PDY}${current_lbccyc}
    new_lbc_time=$( ${NDATE} -6 ${cdate} )   ## push one cycle back for GEFS output
    new_lbc_day=`echo ${new_lbc_time} | cut -c1-8`
