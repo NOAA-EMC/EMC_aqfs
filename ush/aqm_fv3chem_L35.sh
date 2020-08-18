@@ -114,9 +114,6 @@ cdate=`echo ${lbc_day} | cut -c7-8`
 ic=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
 cjulian=`printf %3.3d ${ic}`
 
-## ALERT HHC July 23 updates 
-## 'SRFATKN','SRFACC','AOTHRJ','AECJ','APOCJ','ANH4J','ANO3J','ANAJ','ACLJ'
-## checkname='AOTHRJ','ASOIL','AECJ','APOCJ','ASO4J','ANH4J','ANO3J','ANAJ','ACLJ'
 cat > gefs-bnd-nemsio.ini <<EOF
 &control
  begyear=${cyear}  
@@ -128,8 +125,8 @@ cat > gefs-bnd-nemsio.ini <<EOF
  'H2O2','CO','SO2','SULF','PAN','FACD','AACD','PACD','UMHP','MGLY',
  'OPEN','CRES','FORM','ALD2','PAR','OLE','TOL','ISOP','ETH','XYL',
  'ASO4J','ASO4I','ASOIL','NH3','NUMATKN','NUMACC','NUMCOR',
- 'SRFATKN','SRFACC','AOTHRJ',AECJ,APOCJ
- checkname='AOTHRJ','ASOIL','AECJ','APOCJ'
+ 'SRFATKN','SRFACC','AOTHRJ','AECJ','APOCJ','ANH4J','ANO3J','ANAJ','ACLJ'
+ checkname='AOTHRJ','ASOIL','AECJ','APOCJ','ASO4J','ANH4J','ANO3J','ANAJ','ACLJ'
  mofile='./geaer.${lbc_cyc}.atmf','.nemsio'
  checklayer=1    
 &end
@@ -181,10 +178,6 @@ else
    fi
 fi
 
-## ALERT HHC July 23 updates 
-##   orig: export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_35L.ncf
-##   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
-## Make sure the day produced is for PDY and not for GEFS date
 if [ $RUN = 'aqm' ]; then
    export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
