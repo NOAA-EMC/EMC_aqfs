@@ -61,6 +61,8 @@ export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${dcom_envir}/${PDYm1}/firewx}
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
+export KEEPDATA=${KEEPDATA:-YES}
+
 mkdir -p ${COMOUT}
 
 export pgmout=OUTPUT.$$

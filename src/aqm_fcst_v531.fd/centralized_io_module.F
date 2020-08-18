@@ -1868,7 +1868,8 @@ C Read the various categories of normalized emissions
      &                              STRTROWSTD, ENDROWSTD, STRTCOLSTD, ENDCOLSTD,
      &                              0, 0, crop_ladut( :,:,m ) ) ) then
                    xmsg = 'Could not read ' // trim( crop_vnmld( m ) ) // ' from ' // dust_lu_1
-                   call m3exit ( pname, 0, 0, xmsg, xstat1 )
+!                   Updated Fengsha Dust does not read crop land fraction
+!                   call m3exit ( pname, 0, 0, xmsg, xstat1 )
                 end if
              end do
           end if
@@ -1879,7 +1880,8 @@ C Read the various categories of normalized emissions
              do i = 1, 3
                 if ( .not. open3( crname( i ), fsread3, pname ) ) then
                    xmsg = 'Could not open ' // crname( i )
-                   call m3exit( pname, cio_model_sdate, cio_model_stime, xmsg, xstat1 )
+!                   Updated Fengsha Dust does not open crop calendar
+!                   call m3exit( pname, cio_model_sdate, cio_model_stime, xmsg, xstat1 )
                 end if
                 n_opened_file = n_opened_file + 1
              end do
@@ -1891,7 +1893,8 @@ C Read the various categories of normalized emissions
      &                                 STRTROWSTD, ENDROWSTD, STRTCOLSTD, ENDCOLSTD,  
      &                                 0, 0, cropdt( 1,1,m,i ) ) ) then
                       xmsg = 'Could not read ' // trim( vcrop( m ) ) // ' from ' // crname( i )
-                      call m3exit ( pname, cio_model_sdate, cio_model_stime, xmsg, xstat1 )
+!                      Updated Fengsha Dust does not read crop calendar
+!                      call m3exit ( pname, cio_model_sdate, cio_model_stime, xmsg, xstat1 )
                    end if
                 end do
              end do

@@ -129,6 +129,12 @@ C-------------------------------------------------------------------------------
          Real,    Allocatable :: PBL      ( :,: )  ! pbl height (m)
 !         Real,    Allocatable :: NACL_EMIS( :,: )  ! NACL mass emission rate of particles with d <10 um (g/m2/s)
          Real,    Allocatable :: COSZEN   ( :,: )  ! Cosine of the zenith angle
+!> Inline Fengsha Windblown Dust
+         Real,    Allocatable :: CLAYF    ( :,: )  ! Fractional Clay content - Fengsha
+         Real,    Allocatable :: SANDF    ( :,: )  ! Fractional Sand content - Fengsha
+         Real,    Allocatable :: DRAG     ( :,: )  ! Drag Partition - Fengsha
+         Real,    Allocatable :: SSM      ( :,: )  ! Erosion Potential - Fengsha
+         Real,    Allocatable :: UTHR     ( :,: )  ! Threshold Velocity for Fengsha
 !> U and V wind components on the cross grid points
          Real,    Allocatable :: UWIND    ( :,:,: )  ! [m/s]
          Real,    Allocatable :: VWIND    ( :,:,: )  ! [m/s]                    
@@ -561,7 +567,7 @@ C-----------------------------------------------------------------------
                XMSG = 'Failure allocating layer 2 soil moisture'
                Call M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
             End If
-
+  
             ALLOCATE( Grid_Data%WWLT   ( NCOLS,NROWS ),
      &                Grid_Data%BSLP   ( NCOLS,NROWS ),
      &                Grid_Data%WRES   ( NCOLS,NROWS ),
@@ -576,6 +582,19 @@ C-----------------------------------------------------------------------
 !           Grid_Data%WFC     = 0.0
             Grid_Data%WRES    = 0.0
             Grid_Data%BSLP    = 0.0
+         End If
+          
+         If ( WB_DUST  ) Then
+            ALLOCATE( Met_Data%CLAYF    ( NCOLS,NROWS ),
+     &                Met_Data%SANDF    ( NCOLS,NROWS ),
+     &                Met_Data%SSM      ( NCOLS,NROWS ),
+     &                Met_Data%DRAG     ( NCOLS,NROWS ),
+     &                Met_Data%UTHR     ( NCOLS,NROWS ),
+     &                STAT = ALLOCSTAT )
+            If ( ALLOCSTAT .Ne. 0 ) Then
+               XMSG = 'Failure allocating Fengsha WB_DUST variables'
+               Call M3EXIT( PNAME, JDATE, JTIME, XMSG, XSTAT1 )
+            End If
          End If
 
 !> ccccccccccccccccccccc enable backward compatiblity ccccccccccccccccccccc
@@ -762,7 +781,18 @@ C Soil vars
          call interpolate_var ('SOIT1', jdate, jtime, Met_Data%SOIT1)
 
          call interpolate_var ('SEAICE', jdate, jtime, Met_Data%SEAICE)
+        
+         If ( WB_DUST ) Then
+            call interpolate_var ('SSM', jdate, jtime, Met_Data%SSM)
+         
+            call interpolate_var ('DRAG', jdate, jtime, Met_Data%DRAG)
 
+            call interpolate_var ('UTHR', jdate, jtime, Met_Data%UTHR)
+
+            call interpolate_var ('SANDF', jdate, jtime, Met_Data%SANDF)
+
+            call interpolate_var ('CLAYF', jdate, jtime, Met_Data%CLAYF)
+         End If
 C met vars
 
          call interpolate_var ('PRSFC', jdate, jtime, Met_Data%PRSFC)

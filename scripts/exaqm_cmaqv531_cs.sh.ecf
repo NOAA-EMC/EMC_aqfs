@@ -303,7 +303,7 @@ export CLD_DIAG=N            #> write cloud diagnostic file [ default: N ]
 export CTM_AERDIAG=Y #N         #> aerosol diagnostic file [ default: N ]
 export CTM_PHOTDIAG=Y        #> photolysis diagnostic file [ default: N ]
 export CTM_SSEMDIAG=N        #> sea-salt emissions diagnostic file [ default: N ]
-export CTM_WB_DUST=N #Y         #> use inline windblown dust emissions [ default: Y ]
+export CTM_WB_DUST=Y #Y         #> use NAQFC, NACC-CMAQ Fengsha inline windblown dust emissions [ default: Y ]
 export CTM_ERODE_AGLAND=N    #> use agricultural activity for windblown dust [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
@@ -336,7 +336,7 @@ export CTM_ADV_CFL=0.95      #> max CFL [ default: 0.75]
 
 #Science Options
 export CTM_OCEAN_CHEM=Y      #> Flag for ocean halogen chemistry and sea spray aerosol emissions [ default: Y ]
-export CTM_WBDUST_BELD=BELD3 #> landuse database for identifying dust source regions
+export CTM_WBDUST_BELD=NOBELD #> landuse database for identifying dust source regions  !Not used for NAQFC, NACC-CMAQ Inline Fengsha
 export CTM_FST=N             #> mosaic method to get land-use specific stomatal flux
 export CTM_BIDI_FERT_NH3=F   #> subtract fertilizer NH3 from emissions because it will be handled
 export CTM_GRAV_SETL=Y       #> vdiff aerosol gravitational sedimentation [ default: Y ]
@@ -525,12 +525,12 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    fi
 fi
 
-#> Windblown dust emissions configuration
-if [ "${CTM_WB_DUST}" == "Y" ]; then
-   # Input variables for BELD3 Landuse option
-   export DUST_LU_1=${FIXaqm}/aqm_LANDA_CONUS_igbp2010.ncf
-   export DUST_LU_2=${FIXaqm}/LAND_TOTALS_US12_442X265.ncf
-fi
+#> Windblown dust emissions configuration !Not used for NAQFC, NACC-CMAQ Inline Fengsha
+## if [ "${CTM_WB_DUST}" == "Y" ]; then
+##    # Input variables for BELD3 Landuse option
+##    export DUST_LU_1=${FIXaqm}/aqm_LANDA_CONUS_igbp2010.ncf
+##    export DUST_LU_2=${FIXaqm}/LAND_TOTALS_US12_442X265.ncf
+## fi
 
 if [ "${CTM_ERODE_AGLAND}" == "Y" ]; then
    # Input variables for BELD3 Landuse option
