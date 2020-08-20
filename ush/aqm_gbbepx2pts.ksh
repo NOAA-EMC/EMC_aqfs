@@ -64,6 +64,19 @@ fi
 echo "=========================================================="
 echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
 echo "=========================================================="
+##
+##  Present fire emission scheme includes gas-phase emission
+##      check aqm.t*z.fire_emi_cs.ncf with CO, SO2, NO, NO2, NH3 output
+##
+##  However, in present version, NOx emission has been turn off.
+##  In the content of gbbepx2pts.ini below;
+##
+##  With NOx emission ON  use ( CORRECT   spelling for the one in GBBEPx file )
+##  =====> 'NOx'    2   # 90% to NO (mw 30), 10% to NO2 (mw 46), mw 31.6 in average, kg->mole
+##
+##  With NOx emission OFF use ( INCORRECT spelling for the one in GBBEPx file )
+##  =====> 'NOX'    2   # 90% to NO (mw 30), 10% to NO2 (mw 46), mw 31.6 in average, kg->mole
+##
 ln -s ${COMIN9}/${emisfile} ${emisfile}
 
 FRPRATIO=${FRPRATIO:-1.0}
