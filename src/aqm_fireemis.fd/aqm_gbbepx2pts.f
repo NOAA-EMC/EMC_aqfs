@@ -24,7 +24,7 @@
       real,allocatable :: sfact(:,:),val(:),fireemis(:,:,:),
      1 fireduration(:),firearea(:),hflux(:,:),firelat(:),firelon(:),
      2 xloca(:),yloca(:),badval(:),lufrac(:,:,:),gbbepx(:,:,:),frp(:,:)
-     3 ,xlat(:,:),xlon(:,:),forestfrac(:,:),tlon(:),tlat(:) 
+     3 ,xlat(:,:),xlon(:,:),forestfrac(:,:),tlon(:),tlat(:),lwmask(:,:) 
       namelist /control/efilein,markutc,burnarea_ratio,frpfactor,  ! frp factor to hflux
      1 startdate,nduration,tdiurnal,dfrac,emname
 
@@ -92,13 +92,14 @@
       IF(.NOT.LAMBERT(GDNAM, P_ALP3d, P_BET3d, P_GAM3d,
      1       XCENT3D, YCENT3D )) stop
       allocate(xlat(imax,jmax),xlon(imax,jmax),lufrac(imax,jmax,24),  ! USGS 24 category landuse fractions
-     1  forestfrac(imax,jmax)) 
+     1  forestfrac(imax,jmax),lwmask(imax,jmax)) 
       if(.not.read3('TOPO','LAT',1,sdate3d,stime3d,xlat)) stop
       if(.not.read3('TOPO','LON',1,sdate3d,stime3d,xlon)) stop
       xlatmin=minval(xlat)
       xlatmax=maxval(xlat)
       xlonmin=minval(xlon)
       xlonmax=maxval(xlon)
+      if(.not.read3('TOPO','LWMASK',1,sdate3d,stime3d,lwmask)) stop
       do i=1,24
        write(ctmp,"('LUFRAC_',i2.2)")i
        if(.not.read3('TOPO',trim(ctmp),1,sdate3d,stime3d,
@@ -194,9 +195,10 @@ c      if(iflag.ne.NF_NOERR) stop
        yind=(y-yorig)/ddx+0.5
 c       print*,'mfire,i,j,tlon(i),tlat(j),xind,yind=',
 c     1    mfire,i,j,tlon(i),tlat(j),xind,yind,gbbepx(i,j,:)
+       
        if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1) 
      1  cycle jloop  ! out of domain
-
+       if(lwmask(xind,yind).lt.0.5) cycle jloop
        xloca(mfire)=x
        yloca(mfire)=y
        icol(mfire)=nint(xind)
@@ -259,7 +261,7 @@ c     2  tratio
        endif
        enddo jloop
       enddo
-
+      mfire=mfire-1
       print*,'total fire points',mfire
 !---stack file header
 
