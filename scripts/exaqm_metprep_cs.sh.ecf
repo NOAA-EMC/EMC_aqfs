@@ -86,7 +86,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = './gfs.${cycle}.atmf','.nc'
   file_sfc   = './gfs.${cycle}.sfcf','.nc'
-  file_geo   = '$FIXaqm/gfs.t12z.geo.$SMM.nc'
+  file_geo   = '${FIXaqm}/gfs.t12z.geo.${SMM}.nc'
   ioform     =  1
  &END
 
