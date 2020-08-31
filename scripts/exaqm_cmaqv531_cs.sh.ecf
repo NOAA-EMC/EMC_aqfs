@@ -27,18 +27,6 @@
 #####################################################################
 set -xa
 
-
-## ALERT HHC removed for NCO delivery
-## date2julian(){
-##   yyyy=`echo $1 |cut -c1-4`
-##   mm=`echo $1 |cut -c5-6`
-##   dd=`echo $1 |cut -c7-8`
-##   jjj=`date -d ${yyyy}/${mm}/${dd} +%j`
-##   typeset -Z3 jjj
-##   echo ${yyyy}${jjj}
-## }
-## ALERT HHC removed for NCO delivery
-
 msg="JOB ${job} HAS BEGUN"
 postmsg "${jlogfile}" "${msg}"
 
@@ -52,7 +40,6 @@ SMM=`echo ${PDY}| cut -c5-6`
 #export NETCDF_FFIOSPEC='cachea:75:3'
 
 APPL=v531
-### ALERT HHC use aqm_fcst_${APPL} for NCO delivery -- consistent with executable creation script
 EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
@@ -185,7 +172,6 @@ else
 ##  run for using late smoke emissions for previous day
 #######################################################
 
-## JDAYp1=`date2julian ${PDY}`
 JDAY=`date2jday.sh ${PDY}`
 
 case ${cyc} in
@@ -259,10 +245,8 @@ fi
 echo $START
 
 if [ "${FCST}" == "YES" ]; then
-   ## ALERT HHC removed for NCO delivery STDATE=`date2julian ${PDY}`
    STDATE=`date2jday.sh ${PDY}`
 else
-   ## ALERT HHC removed for NCO delivery STDATE=`date2julian ${PDYm1}`
    STDATE=`date2jday.sh ${PDYm1}`
 fi
 
@@ -585,8 +569,6 @@ else
    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
 fi
 
-## ALERT HHC removed for NCO delivery export BNDY_GASC_1=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/cmaq/5.0.2/prod/fix_LBC_test/aqm_conus_12km_geos_2006${SMM}_static_35L.ncf
-## ALERT HHC removed for NCO delivery export BNDY_GASC_1=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/cmaq/5.0.2/prod/fix_LBC_test/aqm_conus_geos_ngac_dust_20190521_35L.ncf
 if [ ! -f ${BNDY_GASC_1}  ]; then
   export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf
 
@@ -687,38 +669,11 @@ postmsg "${jlogfile}" "${msg}"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-## aprun -n${nprocs} -N${num_ptile} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
-## aprun -n${nprocs} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
-## MIN NODES need 1) 48 2) 47 3) 38 4) 46 5) 47 6) 43 7) 49
-echo "TRY ${imethod}"
-case ${imethod} in
-    1)  num_col=48
-        num_row=24 ;;
-    2)  num_col=221
-        num_row=5 ;;
-    3)  num_col=17
-        num_row=53 ;;
-    4)  num_col=32
-        num_row=34 ;;
-    5)  num_col=33
-        num_row=34 ;;
-    6)  num_col=32
-        num_row=32 ;;
-    7)  num_col=34
-        num_row=34 ;;
-    8)  num_col=12
-        num_row=12 ;;
-    9)  num_col=18
-        num_row=20 ;;
-    10)  num_col=26
-        num_row=53 ;;
-    11)  num_col=34
-        num_row=53 ;;
-    12)  num_col=24
-        num_row=24 ;;
-esac
+num_col=24
+num_row=24
+## Check if total number of processors used is more than requested
 let total_procs=${num_col}*${num_row}
-echo "exp method = ${imethod} ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
+echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
 if [ ${total_procs} -gt ${nprocs} ]; then
    echo "exceeds max processors requested"
    exit
@@ -726,9 +681,6 @@ fi
 export NPCOL_NPROW="${num_col} ${num_row}"
 ## aprun -n${total_procs} -N 24 ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 aprun -n${total_procs} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
-
-##
-#aprun -n576 -N24 /usr/bin/valgrind --leak-check=yes --track-origins=yes --read-var-info=yes ${EXECaqm}/aqm_fcst_v502.debug >> $pgmout 2>errfile
 export err=$?
 
 #------------------------------------------------------
