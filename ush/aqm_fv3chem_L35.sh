@@ -182,7 +182,7 @@ fi
 # ALERT August 27 2020 : HHC ARL suggest to reverse LBC file used as before
 #  From August 06 to August 27 :   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
 if [ $RUN = 'aqm' ]; then
-   export BND1=${FIXaqm}/aqm_conus_12km_geos_${cyear}${cmonth}_static_FV3_35L.ncf
+   export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_FV3_35L.ncf
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
    export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
 elif [ $RUN = 'HI' ]; then
@@ -199,6 +199,11 @@ else
 fi
 export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
+if [ ! -s ${BND1} ]; then    ## Soft Fail
+   echo "WARNING ***  Can not find ${BND1} to produce ${BND2}, MANUAL INSPECTION required, model run continue"
+   export err=999
+   err_chk
+fi
 rm -rf chkreads.log
 
 startmsg
