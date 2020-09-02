@@ -177,9 +177,21 @@ else
          export TOPO=${COMIN}/aqm.t12z.grdcro2d.ncf
    fi
 fi
-
+if [ ! -s ${METEO3D} ]; then
+   echo "ERROR, can not find ${METEO3D}"
+   err=999
+   err_chk
+fi
+if [ ! -s ${TOPO} ]; then
+   echo "ERROR, can not find ${TOPO}"
+   err=999
+   err_chk
+fi
+#
+# ALERT August 27 2020 : HHC ARL suggest to reverse LBC file used as before
+#  From August 06 to August 27 :   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
 if [ $RUN = 'aqm' ]; then
-   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
+   export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_FV3_35L.ncf
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
    export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
 elif [ $RUN = 'HI' ]; then
@@ -196,6 +208,11 @@ else
 fi
 export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
+if [ ! -s ${BND1} ]; then    ## Soft Fail
+   echo "WARNING ***  Can not find ${BND1} to produce ${BND2}, MANUAL INSPECTION required, model run continue"
+   export err=999
+   err_chk
+fi
 rm -rf chkreads.log
 
 startmsg
@@ -205,5 +222,12 @@ export err=$?;err_chk
 ##
 ## Keep record of the LBC used in differretn cycle
 ## CMAQ FCST run will always use the latest BND2 of the day, i.e., 12Z produced LBC will replace LBC produced at 06Z
+## if [ -s ${BND2} ]; then cp -p ${BND2} ${BND2_cyc}; fi
+if [ -s ${BND2} ]; then
+   cp -p ${BND2} ${BND2_cyc}
+else
+   echo "Can not find ${BND2}"
+   err=888
+   err_chk
+fi
 ##
-if [ -s ${BND2} ]; then cp -p ${BND2} ${BND2_cyc}; fi
