@@ -68,13 +68,13 @@ mkdir -p ${COMOUT}
 export pgmout=OUTPUT.$$
  
 ## ALERT HHC remove lines for code delivery, for 1 cycle situation
-if [ -s ${FIXaqm}/aqm.t12z.lufraccro.ncf ]; then
-   cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${DATA}/aqm.${cycle}.lufraccro.ncf
-   mkdir -p ${COMIN}
-   cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMIN}/aqm.${cycle}.lufraccro.ncf
-   mkdir -p ${COMINm1}
-   cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMINm1}/aqm.${cycle}.lufraccro.ncf
-fi
+## if [ -s ${FIXaqm}/aqm.t12z.lufraccro.ncf ]; then
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${DATA}/aqm.${cycle}.lufraccro.ncf
+##    mkdir -p ${COMIN}
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMIN}/aqm.${cycle}.lufraccro.ncf
+##    mkdir -p ${COMINm1}
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMINm1}/aqm.${cycle}.lufraccro.ncf
+## fi
 ## ALERT HHC remove lines for code delivery, for 1 cycle situation
 
 env
