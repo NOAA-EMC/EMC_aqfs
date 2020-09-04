@@ -24,49 +24,49 @@ cd $DATA
 
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
- ic=1
- while [ $ic -lt 100 ]
- do
- if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]
- then
-  echo "cycle ${cyc} post1 is done!"
-  break 
- else
-  let "ic=ic+1"
-   sleep 10
-  fi
- done
+ic=1
+while [ $ic -lt 100 ]; do
+   if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]; then
+      echo "cycle ${cyc} post1 is done!"
+      break 
+   else
+      let "ic=ic+1"
+      sleep 10
+    fi
+done
 
- if [ $ic -ge 100 ]
- then
+if [ $ic -ge 100 ]; then
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
- fi
+fi
 
 #------------------------------------------------------
+## ALERT HHC return to operational form for NCO delivery
+## During operational run, there is always no existing aqm.${cycle}.O3_pm25.ncf
+## Current changes is designed for sequential run for EMC experiemntal runs that o3 bias alwasy go first
+## force to remove existing aqm.${cycle}.O3_pm25.ncf in case of re-run
+##
 if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
- echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
-else
- startmsg
- $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
- export err=$?; err_chk
+   echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
+   /bin/rm -f $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf
+   /bin/rm -f $COMOUTbicor/grid/$PDY/sfc_met_n_PBL.${cycle}.ncf
+fi
+## else
+   startmsg
+   $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
+   export err=$?; err_chk
 
- f1=aqm.${cycle}.O3_pm25.ncf
-##  f2=Spec_humid.${cycle}.ncf
- f3=sfc_met_n_PBL.${cycle}.ncf
-##  f4=UV_wind.${cycle}.ncf
+   f1=aqm.${cycle}.O3_pm25.ncf
+   f3=sfc_met_n_PBL.${cycle}.ncf
  
-if [ -e $COMOUTbicor/grid/$PDY ] ; then
- echo " $COMOUTbicor/grid/$PDY exits "
-else
- mkdir -p $COMOUTbicor/grid/$PDY
-fi
+   if [ -d $COMOUTbicor/grid/$PDY ] ; then
+      echo " $COMOUTbicor/grid/$PDY exits "
+   else
+      mkdir -p $COMOUTbicor/grid/$PDY
+   fi
 
- cp $DATA/$f1 $COMOUTbicor/grid/$PDY
-##  cp $DATA/$f2 $COMOUTbicor/grid/$PDY
- cp $DATA/$f3 $COMOUTbicor/grid/$PDY
-##  cp $DATA/$f4 $COMOUTbicor/grid/$PDY
-
-fi
+    cp $DATA/$f1 $COMOUTbicor/grid/$PDY
+    cp $DATA/$f3 $COMOUTbicor/grid/$PDY
+##fi
 
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites

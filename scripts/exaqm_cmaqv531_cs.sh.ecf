@@ -34,8 +34,8 @@ export pgm=aqm_fcst_cs
 
 cd ${DATA}
 
-SYM=`echo ${PDY}| cut -c1-6`
-SMM=`echo ${PDY}| cut -c5-6`
+#  SYM=`echo ${PDY}| cut -c1-6`
+#  SMM=`echo ${PDY}| cut -c5-6`
 #------------------------------------------------------
 #export NETCDF_FFIOSPEC='cachea:75:3'
 
@@ -104,6 +104,11 @@ case ${cyc} in
      soil_file=${COMINm1}/aqm.t18z.soil06.ncf
      NSTEPS=060000;;
  06) restart_file1=${COMINm1}/aqm.t06z.cgrid_r.ncf ## using previous day 06z rerun as IC
+     if [ -s ${restart_file1} ]; then
+        soil_file=${COMINm1}/aqm.t06z.soil06_r.ncf   
+     else
+        soil_file=${COMIN}/aqm.t00z.soil06.ncf     
+     fi  
      restart_log1=${COMINm1}/aqm.t06z.log
      restart_file2=${COMIN}/aqm.t00z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t00z.log
@@ -113,9 +118,13 @@ case ${cyc} in
      restart_log4=${COMINm1}/aqm.t06z.log
      restart_file5=${COMINm2}/aqm.t12z.cgrid.ncf
      restart_log5=${COMINm2}/aqm.t12z.log
-     soil_file=${COMIN}/aqm.t00z.soil06.ncf     
      NSTEPS=720000;;
  12) restart_file1=${COMINm1}/aqm.t12z.cgrid_r.ncf #using previous day 06z rerun as IC
+     if [ -s ${restart_file1} ]; then
+        soil_file=${COMINm1}/aqm.t12z.soil06_r.ncf   
+     else
+        soil_file=${COMIN}/aqm.t06z.soil06.ncf
+     fi  
      restart_log1=${COMINm1}/aqm.t12z.log
      restart_file2=${COMIN}/aqm.t06z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t06z.log
@@ -147,8 +156,6 @@ case ${cyc} in
         restart_log3=${COMINm1}/aqm.t12z.log
         restart_log4=${COMINm1}/aqm.t12z.log
         restart_log5=${COMINm1}/aqm.t12z.log
-     else
-        soil_file=${COMIN}/aqm.t06z.soil06.ncf
      fi
      NSTEPS=720000;;
  18) restart_file1=${COMIN}/aqm.t12z.cgrid.ncf
@@ -422,11 +429,35 @@ export GR_EM_SYM_DATE_001=F
 export GR_EMIS_002=${EMISpath}/emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
+if [ ! -s ${GR_EMIS_001} ]; then
+   echo "WARNING :: Can not find ${GR_EMIS_001}"
+   err=999
+   err_chk
+fi
+if [ ! -s ${GR_EMIS_002} ]; then
+   echo "WARNING :: Can not find ${GR_EMIS_002}"
+   err=999
+   err_chk
+fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
+for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
+if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
+   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
+   err=999
+   err_chk
+fi
+
+if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
+   err=999
+   err_chk
+fi
+done
+
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-   if [ -s ${EMISpath}/inln_mole_${sectors}_${SYM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
+   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
       [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
@@ -473,6 +504,9 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YE
    export STK_EMIS_LAB_${ic}="WILDFIRE"
    export STK_EMIS_DIAG_${ic}=2DSUM
    export STK_EM_SYM_DATE_${ic}=F
+else
+   echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
+   exit
 fi
 
 if [ ${ic} -le 0 ]; then
@@ -507,6 +541,17 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    else
       export NEW_START=Y
    fi
+   # Sanitary Check
+   if [ ! -s ${GSPRO} ]; then
+      echo "Can not find ${GSPRO}"
+      err=999
+      err_chk
+   fi
+   if [ ! -s ${B3GRD} ]; then
+      echo "Can not find ${B3GRD}"
+      err=888
+      err_chk
+   fi
 fi
 
 #> Windblown dust emissions configuration !Not used for NAQFC, NACC-CMAQ Inline Fengsha
@@ -527,7 +572,7 @@ fi
 # OCEAN FILE FOR THE Aerosol run
 #-----------------------------------------------------------------
 
-#export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$SMM.ncf
+#export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$MM.ncf
 export OCEAN_1=${FIXaqm}/SSMASK_US12_442X265_igbp2010.ncf
 
 #------------------------------------------------------
@@ -570,7 +615,7 @@ else
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
-  export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${SMM}_static_FV3_35L.ncf
+  export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
 
 fi
 

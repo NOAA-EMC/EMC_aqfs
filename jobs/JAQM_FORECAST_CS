@@ -39,13 +39,16 @@ export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
 ## Define Input directories for various information
-YM=`echo ${PDY} | cut -c1-6`
-export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
 if [ "${FCST}" = "YES" ] ; then
    METpath=${COMIN} #> meteorology input directory
+   YM=`echo ${PDY} | cut -c1-6`
+   MM=`echo ${PDY} | cut -c5-6`
 else
    METpath=${COMINm1}
+   YM=`echo ${PDYm1} | cut -c1-6`
+   MM=`echo ${PDYm1} | cut -c5-6`
 fi
+export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
 export METpath=${METpath:-${COMIN}} #> CMAQ processed meteorology directory
 export BCpath=${BCpath:-${METpath}} #> boundary conditions input  directory
 

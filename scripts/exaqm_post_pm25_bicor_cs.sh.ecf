@@ -25,50 +25,62 @@ cd $DATA
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 
- ic=1
- while [ $ic -lt 100 ]
- do
- if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]
- then
-  echo "cycle ${cyc} post1 is done!"
-  break
- else
-  let "ic=ic+1"
-   sleep 10
-  fi
- done
+ic=1
+while [ $ic -lt 100 ]; do
+   if [ -s $COMIN/aqm.t${cyc}z.aconc_sfc.ncf ]; then
+      echo "cycle ${cyc} post1 is done!"
+      break 
+   else
+      let "ic=ic+1"
+      sleep 10
+    fi
+done
 
- if [ $ic -ge 100 ]
- then
+if [ $ic -ge 100 ]; then
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:$COMIN/aqm.${cycle}.aconc_sfc.ncf"
- fi
+fi
+##
+## ALERT HHC new design
+## PM bias correction always need to wait till O3 bias produce ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf
+##
+ic=1
+while [ $ic -lt 100 ]; do
+   if [ -s ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
+      echo " ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
+      break
+   else
+      ((ic++))
+      sleep 10
+   fi
+done
 
-#
-if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
- echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
+if [ $ic -ge 100 ]; then
+   err_exit "****FATAL ERROR***** - COULD NOT LOCATE:${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf"
+fi
+
+if [ 1 -eq 2 ]; then
+
+if [ -s ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
+ echo " ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
 else
  startmsg
  $USHaqm/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
  export err=$?; err_chk
 
  f1=aqm.${cycle}.O3_pm25.ncf
-##  f2=Spec_humid.${cycle}.ncf
  f3=sfc_met_n_PBL.${cycle}.ncf
-##  f4=UV_wind.${cycle}.ncf
  
- if [ -e $COMOUTbicor/grid/$PDY ] ; then
-  echo " $COMOUTbicor/grid/$PDY exits "
+ if [ -d ${COMOUTbicor}/grid/${PDY} ] ; then
+  echo " ${COMOUTbicor}/grid/${PDY} exits "
  else
-  mkdir -p $COMOUTbicor/grid/$PDY
+  mkdir -p ${COMOUTbicor}/grid/${PDY}
  fi
 
-  cp $DATA/$f1 $COMOUTbicor/grid/$PDY
-##   cp $DATA/$f2 $COMOUTbicor/grid/$PDY
-  cp $DATA/$f3 $COMOUTbicor/grid/$PDY
-##   cp $DATA/$f4 $COMOUTbicor/grid/$PDY
-
+  cp $DATA/$f1 ${COMOUTbicor}/grid/${PDY}
+  cp $DATA/$f3 ${COMOUTbicor}/grid/${PDY}
 fi
 
+fi
 #
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
@@ -113,20 +125,20 @@ newgrib2file2=aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
 ${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file2}  ${newgrib2file2}
 
 if [ "$envir" = "para6" ] ; then
-   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   $COMOUT_grib/$RUN.$PDY
-   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  $COMOUT_grib/$RUN.$PDY
-   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   $COMOUT_grib/$RUN.$PDY
-   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  $COMOUT_grib/$RUN.$PDY
+   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   ${COMOUT}_grib/${RUN}.${PDY}
+   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  ${COMOUT}_grib/${RUN}.${PDY}
+   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   ${COMOUT}_grib/${RUN}.${PDY}
+   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  ${COMOUT}_grib/${RUN}.${PDY}
 fi
 
 if [ "$SENDCOM" = 'YES' ]; then
-   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   $COMOUT/
-   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  $COMOUT/
-   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   $COMOUT/
-   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  $COMOUT/
+   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   ${COMOUT}/
+   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  ${COMOUT}/
+   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   ${COMOUT}/
+   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  ${COMOUT}/
   if [ $SENDDBN = YES ]; then
-     $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job $COMOUT/aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
-     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.ave_24hr_pm25_bc.227.grib2
+     $DBNROOT/bin/dbn_alert MODEL AQM_MAX $job ${COMOUT}/aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
+     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job ${COMOUT}/aqm.t${cyc}z.ave_24hr_pm25_bc.227.grib2
   fi
 fi
 
@@ -155,10 +167,10 @@ export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 2650000
 $COPYGB2  -g "$grid227" -x  -i"1 1" tmpfile_pm25_bc aqm.t${cyc}z.grib2_pm25_bc.227
 
 if [ $SENDCOM = YES ]; then
-  cp  tmpfile_pm25_bc  $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.148.grib2
-  cp  aqm.t${cyc}z.grib2_pm25_bc.227 $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
+  cp  tmpfile_pm25_bc  ${COMOUT}/aqm.t${cyc}z.ave_1hr_pm25_bc.148.grib2
+  cp  aqm.t${cyc}z.grib2_pm25_bc.227 ${COMOUT}/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
   if [ $SENDDBN = YES ]; then
-     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job $COMOUT/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
+     $DBNROOT/bin/dbn_alert MODEL AQM_PM $job ${COMOUT}/aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
   fi
 fi
 
