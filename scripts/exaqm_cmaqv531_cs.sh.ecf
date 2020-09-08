@@ -24,6 +24,13 @@
 #                               in /gpfs/hps/nco/ops/nwprod/prod_util.v#.#.#/ush
 #                               NEED module load prod_util in top ecf scripts
 #   06/03/2020   Ho-Chun Huang  Add dynamic node and processor setting
+#   09/04/2020   Ho-Chun Huang  Bugfix for the timestep that output aqm.t06z.soil06_r.ncf,
+#                               default is output soil profile at fcst hours 6 for the initial
+#                               start of next cycle. But for analysis run, the soil profile needs
+#                               to be output at the end of analysis run, i.e., at hours 24.  The
+#                               time stamp match with t06z fcst cycle time info.  Define SOILOUT_EDATE
+#                               and SOILOUT_ETIME to overwrite default.  Same fix has been applied
+#                               to t12z cycle.
 #####################################################################
 set -xa
 
@@ -88,7 +95,6 @@ export nprocs=${num_proc}
 
 if [ "${FCST}" == "YES" ]; then
 
-JDAYp1=`date2jday.sh ${PDYp1}`
 
 case ${cyc} in
  00) restart_file1=${COMINm1}/aqm.t18z.cgrid.ncf
@@ -104,11 +110,6 @@ case ${cyc} in
      soil_file=${COMINm1}/aqm.t18z.soil06.ncf
      NSTEPS=060000;;
  06) restart_file1=${COMINm1}/aqm.t06z.cgrid_r.ncf ## using previous day 06z rerun as IC
-     if [ -s ${restart_file1} ]; then
-        soil_file=${COMINm1}/aqm.t06z.soil06_r.ncf   
-     else
-        soil_file=${COMIN}/aqm.t00z.soil06.ncf     
-     fi  
      restart_log1=${COMINm1}/aqm.t06z.log
      restart_file2=${COMIN}/aqm.t00z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t00z.log
@@ -118,13 +119,9 @@ case ${cyc} in
      restart_log4=${COMINm1}/aqm.t06z.log
      restart_file5=${COMINm2}/aqm.t12z.cgrid.ncf
      restart_log5=${COMINm2}/aqm.t12z.log
+     soil_file=${COMIN}/aqm.t00z.soil06.ncf            # Using latest meteorology produced soil file, i.e. t00z
      NSTEPS=720000;;
- 12) restart_file1=${COMINm1}/aqm.t12z.cgrid_r.ncf #using previous day 06z rerun as IC
-     if [ -s ${restart_file1} ]; then
-        soil_file=${COMINm1}/aqm.t12z.soil06_r.ncf   
-     else
-        soil_file=${COMIN}/aqm.t06z.soil06.ncf
-     fi  
+ 12) restart_file1=${COMINm1}/aqm.t12z.cgrid_r.ncf     #using previous day 06z rerun as IC
      restart_log1=${COMINm1}/aqm.t12z.log
      restart_file2=${COMIN}/aqm.t06z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t06z.log
@@ -134,8 +131,10 @@ case ${cyc} in
      restart_log4=${COMINm1}/aqm.t06z.log
      restart_file5=${COMINm2}/aqm.t12z.cgrid.ncf
      restart_log5=${COMINm2}/aqm.t12z.log
+     soil_file=${COMIN}/aqm.t06z.soil06.ncf            # Using latest meteorology produced soil file, i.e. t06z
      if [ "${SINGLECYC}" == "YES" ]; then 
         soil_file=${COMINm1}/aqm.t12z.soil24.ncf 
+        JDAYp1=`date2jday.sh ${PDYp1}`
         export SOILOUT_EDATE=${JDAYp1}
         export SOILOUT_ETIME=${cyc}"0000"
         ## For single cycle retro run 
@@ -181,6 +180,11 @@ else
 
 JDAY=`date2jday.sh ${PDY}`
 
+## default is run for 6 hour then output soil file for next run in 4cycle setting
+## overwrite default to lenth of run time to be at the start of next 06z forecast run,
+## i.e., timestmp at JDAY and ${cyc}0000 but not JDAY-1 at (${cyc}+6)"0000"
+export SOILOUT_EDATE=${JDAY}
+export SOILOUT_ETIME=${cyc}"0000"
 case ${cyc} in
  06) restart_file1=${COMINm1}/aqm.t00z.cgrid.ncf
      restart_log1=${COMINm1}/aqm.t00z.log
