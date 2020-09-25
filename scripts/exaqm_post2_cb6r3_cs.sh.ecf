@@ -52,16 +52,23 @@ export err=$?;err_chk
 
 #########################################################
 # Part II: Convert Machine netcdf format to Grib format
-#	  input file is "${OUTFILE}"
+#          input file is "${OUTFILE}"
+#          COMOUT is OMIN
 #########################################################
+ic=1
+while [ $ic -lt 200 ]; do
+   if [ -s ${OUTFILE} ]; then
+      ln -sf ${OUTFILE} $DATA
+      break
+   else
+      ((ic++))
+      sleep 10
+   fi
+   if [ $ic -ge 180 ]; then
+      err_exit "*****FATAL ERROR**** - COULD NOT LOCATE:${OUTFILE}"
+   fi
+done
 
-if [ -s ${OUTFILE} ]; then
-   ln -sf ${OUTFILE} ${DATA}/
-else  
-   err_exit "****FATAL ERROR**** - COULD NOT LOCATE: ${OUTFILE}"
-fi
-
-if [ 1 -eq 2 ]; then
 ### ALERT HHC remove comment mark for NCO delivery
 ### ecflow_client --event release_bicor
 
@@ -105,13 +112,12 @@ ic=1
 if [ "${SENDCOM}" == "YES" ]; then
    while [ ${ic} -le ${endfhr} ]; do
    fhr=`printf %2.2d ${ic}`
-   mv $DATA/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
+   mv ${DATA}/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 $COMOUT/
    ((ic++))
 done
 
 fi
 
-fi   ## end  1 -eq 2
 msg='ENDED NORMALLY.'
 postmsg "${jlogfile}" "${msg}"
 
