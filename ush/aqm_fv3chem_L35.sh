@@ -38,6 +38,7 @@ fi
 gefscyc=`echo ${lbc_cyc} | cut -c2-3`
 # LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
 # Checking GEFS-Aerosol LBC files
+echo "DIAG : Lateral BC files ingested from ${LBCIN}"
 flag_lbc_exist=yes
 let ic=${LBC_INI}
 let endhour=${LBC_END}

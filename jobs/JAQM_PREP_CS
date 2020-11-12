@@ -61,6 +61,9 @@ export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${dcom_envir}/${PDYm1}/firewx}
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
+export GVFIN=${GVFIN:-${DCOMROOT}/prod/viirs}
+export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}  ## users have choice to use npp or j01
+
 export KEEPDATA=${KEEPDATA:-YES}
 
 mkdir -p ${COMOUT}

@@ -508,9 +508,9 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YE
    export STK_EMIS_LAB_${ic}="WILDFIRE"
    export STK_EMIS_DIAG_${ic}=2DSUM
    export STK_EM_SYM_DATE_${ic}=F
-else
-   echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
-   exit
+## else
+##    echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
+##    exit
 fi
 
 if [ ${ic} -le 0 ]; then
