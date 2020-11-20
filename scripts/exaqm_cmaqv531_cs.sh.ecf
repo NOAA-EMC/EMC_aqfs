@@ -95,7 +95,7 @@ export nprocs=${num_proc}
 
 if [ "${FCST}" == "YES" ]; then
 
-
+## Note soil_file has a time-stamp that needs to match with IC time.  No alternative soil file can be used except for 06Z run
 case ${cyc} in
  00) restart_file1=${COMINm1}/aqm.t18z.cgrid.ncf
      restart_log1=${COMINm1}/aqm.t18z.log
@@ -109,7 +109,7 @@ case ${cyc} in
      restart_log5=${COMINm2}/aqm.t06z.log
      soil_file=${COMINm1}/aqm.t18z.soil06.ncf
      NSTEPS=060000;;
- 06) restart_file1=${COMINm1}/aqm.t06z.cgrid_r.ncf ## using previous day 06z rerun as IC
+ 06) restart_file1=${COMINm1}/aqm.t06z.cgrid_r.ncf
      restart_log1=${COMINm1}/aqm.t06z.log
      restart_file2=${COMIN}/aqm.t00z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t00z.log
@@ -119,9 +119,12 @@ case ${cyc} in
      restart_log4=${COMINm1}/aqm.t06z.log
      restart_file5=${COMINm2}/aqm.t12z.cgrid.ncf
      restart_log5=${COMINm2}/aqm.t12z.log
-     soil_file=${COMIN}/aqm.t00z.soil06.ncf            # Using latest meteorology produced soil file, i.e. t00z
+     soil_file=${COMIN}/aqm.t00z.soil06.ncf
+     if [ ! -s ${soil_file} ] && [ -s ${COMINm1}/aqm.t06z.soil06_r.ncf ]; then
+        soil_file=${COMINm1}/aqm.t06z.soil06_r.ncf
+     fi
      NSTEPS=720000;;
- 12) restart_file1=${COMINm1}/aqm.t12z.cgrid_r.ncf     #using previous day 06z rerun as IC
+ 12) restart_file1=${COMINm1}/aqm.t12z.cgrid_r.ncf
      restart_log1=${COMINm1}/aqm.t12z.log
      restart_file2=${COMIN}/aqm.t06z.cgrid.ncf
      restart_log2=${COMIN}/aqm.t06z.log
@@ -132,6 +135,9 @@ case ${cyc} in
      restart_file5=${COMINm2}/aqm.t12z.cgrid.ncf
      restart_log5=${COMINm2}/aqm.t12z.log
      soil_file=${COMIN}/aqm.t06z.soil06.ncf            # Using latest meteorology produced soil file, i.e. t06z
+     if [ ! -s ${soil_file} ] && [ -s ${COMINm1}/aqm.t12z.soil06_r.ncf ]; then
+        soil_file=${COMINm1}/aqm.t12z.soil06_r.ncf
+     fi
      if [ "${SINGLECYC}" == "YES" ]; then 
         soil_file=${COMINm1}/aqm.t12z.soil24.ncf 
         JDAYp1=`date2jday.sh ${PDYp1}`
@@ -195,6 +201,9 @@ case ${cyc} in
      restart_file4=${COMINm3}/aqm.t12z.cgrid.ncf
      restart_log4=${COMINm3}/aqm.t12z.log
      soil_file=${COMINm1}/aqm.t00z.soil06.ncf     
+     if [ ! -s ${soil_file} ] && [ -s ${COMINm2}/aqm.t06z.soil06_r.ncf ]; then
+        soil_file=${COMINm2}/aqm.t06z.soil06_r.ncf
+     fi
      NSTEPS=240000;;
  12) restart_file1=${COMINm1}/aqm.t06z.cgrid.ncf
      restart_log1=${COMINm1}/aqm.t06z.log
@@ -220,6 +229,9 @@ case ${cyc} in
         export SOILOUT_ETIME=${cyc}"0000"
      else
         soil_file=${COMINm1}/aqm.t06z.soil06.ncf
+        if [ ! -s ${soil_file} ] && [ -s ${COMINm2}/aqm.t12z.soil06_r.ncf ]; then
+           soil_file=${COMINm2}/aqm.t12z.soil06_r.ncf
+        fi
      fi
      NSTEPS=240000;;
 esac
@@ -300,7 +312,8 @@ export CTM_PHOTDIAG=Y        #> photolysis diagnostic file [ default: N ]
 export CTM_SSEMDIAG=N        #> sea-salt emissions diagnostic file [ default: N ]
 export CTM_WB_DUST=Y #Y         #> use NAQFC, NACC-CMAQ Fengsha inline windblown dust emissions [ default: Y ]
 export CTM_ERODE_AGLAND=N    #> use agricultural activity for windblown dust [ default: N ]; ignore if CTM_WB_DUST = N
-export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
+## export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
+export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
 export CTM_WVEL=Y            #> save derived vertical velocity component to conc file [ default: N ]
 export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
@@ -492,20 +505,25 @@ else
     FIRE_SUFFIX=${cycle}
 fi
 
+export FLAG_WF_ON="NO"
 if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" == "NO" ]; then
    let ic=${ic}+1
+   export FLAG_WF_ON="YES"
    typeset -Z3 ic
    export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_cs_r.ncf
    export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf
    export STK_EMIS_LAB_${ic}="WILDFIRE"
+   ## export STK_EMIS_DIAG_${ic}=3D
    export STK_EMIS_DIAG_${ic}=2DSUM
    export STK_EM_SYM_DATE_${ic}=F   
 elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YES" ]; then
    let ic=${ic}+1
+   export FLAG_WF_ON="YES"
    typeset -Z3 ic
    export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_cs.ncf
    export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf
    export STK_EMIS_LAB_${ic}="WILDFIRE"
+   ## export STK_EMIS_DIAG_${ic}=3D
    export STK_EMIS_DIAG_${ic}=2DSUM
    export STK_EM_SYM_DATE_${ic}=F
 ## else
@@ -750,10 +768,19 @@ if [ "${SENDCOM}" = "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.$
    else
       mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.soil06.ncf
    fi
-   mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUT}/aqm.${cycle}.dustemis.ncf
+   if [ "${CTM_DUSTEM_DIAG}" == "Y" ]; then
+      mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUT}/aqm.${cycle}.dustemis.ncf
+   fi
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
+   if [ -s ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc ]; then
+      mv ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
+   else
+      if [ "${FLAG_WF_ON}" == "YES" ]; then
+         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc"
+      fi
+   fi
 fi
 if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
    mv ${DATA}/CONC.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.conc_r.ncf
@@ -770,10 +797,19 @@ if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${C
    else
       mv ${DATA}/SOILOUT.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.soil06_r.ncf
    fi
-   mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUTm1}/aqm.${cycle}.dustemis_r.ncf
+   if [ "${CTM_DUSTEM_DIAG}" == "Y" ]; then
+      mv ${DATA}/DUST_EMIS.${CTM_APPL}  ${COMOUTm1}/aqm.${cycle}.dustemis_r.ncf
+   fi
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_2_r.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_3_r.ncf 
+   if [ -s ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc ]; then
+      mv ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
+   else
+      if [ "${FLAG_WF_ON}" == "YES" ]; then
+         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_WILDFIRE_CCTM_v531.nc"
+      fi
+   fi
 fi
 
 if [ $err -ne 0 ]; then

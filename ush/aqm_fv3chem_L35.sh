@@ -160,23 +160,9 @@ EOF
 if [ -s ${COMIN}/aqm.${lbc_cyc}.metcro3d.ncf ] ; then  ## using current cycle CMAQ MET
    export METEO3D=${COMIN}/aqm.${lbc_cyc}.metcro3d.ncf
    export TOPO=${COMIN}/aqm.${lbc_cyc}.grdcro2d.ncf
-else
-   if [ "${cycle}" == "t06z" ]; then  ## using previous LONG cycle CMAQ MET
-      export METEO3D=${COMINm1}/aqm.t12z.metcro3d.ncf
-      export TOPO=${COMINm1}/aqm.t12z.grdcro2d.ncf
-   else
-      ## ALERT HHC for 1 cycle testing
-      if [ "${FLAG_ONE_CYCLE}" == "YES" ]; then 
-         export METEO3D=${COMIN}/aqm.t12z.metcro3d.ncf
-         export TOPO=${COMIN}/aqm.t12z.grdcro2d.ncf
-      else
-         export METEO3D=${COMIN}/aqm.t06z.metcro3d.ncf
-         export TOPO=${COMIN}/aqm.t06z.grdcro2d.ncf
-      fi
-      ## ALERT for engineering 4 cycle test
-         export METEO3D=${COMIN}/aqm.t12z.metcro3d.ncf
-         export TOPO=${COMIN}/aqm.t12z.grdcro2d.ncf
-   fi
+else  
+   export METEO3D=${COMIN}/aqm.t${cyc}z.metcro3d.ncf
+   export TOPO=${COMIN}/aqm.t${cyc}z.grdcro2d.ncf
 fi
 if [ ! -s ${METEO3D} ]; then
    echo "ERROR, can not find ${METEO3D}"
