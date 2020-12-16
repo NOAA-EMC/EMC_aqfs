@@ -631,6 +631,7 @@ C Parameters:
          real, allocatable, save :: qam   ( :,: ) ! emis for landuse type [g/m**2/s]
 
          real       :: edust( 2 )       ! mass emis rate [g/s] per mode (only accum & coarse)
+         real       :: sumdfr           ! sum var for desert fraction !Fengsha doesnt use, but check for diagnostic
          real       :: rlay1hgt ! reciprocal of layer-1 height [1/m]
          real       :: m3j              ! 3rd moment accumulation (J) mode emis rates [m3/m3/s]
          real       :: m3k              ! 3rd moment coarse mode (K) emis rates [m3/m3/s]
@@ -641,7 +642,6 @@ C Parameters:
          real       :: hflux, vflux ! horizontal and vertical dust flux
          real       :: jday
          integer    :: emap( n_dlcat+1 )
-
          interface
             subroutine tfabove ( tfa )
                real,    intent( out ) :: tfa( :,: )
@@ -746,9 +746,9 @@ C Calculate Vertical to Horizontal Mass Flux Ratio
 C -- This is based on MB95 
 C             kvh = 10 ** ( 0.134 * (%clay) - 6) 
                   if ( Met_Data%clayf(c,r) < 0.2) then
-                        kvh(c,r) = 4.0e-4
+                        kvh( c,r ) = 10. ** (0.134 * (Met_Data%clayf( c,r )*100.) - 6.0)
                   else
-                        kvh( c,r ) = 10. ** (0.134 * (Met_Data%clayf( c,r )*100.) - 6.0) 
+                        kvh(c,r) = 4.0e-4
                   endif 
 C Horizontal Flux
                   hflux = dust_hflux( Met_Data%ustar( c,r),
@@ -758,7 +758,8 @@ C Horizontal Flux
      &                                Met_Data%ssm( c,r ),
      &                                Met_Data%dens1( c,r ) )
                         vflux = hflux * kvh( c,r )                    ! [g/m**2/s]
-                        qam( c,r ) = qam( c,r ) + vflux * rlay1hgt * 0.01    ! [g/m**3/s]
+                        qam( c,r ) = qam( c,r ) + vflux * rlay1hgt * 0.7   ! [g/m**3/s]
+                        
                   if (qam(c,r) < 0) then
                         write(*,*) 'Clay SSM drag ut fmoit c r'
                         write(*,*) Met_Data%clayf(c,r),Met_Data%ssm(c,r),Met_Data%drag(c,r), Met_Data%uthr(c,r), fmoit(c,r), c,r
@@ -834,28 +835,31 @@ C 2nd moment multiplied by PI to obtain the surface area emissions rate.
                n = n_dlcat + 2
                diagv( n ) = dust_em( c,r )              ! g/m**3/s
 
-C               sumdfr = 0.0
-C               do m = 1, n_dlcat+1
-C                  diagv( m+n ) = elus( c,r )
-C                  sumdfr = sumdfr + elus( c,r )
-C               end do
-C               n = n + n_dlcat + 2
-C               diagv( n ) = sumdfr
-
-C               do m = 1, n_dlcat+1
-C                  diagv( m+n ) = Met_Data%USTAR( c,r )
-C               end do
-C               n = n + n_dlcat + 1
+               sumdfr = 0.0
+               do m = 1, n_dlcat+1
+C                  diagv( m+n ) = elus( c,r ) !Fensghsa doesn't use.
+                   diagv( m+n ) = 0.0
+C                  sumdfr = sumdfr + elus( c,r ) !Fensghsa doesn't use.
+                   sumdfr = 0.0
+               end do
+               n = n + n_dlcat + 2
+C               diagv( n ) = sumdfr   !Fensghsa doesn't use.
+                diagv( n ) = 0.0 
+               do m = 1, n_dlcat+1
+                  diagv( m+n ) = Met_Data%USTAR( c,r )
+               end do
+               n = n + n_dlcat + 1
 
                do m = 1, n_dlcat+1
                   diagv( m+n ) = kvh( c,r )
                end do
                n = n + n_dlcat + 1
 
-C               do m = 1, n_dlcat+1
-C                  diagv( m+n ) = fruf( c,r )
-C               end do
-C               n = n + n_dlcat + 1
+               do m = 1, n_dlcat+1
+C                  diagv( m+n ) = fruf( c,r ) !Fensghsa doesn't use.
+                   diagv( m+n ) = (Met_Data%uthr(c,r)*fmoit(c,r))/Met_Data%drag(c,r)
+               end do
+               n = n + n_dlcat + 1
                diagv( n+1  ) = fmoit( c,r )              ! 'Soil_Moist_Fac  '
                diagv( n+2  ) = Met_Data%SSM( c,r )       ! 'Soil_Erode_Pot  '
                diagv( n+3  ) = wmax ( c,r )              ! 'Mx_Adsrb_H2O_Frc'

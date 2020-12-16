@@ -416,8 +416,12 @@ C Initialize Emissions Array
          MTIME = JTIME
          MDATE = JDATE
          CALL NEXTIME( MDATE, MTIME,  SEC2TIME( TIME2SEC( TSTEP( 2 ) ) / 2 ) )
-         IF ( MOD( TIME2SEC( MTIME ), TIME2SEC( TSTEP( 1 ) ) ) .EQ. 0 ) WRTIME = .TRUE.
-
+         IF ( MOD( TIME2SEC( MTIME ), TIME2SEC( TSTEP( 1 ) ) ) .EQ. 0 ) then
+	    WRTIME = .TRUE.
+         else if ( MOD( TIME2SEC( MTIME )+2, TIME2SEC( TSTEP( 1 ) ) ) .LE. 2 ) then
+	    mtime=sec2time(nint(real(time2sec(mtime))/time2sec(tstep(1)))*time2sec(tstep(1)))
+	    WRTIME=.TRUE.
+	 endif   
 #ifdef isam
         SA_VDEMIS_DIFF = 0.0
         SA_VDEMIS_DIFF_ALL = 0.0
@@ -500,6 +504,8 @@ C Retrieve Emissions from All Stream Types
            ! values, write out diagnostic file (if requested) and apply
            ! emissions to output array
            CALL EMISS_CONV_DIFF( VDEMIS_SCALED, NL, VDEMIS_CONV )
+!	   print*,'in EMIS_DEFN WRTIME, EM_FILE_LDIAG=',WRTIME,EM_FILE_LDIAG(ISRM),
+!     &	    ISRM, EM_FILE_NAME(ISRM), mdate,mtime,tstep(1), MOD(TIME2SEC(MTIME),TIME2SEC(TSTEP(1)))
            IF ( EM_FILE_LDIAG( ISRM ) .NE. 'FALSE' .AND. WRTIME ) 
      &                     CALL WRITE_EMISS_DIAG( MDATE, MTIME, VDEMIS_CONV, ISRM, NL )
 
