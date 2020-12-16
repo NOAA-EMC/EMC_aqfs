@@ -67,9 +67,25 @@ env
 ###################################################
 # Execute the Script
 ###################################################
-${HOMEaqm}/scripts/exaqm_cmaqv531_cs.sh.ecf
-export err=$?; err_chk
-
+FLAG_RUN_FCST=YES
+if [ "${FCST}" == "NO" ]; then
+   ##
+   ## This is a precaution check in case no ${cycle} meteorology of yesterday is found for analysis run.
+   ## It may happen if new implementation was started at 12Z the previous day and analysis run is called for 06Z.
+   ## Let the jobs complete successfully and move on to today ${cycle} run without 24-hour backward analysis run.
+   ## 
+   if [ ! -s ${COMINm1}/aqm.${cycle}.metcro3d.ncf ]; then
+      echo "WARNING :: ===================================================================="
+      echo "WARNING :: aqm.${cycle}.metcro3d.ncf can not be found for Analysis Forecast Run"
+      echo "WARNING :: ${cycle} Analysis Forecast Run will exit normally"
+      echo "WARNING :: ===================================================================="
+      FLAG_RUN_FCST=NO
+   fi
+fi
+if [ "${FLAG_RUN_FCST}" == "YES" ]; then
+   ${HOMEaqm}/scripts/exaqm_cmaqv531_cs.sh.ecf
+   export err=$?; err_chk
+fi
 ##################################################
 if [ -e "${pgmout}" ]; then
    cat ${pgmout}

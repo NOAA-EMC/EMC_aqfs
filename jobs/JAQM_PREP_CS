@@ -97,12 +97,21 @@ if [ "${FCST}" == "YES" ]; then
       err=$?; err_chk
    fi
 elif [ "${FCST}" == "NO" ]; then
-   if [ "${cycle}" == "t06z" ]; then
-      aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
-      export err=$?; err_chk
+   ##
+   ## This is a precaution check in case no ${cycle} meteorology of yesterday is found for analysis run
+   ## It may happen if new implementation was started at 12Z the previous day and analysis run is called for 06Z.
+   ## Let the jobs complete successfully and move on to today ${cycle} run without 24-hour backward analysis run.
+   ## 
+   if [ -s ${COMINm1}/aqm.${cycle}.metcro3d.ncf ]; then
+      if [ "${cycle}" == "t06z" ]; then   ## current setting is allowed for t06z cycle
+         aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
+         export err=$?; err_chk
+      fi
    else
-      echo "ANALYSIS RUN is only applied to t06z cycle"
-      exit 1
+      echo "WARNING :: ===================================================================="
+      echo "WARNING :: aqm.${cycle}.metcro3d.ncf can not be found for Analysis Forecast Run"
+      echo "WARNING :: ${cycle} MET_PREP for analysis run will exit normally"
+      echo "WARNING :: ===================================================================="
    fi
 fi
 

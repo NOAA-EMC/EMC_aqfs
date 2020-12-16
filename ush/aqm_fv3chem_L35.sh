@@ -161,8 +161,11 @@ if [ -s ${COMIN}/aqm.${lbc_cyc}.metcro3d.ncf ] ; then  ## using current cycle CM
    export METEO3D=${COMIN}/aqm.${lbc_cyc}.metcro3d.ncf
    export TOPO=${COMIN}/aqm.${lbc_cyc}.grdcro2d.ncf
 else  
-   export METEO3D=${COMIN}/aqm.t${cyc}z.metcro3d.ncf
-   export TOPO=${COMIN}/aqm.t${cyc}z.grdcro2d.ncf
+   export METEO3D=${COMIN}/aqm.${cycle}.metcro3d.ncf
+   export TOPO=${COMIN}/aqm.${cycle}.grdcro2d.ncf
+   echo "WARNING ***  Processing GEFS ${lbc_cyc} LBC for CMAQ"
+   echo "WARNING ***  Can not find ${COMIN}/aqm.${lbc_cyc}.metcro3d.ncf.  This should not happen in opertional run."
+   echo "WARNING ***  Model run continue with current cycle CMAQ MET -  ${METEO3D} and ${TOPO}"
 fi
 if [ ! -s ${METEO3D} ]; then
    echo "ERROR, can not find ${METEO3D}"

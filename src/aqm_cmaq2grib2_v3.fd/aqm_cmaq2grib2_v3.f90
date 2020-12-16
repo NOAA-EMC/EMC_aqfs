@@ -85,9 +85,11 @@
       data cmaqspec(6),gribid(6),i3dvar(6)/'VOC',60013,.FALSE./
       data cmaqspec(7),gribid(7),i3dvar(7)/'PM25_TOT',62000,.TRUE./
       data cmaqspec(8),gribid(8),i3dvar(8)/'PM25_EC',62009,.TRUE./
+! Note may use 62003 Ammonium Dry from CODE TABLE 4.230
       data cmaqspec(9),gribid(9),i3dvar(9)/'PM25_NH4',10,.TRUE./
       data cmaqspec(10),gribid(10),i3dvar(10)/'PM25_NO3',62004,.TRUE./
       data cmaqspec(11),gribid(11),i3dvar(11)/'PM25_OC',62010,.TRUE./
+! Note may use 62006 Sulphate Dry from CODE TABLE 4.230
       data cmaqspec(12),gribid(12),i3dvar(12)/'PM25_SO4',22,.TRUE./
       data cmaqspec(13),gribid(13),i3dvar(13)/'PMC_TOT',62000,.TRUE./
 

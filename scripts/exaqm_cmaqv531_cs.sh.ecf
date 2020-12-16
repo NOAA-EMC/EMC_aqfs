@@ -630,10 +630,27 @@ if [ "$test" != "" ] ; then
 fi 
 
 ## BCpath is defined in JAQM_FORECAST_CS for LBC location [same as CMAQ MET location]
+## if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
+##    export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
+## else
+##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+## fi
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
-   export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   if [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   elif [ -s ${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf
+   fi
 else
-   export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+   if [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+   elif [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   fi
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
