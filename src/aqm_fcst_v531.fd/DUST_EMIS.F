@@ -758,9 +758,7 @@ C Horizontal Flux
      &                                Met_Data%ssm( c,r ),
      &                                Met_Data%dens1( c,r ) )
                         vflux = hflux * kvh( c,r )                    ! [g/m**2/s]
-                        !! temporary rool back the coefficient
                         qam( c,r ) = qam( c,r ) + vflux * rlay1hgt * 0.7   ! [g/m**3/s]
-                        !! qam( c,r ) = qam( c,r ) + vflux * rlay1hgt * 0.01   ! [g/m**3/s]
                         
                   if (qam(c,r) < 0) then
                         write(*,*) 'Clay SSM drag ut fmoit c r'
