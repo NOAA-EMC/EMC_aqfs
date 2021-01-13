@@ -1,4 +1,4 @@
-!---convert HMS-Blueksy V1 emission to CMAQ Point source
+!---convert GBBEPx emission to CMAQ Point source
 ! Author: Youhua Tang   Apr, 2019
       include 'PARMS3.EXT'      ! i/o API
       include 'FDESC3.EXT'      ! i/o API
@@ -21,10 +21,10 @@
       double precision, allocatable :: emhold(:,:)
       integer, allocatable :: jday_fire(:),jtime_fire(:),irow(:),icol(:)    ! file starting date/time
      1 ,ifip(:),lmajor(:),lping(:),istack(:)
-      real,allocatable :: sfact(:,:),val(:),fireemis(:,:,:),
+      real,allocatable ::sfact(:,:),val(:),fireemis(:,:,:),lwmask(:,:),
      1 fireduration(:),firearea(:),hflux(:,:),firelat(:),firelon(:),
      2 xloca(:),yloca(:),badval(:),lufrac(:,:,:),gbbepx(:,:,:),frp(:,:)
-     3 ,xlat(:,:),xlon(:,:),forestfrac(:,:),tlon(:),tlat(:),lwmask(:,:) 
+     3 ,xlat(:,:),xlon(:,:),forestfrac(:,:),tlon(:),tlat(:),frpout(:,:)
       namelist /control/efilein,markutc,burnarea_ratio,frpfactor,  ! frp factor to hflux
      1 startdate,nduration,tdiurnal,dfrac,emname
 
@@ -176,11 +176,12 @@ c      if(iflag.ne.NF_NOERR) stop
      1 jtime_fire(nfiles),fireemis(nfiles,nemis,nduration),
      2 firearea(nfiles),hflux(nfiles,nduration),firelat(nfiles),
      3 firelon(nfiles),xloca(nfiles),yloca(nfiles),irow(nfiles),
-     4 icol(nfiles),ifip(nfiles))
-
+     4 icol(nfiles),ifip(nfiles),frpout(nfiles,nduration))
+      
+      firearea(:)=0
       fireemis(:,:,:)=0.
       hflux(:,:)=0.
-
+      frpout(:,:)=0.
       print*,'start processing'
       mfire=1
       do i=1,nlon
@@ -195,10 +196,9 @@ c      if(iflag.ne.NF_NOERR) stop
        yind=(y-yorig)/ddx+0.5
 c       print*,'mfire,i,j,tlon(i),tlat(j),xind,yind=',
 c     1    mfire,i,j,tlon(i),tlat(j),xind,yind,gbbepx(i,j,:)
-       
-       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1) 
-     1  cycle jloop  ! out of domain
-       if(lwmask(xind,yind).lt.0.5) cycle jloop
+       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1
+     1  .or.frp(i,j).le.0.or.lwmask(xind,yind).lt.0.5 ) cycle jloop  ! out of domain or no FRP or over water
+
        xloca(mfire)=x
        yloca(mfire)=y
        icol(mfire)=nint(xind)
@@ -239,8 +239,10 @@ c       tratio=tdiurnal(lst+1)/tdiurnal(marklst)*dfrac(min(m/24+1,3))
 	endif
 c       print*,'m,tratio=',m,tratio,tdiurnal(lst+1),dfrac(min(m/24+1,3)),
 c    1	 forestfrac(nint(xind),nint(yind)) 
-        if(frp(i,j).gt.0) hflux(mfire,m)=frp(i,j)*947.82    ! MW -> BTU/s
-     1    *frpfactor*tratio
+        if(frp(i,j).gt.0) then
+	 hflux(mfire,m)=frp(i,j)*947.82*frpfactor*tratio    ! MW -> BTU/s
+	 frpout(mfire,m)=frp(i,j)*tratio
+        endif
        
         if(forestfrac(nint(xind),nint(yind)).le.0.4.and.m.gt.10)  
      1	   exit mtime ! skip non-forest fire 
@@ -263,6 +265,16 @@ c     2  tratio
       enddo
       mfire=mfire-1
       print*,'total fire points',mfire
+
+      if(mfire.eq.0) then
+        print*,'fill empty fire with zero emission'
+	mfire=1
+	firelat(1)=xlatmin
+	firelon(1)=xlonmin
+	if(.not.LL2LAM(xlonmin,xlatmin,x,y)) stop
+        irow(1)=(x-xorig)/ddx+0.5
+        icol(1)=(y-yorig)/ddx+0.5
+       endif 
 !---stack file header
 
       allocate(badval(mfire),istack(mfire),lmajor(mfire),lping(mfire))
@@ -391,16 +403,20 @@ c     2  tratio
       iflag=close3('STACK_GROUP')
       
 !----hourly emission files
-      nvars3d=nemis+1
+      nvars3d=nemis+2
       vname3d(1:nemis)=emname(1:nemis)
       vdesc3d(1:nemis)=emname(1:nemis)
       vtype3d(1:nvars3d)=M3REAL
 
-      vname3d(nvars3d)='HFLUX'
-      vdesc3d(nvars3d)='HFLUX'
-      units3d(nvars3d)='BTU/s'
+      vname3d(nemis+1)='HFLUX'
+      vdesc3d(nemis+1)='HFLUX'
+      units3d(nemis+1)='BTU/s'
+      
+      vname3d(nvars3d)='FRP'
+      vdesc3d(nvars3d)='Fire Radiactive Power'
+      units3d(nvars3d)='MW'
 
-      do L=1,nvars3d-1
+      do L=1,nvars3d-2
        if(vname3d(L)(1:1).eq.'P'.and.vname3d(L).ne.'PAR') then ! aerosol
         units3d(L)='g/s'
        else
@@ -415,6 +431,7 @@ c     2  tratio
      1   fireemis(1,L,n))) stop
        enddo 
        if(.not.write3('PTFIRE','HFLUX',jsdate,jstime,hflux(1,n))) stop
+       if(.not.write3('PTFIRE','FRP',jsdate,jstime,frpout(1,n))) stop
        call nextime(jsdate,jstime,tstep3d)
       enddo
       iflag=shut3()

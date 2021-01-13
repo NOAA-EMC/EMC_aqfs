@@ -2,7 +2,7 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_post2_cb6r3_cs.sh.ecf
+# Script name:         exaqm_post2_cb6r3_hi.sh.ecf
 # Script description:  Run CMAQ post processing 
 #
 # Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
@@ -23,13 +23,13 @@ set -xa
 msg="JOB ${job} HAS BEGUN"
 postmsg "${jlogfile}" "${msg}"
 
-export pgm=aqm_cs_post2
+export pgm=aqm_hi_post2
 
 cd ${DATA}
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export XLFRTEOPTS="unit_vars=yes"
-export id_grib=148
+export id_grib=139
 
 #########################################################
 # Part I: Calculate PM2.5 based on CMAQ original output 
@@ -94,7 +94,7 @@ varlist='O3','CO','NO','NO2','NOY','VOC','PM25_TOT','PM25_EC','PM25_NH4','PM25_N
 metlist='    '
 outfile='aqm.${cycle}.chem_sigma'
 nlayers=35
-id_gribdomain=148
+id_gribdomain=139
 ave1hr=.false.
 /
 EOF5

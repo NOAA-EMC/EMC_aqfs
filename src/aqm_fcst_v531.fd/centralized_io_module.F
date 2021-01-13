@@ -709,7 +709,14 @@
                 CALL M3EXIT ( PNAME, 0, 0, XMSG, XSTAT1 )
              END IF
              begin = n_e2d+n_e3d-n_dust_vars
-             emis_name(begin:begin, 1) = vname3d(1)
+             do idx=1,nvars3d
+              if(vname3d(idx).eq.'PRSFC') exit
+             enddo
+             if(idx.gt.nvars3d) then    
+              emis_name(begin:begin, 1) = vname3d(1)
+             else
+              emis_name(begin:begin, 1) = 'SEASON'
+             endif
              emis_name(begin:begin, 2) = 'bs'          ! bs denote bio season
              emis_name(begin:begin, 3) = ' '           ! denote non met data
           end if
@@ -1869,7 +1876,7 @@ C Read the various categories of normalized emissions
      &                              0, 0, crop_ladut( :,:,m ) ) ) then
                    xmsg = 'Could not read ' // trim( crop_vnmld( m ) ) // ' from ' // dust_lu_1
 !                   Updated Fengsha Dust does not read crop land fraction
-!                   call m3exit ( pname, 0, 0, xmsg, xstat1 )
+!                   call m3exit ( pname, 0, 0, xmsg, xstat1 ) 
                 end if
              end do
           end if
@@ -2673,8 +2680,8 @@ C Read the various categories of normalized emissions
                 else if (cio_grid_var_name(v,2) == 'bs') then
 
                    data_jdate = loc_jdate(f_bios)
-                   data_jtime = 0
-
+!                   data_jtime = 0
+                   data_jtime = loc_jtime(f_bios)  !NAQFC time-dependent bioseason "soft" switch
                    allocate (tdata((ENDCOLSTD-STRTCOLSTD+1)*(ENDROWSTD-STRTROWSTD+1)), stat=stat)
 
                    IF ( .NOT. XTRACT3( bio_season_fname, 'SEASON',

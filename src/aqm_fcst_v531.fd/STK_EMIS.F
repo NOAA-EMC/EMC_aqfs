@@ -29,6 +29,7 @@ C     16 Jan 2007 J.Young: initial implementation
 C     16 Feb 2011 S.Roselle: replaced I/O API include files with UTILIO_DEFN
 C     30 Apr 2016 J.Young: add multiple fire source capability, in affiliation with
 C                          Yongtao Hu (Georgia Tech)
+C     07 Jun 2020 Y.Li & D.Tong: add sofiev plume rise scheme 
 C-----------------------------------------------------------------------
 
       USE UDTYPES, ONLY: RARRY1, CARRY1
@@ -38,7 +39,7 @@ C-----------------------------------------------------------------------
 
       INTEGER,        ALLOCATABLE, SAVE :: NSRC_EMIS( : )   ! no. of pt sources
       INTEGER,        ALLOCATABLE, SAVE :: NVARS_EMIS( : )  ! no. of species
-      INTEGER, PARAMETER                :: NVARS_FIRE = 1   ! default
+      INTEGER                           :: NVARS_FIRE  ! HFLUX and/or FRP
 
       LOGICAL,        ALLOCATABLE, SAVE :: FIREFLAG( : )    ! which is the fire file?
 
@@ -46,7 +47,7 @@ C-----------------------------------------------------------------------
       TYPE( CARRY1 ), ALLOCATABLE, SAVE :: STKSPC( : )    ! emitted species names
       TYPE( RARRY1 ), ALLOCATABLE, SAVE :: FIREVAR( : )   ! fire variables, just H-Flux
 
-      INTEGER FGRPS
+      INTEGER FGRPS, PLMRISE_OPT ! PlumeRise option (1-Briggs; 2-Sofiev)
 
       CONTAINS
 
@@ -56,7 +57,7 @@ C-----------------------------------------------------------------------
 
          USE UTILIO_DEFN
          USE AERO_DATA, ONLY : MGPG, GPKG
-
+         USE RUNTIME_VARS, ONLY: LOGDEV
          IMPLICIT NONE
 
          CHARACTER( 16 ), INTENT( IN ) :: STKENAME( : )  ! stack groups emis file names
@@ -71,7 +72,8 @@ C-----------------------------------------------------------------------
          CHARACTER( 16 ) :: UNITSCK
 
          SUCCESS = .TRUE.
-
+         PLMRISE_OPT=ENVINT('PLMRISE_OPT','Fire Plume Rise Option (1 Briggs;2 Sofiev)',1,I)	 
+	 WRITE(LOGDEV,*)'Fire plume rise option ',PLMRISE_OPT
          NGRPS = SIZE( STKENAME )
          FGRPS = NGRPS
 
@@ -118,15 +120,25 @@ C-----------------------------------------------------------------------
             NVARS_EMIS( N ) = NVARS3D
             LEN1 = NSRC_EMIS( N )
             LEN2 = NVARS_EMIS( N )
+	    NVARS_FIRE=0
             DO I = 1, LEN2
                ! Use HFLUX to determine Fire sources in PT3D_DEFN via
                ! the FIRENAM variable
                IF ( VNAME3D( I ) .EQ. 'HFLUX' ) THEN
                    FIREFLAG( N ) = .TRUE.
                    EM_FILE_FIRE( ISRM ) = .TRUE.
+		   NVARS_FIRE=NVARS_FIRE+1
+               END IF
+C ++ FIRE PLUME RISE OPTION Sofiev 2012 ++
+               ! Use FRP to determine Fire sources in PT3D_DEFN via
+               ! the FIRENAM variable
+               IF ( VNAME3D( I ) .EQ. 'FRP' ) THEN
+                   FIREFLAG( N ) = .TRUE.
+                   EM_FILE_FIRE( ISRM ) = .TRUE.
+		   NVARS_FIRE=NVARS_FIRE+1
                END IF
             END DO
-            IF ( FIREFLAG( N ) ) THEN   ! subtract off 'HFLUX'
+            IF ( FIREFLAG( N ) ) THEN   ! subtract off 'HFLUX' and/or FRP
                LEN2 = LEN2 - NVARS_FIRE
                NVARS_EMIS( N ) = LEN2
             END IF
@@ -146,7 +158,7 @@ C-----------------------------------------------------------------------
                CALL CHECKMEM( ASTAT, 'FIREVAR', PNAME )
                I = 0
                DO J = 1, NVARS3D
-                  IF ( VNAME3D( J ) .NE. 'HFLUX' ) THEN
+                  IF ( (VNAME3D( J ) .NE. 'HFLUX') .AND. (VNAME3D( J ) .NE. 'FRP') ) THEN
                      I = I + 1
                      EM_FILE_SURR( ISRM )%ARRY( I ) = VNAME3D( J )
                      EM_FILE_SURR( ISRM )%UNITS( I )= UNITS3D( J )

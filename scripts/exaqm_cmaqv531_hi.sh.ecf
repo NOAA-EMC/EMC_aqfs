@@ -266,7 +266,7 @@ if [ -s "${restart_file}" ]; then
 else
    export START=COLD
    export NEW_START=Y
-   export ICFILE=${FIXaqm}/aqm_conus_12km_cgrid_v531_init.35L.ncf
+   export ICFILE=${FIXaqm}/aqm.${RUN}12z.init.cgrid_2017.ncf
 fi
 echo $START
 
@@ -280,8 +280,8 @@ STTIME=${cyc}"0000"
 TSTEP=010000
 
 #CMAQv5.0.2 Options
-export GRIDDESC=${PARMaqm}/aqm_griddesc05
-export GRID_NAME=AQF_CONUS_5x
+export GRIDDESC=${PARMaqm}/aqm_griddesc${RUN}
+export GRID_NAME=AQF_${RUN}
 
 export LOGFILE=${DATA}/${APPL}.log
 
@@ -322,7 +322,7 @@ export CTM_WVEL=Y            #> save derived vertical velocity component to conc
 export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
 export CTM_ILDEPV=Y          #> calculate in-line deposition velocities [ default: Y ]
 export CTM_MOSAIC=N          #> landuse specific deposition velocities [ default: N ]
-export CTM_ABFLUX=Y          #> Ammonia bi-directional flux for in-line deposition velocities [ default: N ]; ignore if CTM_ILDEPV = N
+export CTM_ABFLUX=N          #> Ammonia bi-directional flux for in-line deposition velocities [ default: N ]; ignore if CTM_ILDEPV = N
 export CTM_HGBIDI=N          #> Mercury bi-directional flux for in-line deposition velocities [ default: N ]; ignore if CTM_ILDEPV = N
 export CTM_SFC_HONO=Y        #> Surface HONO interaction [ default: Y ]; ignore if CTM_ILDEPV = N
 export CTM_DEPV_FILE=Y #N       #> write diagnostic file for deposition velocities [ default: N ]
@@ -353,7 +353,7 @@ export CTM_BIDI_FERT_NH3=Y   #> subtract fertilizer NH3 from emissions because i
 export CTM_GRAV_SETL=Y       #> vdiff aerosol gravitational sedimentation [ default: Y ]
 export VERTEXT=N             #> Vertical Extraction Options.  If Y need file defined as "export VERTEXT_COORD_PATH=${HOMEaqm}/scripts/lonlat.csv"
 if [ "${VERTEXT}" == "Y" ] && [ ! -s ${VERTEXT_COORD_PATH} ]; then
-   echo "WARNING :: exaqm_cmaqv531_cs.sh.ecf : VERTEXT is set as ${VERTEXT} and no ${VERTEXT_COORD_PATH} can be found"
+   echo "WARNING :: exaqm_cmaqv531_hi.sh.ecf : VERTEXT is set as ${VERTEXT} and no ${VERTEXT_COORD_PATH} can be found"
    err=999
    err_chk
 fi
@@ -462,28 +462,29 @@ if [ ! -s ${GR_EMIS_002} ]; then
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
-for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
+## for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
+for sectors in ptegu ptnonipm cmv_c1c2 cmv_c3 ; do
+if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
+   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
    err=999
    err_chk
 fi
 
-if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
-   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
+if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
+   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
    err=999
    err_chk
 fi
 done
 
 ic=0
-for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
-      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+for sectors in ptegu ptnonipm cmv_c1c2 cmv_c3 ; do
+   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ] && \
+      [ -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf
-      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf
+      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf
+      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=2DSUM
       export STK_EM_SYM_DATE_${ic}=F
@@ -510,23 +511,23 @@ else
 fi
 
 export FLAG_WF_ON="NO"
-if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" == "NO" ]; then
+if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf ] && [ "${FCST}" == "NO" ]; then
    let ic=${ic}+1
    export FLAG_WF_ON="YES"
    typeset -Z3 ic
-   export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_cs_r.ncf
-   export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf
+   export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_${RUN}_r.ncf
+   export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf
    FIRE_EMIS_LABEL="PT_FIRES"
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
    export STK_EMIS_DIAG_${ic}=3D
    ## export STK_EMIS_DIAG_${ic}=2DSUM
    export STK_EM_SYM_DATE_${ic}=F   
-elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YES" ]; then
+elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf ] && [ "${FCST}" == "YES" ]; then
    let ic=${ic}+1
    export FLAG_WF_ON="YES"
    typeset -Z3 ic
-   export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_cs.ncf
-   export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf
+   export STK_GRPS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_location_${RUN}.ncf
+   export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf
    FIRE_EMIS_LABEL="PT_FIRES"
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
    export STK_EMIS_DIAG_${ic}=3D
@@ -555,9 +556,9 @@ fi
 
 if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    export GSPRO=${FIXaqm}/gspro_biog_static_2012_naqfc.txt
-   export B3GRD=${FIXaqm}/b3grd_CONUS_bv314.ncf
+   export B3GRD=${FIXaqm}/b3grd_${RUN}_US12_bv314.ncf
    export BIOG_SPRO=B10C5 #< speciation profile to use > e.g. B10C5
-   export BIOSW_YN=N      #< use frost date switch? > defaults to Y
+   export BIOSW_YN=Y      #< use frost date switch? > defaults to Y
    export SUMMER_YN=N     #< Use summer normalized emissions? > defaults to Y 
    export PX_VERSION=N
    export B3GTS_DIAG=Y    
@@ -589,7 +590,7 @@ fi
 #> Windblown dust emissions configuration !Not used for NAQFC, NACC-CMAQ Inline Fengsha
 ## if [ "${CTM_WB_DUST}" == "Y" ]; then
 ##    # Input variables for BELD3 Landuse option
-##    export DUST_LU_1=${FIXaqm}/aqm_LANDA_CONUS_igbp2010.ncf
+##    export DUST_LU_1=${FIXaqm}/aqm_LANDA_HI_new.ncf
 ##    export DUST_LU_2=${FIXaqm}/LAND_TOTALS_US12_442X265
 ## fi
 
@@ -605,7 +606,7 @@ fi
 #-----------------------------------------------------------------
 
 #export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$MM.ncf
-export OCEAN_1=${FIXaqm}/SSMASK_US12_442X265_igbp2010.ncf
+export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_80X52.ncf
 
 #> Bidirectional ammonia configuration
 if [ ${CTM_ABFLUX} == 'Y' ]; then
@@ -653,25 +654,25 @@ fi
 ##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
 ## fi
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
-   if [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
-   elif [ -s ${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf
+   if [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_${RUN}_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_${RUN}_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   elif [ -s ${COMINm3}/aqm_${RUN}_geos_fv3chem_aero_${PDYm3}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm3}/aqm_${RUN}_geos_fv3chem_aero_${PDYm3}_35L.ncf
    fi
 else
-   if [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
-   elif [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   if [ -s ${COMIN}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMIN}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf
+   elif [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_${RUN}_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_${RUN}_geos_fv3chem_aero_${PDYm2}_35L.ncf
    fi
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
-  export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
+  export BNDY_GASC_1=${FIXaqm}/aqm_${RUN}_80x52_mean_2002${MM}_GEOSCHEM-35L-tracer.nmmb.ncf
 
 fi
 
@@ -770,8 +771,8 @@ postmsg "${jlogfile}" "${msg}"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-num_col=24
-num_row=24
+num_col=4
+num_row=6
 ## Check if total number of processors used is more than requested
 let total_procs=${num_col}*${num_row}
 echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"

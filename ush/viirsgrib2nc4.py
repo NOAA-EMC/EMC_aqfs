@@ -14,7 +14,7 @@ __license__ = 'GPL'
 
 '''
 Adapted utility to convert VIIRS GVF file into a netCDF4 file
-Utilizes wgrib2 utility from NWPROD -- P. Campbell
+Utilizes wgrib2 from input environmental variable path -- P. Campbell
 '''
 
 import os
@@ -78,7 +78,7 @@ def change_file(finput,foutput=None,execpath=None,verbose=False):
     	wgrib2 = get_exec_path('wgrib2', verbose=verbose)
     else:
     	wgrib2 = xpath
-    print(wgrib2)
+    
     # ENTIRE ATMOSPHERE GRIB LAYER
     #cmd = '%s %s -match "entire atmosphere:" -nc_nlev 1 -append -set_ext_name 1 -netcdf %s.entire_atm.nc' % (wgrib2, fname, fname)
     #execute_subprocess(cmd, verbose=verbose)

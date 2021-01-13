@@ -61,8 +61,8 @@ fi
 if [ -s ${pgmout} ]; then cat ${pgmout}; fi
 
 msg="JOB $job HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+postmsg "${jlogfile}" "${msg}"
 
-if [ "$KEEPDATA" != "YES" ] ; then rm -rf ${DATA}; fi
+if [ "${KEEPDATA}" != "YES" ] ; then rm -rf ${DATA}; fi
 
 date

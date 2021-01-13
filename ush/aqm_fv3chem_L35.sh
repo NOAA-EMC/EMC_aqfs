@@ -185,13 +185,13 @@ if [ $RUN = 'aqm' ]; then
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
    export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
 elif [ $RUN = 'HI' ]; then
-   export BND1=${FIXaqm}/HI_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.fv3.ncf
-   export BND2=${COMOUT}/aqm_HI_geos_fv3chem_aero_${PDY}_35L.ncf                   # output HI    BND files
-   export BND2_cyc=${COMOUT}/aqm_HI_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output HI    BND files with cycle information
+   export BND1=${FIXaqm}/${RUN}_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.nmmb.ncf
+   export BND2=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf                   # output HI    BND files
+   export BND2_cyc=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output HI    BND files with cycle information
 elif [ $RUN = 'AK' ]; then
-   export BND1=${FIXaqm}/aqm_AK_cb05_ae4_mean_${cmonth}.35L.ncf
-   export BND2=${COMOUT}/aqm_AK_geos_fv3chem_aero_${PDY}_35L.ncf                   # output AK    BND files
-   export BND2_cyc=${COMOUT}/aqm_AK_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output AK    BND files with cycle information
+   export BND1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${cmonth}.35L.ncf
+   export BND2=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf                   # output AK    BND files
+   export BND2_cyc=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output AK    BND files with cycle information
 else
    echo " unknown domain $RUN "
    exit 1

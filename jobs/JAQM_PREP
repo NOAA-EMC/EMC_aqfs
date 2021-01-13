@@ -83,7 +83,7 @@ export pgmout=OUTPUT.$$
 env
 
 if [ "${FCST}" == "YES" ]; then
-   ${HOMEaqm}/scripts/exaqm_metprep_cs.sh.ecf
+   ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
    export  err=$?; err_chk
 
    aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 

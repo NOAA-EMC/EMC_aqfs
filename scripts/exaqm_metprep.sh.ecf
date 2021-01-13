@@ -14,7 +14,32 @@
 msg="JOB $job HAS BEGUN"
 postmsg "$jlogfile" "$msg"
 
-export pgm=aqm_prep_cs
+export pgm=aqm_metprep
+if [ ${RUN} == "HI" ]; then
+   NCOLS=80
+   NROWS=52
+   PROJPARM=2.,19.,21.,-157.5,-157.5,20.53
+   DOMAINS=-480000.,-312000.,12000.,12000.,80,52
+   grd_suffix=${RUN}
+   GRDNAM='AQF_HI'
+elif [ ${RUN} == "AK" ]; then
+   NCOLS=199
+   NROWS=163
+   PROJPARM=2.,57.,63.,-148.6,-148.6,63.21
+   DOMAINS=-1194000.,-978000.,12000.,12000.,199,163
+   grd_suffix=${RUN}
+   GRDNAM='AQF_AK'
+elif [ ${RUN} == "aqm" ]; then
+   NCOLS=442
+   NROWS=265
+   PROJPARM=2.,33.,45.,-97.,-97.,40
+   DOMAINS=-2508000.,-1716000.,12000.,12000.,442,265
+   grd_suffix='05'
+   GRDNAM='AQF_CONUS_5x'
+else
+   echo "unknown domain ${RUN}"
+   exit 1
+fi
 
 cd $DATA
 
@@ -146,6 +171,7 @@ cat>namelist.mcip<<!
   file_sfc   = './gfs.${cycle}.sfcf','.nc'
   file_geo   = '${FIXaqm}/gfs.t12z.geo.${SMM}.nc'
   file_viirs_gvf = '${NACC_GVF_IN}'
+  file_viirs_lai = 'no_file'
   ioform     =  1
  &END
 
@@ -160,11 +186,14 @@ cat>namelist.mcip<<!
   luvbout    =  1
   ifdiag_pbl = .FALSE.
   ifviirs_gvf = .TRUE.
+  ifviirs_lai = .FALSE.
+  iffengsha_dust = .TRUE.
+  ifbioseason = .TRUE.
   mcip_start = '${SYYYY}-${SMM}-${SDD}-${cyc}:00:00.0000'
   mcip_end   = '${EYYYY}-${EMM}-${EDD}-${endcyc}:00:00.0000'
   intvl      =  60
-  coordnam   = 'FV3_RPO'
-  grdnam     = 'FV3_CONUS'
+  coordnam   = 'AQF_RPO'
+  grdnam     = '${GRDNAM}'
   ctmlays    =  1.000000, 0.995253, 0.990479, 0.985679, 0.980781,
               0.975782, 0.970684, 0.960187, 0.954689, 0.936895, 
               0.930397, 0.908404, 0.888811, 0.862914, 0.829314, 
@@ -177,15 +206,15 @@ cat>namelist.mcip<<!
   lprt_row   =  0
   ntimes     = ${NTIMES}
   wrf_lc_ref_lat = 40.0
-  projparm = 2., 33.,45., -97., -97., 40.
-  domains = -2508000., -1716000., 12000., 12000., 442, 265
+  projparm = ${PROJPARM}
+  domains = ${DOMAINS}
  &END
 
  &WINDOWDEFS
   x0         =  1
   y0         =  1
-  ncolsin    =  442
-  nrowsin    =  265
+  ncolsin    =  ${NCOLS}
+  nrowsin    =  ${NROWS}
  &END
 !
 
@@ -205,6 +234,6 @@ export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 ### ALERT HHC use aqm_nacc for NCO delivery -- consistent with executable creation script
 aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc
 if [ "${SENDCOM}" = 'YES' ]; then
-  mv GRIDDESC  ${COMOUT}/aqm_griddesc05
+  mv GRIDDESC  ${COMOUT}/aqm_griddesc${grd_suffix}
   mv *.ncf ${COMOUT}
 fi  

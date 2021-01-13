@@ -42,7 +42,7 @@ export pgmout=OUTPUT.$$
 
 env
 
-$HOMEaqm/scripts/exaqm_post3_cb06_cs.sh.ecf
+$HOMEaqm/scripts/exaqm_post3_cb6r3_cs.sh.ecf
 export err=$?; err_chk
 
 cat $pgmout

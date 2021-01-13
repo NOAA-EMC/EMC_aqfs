@@ -406,6 +406,9 @@ C-------------------------------------------------------------------------------
                      cnh3g2j = 0.0
                      cnh3sj  =0.0
                      watfrac = watfrac + GRID_DATA%LUFRAC( c,r,j )
+                     if ( watfrac.eq.1.0 ) then !Warning, Landmask = 1 but Case is Water and LUFRAC = 1.0
+                        watfrac = 0.999999
+                     end if
                   Case( 'SNOWICE' ) ! ice or snow
                      cnh3g1j = 0.0
                      cnh3g2j = 0.0
