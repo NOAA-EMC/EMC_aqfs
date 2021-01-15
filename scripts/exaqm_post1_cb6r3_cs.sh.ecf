@@ -201,7 +201,7 @@ fi
 # Part III:  Insert WMO header to GRIB files
 #################################################
 
-if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
 ## if [ [ "${cyc}" == "06" ] || [ "${cyc}" == "12" ] ] && [ "${SENDCOM}" == "YES" ]; then
 
 ##############################
@@ -241,7 +241,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
           if [ "${SENDDBN}" == "YES" ]; then
              ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.${hr}ho3.227.grib2
           else
-             msg="File ${output_grb}.${job} not posted to db_net."
+             msg="File output_grb.${job} not posted to db_net."
              postmsg "${jlogfile}" "${msg}"
           fi
        fi

@@ -174,7 +174,7 @@ done
 # Part III:  Insert WMO header to GRIB files
 #################################################
 ## Follow OPERAIONAL cmaq.v5.1.9 operational the if loop started here for AK and HI
-if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = 'YES' ] ; then
+if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
 
 ###############
 # Convert ozone Concentration to grid 198 in GRIB2 format
@@ -242,7 +242,7 @@ fi
           if [ "${SENDDBN}" == "YES" ]; then
              ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.${hr}ho3.198.grib2
           else
-             msg="File ${output_grb}.${job} not posted to db_net."
+             msg="File output_grb.${job} not posted to db_net."
              postmsg "${jlogfile}" "${msg}"
           fi
        fi

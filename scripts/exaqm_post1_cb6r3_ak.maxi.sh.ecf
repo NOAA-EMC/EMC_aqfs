@@ -194,13 +194,13 @@ EOF5
              # Distribute Data
              ##############################
    
-             if [ "${SENDDBN_NTC}" = 'YES' ] ; then
+             if [ "${SENDDBN_NTC}" = "YES" ] ; then
                 ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.1ho3-max.198.grib2
                 ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.8ho3-max.198.grib2
                 ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.daily-1hr-pm25-max.198.grib2
                 ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.24hr-pm25-ave.198.grib2
              else
-                msg="File $output_grb.${job} not posted to db_net."
+                msg="File output_grb.${job} not posted to db_net."
                 postmsg "${jlogfile}" "${msg}"
              fi
           fi
