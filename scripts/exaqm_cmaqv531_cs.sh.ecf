@@ -557,7 +557,7 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    export GSPRO=${FIXaqm}/gspro_biog_static_2012_naqfc.txt
    export B3GRD=${FIXaqm}/b3grd_CONUS_bv314.ncf
    export BIOG_SPRO=B10C5 #< speciation profile to use > e.g. B10C5
-   export BIOSW_YN=N      #< use frost date switch? > defaults to Y
+   export BIOSW_YN=Y      #< use frost date switch? > defaults to Y
    export SUMMER_YN=N     #< Use summer normalized emissions? > defaults to Y 
    export PX_VERSION=N
    export B3GTS_DIAG=Y    
