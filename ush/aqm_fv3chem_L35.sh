@@ -114,6 +114,10 @@ cmonth=`echo ${lbc_day} | cut -c5-6`
 cdate=`echo ${lbc_day} | cut -c7-8`
 ic=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
 cjulian=`printf %3.3d ${ic}`
+NUMTS=${NUMTS:-41}
+if [ "${NUMTS}" != "${num_file}" ]; then
+   echo "WARNING :: number of processor expected ${NUMTS} is not the same as number of files processed ${num_file}"
+fi
 
 cat > gefs-bnd-nemsio.ini <<EOF
 &control
@@ -206,7 +210,7 @@ fi
 rm -rf chkreads.log
 
 startmsg
-${EXECaqm}/aqm_fv3chem_dlbc  >> ${pgmout} 2>errfile 
+aprun -n${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
 export err=$?;err_chk
 
 ##

@@ -349,7 +349,7 @@ export CTM_ADV_CFL=0.95      #> max CFL [ default: 0.75]
 export CTM_OCEAN_CHEM=Y      #> Flag for ocean halogen chemistry and sea spray aerosol emissions [ default: Y ]
 export CTM_WBDUST_BELD=NOBELD #> landuse database for identifying dust source regions  !Not used for NAQFC, NACC-CMAQ Inline Fengsha
 export CTM_FST=N             #> mosaic method to get land-use specific stomatal flux
-export CTM_BIDI_FERT_NH3=Y   #> subtract fertilizer NH3 from emissions because it will be handled
+export CTM_BIDI_FERT_NH3=F   #> subtract fertilizer NH3 from emissions because it will be handled
 export CTM_GRAV_SETL=Y       #> vdiff aerosol gravitational sedimentation [ default: Y ]
 export VERTEXT=N             #> Vertical Extraction Options.  If Y need file defined as "export VERTEXT_COORD_PATH=${HOMEaqm}/scripts/lonlat.csv"
 if [ "${VERTEXT}" == "Y" ] && [ ! -s ${VERTEXT_COORD_PATH} ]; then
@@ -444,10 +444,10 @@ ${FSYNC} ${METpath}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
 export N_EMIS_GR=2
-export GR_EMIS_001=${EMISpath}/emis-noRWC-cb6-${YM}.ncf #surface emission file
+export GR_EMIS_001=${EMISpath}/${RUN}-emis-noRWC-cb6-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
 export GR_EM_SYM_DATE_001=F
-export GR_EMIS_002=${EMISpath}/emis-RWC-cb6-${YM}.ncf #surface RWC file
+export GR_EMIS_002=${EMISpath}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then

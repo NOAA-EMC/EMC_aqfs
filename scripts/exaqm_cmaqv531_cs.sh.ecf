@@ -418,7 +418,7 @@ while [ ${ic} -lt 1081 ]; do
    fi
 done
 
-export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
+export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}_vivpo1.nml
 
  #> Spatial Masks For Emissions Scaling
   #export CMAQ_MASKS=$SZpath/12US1_surf.ncf
@@ -444,10 +444,10 @@ ${FSYNC} ${METpath}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
 export N_EMIS_GR=2
-export GR_EMIS_001=${EMISpath}/emis-noRWC-cb6-${YM}.ncf #surface emission file
+export GR_EMIS_001=${EMISpath}/emis-noRWC-nei17-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
 export GR_EM_SYM_DATE_001=F
-export GR_EMIS_002=${EMISpath}/emis-RWC-cb6-${YM}.ncf #surface RWC file
+export GR_EMIS_002=${EMISpath}/emis-RWC-nei17-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
@@ -463,14 +463,14 @@ fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
+if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ]; then
+   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf"
    err=999
    err_chk
 fi
 
-if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
-   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
+if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
+   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf"
    err=999
    err_chk
 fi
@@ -478,12 +478,12 @@ done
 
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
-      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ] && \
+      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf
-      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf
+      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf
+      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=2DSUM
       export STK_EM_SYM_DATE_${ic}=F
@@ -554,10 +554,13 @@ fi
 # In-line biogenic emissions configuration
 
 if [ "${CTM_BIOGEMIS}" == "Y" ]; then
-   export GSPRO=${FIXaqm}/gspro_biog_static_2012_naqfc.txt
-   export B3GRD=${FIXaqm}/b3grd_CONUS_bv314.ncf
-   export BIOG_SPRO=B10C5 #< speciation profile to use > e.g. B10C5
-   export BIOSW_YN=N      #< use frost date switch? > defaults to Y
+   export GSPRO=${FIXaqm}/gspro_biogenics.txt
+   export B3GRD=${FIXaqm}/b3grd_CONUS_19Dec20.aggwndj.ncf
+   export BIOG_SPRO=B10C6AE7 #< speciation profile to use > e.g. B10C5
+   ## export GSPRO=${FIXaqm}/gspro_biog_static_2012_naqfc.txt
+   ## export B3GRD=${FIXaqm}/b3grd_CONUS_bv314.ncf
+   ## export BIOG_SPRO=B10C5 #< speciation profile to use > e.g. B10C5
+   export BIOSW_YN=Y      #< use frost date switch? > defaults to Y
    export SUMMER_YN=N     #< Use summer normalized emissions? > defaults to Y 
    export PX_VERSION=N
    export B3GTS_DIAG=Y    
@@ -612,7 +615,8 @@ if [ ${CTM_ABFLUX} == 'Y' ]; then
    # need to modify for FEST-C v1.4.
    export E2C_SOIL=${FIXaqm}/test_soil_5x_new.nc
    export E2C_CHEM=${EMISpath}/FERT_12km_5x_time${YM}.ncf
-   export E2C_LU=${FIXaqm}/beld4_AQF_5x_output.ncf
+   export E2C_LU=$FIXaqm/beld5_CONUS_19Dec20.aggwndj.ncf
+   ## export E2C_LU=${FIXaqm}/beld4_AQF_5x_output.ncf
 fi
 #------------------------------------------------------
 # output files

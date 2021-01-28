@@ -6,11 +6,11 @@
 !   for GOCART output in NEMS-IO format 
 !
 !   Author: Youhua Tang
-!   Revisions
+!   Revisions: parallel
 !-------------------------------------------------------------------------------------
       
       use nemsio_module
-
+      use mpi
       include 'PARMS3.EXT'      ! i/o API
       include 'FDESC3.EXT'      ! i/o API
       include 'IODECL3.EXT'     ! i/o API
@@ -28,7 +28,7 @@
       
       character bndname(nspecies)*16,gocartname(ngocart)*8,ctmp*16,  &
        echar(nspecies)*16,mofile(2)*200,checkname(nspecies)*16,     &
-       aline*200,gdatatype*4,modelname*4,gtype*16
+       aline*200,gdatatype*4,modelname*4,gtype*16,arank*2
      
       integer netindex(ngocart),checklayer,modate(maxfile),         &
        mosecs(maxfile),julian,ismotime(maxfile),iemotime(maxfile),  &
@@ -48,6 +48,9 @@
        begtime,bndname,dtstep,numts,mofile,	&	  !  input file preffix and suffix
        checkname,checklayer
       
+      CALL MPI_Init(ierr)
+      CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+      CALL MPI_Comm_size(MPI_COMM_WORLD, npe, ierr) 
       
       call aq_blank(16*nspecies,bndname)
       call aq_blank(16*nspecies,checkname)
@@ -144,7 +147,10 @@
 
       call nextime(sdate3d,stime3d,tstep3d*(mxrec3d-1))
       metetime=sdate3d*100+stime3d/10000               ! met file end time in yyyymmddhh
-      
+
+      nnowdate=sdate3d
+      nnowtime=stime3d
+
       if(.not.open3('BND1',FSREAD3,'init-convert')) then ! tracer boundary
        print*, 'failed to open INIT_IN'
        stop
@@ -159,11 +165,9 @@
 	print*,'ncols3d,nrows3d,nlays3d,nvars3d=',ncols3d,nrows3d,nlays3d,nvars3d
         stop
       endif 
-      ietime=((mxrec3d-1)*tstep3d+stime3d)/10000
-      ietime=(sdate3d+ietime/24)*100+mod(ietime,24) ! end time of the file in YYYYDDDHH
-
+      
 !-----build output file header     
-
+      if(my_rank.eq.0) then
       if(.not.open3('BND2',FSRDWR3,'pathway')) then  ! if not exist, generate it       
 
        nvars3d=noutbnd
@@ -176,6 +180,7 @@
                  
        sdate3d=nowdate
        stime3d=nowtime
+       
        tstep3d=dtstep*10000
        if(.not.OPEN3('BND2',FSUNKN3,'pathway')) then	! FSCREA3 FSUNKN3
         print*, 'Error opening output file BND2'
@@ -219,35 +224,32 @@
 	stop
        endif
       endif 	
-     
+      endif
       
       call nemsio_init(iret=iret)
 
 !****inquire dimension information
 
-      jfhour=0                    ! forecasting hours
+      jfhour=0+dtstep*my_rank                    ! forecasting hours
       jfiletime=0
       inowtime=nowdate*100+nowtime/10000
-      
-      do mtime=1,numts            
-
-       if(mtime.gt.1) then
+      do mtime=1,my_rank
         call nextime(nowdate,nowtime,dtstep*10000)
 	inowtime=nowdate*100+nowtime/10000        ! time in YYYYDDDHH
-       endif  
-       
-       bnd(1:lenbnd,1:kmax,1:noutbnd)=0.
-       checksp(1:imax,1:jmax,1:ncheck)=0.
+      enddo
+            
+      bnd(1:lenbnd,1:kmax,1:noutbnd)=0.
+      checksp(1:imax,1:jmax,1:ncheck)=0.
        
        print*,'Now time is ', nowdate,              &
-        nowtime,' in GMT.',inowtime,ietime
+        nowtime,' in GMT.',inowtime,' my_rank=',my_rank
       
        do while(inowtime.ne.jfiletime)
         call daymon(nowdate,mmonth,mday)
 	
        write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
 
-       if(mtime.gt.1) call nemsio_close(gfile)
+!       if(mtime.gt.1) call nemsio_close(gfile)
        print*, aline
        call nemsio_open(gfile,trim(aline),'READ',iret=iret,gdatatype="bin4")
        if(iret.ne.0) then
@@ -276,11 +278,9 @@
         modelname,'extrameta=',extrameta,'nframe=',nframe,'nmeta=',    &
         nmeta,'nsoil=',nsoil,'extrameta=',extrameta,'ntrac=',	       &
         ntrac,'tlmeta=',tlmeta,'filetime=',jfiletime
-        
-	jfhour=jfhour+dtstep      
-       enddo
-		
-       if(mtime.eq.1) then
+        enddo
+!	jfhour=jfhour+dtstep      
+
          igocart=im+2*nframe
 	 jgocart=jm+2*nframe
 	 kgocart=lm
@@ -298,16 +298,8 @@
 	 allocate(tgocart(igocart,jgocart,kgocart),STAT=ierr)
          allocate(airgocart(igocart,jgocart,kgocart),STAT=ierr)
 	 allocate(vgocart(igocart,jgocart,kgocart),STAT=ierr)
-	 
-	else
-	 if(igocart.ne.im+2*nframe.or.jgocart.ne.jm+2*nframe.or.  &
-      	   kgocart.ne.lm) then
-          print*,'inconsistent GOCART coordinate ',trim(aline)
-	  stop
-	 endif
-	endif
            
-      if(mtime.eq.1) then
+
        call nemsio_getfilehead(gfile,iret=iret,lat=work,lon=work2)
        do i=1,igocart
         do j=1,jgocart
@@ -392,17 +384,15 @@
 
 	enddo
        enddo	
-      endif   ! end of mtime.eq.1
+!      endif   ! end of mtime.eq.1
      
       if(inowtime.ge.metstime.and.inowtime.le.metetime) then
        if(check3('METEO3D','PRES',nowdate,nowtime)) then      ! if has met input, read it. otherwise use existing one
         if(.not.read3('METEO3D','PRES',ALLAYS3,nowdate,nowtime,press)) stop 
        endif
-!        print*,'error read Pressure'
-!	if(.not.read3('METEO3D2','PRES',ALLAYS3,nowyear*1000+nowdate,
-!     1  nowtime*10000,press)) stop
-!       endif
-       endif
+      else
+       if(.not.read3('METEO3D','PRES',ALLAYS3,nnowdate,nnowtime,press)) stop
+      endif
        call nemsio_readrecv(gfile,'pres','sfc',1, worka, &   ! surface pressure in Pa
           iret=iret)
         if(iret.ne.0) then
@@ -539,7 +529,7 @@
  	 do i=1,igocart
 	  do j=1,jgocart
 !	   vgocart(i,j,k)=work(i+(j-1)*igocart)*airgocart(i,j,k)*1e6    ! Operational NGAC unit conversion:  g/g -> ug/m3
-           vgocart(i,j,k)=work(i+(j-1)*igocart)   ! GEFS FV3-Chem aerosol units already in -> ug/m3  
+           vgocart(i,j,k)=work(i+(j-1)*igocart)   ! FV3-Chem aerosol units already in -> ug/m3  
 	   if(vgocart(i,j,k).gt.1e18) vgocart(i,j,k)=0. ! for undefine bug
 	   
            if(gocartname(L1).eq.'so2') vgocart(i,j,k)=work(i+(j-1)*igocart)*1e6/64*28.97   ! kg/kg -> ppmV
@@ -664,18 +654,34 @@
 	  enddo
 	 enddo
 	else
-	 print*,'use GEFS bnd for ', bndname(L)	
+	 print*,'use NGAC bnd for ', bndname(L)	
 	endif
 
 
        enddo
+      
+      CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
 
+      if(my_rank.eq.0) then 
+      do n=1,numts
+       if(n.gt.1) then
+        call mpi_recv(nowdate,1,MPI_INTEGER,n-1,MPI_ANY_TAG,MPI_COMM_WORLD,mstatus,ierr)
+	call mpi_recv(nowtime,1,MPI_INTEGER,n-1,MPI_ANY_TAG,MPI_COMM_WORLD,mstatus,ierr)
+	if(ierr.ne.0) print*,'nowtime mpi_recv error ',ierr,n,nowtime
+        call mpi_recv(bnd,lenbnd*kmax*nspecies,MPI_REAL,n-1,MPI_ANY_TAG, &
+         MPI_COMM_WORLD,mstatus,ierr)
+	if(ierr.ne.0) print*,'bnd mpi_recv error ',n,lenbnd,kmax,nspecies 
+	call mpi_recv(checksp,imax*jmax*nspecies,MPI_REAL,n-1,MPI_ANY_TAG, &
+         MPI_COMM_WORLD,mstatus,ierr)
+	if(ierr.ne.0) print*,'checksp mpi_recv error ',n,imax,jmax,nspecies 
+       endif
+       	
        if(.not.write3('BND2',ALLVAR3,nowdate, &
          nowtime,bnd))	then
-         print*,'writting error'
+         print*,'BND2 writting error ',nowdate,nowtime
 	 stop
        endif	 
-
+!       print*,'n,checksp sum=',n,sum(checksp),nowdate,nowtime
        if(.not.write3('CHECK2D',ALLVAR3,nowdate,  &
          nowtime,checksp))  then
         print*,'writting error'
@@ -685,6 +691,25 @@
       enddo 
       lflag=shut3()
       
+      else ! other nodes
+       call mpi_send(nowdate,1,MPI_INTEGER,0,2020,MPI_COMM_WORLD,ierr)
+       call mpi_send(nowtime,1,MPI_INTEGER,0,2020,MPI_COMM_WORLD,ierr)      
+       call mpi_send(bnd,lenbnd*kmax*nspecies,MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+       
+!       write(arank,'(i2.2)')my_rank
+!       open(10+my_rank,file='tmp'//arank)
+       	
+       if(ierr.ne.0) print*,'bnd mpi_send error ',my_rank,lenbnd,kmax,nspecies
+!       write(10+my_rank,*)'rank, checksp sum =',my_rank,sum(checksp),nowdate,nowtime	
+!       print*,'rank, checksp sum =',my_rank,sum(checksp),nowdate,nowtime	
+       call mpi_send(checksp,imax*jmax*nspecies,MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+       if(ierr.ne.0) print*,'checksp mpi_send error ',my_rank,imax,jmax,nspecies
+!       close(10+my_rank)
+      endif
+      
+      call MPI_Finalize(ierr)      
       end
 
 

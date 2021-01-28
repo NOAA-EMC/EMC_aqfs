@@ -59,6 +59,8 @@ export dcom_envir=${dcom_envir:-prod}
 export EMIFIREIN=${EMIFIREIN:-${DCOMROOT}/${dcom_envir}/${PDY}/firewx}
 export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${dcom_envir}/${PDYm1}/firewx}
 
+## Define Input directories for various information
+
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
 export GVFIN=${GVFIN:-${DCOMROOT}/prod/viirs}
@@ -83,6 +85,9 @@ export pgmout=OUTPUT.$$
 env
 
 if [ "${FCST}" == "YES" ]; then
+   export YM=`echo ${PDY} | cut -c1-6`
+   export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
+
    ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
    export  err=$?; err_chk
 
@@ -93,7 +98,7 @@ if [ "${FCST}" == "YES" ]; then
    ## GEFS 06Z runs using day-1 fire emission, will re-calculate LBC using GEFS 06Z data for PDY [12Z,18Z] & PDY+1 00Z
    ##
    if [ "${cycle}" == "t06z" ] || [ "${cycle}" == "t12z" ] ; then
-      aprun -n 1 ${USHaqm}/aqm_fv3chem_L35.sh ${PDY}
+      ${USHaqm}/aqm_fv3chem_L35.sh ${PDY}
       err=$?; err_chk
    fi
 elif [ "${FCST}" == "NO" ]; then

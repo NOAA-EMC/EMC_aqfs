@@ -244,8 +244,8 @@ c    1	 forestfrac(nint(xind),nint(yind))
 	 frpout(mfire,m)=frp(i,j)*tratio
         endif
        
-        if(forestfrac(nint(xind),nint(yind)).le.0.4.and.m.gt.10)  
-     1	   exit mtime ! skip non-forest fire 
+       if((tlon(i).ge.-100.or.forestfrac(nint(xind),nint(yind)).le.0.4)
+     1   .and.m.gt.10)  exit mtime ! skip non-forest fire 
 	
          do L1=1,nhms
 	  do L2=1,nemis

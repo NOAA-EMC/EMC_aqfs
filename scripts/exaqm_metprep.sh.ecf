@@ -169,7 +169,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = './gfs.${cycle}.atmf','.nc'
   file_sfc   = './gfs.${cycle}.sfcf','.nc'
-  file_geo   = '${FIXaqm}/gfs.t12z.geo.${SMM}.nc'
+  file_geo   = '${EMISpath}/gfs.geo.${SMM}.nc'
   file_viirs_gvf = '${NACC_GVF_IN}'
   file_viirs_lai = 'no_file'
   ioform     =  1
