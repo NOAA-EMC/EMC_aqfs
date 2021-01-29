@@ -91,8 +91,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
    ${COPYGB2}  -g "$grid227" -x  -i"1 1"  aqm.${cycle}.max_8hr_o3_bc.148.grib2 aqm.${cycle}.max_8hr_o3_bc.227.grib2
    
    #==========
-   #if [ "${envir}" = "para" .or. "${envir}" = "para5" ] ;
-   if [ "${envir}" = "para6b" ]; then
+   if [ "${envir}" = "para6z" ]; then
       echo "copying to developer's personal directory"
       if [ -e ${COMOUT_grib}/${RUN}.${PDY} ] ; then
          cp ${DATA}/aqm.${cycle}.max_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.${PDY}

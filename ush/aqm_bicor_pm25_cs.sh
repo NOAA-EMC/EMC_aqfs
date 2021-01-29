@@ -46,11 +46,7 @@ startmsg
 aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.5pred.equal-weights ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
-# JY if [ ${envir} = 'para' ] ; 
-#then
-# cp  $DATA/out/pm2.5.corrected*  ${COMOUT_grib} 
-#fi
-if [ ${envir} = 'para6b' ] ;
+if [ ${envir} = 'para6z' ] ;
 then
  cp  $DATA/out/pm2.5.corrected*   $COMOUT_grib
 fi

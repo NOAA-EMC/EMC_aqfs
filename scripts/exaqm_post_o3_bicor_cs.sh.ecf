@@ -163,17 +163,17 @@ if [ "${SENDDBN}" = 'YES' ] ; then
   fi
 fi
 
-if [ "${envir}" = 'para6b' ] ;
+if [ "${envir}" = 'para6z' ] ;
 then
   echo "copying to developer's personal directory"
- if [ -e $COMOUT_grib/${RUN}.$PDY ] ; then
+ if [ -e ${COMOUT_grib}/${RUN}.$PDY ] ; then
    cp ${DATA}/aqm.${cycle}.ave_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.$PDY
    cp -rp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
   if [ $cyc -eq 06 -o $cyc -eq 12 ]  ; then
    cp -rp tmpfile.8hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
   fi
  else
-  mkdir -p $COMOUT_grib/${RUN}.$PDY
+  mkdir -p ${COMOUT_grib}/${RUN}.$PDY
   cp ${DATA}/aqm.${cycle}.ave_*hr_o3_bc.227.grib2  ${COMOUT_grib}/${RUN}.$PDY
   cp -rp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
   if [ $cyc -eq 06 -o $cyc -eq 12 ]  ; then

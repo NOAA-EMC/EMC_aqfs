@@ -83,7 +83,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
    ${WGRIB2} aqm-pm25_bc.148.grib2  |grep  "PMTF"   | ${WGRIB2} -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2 
    ${WGRIB2} aqm-pm25_bc.148.grib2  |grep  "PDMAX1" | ${WGRIB2} -i  aqm-pm25_bc.148.grib2  -grib aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2 
    
-   if [ "$envir" = "para6b" ] ; then
+   if [ "$envir" = "para6z" ] ; then
       cp ${DATA}/aqm.t${cyc}z.ave_24hr_pm25_bc.148.grib2  ${COMOUT_grib}/${RUN}.$PDY/
       cp ${DATA}/aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2   ${COMOUT_grib}/${RUN}.$PDY/
    fi

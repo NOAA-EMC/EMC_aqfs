@@ -54,8 +54,7 @@ then
     done
 fi
 
-#if [ "${envir}" = "para" .or. "${envir}" = "para5" ] ;
-if [ "${envir}" = "para6b" ] 
+if [ "${envir}" = "para6z" ] 
 then
   echo "copying to developer's personal directory"
  if [ -e ${COMOUT_grib}/${RUN}.${PDY} ] ; then
