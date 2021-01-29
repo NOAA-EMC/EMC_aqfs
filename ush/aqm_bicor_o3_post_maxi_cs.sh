@@ -92,12 +92,12 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
    
    #==========
    #if [ "${envir}" = "para" .or. "${envir}" = "para5" ] ;
-   if [ "${envir}" = "para13" ]; then
+   if [ "${envir}" = "para6b" ]; then
       echo "copying to developer's personal directory"
-      if [ -e ${COMOUT}_grib/${RUN}.${PDY} ] ; then
+      if [ -e ${COMOUT_grib}/${RUN}.${PDY} ] ; then
          cp ${DATA}/aqm.${cycle}.max_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.${PDY}
       else
-         mkdir -p ${COMOUT}_grib/${RUN}.${PDY}
+         mkdir -p ${COMOUT_grib}/${RUN}.${PDY}
          cp ${DATA}/aqm.${cycle}.max_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.${PDY}
       fi
    fi

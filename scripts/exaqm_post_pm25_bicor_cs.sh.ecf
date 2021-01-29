@@ -124,11 +124,11 @@ oldgrib2file2=aqm.t${cyc}z.max_1hr_pm25_bc.148.grib2
 newgrib2file2=aqm.t${cyc}z.max_1hr_pm25_bc.227.grib2
 ${COPYGB2}  -g "$grid227" -x  -i"1 1"  ${oldgrib2file2}  ${newgrib2file2}
 
-if [ "$envir" = "para6" ] ; then
-   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   ${COMOUT}_grib/${RUN}.${PDY}
-   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  ${COMOUT}_grib/${RUN}.${PDY}
-   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   ${COMOUT}_grib/${RUN}.${PDY}
-   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  ${COMOUT}_grib/${RUN}.${PDY}
+if [ "$envir" = "para6b" ] ; then
+   cp aqm.${cycle}.max_1hr_pm25_bc.148.grib2   ${COMOUT_grib}/${RUN}.${PDY}
+   cp aqm.${cycle}.ave_24hr_pm25_bc.148.grib2  ${COMOUT_grib}/${RUN}.${PDY}
+   cp aqm.${cycle}.max_1hr_pm25_bc.227.grib2   ${COMOUT_grib}/${RUN}.${PDY}
+   cp aqm.${cycle}.ave_24hr_pm25_bc.227.grib2  ${COMOUT_grib}/${RUN}.${PDY}
 fi
 
 if [ "${SENDCOM}" = "YES" ]; then

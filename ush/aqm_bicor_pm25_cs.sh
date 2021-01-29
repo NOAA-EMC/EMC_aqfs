@@ -50,7 +50,7 @@ export err=$?;err_chk
 #then
 # cp  $DATA/out/pm2.5.corrected*  ${COMOUT_grib} 
 #fi
-if [ ${envir} = 'para13' ] ;
+if [ ${envir} = 'para6b' ] ;
 then
  cp  $DATA/out/pm2.5.corrected*   $COMOUT_grib
 fi
