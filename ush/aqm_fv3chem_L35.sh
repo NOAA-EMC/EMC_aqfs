@@ -99,9 +99,11 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
       else
          echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN HARD FAILED" | mail ho-chun.huang@noaa.gov
       fi
-      err=9898
+      ## err=9898
+      echo "WARNING ***  Can not find ${lbc_cyc} and ${lbccyc} GEFS output to produce ${BND2}, MANUAL INSPECTION required, model run continue"
       postmsg "ERROR IN ${pgm} for GEFS LBC files"
-      err_chk
+      ## err_chk
+      exit
    fi
 fi
 ##
@@ -204,8 +206,8 @@ export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
 if [ ! -s ${BND1} ]; then    ## Soft Fail
    echo "WARNING ***  Can not find ${BND1} to produce ${BND2}, MANUAL INSPECTION required, model run continue"
-   export err=999
-   err_chk
+   ## export err=999
+   ## err_chk
 fi
 rm -rf chkreads.log
 

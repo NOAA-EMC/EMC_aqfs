@@ -653,6 +653,7 @@ fi
 ## else
 ##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
 ## fi
+export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
    if [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
       export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
@@ -673,7 +674,6 @@ fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
   export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
-
 fi
 
 export BNDY_AERO_1=${BNDY_GASC_1}

@@ -1,6 +1,6 @@
 module purge
 
-module load ../../modulefiles/CMAQ/v5.3.1
+module load ../../modulefiles/CMAQ/v6.0.0
 
 module list
 
