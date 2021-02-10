@@ -545,7 +545,8 @@
 
         nowdate8=nowdate81
         if ( varlist(L).eq.'o3_8hr') then 
-          nowtime8=12-icyc+(mday-1)*24+1
+          !! nowtime8=12-icyc+(mday-1)*24+1 !! change to be consistent to that from GIT
+          nowtime8=12-icyc+(mday-1)*24   !! update from GIT code to match current PROD time range
         else 
           nowtime8=6-icyc+(mday-1)*24
         endif 
@@ -627,7 +628,8 @@
         ipdstmpl(24)=0        ! ave 
         m_test1=mday*24+markutc-1
        if (m_test1 .ge. ksteps .and. icyc .le. 7  ) then
-         ipdstmpl(27)=18       ! 24 hr
+         !! ipdstmpl(27)=18      !! change to be consistent to that from GIT
+         ipdstmpl(27)=19      !! update from GIT code to match current PROD time range
        else
          ipdstmpl(27)=23
        endif

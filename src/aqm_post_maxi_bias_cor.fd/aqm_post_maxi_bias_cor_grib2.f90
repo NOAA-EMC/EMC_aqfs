@@ -577,15 +577,16 @@ program aqm_post_maxi_bias_cor_grib2
          ipdstmpl(1)=gipds1(indexcmaq(L))
          ipdstmpl(2)=gipds2(indexcmaq(L))
          if (mday .eq. total_day .and. varlist(L).eq.'O3_8h_max' .and. icyc .eq. 6) then
-            ipdstmpl(27)=18
+            ipdstmpl(27)=19    !! update from GIT code to match current PROD time range
          else
             ipdstmpl(27)=gipds27(indexcmaq(L))
          endif
 
          ipdstmpl(24)=0       ! 
          if ( varlist(L).eq.'O3_8h_max') then
-        !! Ho-Chun Huang nowtime8=11-icyc+(mday-1)*24 
-            nowtime8=12-icyc+(mday-1)*24 !! change to be consistent ot raw post
+        !! Ho-Chun Huang nowtime8=11-icyc+(mday-1)*24 !! update from GIT code to match current PROD time range
+        !! Ho-Chun Huang nowtime8=12-icyc+(mday-1)*24 !! change to be consistent to raw post from GIT
+            nowtime8=11-icyc+(mday-1)*24 !! update from GIT code to match current PROD time range
             ipdstmpl(19)=markutc+8-1+(mday-1)*24
             if ( mday .eq. total_day .and. icyc .eq. 6 ) then
                ipdstmpl(19)=11-5
