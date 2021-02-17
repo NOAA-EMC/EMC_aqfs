@@ -76,8 +76,7 @@ EMM=`echo ${endday} |cut -c5-6`
 EDD=`echo ${endday} |cut -c7-8`
 
 if [ ! -d ${METIN} ]; then
-   echo "No such input directory ${METIN}"
-   exit 1
+   err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}"
 fi
 echo "DIAG : meterology files ingested from ${METIN}"
 
@@ -91,18 +90,34 @@ icnt=0
 let tend=${endfhr}
 while [ ${icnt} -le ${tend} ]; do
    fhr=`printf %3.3d ${icnt}`
-   if [ ! -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc ]; then
-      echo "file does not exist: ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc"
-      exit 1
-   else
-      ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc gfs.${cycle}.atmf${fhr}.nc
-   fi 
-   if [ ! -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc ]; then
-      echo "file does not exist: ${METIN}/gfs.${cycle}.sfcf${fhr}.nc"
-      exit 1
-   else
-      ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc gfs.${cycle}.sfcf${fhr}.nc
-   fi 
+   icnt_gfs=0
+   while [ ${icnt_gfs} -lt 300 ]; do
+      if [ -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc ]; then
+         ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc gfs.${cycle}.atmf${fhr}.nc
+         echo "Found file : ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc"
+         break
+      else
+         ((icnt_gfs++))
+         sleep 10
+      fi 
+      if [ ${icnt_gfs} -ge 180 ]; then
+         err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc"
+      fi
+   done
+   icnt_gfs=0
+   while [ ${icnt_gfs} -lt 300 ]; do
+      if [ -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc ]; then
+         ln -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc gfs.${cycle}.sfcf${fhr}.nc
+         echo "FOUND file : ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc"
+         break
+      else
+         ((icnt_gfs++))
+         sleep 10
+      fi 
+      if [ ${icnt_gfs} -ge 180 ]; then
+         err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc"
+      fi
+   done
    ((icnt++))
 done
 
