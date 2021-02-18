@@ -101,7 +101,7 @@ emname='CO','NO','NO2','SO2','NH3','PEC','POC','PMOTHR','PNO3','PSO4',
 Species Converting Factor
 'CO'      1   # kg ->mole
 'CO'   35.7
-'NOX'    2   # 90% to NO (mw 30), 10% to NO2 (mw 46), mw 31.6 in average, kg->mole
+'NOx'    2   # 90% to NO (mw 30), 10% to NO2 (mw 46), mw 31.6 in average, kg->mole
 'NO'   28.481   'NO2'  3.164557
 'SO2'    1    # kg -> mole
 'SO2'  15.625
