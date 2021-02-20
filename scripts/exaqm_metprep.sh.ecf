@@ -146,14 +146,14 @@ if [ "${grib2_gvf}" == "" ]; then                   ## if no GVF files found for
    NOW=${FIRSTDAY}
    if [ -s tlist ]; then /bin/rm -f tlist; fi
    while [ ${NOW} -ge ${LASTDAY} ]; do
-      ls ${GVFIN}/${GVF_FHR2}*_e${NOW}* > tlist      ## error message is expected if no file can be found
+      ls ${GVFIN}/${GVF_FHR_2}*_e${NOW}* > tlist      ## error message is expected if no file can be found
       if [ -s tlist ]; then break; fi
       cdate=${NOW}${cyc}
       NOW=$(${NDATE} -24 ${cdate} | cut -c1-8 )
    done
    grib2_gvf=`tail tlist`
    if [ "${grib2_gvf}" == "" ]; then
-      echo "Fatal Eeeor - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
+      echo "Fatal Error - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
       err=777
       err_chk
    fi
