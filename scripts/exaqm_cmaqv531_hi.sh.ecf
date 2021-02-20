@@ -797,7 +797,7 @@ export err=$?
 #------------------------------------------------------
 # copy output to /com
 #------------------------------------------------------
-if [ "${SENDCOM}" = "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
+if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
    mv ${DATA}/CONC.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.conc.ncf
    mv ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
    mv ${DATA}/CGRID.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.cgrid.ncf
@@ -843,7 +843,7 @@ if [ "${SENDCOM}" = "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.$
       mv ${DATA}/PT3D.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.pt3d.ncf 
    fi
 fi
-if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
+if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
    mv ${DATA}/CONC.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.conc_r.ncf
    mv ${DATA}/ACONC.${CTM_APPL}      ${COMOUTm1}/aqm.${cycle}.aconc_r.ncf
    mv ${DATA}/CGRID.${CTM_APPL}      ${COMOUTm1}/aqm.${cycle}.cgrid_r.ncf
