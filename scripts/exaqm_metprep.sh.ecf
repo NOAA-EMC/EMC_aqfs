@@ -129,7 +129,6 @@ if [ ! -d ${COMOUT} ]; then mkdir -p ${COMOUT}; fi
 echo "DIAG : Greenness Fraction ingested from ${GVFIN}"
 viirs_sat=$(echo ${GVF_FHR} | awk -F'_' '{print $3}' )
 echo "Using VIIRS GVF product from satellite ${viirs_sat}"
-# SFHR=`echo ${GVF_FHR} | cut -c1-3`
 cdate=${PDY}${cyc}
 PDYm10=$(${NDATE} -240 ${cdate} | cut -c1-8)
 FIRSTDAY=${PDYm2}
@@ -142,9 +141,6 @@ while [ ${NOW} -ge ${LASTDAY} ]; do
    cdate=${NOW}${cyc}
    NOW=$(${NDATE} -24 ${cdate} | cut -c1-8 )
 done
-## tmp1=`tail tlist`
-## tmp2=$(echo ${tmp1} | awk -F${SFHR} '{print $2}' )
-## grib2_gvf=${SFHR}${tmp2}
 grib2_gvf=`tail tlist`
 if [ "${grib2_gvf}" == "" ]; then                   ## if no GVF files found for JPSS-1, then try NPP
    NOW=${FIRSTDAY}
@@ -171,7 +167,6 @@ else
    err_chk
 fi
 
-## ln -s ${GVFIN}/${grib2_gvf} DCOM_GVF_FILE    ## link DCOM file to $DATA local filename
 ln -s ${grib2_gvf} DCOM_GVF_FILE    ## link DCOM file to $DATA local filename
 #
 # output filename is -o option+".nc" by viirsgrib2nc4.py

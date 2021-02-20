@@ -58,6 +58,10 @@ mkdir -p ${COMOUT}
 
 export pgmout=OUTPUT.$$
 
+export TYPE_POINT_EMIS_OUT=${TYPE_POINT_EMIS_OUT:-2DSUM}
+export TYPE_FIRE_EMIS_OUT=${TYPE_FIRE_EMIS_OUT:-3D}
+export FLAG_POINT_EMIS_OUT=${FLAG_POINT_EMIS_OUT:-NO}
+export FLAG_3DPOINT_EMIS_OUT=${FLAG_3DPOINT_EMIS_OUT:-NO}
 export KEEPDATA=${KEEPDATA:-YES}
 ## ALERT HHC remove for NCO delivery
 export SINGLECYC=${SINGLECYC:-NO}
@@ -78,6 +82,7 @@ if [ "${FCST}" == "NO" ]; then
       echo "WARNING :: ===================================================================="
       echo "WARNING :: aqm.${cycle}.metcro3d.ncf can not be found for Analysis Forecast Run"
       echo "WARNING :: ${cycle} Analysis Forecast Run will exit normally"
+      echo "WARNING :: It is possible that no Meteorology is available at ${cycle} yesterady."
       echo "WARNING :: ===================================================================="
       FLAG_RUN_FCST=NO
    fi

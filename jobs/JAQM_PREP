@@ -117,6 +117,7 @@ elif [ "${FCST}" == "NO" ]; then
       echo "WARNING :: ===================================================================="
       echo "WARNING :: aqm.${cycle}.metcro3d.ncf can not be found for Analysis Forecast Run"
       echo "WARNING :: ${cycle} MET_PREP for analysis run will exit normally"
+      echo "WARNING :: It is possible that no Meteorology is available at ${cycle} yesterady."
       echo "WARNING :: ===================================================================="
    fi
 fi

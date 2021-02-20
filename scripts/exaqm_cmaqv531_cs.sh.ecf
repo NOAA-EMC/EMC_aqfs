@@ -476,6 +476,8 @@ if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
 fi
 done
 
+## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
+## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
    if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ] && \
@@ -485,7 +487,7 @@ for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
       export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf
       export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
-      export STK_EMIS_DIAG_${ic}=2DSUM
+      export STK_EMIS_DIAG_${ic}=${TYPE_POINT_EMIS_OUT}
       export STK_EM_SYM_DATE_${ic}=F
    fi
 done
@@ -509,6 +511,8 @@ else
     FIRE_SUFFIX=${cycle}
 fi
 
+## Type of fire emission diagnosis output is defined as TYPE_FIRE_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
+## 2DSUM or 3D [default]
 export FLAG_WF_ON="NO"
 if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" == "NO" ]; then
    let ic=${ic}+1
@@ -518,8 +522,7 @@ if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" == "NO
    export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf
    FIRE_EMIS_LABEL="PT_FIRES"
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
-   export STK_EMIS_DIAG_${ic}=3D
-   ## export STK_EMIS_DIAG_${ic}=2DSUM
+   export STK_EMIS_DIAG_${ic}=${TYPE_FIRE_EMIS_OUT}
    export STK_EM_SYM_DATE_${ic}=F   
 elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YES" ]; then
    let ic=${ic}+1
@@ -529,8 +532,7 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YE
    export STK_EMIS_${ic}=${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf
    FIRE_EMIS_LABEL="PT_FIRES"
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
-   export STK_EMIS_DIAG_${ic}=3D
-   ## export STK_EMIS_DIAG_${ic}=2DSUM
+   export STK_EMIS_DIAG_${ic}=${TYPE_FIRE_EMIS_OUT}
    export STK_EM_SYM_DATE_${ic}=F
 ## else
 ##    echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
@@ -740,7 +742,14 @@ flist1="${CTM_CONC_1} ${S_CGRID} ${A_CONC_1} ${CTM_DRY_DEP_1} ${CTM_DEPV_DIAG} $
 flist2="${B3GTS_S} ${SOILOUT} ${CTM_WET_DEP_1} ${CTM_WET_DEP_2} ${CTM_VIS_1} ${CTM_DIAM_1} ${CTM_RJ_1}"
 flist3="${CTM_RJ_2} ${CTM_SSEMIS_1} ${CTM_DUST_EMIS_1} ${CTM_IPR_1} ${CTM_IPR_2} ${CTM_IPR_3} ${CTM_IRR_1}"
 flist4="${CTM_IRR_2} ${CTM_IRR_3} ${CTM_DEPV_FST} ${CTM_DEPV_MOS} ${CTM_DRY_DEP_FST} ${CTM_DRY_DEP_MOS}"
-flist="${flist1} ${flist2} ${flist3} ${flist4}"
+
+if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+   export   CTM_PT3D_DIAG=${DATA}/PT3D.${CTM_APPL} 
+   flist5="${CTM_PT3D_DIAG}"
+   flist="${flist1} ${flist2} ${flist3} ${flist4} ${flist5}"
+else
+   flist="${flist1} ${flist2} ${flist3} ${flist4}"
+fi
 
 unalias rm
 
@@ -816,6 +825,29 @@ if [ "${SENDCOM}" = "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.$
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc"
       fi
    fi
+   if [ "${FLAG_POINT_EMIS_OUT}" == "YES" ]; then
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ${COMOUT}/aqm.${cycle}.cmv_c1c2_12.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ${COMOUT}/aqm.${cycle}.cmv_c3_12.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ${COMOUT}/aqm.${cycle}.ptegu.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ${COMOUT}/aqm.${cycle}.ptnonipm.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ${COMOUT}/aqm.${cycle}.pt_oilgas.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ${COMOUT}/aqm.${cycle}.othpt.ncf
+      fi
+   fi
+   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+      mv ${DATA}/PT3D.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.pt3d.ncf 
+   fi
 fi
 if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${CTM_APPL} ]; then
    mv ${DATA}/CONC.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.conc_r.ncf
@@ -844,6 +876,29 @@ if [ "${SENDCOM}" = "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${C
       if [ "${FLAG_WF_ON}" == "YES" ]; then
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc"
       fi
+   fi
+   if [ "${FLAG_POINT_EMIS_OUT}" == "YES" ]; then
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c1c2_12_r.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c3_12_r.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.ptegu_r.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.ptnonipm_r.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.pt_oilgas_r.ncf
+      fi
+      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.othpt_r.ncf
+      fi
+   fi
+   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+      mv ${DATA}/PT3D.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.pt3d_r.ncf 
    fi
 fi
 
