@@ -818,31 +818,31 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc ]; then
-      mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+      mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
    else
       if [ "${FLAG_WF_ON}" == "YES" ]; then
-         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc"
+         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi
    if [ "${FLAG_POINT_EMIS_OUT}" == "YES" ]; then
-      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ${COMOUT}/aqm.${cycle}.cmv_c1c2_12.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.cmv_c1c2_12.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ${COMOUT}/aqm.${cycle}.cmv_c3_12.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.cmv_c3_12.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ${COMOUT}/aqm.${cycle}.ptegu.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.ptegu.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ${COMOUT}/aqm.${cycle}.ptnonipm.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.ptnonipm.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ${COMOUT}/aqm.${cycle}.pt_oilgas.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.pt_oilgas.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ${COMOUT}/aqm.${cycle}.othpt.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.othpt.ncf
       fi
    fi
    if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
@@ -870,31 +870,31 @@ if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_2_r.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_3_r.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc ]; then
-      mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+      mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
    else
       if [ "${FLAG_WF_ON}" == "YES" ]; then
-         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CFG}.nc"
+         echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi
    if [ "${FLAG_POINT_EMIS_OUT}" == "YES" ]; then
-      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c1c2_12_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C1C2_12_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c1c2_12_r.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c3_12_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_CMV_C3_12_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.cmv_c3_12_r.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.ptegu_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PTEGU_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTEGU_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.ptegu_r.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.ptnonipm_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PTNONIPM_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PTNONIPM_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.ptnonipm_r.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.pt_oilgas_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_PT_OILGAS_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.pt_oilgas_r.ncf
       fi
-      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ]; then
-         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CFG}.nc ${COMOUTm1}/aqm.${cycle}.othpt_r.ncf
+      if [ -s ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ]; then
+         mv ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.othpt_r.ncf
       fi
    fi
    if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
