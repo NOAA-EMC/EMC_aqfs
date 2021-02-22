@@ -162,7 +162,7 @@ fi
 if [ -s ${grib2_gvf} ]; then         ## sanitary check
    echo "Found GVF input file - ${grib2_gvf}"
 else
-   echo "Fatal Eeeor - Can not find VIIRS Green Vegetation fraction file ${grib2_gvf}"
+   echo "Fatal Error - Can not find VIIRS Green Vegetation fraction file ${grib2_gvf}"
    err=888
    err_chk
 fi
@@ -183,6 +183,10 @@ if [ ! -s ${NACC_GVF_IN} ]; then
     err_chk
 else
     echo "Found CMAQ GVF input file - ${NACC_GVF_IN}"
+fi
+
+if [ ! -s ${EMISpath}/gfs.geo.${SMM}.nc ]; then
+   err_exit "Fatal Error - Can not find ${EMISpath}/gfs.geo.${SMM}.nc, that is critical for a successul CMAQ FCST simulation"
 fi
 #
 cat>namelist.mcip<<!
