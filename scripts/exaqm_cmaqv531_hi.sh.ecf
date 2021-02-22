@@ -738,18 +738,16 @@ export   CTM_APMDIAG_1=${DATA}/APMDIAG.${CTM_APPL}     #> Hourly Avg. Particle D
 export        CTM_RJ_1=${DATA}/RJ_1.${CTM_APPL}
 export        CTM_RJ_2=${DATA}/RJ_2.${CTM_APPL}
 export        CTM_RJ_3=${DATA}/RJ_3.${CTM_APPL}
+
+if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+   export   CTM_PT3D_DIAG=${DATA}/PT3D.${CTM_APPL} 
+fi
+
 flist1="${CTM_CONC_1} ${S_CGRID} ${A_CONC_1} ${CTM_DRY_DEP_1} ${CTM_DEPV_DIAG} ${CTM_PT3D_DIAG}"
 flist2="${B3GTS_S} ${SOILOUT} ${CTM_WET_DEP_1} ${CTM_WET_DEP_2} ${CTM_VIS_1} ${CTM_DIAM_1} ${CTM_RJ_1}"
 flist3="${CTM_RJ_2} ${CTM_SSEMIS_1} ${CTM_DUST_EMIS_1} ${CTM_IPR_1} ${CTM_IPR_2} ${CTM_IPR_3} ${CTM_IRR_1}"
 flist4="${CTM_IRR_2} ${CTM_IRR_3} ${CTM_DEPV_FST} ${CTM_DEPV_MOS} ${CTM_DRY_DEP_FST} ${CTM_DRY_DEP_MOS}"
-
-if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
-   export   CTM_PT3D_DIAG=${DATA}/PT3D.${CTM_APPL} 
-   flist5="${CTM_PT3D_DIAG}"
-   flist="${flist1} ${flist2} ${flist3} ${flist4} ${flist5}"
-else
-   flist="${flist1} ${flist2} ${flist3} ${flist4}"
-fi
+flist="${flist1} ${flist2} ${flist3} ${flist4}"
 
 unalias rm
 
