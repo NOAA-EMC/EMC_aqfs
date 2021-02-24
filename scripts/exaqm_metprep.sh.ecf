@@ -153,40 +153,39 @@ if [ "${grib2_gvf}" == "" ]; then                   ## if no GVF files found for
    done
    grib2_gvf=`tail tlist`
    if [ "${grib2_gvf}" == "" ]; then
-      echo "Fatal Error - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
-      err=777
-      err_chk
+      echo "Error WARNING - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
    fi
 fi
 
-if [ -s ${grib2_gvf} ]; then         ## sanitary check
+if [ "${grib2_gvf}" != "" ] && [ -s ${grib2_gvf} ]; then         ## sanitary check
    echo "Found GVF input file - ${grib2_gvf}"
+
+   ln -s ${grib2_gvf} DCOM_GVF_FILE    ## link DCOM file to $DATA local filename
+
+   nacc_gvf_prefix="nacc_gvf"
+   NACC_GVF_IN=${nacc_gvf_prefix}.nc
+
+   ${USHaqm}/viirsgrib2nc4.py -v -f DCOM_GVF_FILE -o ${nacc_gvf_prefix} -x ${WGRIB2}
+
+   if [ -s ${NACC_GVF_IN} ]; then
+      echo "Found CMAQ GVF input file - ${NACC_GVF_IN}"
+   else
+      echo "ERROR WARNING *** Can not find ${NACC_GVF_IN} after using ${grib2_gvf}"
+      NACC_GVF_IN="no_file"
+   fi
 else
-   echo "Fatal Error - Can not find VIIRS Green Vegetation fraction file ${grib2_gvf}"
-   err=888
-   err_chk
+   echo "Error WARNING - GFS encoded Green Vegetation Fraction file will be used"
+   NACC_GVF_IN="no_file"
 fi
 
-ln -s ${grib2_gvf} DCOM_GVF_FILE    ## link DCOM file to $DATA local filename
-#
-# output filename is -o option+".nc" by viirsgrib2nc4.py
-# WGRIB2 need to be defined by "module load grib_util/$version" in topest ecf script
-#
-echo "before viirsgrib2nc4.py, wgrib2=${WGRIB2}"
-nacc_gvf_prefix="nacc_gvf"
-${USHaqm}/viirsgrib2nc4.py -v -f DCOM_GVF_FILE -o ${nacc_gvf_prefix} -x ${WGRIB2}
-NACC_GVF_IN=${nacc_gvf_prefix}.nc
-# 
-if [ ! -s ${NACC_GVF_IN} ]; then
-    echo "WARNING *** Can not find ${NACC_GVF_IN}"
-    err=999
-    err_chk
+GEO_NC=${EMISpath}/gfs.geo.${SMM}.nc
+if [ -s ${GEO_NC} ]; then
+   GEO_MONTHLY=${GEO_NC}
 else
-    echo "Found CMAQ GVF input file - ${NACC_GVF_IN}"
-fi
-
-if [ ! -s ${EMISpath}/gfs.geo.${SMM}.nc ]; then
-   err_exit "Fatal Error - Can not find ${EMISpath}/gfs.geo.${SMM}.nc, that is critical for a successul CMAQ FCST simulation"
+   ## 2021 indicates the year that static files being updated, need to updated year information
+   ## in next implementation process if it WILL BE replaced
+   GEO_MONTHLY=${FIXaqm}/geo_static_${SMM}_2021.nc
+   echo "ERROR WARNING - Can not find ${GEO_NC}. Static file ${GEO_MONTHLY} is used"
 fi
 #
 cat>namelist.mcip<<!
@@ -194,7 +193,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = './gfs.${cycle}.atmf','.nc'
   file_sfc   = './gfs.${cycle}.sfcf','.nc'
-  file_geo   = '${EMISpath}/gfs.geo.${SMM}.nc'
+  file_geo   = '${GEO_MONTHLY}'
   file_viirs_gvf = '${NACC_GVF_IN}'
   file_viirs_lai = 'no_file'
   ioform     =  1
