@@ -2,8 +2,8 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_cmaq_maxi.sh
-# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
+# Script name:         exaqm_post_o3_bicor_cs.sh.ecf
+# Script description:  CMAQ post processing for bias-correction daily surface maximum O3/PM2.5
 #
 # Author:  Jianping Huang 06/29/2015 
 #  8/14/2017

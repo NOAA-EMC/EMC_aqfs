@@ -2,7 +2,7 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_post1_5xozconnmmb.sh
+# Script name:         exaqm_post1_cb6r3_hi.sh.ecf
 # Script description:  Run CMAQ post processing 
 #
 # Author:  Marina Tsidulko and Pius Lee  Org: NP22  Date: 2004-03-31
@@ -213,13 +213,13 @@ fi
        export FORT11=aqm.t${cyc}z.ave_${hr}hr_o3.196.grib2
        export FORT12="filesize"
        export FORT31=
-       export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
+       export FORT51=grib2.t${cyc}z.awp${RUN}ozconnmmb_aqm_${hr}.temp
        ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.196
        export err=$?;err_chk
 #
-       echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
+       echo `ls -l grib2.t${cyc}z.awp${RUN}ozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export FORT11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
+       export FORT11=grib2.t${cyc}z.awp${RUN}ozconnmmb_aqm_${hr}.temp
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.196.grib2
@@ -251,6 +251,7 @@ fi
 #########################################
    cp -rp ${DATA}/aqm.t${cyc}z.grib2_${RUN}pm25nmmb.196  ${COMOUT}/
 
+   ## file aqm.t${cyc}z.grib2_${RUN}pm25nmmb.196 is aqm.t${cyc}z.ave_1hr_pm25.196.grib2
    echo 0 > filesize
    export XLFRTEOPTS="unit_vars=yes"
    export FORT11=aqm.t${cyc}z.grib2_${RUN}pm25nmmb.196
