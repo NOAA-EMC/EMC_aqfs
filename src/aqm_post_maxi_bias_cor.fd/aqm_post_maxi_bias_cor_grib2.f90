@@ -475,7 +475,7 @@ program aqm_post_maxi_bias_cor_grib2
 !    idrstmpl(4)=15          ! Decimal scale factor
       idrstmpl(5)=0         !
       idrstmpl(6)=1         !
-      idrstmpl(7)=1         ! Missing value management used (see Code Table 5.5)
+      idrstmpl(7)=0         ! Missing value management used (see Code Table 5.5)
       idrstmpl(8)=0         ! Primary missing value substitute
       idrstmpl(9)=0         ! Secondary missing value substitute
       idrstmpl(11)=0        !
