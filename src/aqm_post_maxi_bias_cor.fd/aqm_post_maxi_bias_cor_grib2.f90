@@ -587,12 +587,18 @@ program aqm_post_maxi_bias_cor_grib2
         !! Ho-Chun Huang nowtime8=11-icyc+(mday-1)*24 !! update from GIT code to match current PROD time range
         !! Ho-Chun Huang nowtime8=12-icyc+(mday-1)*24 !! change to be consistent to raw post from GIT
             nowtime8=11-icyc+(mday-1)*24 !! update from GIT code to match current PROD time range
-            ipdstmpl(19)=markutc+8-1+(mday-1)*24
-            if ( mday .eq. total_day .and. icyc .eq. 6 ) then
-               ipdstmpl(19)=11-5
-            else
-               ipdstmpl(19)=11   ! used to be 12
+            ipdstmpl(19)=markutc+8-1
+            if ( mday .eq. 3 .and. icyc .lt. 7 ) then
+               ipdstmpl(19)=ihour
             end if
+            if ( mday .eq. 2 ) then
+               ipdstmpl(19)=ihour
+            endif
+            !! if ( mday .eq. total_day .and. icyc .eq. 6 ) then
+            !!    ipdstmpl(19)=11-5
+            !! else
+            !!    ipdstmpl(19)=11   ! used to be 12
+            !! end if
 !! print *,"=====================TESTING TESTING ================================"
 !! print *,"mday, ipdstmpl(9) , nowtime8    =", mday, ipdstmpl(9), nowtime8
 !! print *,"mday, ipdstmpl(19), ipdstmpl(27)=", mday, ipdstmpl(19), ipdstmpl(27)
@@ -602,7 +608,7 @@ program aqm_post_maxi_bias_cor_grib2
 !! Ho-Chun Huang Nov 26 2019, Jainping's PARA13 code use markutc-1
 !jp         ipdstmpl(19)=markutc-1
 !hc            ipdstmpl(19)=markutc
-            ipdstmpl(19)=markutc-1
+            ipdstmpl(19)=markutc
          else
             nowtime8=5-icyc+(mday-1)*24
             ipdstmpl(19)=markutc-1
@@ -610,6 +616,10 @@ program aqm_post_maxi_bias_cor_grib2
          endif
 
          ipdstmpl(9)= nowtime8
+          !! Add it back for cmaq.v5.1.9 code
+          !! if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. 3 ) then
+          !!   ipdstmpl(19)=icyc
+          !! endif
 !! Ho-Chun Huang Nov 26 2019, Jainping's PARA13 code comment out this section
 !!         if ( varlist(L).eq.'O3_8h_max' .and. mday .eq. total_day ) then
 !!          ipdstmpl(19)=icyc

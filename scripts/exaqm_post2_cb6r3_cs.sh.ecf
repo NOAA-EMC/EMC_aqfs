@@ -80,6 +80,10 @@ export CHEM3D=${OUTFILE}
 export METCRO3D=${INFILE2}
 export METCRO2D=${INFILE4}
 
+startmsg
+$USHaqm/aqm_subset.sh -s "PM25_TOTDZ PM25_ECOCDZ" ${CHEM3D} aqm.${cycle}.conc_col.ncf >> $pgmout 2>errfile
+export err=$?;err_chk
+
 ## n_durhr seems no longer be used
 case ${cyc} in
  00) export n_durhr=7;;
@@ -117,6 +121,11 @@ if [ "${SENDCOM}" == "YES" ]; then
       mv ${DATA}/aqm.${cycle}.chem_sigma.f${fhr}.${id_grib}.grib2 ${COMOUT}/
       ((ic++))
    done
+   if [ -s aqm.${cycle}.conc_col.ncf ]; then
+      mv aqm.${cycle}.conc_col.ncf  ${COMOUT}/
+   else
+      echo "Can not find aqm.${cycle}.conc_col.ncf"
+   fi
 fi
 
 msg='ENDED NORMALLY.'

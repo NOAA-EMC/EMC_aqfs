@@ -775,6 +775,16 @@ NS=`echo ${NSTEPS} |cut -c1-2`
 msg="Starting CMAQ Forecast at F00 out to F${NS}"
 postmsg "${jlogfile}" "${msg}"
 
+##
+## Soft link CONC and ACONC for POST processing in the middle of run
+##
+if [ "${FCST}" == "YES" ]; then
+   ln -s ${DATA}/CONC.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.conc.ncf
+   ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
+   ln -s ${DATA}/PMDIAG.${CTM_APPL}     ${COMOUT}/aqm.${cycle}.pmdiag.ncf
+   ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
+fi
+
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM

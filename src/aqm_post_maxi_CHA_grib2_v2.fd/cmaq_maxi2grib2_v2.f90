@@ -553,36 +553,46 @@
 
        ipdstmpl(9)=nowtime8
 
-
        call nextime(nowdate8,nowtime, 240000)
-
 
        nowdate=nowdate8
        call daymon(nowdate,imonth,idate)
 !       nowdate=nowdate81
 
+! Suggest future code replacement for line after ipdstmpl(18)=idate
+!       m_test=mday*24+markutc
+!       if  (varlist(L).eq.'o3_8hr' ) then
+!          if (m_test .gt. ksteps .and. icyc .le. 7 ) then
+!             ipdstmpl(19)=11-5
+!          else
+!             ipdstmpl(19)=11   ! used to be 12
+!          endif
+!       else
+!          ipdstmpl(19)=markutc-1
+!       endif
+
        ipdstmpl(16)=int(nowdate/1000)           !  Year
        ipdstmpl(17)=imonth                      !  Month
        ipdstmpl(18)=idate                       !  Date
        m_test=mday*24+markutc
+!! because NDGD graphic program is looking for exact end time.  It currently can only plot two days
+!! simply nudging the number to make 1st and 2nd day end time in consistent with PROD
        if  (varlist(L).eq.'o3_8hr' ) then 
-!        ipdstmpl(19)=markutc+8-1+(mday-1)*24          !  Forecast hour
-        if (m_test .gt. ksteps .and. icyc .le. 7 ) then 
-         ipdstmpl(19)=11-5
-!        print*,"h22=","mday=",mday,"ipdstmpl(19)=",ipdstmpl(19)
-	else
-          ipdstmpl(19)=11   ! used to be 12
-        endif
+         ipdstmpl(19)=markutc+8-1               !  Forecast hour
+         if (m_test .gt. ksteps .and. icyc .lt. 7 ) then 
+            ipdstmpl(19)=6
+         end if
+         if ( mday .eq. 2 ) then
+            ipdstmpl(19)=time1_end
+         endif
        else
-!        ipdstmpl(19)=markutc
-        ipdstmpl(19)=markutc-1
+        ipdstmpl(19)=markutc
+!        ipdstmpl(19)=markutc-1
        endif
- 
-
+       if ( varlist(L).eq.'o3_8hr' .and. mday .eq. 3 ) then
+         ipdstmpl(19)=time1_end
+       endif
 !
-!jp       if ( varlist(L).eq.'o3_8hr' .and. mday .eq. 2 ) then
-!jp         ipdstmpl(19)=time1_end
-!jp       endif
 
 !       do L=1,nspecies
 
@@ -627,7 +637,7 @@
         ipdstmpl(2)=201       ! daily 8-hour average O3
         ipdstmpl(24)=0        ! ave 
         m_test1=mday*24+markutc-1
-       if (m_test1 .ge. ksteps .and. icyc .le. 7  ) then
+        if (m_test1 .ge. ksteps .and. icyc .le. 7  ) then
          !! ipdstmpl(27)=18      !! change to be consistent to that from GIT
          ipdstmpl(27)=19      !! update from GIT code to match current PROD time range
        else

@@ -218,6 +218,7 @@
       nowsdate=sdate3d
       nowstime=stime3d
       maxrec1=mxrec3d
+       print*,'in aqm_cmaq2grib2_v3.f90 mxrec3d == ', mxrec3d
 
 
       istime(1)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
