@@ -1,14 +1,14 @@
-#BSUB -J %E%aqm_forecast_conus_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -J %E%aqm_post_o3_bicor_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_post_o3_bicor_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_post_o3_bicor_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q %QUEUE%
-#BSUB -M 3000
 #BSUB -cwd /tmp
-#BSUB -W 01:50
+#BSUB -W 01:30
+#BSUB -M 3000
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
-#
+
 %include <head.h>
 %include <envir-xc40.h>
 
@@ -16,36 +16,29 @@
 model=cmaq
 %include <model_ver.h>
 
+export NODES=1
+export IOBUF_PARAMS="12M:verbose"
+
 set -x
+
+export cyc=%CYC%
 
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
 module load PrgEnv-intel
 module load iobuf/${iobuf_ver}
+module load grib_util/${grib_util_ver}
 module list
 
-export NODES=24
-export IOBUF_PARAMS="12M:verbose"
+export OMP_STACKSIZE=20000000
 
-ulimit -s unlimited
-
-export cyc=%CYC%
-export FCST=YES
-
-${HOMEcmaq}/jobs/JAQM_FORECAST_CS
-
-if [ $? -ne 0 ]; then
-   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
-   ecflow_client --abort
-   exit
-fi
-
+${HOMEcmaq}/jobs/JAQM_POST_O3_BICOR_CS
 
 %include <tail.h>
 %manual
 ######################################################################
 #
-#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
+#  PURPOSE:  To execute the job that runs the AQM CONUS postprocessing.
 #
 ######################################################################
 

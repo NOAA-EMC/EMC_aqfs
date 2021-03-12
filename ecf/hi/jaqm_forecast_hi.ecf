@@ -1,14 +1,16 @@
-#BSUB -J %E%aqm_forecast_conus_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -J %E%aqm_forecast_hi_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_hi_%CYC%.o%J
 #BSUB -L /bin/sh
+##BSUB -n 16
+##BSUB -R span[ptile=8]
 #BSUB -q %QUEUE%
-#BSUB -M 3000
 #BSUB -cwd /tmp
-#BSUB -W 01:50
+#BSUB -W 00:50
+#BSUB -M 3000
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
-#
+
 %include <head.h>
 %include <envir-xc40.h>
 
@@ -18,21 +20,19 @@ model=cmaq
 
 set -x
 
-. /opt/modules/default/init/ksh
 module unload PrgEnv-cray
-module load PrgEnv-intel
+module load PrgEnv-intel/${intel_ver}
 module load iobuf/${iobuf_ver}
 module list
 
-export NODES=24
+export NODES=1
 export IOBUF_PARAMS="12M:verbose"
-
-ulimit -s unlimited
 
 export cyc=%CYC%
 export FCST=YES
 
-${HOMEcmaq}/jobs/JAQM_FORECAST_CS
+# CALL executable job script here
+${HOMEcmaq}/jobs/JAQM_FORECAST_HI
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
@@ -40,12 +40,11 @@ if [ $? -ne 0 ]; then
    exit
 fi
 
-
 %include <tail.h>
 %manual
 ######################################################################
 #
-#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
+#  PURPOSE:  To execute the job that runs CMAQ Forecast for Hawaii.
 #
 ######################################################################
 
