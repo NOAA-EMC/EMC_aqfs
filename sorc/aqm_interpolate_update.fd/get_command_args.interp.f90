@@ -13,25 +13,25 @@
 ! 2014-jun-23	Echo command arguments to console.
 ! 2014-jul-23	Fix program name in error message.
 !
+! 2019-may-16	Add third command line argument, number of forecast hours.
+!
 ! Sample commands:
 !
-! ./interpolate_update config.interp.0424 12z 20140515 20140529 diag=4
-! ./bias_correct       config.main.0529   12z 20140515 20140529 diag=4
+! ./interpolate_update config.interp.0424 12z 48 20140515 20140529 diag=4
+! ./bias_correct       config.main.0529   12z 48 20140515 20140529 diag=4
 !
-! The first four arguments are required.  The fifth argument is
+! The first five arguments are required.  The sixth argument is
 ! an optional keyword argument.
 !
 ! Notes:
 !
-! This routine is shared by main programs bias_correct and
-! interpolate_update in the CMAQ bias correction system.
-! Coincidentally, both programs currently have exactly the same
-! command line argument structure.
+! This routine is called by interpolate_update.f90 to read the
+! command line arguments.
 !
 ! In addition to the main command arguments, base_year is returned
-! to the main program.  This is to be used as the reference year
+! to the calling program.  This is to be used as the reference year
 ! for all date indices within the current run.  This is a system
-! for linear time indexing on the real-world calendar.
+! for simple linear date indexing on the real-world calendar.
 !
 ! base_year is arbitrarily chosen to be the year that includes the
 ! specified start date.  This ensures that all date indices within
@@ -43,7 +43,7 @@ module get__command_args
 contains
 
 subroutine get_command_args (prog_name, calendar, config_file, cycle_time, &
-      start_date, end_date, base_year, diag)
+      nhours_spec, start_date, end_date, base_year, diag)
 
    use date__index
    use string_utils
@@ -54,6 +54,7 @@ subroutine get_command_args (prog_name, calendar, config_file, cycle_time, &
 
    character(*), intent(  out) :: config_file
    integer,      intent(  out) :: cycle_time
+   integer,      intent(  out) :: nhours_spec
    integer,      intent(  out) :: start_date, end_date
    integer,      intent(  out) :: base_year
    integer,      intent(inout) :: diag		! set diag to desired default
@@ -61,7 +62,7 @@ subroutine get_command_args (prog_name, calendar, config_file, cycle_time, &
 
 ! Local variables.
 
-   character(20) cycle_str, start_date_str, end_date_str
+   character(20) cycle_str, nhours_str, start_date_str, end_date_str
    character(40) diag_str
 
    integer ios, ndays
@@ -73,32 +74,33 @@ subroutine get_command_args (prog_name, calendar, config_file, cycle_time, &
 
    call get_command_argument (1, config_file)
    call get_command_argument (2, cycle_str)
-   call get_command_argument (3, start_date_str)
-   call get_command_argument (4, end_date_str)
-   call get_command_argument (5, diag_str)
+   call get_command_argument (3, nhours_str)
+   call get_command_argument (4, start_date_str)
+   call get_command_argument (5, end_date_str)
+   call get_command_argument (6, diag_str)
 
 ! Echo arguments for log file.
 
    if (diag >= 1) then
       print *
       print '(2a)', 'Command line arguments:'
-      print '(2a)', '  Config file = ', trim (config_file)
-      print '(2a)', '  Cycle time  = ', trim (cycle_str)
-      print '(2a)', '  Start date  = ', trim (start_date_str)
-      print '(2a)', '  End date    = ', trim (end_date_str)
-      print '(2a)', '  Diag level  = ', trim (diag_str)
-      print *
+      print '(2a)', '  Config file    = ', trim (config_file)
+      print '(2a)', '  Cycle time     = ', trim (cycle_str)
+      print '(2a)', '  Forecast hours = ', trim (nhours_str)
+      print '(2a)', '  Start date     = ', trim (start_date_str)
+      print '(2a)', '  End date       = ', trim (end_date_str)
+      print '(2a)', '  Diag level     = ', trim (diag_str)
    end if
 
 ! Check number of arguments.
 
    if (end_date_str == ' ') then
       print *, '*** get_command_args: Abort, missing command arguments.'
-      print *, '*** Four arguments are needed, the fifth is optional.'
+      print *, '*** Five arguments are needed, the sixth is optional.'
       print *, '*** Usage: ./' // trim (prog_name) &
-        // ' config-file cycle-time-Z start-date end-date diag=N'
+        // ' config-file cycle-time-Z nhours start-date end-date diag=N'
       print *, '*** E.g.:  ./' // trim (prog_name) &
-        // ' config.interp.zeus.0422 12Z 20140101 20140422'
+        // ' config.interp.theia.0422 12Z 48 20140101 20140422'
       call exit (1)
    end if
 
@@ -109,12 +111,23 @@ subroutine get_command_args (prog_name, calendar, config_file, cycle_time, &
    valid = any (cycle_str == (/ '00z', '06z', '12z', '18z' /) )
    						! only valid cycles allowed
    if (.not. valid) then
-      print *, '*** get_command_args: Abort, invalid cycle time.'
-      print *, '*** Must be 00Z, 06Z, 12Z, or 18Z.  Must be two digits plus "Z".'
+      print *,'*** get_command_args: Abort, invalid cycle time.'
+      print *,'*** Must be 00Z, 06Z, 12Z, or 18Z.  Must be two digits plus "Z".'
       call exit (1)
    end if
 
-   call string_to_intu (cycle_str(1:2), cycle_time)   ! string to integer
+   call string_to_intu (cycle_str(1:2), cycle_time) ! conv. to unsigned integer
+
+! Validate number of forecast hours, and convert to integer.
+
+   call string_to_intu (trim (nhours_str), nhours_spec)
+   					! returns negative for bad number
+
+   if (nhours_spec < 1) then		! catch zero, negative, and bad numbers
+      print *, '*** get_command_args: Abort, invalid number of forecast hours.'
+      print *, '*** Must be integer greater than zero.'
+      call exit (1)
+   end if
 
 ! Set the time line reference year to the first specified year.
 

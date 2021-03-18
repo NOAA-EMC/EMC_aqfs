@@ -9,6 +9,14 @@
 ! 2014-may-12	Adjust verbosity for 2 = sparse progress display.
 ! 2016-jan-12	Minor change to argument sequence in a library call.
 !
+! 2019-may-21	File format changes:
+!		* Interpolated files now contain varying forecast hours
+!		  for different variables, mirroring the source data.
+!		* Add nhours_valid attribute for number of valid forecast
+!		  hours for each variable.
+!		* Add missing_value attribute for each variable.
+!		  Used mainly for padding at end of valid forecast hours.
+!
 ! This routine writes a single Netcdf file for MET and CMAQ
 ! hourly forecast data, interpolated to discrete site locations.
 ! The output file contains one forecast cycle, and multiple
@@ -16,6 +24,15 @@
 !
 ! This version does not overwrite existing files.  Attempting
 ! to overwrite will result in a fatal error.
+!
+! All output variables share the same forecast hours physical
+! time dimension.  Varying length variables are supported by the
+! "nhours_valid" input argument, and "nhours_valid" var attributes
+! in output files.
+!
+! On entry, input array "out_data" should be dimensioned to the
+! maximum number of forecast hours in actual use.  This is the
+! dimension size that will be written to the output file.
 !
 ! Error handling:
 !
@@ -29,7 +46,7 @@ module write__interp_netcdf
 contains
 
 subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
-      varnames, out_data, vmiss, diag)
+      varnames, nhours_valid, out_data, vmiss, program_id, diag)
 
    use netwrite3
    implicit none
@@ -41,15 +58,16 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
    real(dp),     intent (in) :: site_lats(:)	! site coordinates (S)
    real(dp),     intent (in) :: site_lons(:)
    character(*), intent (in) :: varnames(:)	! output var names (V)
+   integer,      intent (in) :: nhours_valid(:) ! # valid hours for each var (V)
    real,         intent (in) :: out_data(:,:,:)	! interpolated forecast data
   						!   (sites, vars, hours)
    real,         intent (in) :: vmiss		! missing value for output data
+   character(*), intent (in) :: program_id	! writer ID for history att.
    integer,      intent (in) :: diag		! verbosity level, 0-N
 
 ! Local parameters.
 
    character(*), parameter :: nomiss_char = ' '	! special codes for netwrite3:
-   real,         parameter :: no_missing = 0.0	! do not add missing value atts
    real(dp),     parameter :: nomiss_dbl = 0d0
 
    character(*), parameter :: no_long  = ' '	! special codes for netwrite3:
@@ -59,7 +77,7 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
 ! Tune for the maximum expected number of variables in one output file.
 ! Non-critical parameter.  If too small, file takes a little longer to write.
 
-   integer, parameter :: reserve_header = 1500
+   integer, parameter :: reserve_header = 2000
 
 ! Local variables.
 
@@ -79,7 +97,7 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
    if (diag >= 2) print '(2a)', ' Create file: ', trim (outfile)
 
    title   = 'Interpolated CMAQ and MET forecasts'
-   history = 'Created by interpolate_update.f90'
+   history = 'Created by ' // trim (program_id)
 
    call netcreate3 (outfile, title, history, reserve_header, ncid, diag=diag)
    						! history time stamp is added
@@ -115,7 +133,7 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
          // trim (varnames(vi))
 
       varexp = trim (varnames(vi)) // '(site, tstep)'	! define subscripts
-      call writevar (varexp, no_long, no_units, out_data(:,vi,:), no_missing)
+      call writevar (varexp, no_long, no_units, out_data(:,vi,:), vmiss)
 
 ! Compute range attribute for current variable.
 ! Assume at least one non-missing value in each sub-array.
@@ -128,6 +146,10 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
       if (diag >= 4) print '(2(a,f0.5))', '     Actual range = ',vmin,', ',vmax
 
       call write_var_att (varnames(vi), 'actual_range', (/ vmin, vmax /) )
+
+! Add nhours_valid attribute.
+
+      call write_var_att (varnames(vi), 'nhours_valid', nhours_valid(vi))
    end do
 
 ! Close output file properly.

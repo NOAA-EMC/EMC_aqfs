@@ -10,13 +10,15 @@
 ! 2017-may-12	New protocol, method name embedded in each filter routine.
 ! 2017-may-18	Comment fixes only.
 !
+! 2019-jun-18	Add output for best analog obs values, current forecast only.
+!
 !-----------------------------------------------------------------------------
 
 module filter__dispatch
 contains
 
 subroutine filter_dispatch (filter_method, obs, pred, vmiss, apar, fpar, &
-    kpar, pred_weights, isite, site_id, diag, filter_result)
+    kpar, pred_weights, isite, site_id, diag, filter_result, best_analogs_obs)
 
   use analog__ensemble,  only : apar_type
   use anenmean__method
@@ -38,7 +40,8 @@ subroutine filter_dispatch (filter_method, obs, pred, vmiss, apar, fpar, &
   character(*),    intent(in ) :: site_id 	     ! current site ID
   integer,         intent(in ) :: diag		     ! verbosity, 0=errors only
 
-  real(dp),        intent(out) :: filter_result(:,:) ! DH - bias corr. result
+  real(dp),        intent(out) :: filter_result(:,:)    ! DH - bias corr. result
+  real(dp),        intent(out) :: best_analogs_obs(:,:)	! HA - best analogs
 
   character fdate_str*24		! local variable
 
@@ -65,10 +68,12 @@ subroutine filter_dispatch (filter_method, obs, pred, vmiss, apar, fpar, &
 dispatch: do			! one-trip structure, for dispatching
 
     if (anenmean_method (filter_method, obs, pred, vmiss, apar, fpar, &
-      pred_weights, isite, site_id, diag, filter_result)) exit dispatch
+      pred_weights, isite, site_id, diag, filter_result, best_analogs_obs)) &
+      exit dispatch
 
     if (kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
-      pred_weights, isite, site_id, diag, filter_result)) exit dispatch
+      pred_weights, isite, site_id, diag, filter_result, best_analogs_obs)) &
+      exit dispatch
 
 ! Trap invalid method.
 

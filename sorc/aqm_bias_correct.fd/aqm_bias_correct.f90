@@ -33,6 +33,26 @@
 ! 2017-jun-05	Add support for obs blackout dates.
 ! 2017-jun-06	Add support for predictor weight generation by subsets.
 !
+! 2019-may-31	Add support for varying number of forecast hours per variable.
+!		Add option to compute vector fields after interpolation;
+!		  wind speed and direction in this case.
+!
+! 2019-jun-18	Extract best analogs from lower levels, for probability.
+! 2019-jul-05	Fix indexing bug in blackout_obs_data.f90 that caused crashes.
+! 2019-aug-07	Add probability forecasts module and options.
+! 2019-nov-20	Release version for ozone probability.
+!
+! 2020-feb-12	Bug fix for wind direction formula in compute_wind.f90.
+! 2020-may-14	Prevent use of retrospective future obs when generating weights.
+! 2020-may-26	Update config parameters for site weight generation.
+! 2020-jun-11	Add write_site_result_files.f90 with new test file format.
+! 2020-aug-05	Add linear regression method for probability forecasts.
+!		Reverse order, make hourly forecasts before probability.
+! 2020-nov-16	Fix support for search window wider than current forecast hour.
+!		Add support for asymmetric search window bounds.
+!
+! * Remember to update the program_id below.
+!
 ! Credits:
 !
 ! The filter component is the analog/Kalman filter for forecast
@@ -43,22 +63,35 @@
 ! in Fortran versions.
 !
 ! Core interpolation and spreading routines were developed by
-! Irina Djalalova and James Wilczak of NOAA/ESRL/PSD3.
+! Irina Djalalova and James Wilczak of NOAA/OAR/ESRL/PSD.
+!
+! Probability forecast module was developed by Tom Hamill and
+! Irina Djalalova of NOAA/OAR/ESRL/PSD, and others.
 !
 ! Primary inputs:
 !
 ! * Configuration file with data specs and other run parameters.
 ! * AIRNow obs data for target correction variable, for the extent
 !   of the training period.
-! * Model forecast data interpolated to station coordinates,
+! * CMAQ model forecast data interpolated to station coordinates,
 !   training period through target forecast cycle.  This is a data
-!   archive produced by the companion program "interpolate_update"..
+!   archive produced by the companion program "interpolate_update".
+! * CMAQ original gridded hourly forecasts for current forecast cycle.
+! * Coordinates and elevations on CMAQ grid.
 !
 ! Primary outputs:
 !
-! * Bias corrected 48-hour gridded forecast for the target variable.
+! * Bias corrected hourly gridded forecasts for the target variable.
+! * Gridded probability forecasts for the target variable.
 ! * Coordinate list for all sites currently validated by the
 !   quality control module.
+!
+! The two major outputs, bias corrected forecasts and probability
+! forecasts, are selected independently via their corresponding
+! output filename templates in the config file.  They may be run
+! together or separately.  There is some common processing, in
+! particular the primary data inputs and analog filter
+! calculations.
 !
 !------------------------------------------------------------------------------
 !
@@ -89,20 +122,22 @@
 !		  2 = brief progress, 3 and up = increasing details.
 !		  Caution, 6 and up generate huge outputs.
 !
-! gen_weights	  Generate new predictor weights file.
-!		  Caution, very long run time.
+! gen_weights	  Generate new predictor weights file (simple
+!		  keyword argument).  Caution, very long run time.
 !
-! weight1=N	  First and last weight set index numbers, for breaking
-! weight2=N	  up weight generation into weight subsets.
+! weight1=N	  First and last weight set index numbers, for
+! weight2=N	  breaking up weight generation into weight subsets.
 !
 ! Examples:
 !
-! ./bias_correct config.pm2.5.0612 12z 20140515 20140529
-! ./bias_correct config.pm2.5.0612 06z 20140515 20140612 diag=4
-! ./bias_correct config.pm2.5.0612 06z 20140515 20140612 gen_weights diag=3
+! ./bias_correct config.pm2.5.5pred 12z 20140515 20140529
+! ./bias_correct config.pm2.5.5pred 06z 20140515 20140612 diag=4
+! ./bias_correct config.pm2.5.5pred 06z 20140515 20140612 gen_weights diag=3
 !
 ! ./bias_correct config.ozone.gen 06z 20160701 20170331 \
 !                                     gen_weights weight1=101 weight2=150
+!
+! ./bias_correct config.ozone.probability 06z 20181115 20190807
 !
 !------------------------------------------------------------------------------
 
@@ -112,12 +147,16 @@ program bias_correct
    use analog__control
    use analog__ensemble,       only : apar_type
    use blackout__obs_data
+   use compute__wind,          only : dpar_type
    use config,                 only : dp
    use find__analog,           only : fpar_type
    use get__command_args
    use expand__filename
    use kf__luca,               only : kpar_type
    use index_to_date_mod
+   use print__library_info
+   use probability_mod
+   use probability_type,       only : prob_type
    use read__config_file_main
    use read__exception_list
    use read__grid_coords
@@ -129,9 +168,13 @@ program bias_correct
    use weight__control,        only : wpar_type
    use write__predictor_weights
    use write__site_list
+   use write__site_result_files
    use write__test_day_files
    use write__test_site_files
    implicit none
+
+   character(*), parameter :: &
+      program_id = 'bias_correct.f90 version 2020-nov-16'
 
 ! Local variables.
 
@@ -141,31 +184,35 @@ program bias_correct
    character(60)  title_varname
    character(24)  fdate_str
 
-   integer ndays, nhours, diag, cycle_time
+   integer ndays, nhours, diag, cycle_time, forecast_day_num
    integer start_date, training_end_date, forecast_date, base_year
    integer di, hi, vi, ndays_show
 
    real(dp) vmiss, standard_vmiss
 
-   logical ex
+   logical ex, enable_spreading
 
 ! Config file parameters.
 
    character(200) obs_file_template, interp_file_template
-   character(200) in_gridded_template, output_file_template
+   character(200) in_gridded_template
+   character(200) hourly_output_template, probability_output_template
    character(200) new_site_list_template, grid_coord_file
    character(200) pred_weight_file, site_exception_file
    character(60)  target_obs_var, target_model_var
    character(200) filter_method, output_limit_method
-   character(200) site_file_template, day_file_template
+   character(200) day_array_file_template
+   character(200) site_array_file_template, site_result_file_template
 
    integer obs_blackout_start(3), obs_blackout_end(3)
 
    logical stop_after_filter
 
-   type (apar_type) apar			! subsystem parameter structures
+   type (apar_type) apar		! subsystem parameter structures
+   type (dpar_type) dpar
    type (fpar_type) fpar
    type (kpar_type) kpar
+   type (prob_type) prob
    type (wpar_type) wpar
 
 ! Analog var table (config file).
@@ -194,15 +241,25 @@ program bias_correct
    real(dp), allocatable :: grid_lats(:,:)	   ! (X, Y)
    real(dp), allocatable :: grid_lons(:,:)
 
-! Target var, uncorrected and corrected data at site locations, forecast date.
+! Target var, uncorrected and corrected data at site locations & forecast date.
 
    real(dp), allocatable :: uncorr_sites(:,:)	   ! (hours, sites)
    real(dp), allocatable :: corr_sites(:,:)	   ! (hours, sites)
 
-! Target var, corrected data at site locations, all days in period.
-! For writing test files only.
+! Target var, corrected forecast values at site locations, all days in period.
+! For probability forecasts and diagnostics.
 
-   real(dp), allocatable :: filter_result_3d(:,:,:)   ! (days, hours, sites)
+   real(dp), allocatable :: filter_result_all(:,:,:)  ! (days, hours, sites)
+
+! Target var, best found analogs for current forecast, original obs values.
+! In ascending order, best analogs last (descending metrics).
+
+   real(dp), allocatable :: best_analogs_obs(:,:,:)   ! (hours, analogs, sites)
+
+! Target var, bias corrected forecast grids from spreading module.
+! For passing to probability modle when needed.
+
+   real(dp), allocatable :: corr_grids (:,:,:)	      ! (X, Y, hours)
 
 ! Site-specific predefined predictor weights.
 
@@ -232,6 +289,7 @@ program bias_correct
    print *, &
       '======================================================================='
    print '(2a)', fdate_str, '  bias_correct.f90: Start.'
+   print '(2a)', 'Program ID = ', program_id
 
 ! Set dynamic run parameters.
 
@@ -266,6 +324,10 @@ program bias_correct
       call exit (1)
    end if
 
+! Print library version information.
+
+   if (diag >= 2) call print_library_info
+
 !-----------------------------------------------------------------
 ! Read and process the configuration file.
 !-----------------------------------------------------------------
@@ -275,12 +337,14 @@ program bias_correct
    print '(2a)', fdate_str, '  Call read_config_file_main.'
 
    call read_config_file_main (config_file, obs_file_template, &
-      interp_file_template, in_gridded_template, output_file_template, &
+      interp_file_template, in_gridded_template, hourly_output_template, &
+      probability_output_template, &
       new_site_list_template, grid_coord_file, pred_weight_file, &
       site_exception_file, target_obs_var, target_model_var, analog_vars, &
-      filter_method, output_limit_method, site_file_template, &
-      day_file_template, stop_after_filter, obs_blackout_start, &
-      obs_blackout_end, apar, fpar, kpar, wpar)
+      filter_method, output_limit_method, site_array_file_template, &
+      site_result_file_template, &
+      day_array_file_template, stop_after_filter, obs_blackout_start, &
+      obs_blackout_end, apar, dpar, fpar, kpar, prob, wpar)
 
 !-----------------------------------------------------------------
 ! Consistency checks for weight generation.
@@ -322,7 +386,7 @@ program bias_correct
 ! Read grid coordinate file.
 !-----------------------------------------------------------------
 
-! Grid coordinates are needed needed for both QC and final output.
+! Grid coordinates are needed needed for the obs QC module.
 
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  Call read_grid_coords.'
@@ -393,6 +457,11 @@ program bias_correct
 ! Data for the target forecast date must be present for all given
 ! analog variables, to enable the bias correction process.
 !
+! Starting with version 2019 May 29, some interpolated analog
+! variables may optionally be computed on the fly.  Currently,
+! 10-meter wind speed and direction are computed from interpolated
+! U and V wind.
+!
 !---------------------------------------------------------------------
 
    print *, 'Read interpolated forecast data, all analog variables.'
@@ -400,11 +469,13 @@ program bias_correct
    print '(2a)', fdate_str, '  Call read_interp_forecasts.'
 
    call read_interp_forecasts (interp_file_template, analog_vars, start_date, &
-      forecast_date, base_year, cycle_time, standard_vmiss, diag, interp_ids, &
-      interp_lats, interp_lons, model_in)
+      forecast_date, base_year, cycle_time, dpar, standard_vmiss, diag, &
+      interp_ids, interp_lats, interp_lons, model_in)
 
-   ndays  = size (model_in, 1)			! (days, hours, vars, sites)
+   ndays  = size (model_in, 1)		! (days, hours, vars, sites)
    nhours = size (model_in, 2)
+
+   forecast_day_num = ndays		! forecast day = last day in model input
 
 !---------------------------------------------------------------------
 ! Align obs data with interpolated forecast arrays.
@@ -428,7 +499,7 @@ program bias_correct
       vi = 1				! dummy var subscript for obs
       ndays_show = min (ndays, 3)
       print *, trim (target_obs_var) // ':    (sample of obs reshaped array)'
-      print '(3i6, 5f10.2)', ((di, hi, vi, obs_reshaped(di, hi, vi, 1:5), &
+      print '(3i6, 5f12.4)', ((di, hi, vi, obs_reshaped(di, hi, vi, 1:5), &
          hi = 1, 3), di = 1, ndays_show)
       print *
    end if
@@ -460,8 +531,8 @@ program bias_correct
    call analog_control (filter_method, model_in, obs_reshaped, vmiss, &
       target_model_var, analog_vars, apar, fpar, kpar, wpar, pred_weights, &
       excep_thresh_low, excep_thresh_high, diag, interp_ids, interp_lats, &
-      interp_lons, uncorr_sites, corr_sites, filter_result_3d, &
-      new_weights, new_rmse)
+      interp_lons, uncorr_sites, corr_sites, filter_result_all, &
+      best_analogs_obs, new_weights, new_rmse)
 
    if (diag >= 3) print *, 'analog_control returned.'
 
@@ -483,13 +554,19 @@ program bias_correct
 ! Write intermediate test files, if selected.
 !-----------------------------------------------------------------
 
-   if (day_file_template /= 'none') &
-      call write_test_day_files  (day_file_template,  filter_result_3d, &
+   if (day_array_file_template /= 'none') &
+      call write_test_day_files (day_array_file_template, filter_result_all, &
          vmiss, cycle_time, diag, interp_ids, interp_lats, interp_lons)
 
-   if (site_file_template /= 'none') &
-      call write_test_site_files (site_file_template, filter_result_3d, &
+   if (site_array_file_template /= 'none') &
+      call write_test_site_files (site_array_file_template, filter_result_all, &
          vmiss, cycle_time, diag, interp_ids, interp_lats, interp_lons)
+
+   if (site_result_file_template /= 'none') &
+      call write_site_result_files (site_result_file_template, uncorr_sites, &
+         corr_sites, diag, forecast_day_num, forecast_date, base_year, &
+         calendar, cycle_time, analog_vars, filter_method, interp_ids, &
+         interp_lats, interp_lons)
 
 ! Check for early stop request.
 
@@ -501,23 +578,58 @@ program bias_correct
    end if
 
 ! Recover memory from large arrays, no longer needed.
-! Next step uses large arrays.
+! Output modules will need large arrays.
 
-   deallocate (model_in, obs_reshaped)
+! 2020-aug-3: Do not deallocate obs_reshaped, may be needed by regress_method.
+
+   deallocate (model_in)
 
 !---------------------------------------------------------------------
-! Spread bias corrections to forecast grids, and write output file.
+! Make spreading and corrected hourly forecasts, as needed.
 !---------------------------------------------------------------------
 
-   call fdate (fdate_str)
+   enable_spreading =      (hourly_output_template /= 'none') &
+                      .or. (prob%probability_method == 'linear regression')
+
+   if (.not. enable_spreading) then
+      if (diag >= 2) print *, '*** Hourly forecast outputs are suppressed.'
+
+   else
+      call fdate (fdate_str)
+      print '(2a)', fdate_str, '  Make corrected hourly forecast grids.'
+
+! Spread bias corrections to hourly forecast grids.
+! Write output file, if selected by the output template.
+
+      call spreading (in_gridded_template, grid_coord_file, &
+         hourly_output_template, target_model_var, output_limit_method, &
+         forecast_date, cycle_time, base_year, calendar, uncorr_sites, &
+         corr_sites, interp_lats, interp_lons, vmiss, diag, corr_grids)
+   end if
+
+!---------------------------------------------------------------------
+! Make probability forecasts, if selected.
+!---------------------------------------------------------------------
+
    print *
-   print '(2a)', fdate_str, '  Call spreading module.'
 
-   call spreading (in_gridded_template, grid_coord_file, &
-      output_file_template, target_model_var, output_limit_method, &
-      forecast_date, cycle_time, base_year, calendar, uncorr_sites, &
-      corr_sites, interp_lats, interp_lons, vmiss, diag)
+   if (probability_output_template == 'none') then
+      if (diag >= 2) print *, '*** Probability forecast outputs are suppressed.'
 
+   else
+      call fdate (fdate_str)
+      print '(2a)', fdate_str, '  Make probability forecasts.'
+
+! Make probability forecasts, and write output file.
+
+      call probability (in_gridded_template, grid_coord_file, &
+         probability_output_template, target_model_var, forecast_date, &
+         cycle_time, base_year, calendar, filter_result_all, &
+         best_analogs_obs, obs_reshaped(:,:,1,:), corr_grids, &
+         interp_lats, interp_lons, vmiss, prob, diag)
+   end if
+
+   print *
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  bias_correct.f90: Done.'
 

@@ -2,8 +2,8 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_post_o3_bicor_cs.sh.ecf
-# Script description:  CMAQ post processing for bias-correction daily surface maximum O3/PM2.5
+# Script name:         exaqm_cmaq_maxi.sh
+# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
 #
 # Author:  Jianping Huang 06/29/2015 
 #  8/14/2017
@@ -20,8 +20,17 @@ export pgm=aqm_cs_o3_bias_correct
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export id_grib=148
 
+case $cyc in
+ 00) export bc_interp_hr=06;;
+ 06) export bc_interp_hr=72;;
+# 12) export bc_interp_hr=72;;
+ 12) export bc_interp_hr=48;;
+ 18) export bc_interp_hr=06;;
+esac
+
 cd ${DATA}
 
+if [ "1" = "2" ] ; then
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 ic=1
@@ -71,14 +80,16 @@ fi
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
+fi
+
 startmsg
-${USHaqm}/aqm_bicor_o3_interp_cs.sh  >> $pgmout 2>errfile 
+${USHaqm}/aqm_bicor_o3_interp_cs.sh  >> $pgmout 2>errfile_interp 
 export err=$?; err_chk
 
 #-----------------------------------------------------------------------
 # STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
-${USHaqm}/aqm_bicor_o3_cs.sh 
+${USHaqm}/aqm_bicor_o3_cs.sh   
 export err=$?; err_chk
 
 #------------------------------------------------------------------------

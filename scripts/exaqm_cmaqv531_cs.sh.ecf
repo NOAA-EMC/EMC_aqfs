@@ -295,14 +295,17 @@ SPCS_3="ALVPO1J ASVPO1J ASVPO2J ASVPO3J APOCJ APNCOMJ ALVOO1J ALVOO2J ASVOO1J AS
 SPCS_4="ASVOO3J AOTHRJ AIVPO1J AISO1J AISO2J AISO3J AMT1J AMT2J AMT3J AMT4J AMT5J"
 SPCS_5="AMT6J AMTNO3J AMTHYDJ AGLYJ ASQTJ AORGCJ AOLGBJ AOLGAJ APCSOJ AAVB1J AAVB2J"
 SPCS_6="AAVB3J AAVB4J AFEJ ASIJ ATIJ ACAJ AMGJ AMNJ AALJ AKJ ASO4K ANO3K ANH4K ACLK"
-SPCS_7="ASOIL ACORS ASEACAT O3 NO NO2 CO NO3 N2O5 HONO HNO3 PNA CRON CLNO2"
+SPCS_7="ASOIL ACORS ASEACAT O3 NO NO2 NO3 N2O5 HONO HNO3 PNA CRON CLNO2"
+SPCS_8s="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR"
 SPCS_8="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR PAR ETHA PRPA MEOH ETH ETOH OLE ACET TOL"
 SPCS_9="XYLMN BENZENE FORM GLY KET ETHY ALD2 IOLE ALDX ISOP TERP NAPH APIN"
-export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
+## export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
+export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8s}"
 # export CONC_SPCS="ALL"
 # export CONC_BLEV_ELEV=" 1 1" #> CONC file layer range; comment to write all layers to CONC
 # export AVG_CONC_SPCS="ALL"
-export AVG_CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
+## export AVG_CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
+export AVG_CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8s}"
 export ACONC_BLEV_ELEV=" 1 1" #> ACONC file layer range; comment to write all layers to ACONC
 export AVG_FILE_ENDTIME=Y     #> override default beginning ACONC timestamp [ default: N ]
 
@@ -318,7 +321,7 @@ export CTM_ERODE_AGLAND=N    #> use agricultural activity for windblown dust [ d
 ## export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
-export CTM_WVEL=Y            #> save derived vertical velocity component to conc file [ default: N ]
+export CTM_WVEL=N            #> save derived vertical velocity component to conc file [ default: N ]
 export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
 export CTM_ILDEPV=Y          #> calculate in-line deposition velocities [ default: Y ]
 export CTM_MOSAIC=N          #> landuse specific deposition velocities [ default: N ]

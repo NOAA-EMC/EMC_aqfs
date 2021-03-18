@@ -3,8 +3,8 @@
 
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_post_pm25_bicor_cs.sh.ecf
-# Script description:  CMAQ post processing for bias_correction daily surface maximum O3/PM2.5
+# Script name:         exaqm_cmaq_maxi.sh
+# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
 #
 # Author:  Jianping Huang 06/29/2015 
 #  8/14/2017
@@ -21,7 +21,16 @@ export pgm=aqm_cs_pm25_bias_correct
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export id_grib=148
 
+case $cyc in
+ 00) export bc_interp_hr=06;;
+ 06) export bc_interp_hr=72;;
+ 12) export bc_interp_hr=72;;
+ 18) export bc_interp_hr=06;;
+esac
+
 cd ${DATA}
+
+if [ "1" = "2" ] ; then
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 
@@ -78,6 +87,8 @@ else
 
   cp ${DATA}/$f1 ${COMOUTbicor}/grid/${PDY}
   cp ${DATA}/$f3 ${COMOUTbicor}/grid/${PDY}
+fi
+
 fi
 
 fi
@@ -179,7 +190,6 @@ fi
 # STEP 6: adding WMO header  
 # Create AWIPS GRIB2 data for Bias-Corrected PM2.5
 ###################################################
-## file aqm.t${cyc}z.grib2_pm25_bc.227 is aqm.t${cyc}z.ave_1hr_pm25_bc.227.grib2
 if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
   echo 0 > filesize
   export XLFRTEOPTS="unit_vars=yes"

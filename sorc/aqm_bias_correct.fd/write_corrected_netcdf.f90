@@ -7,6 +7,7 @@
 !
 ! 2014-jul-09	Original version.  By Dave Allured.
 ! 2016-jan-12	Minor change to argument sequence in a library call.
+! 2019-may-18	Change output coordinate names to standard LAT and LON.
 !
 ! This routine writes a single Netcdf file for bias corrected
 ! gridded forecasts, for one forecast cycle.  Two data variables
@@ -126,11 +127,11 @@ subroutine write_corrected_netcdf (outfile, outvar, grid_lats, grid_lons, &
 
    if (diag >= 2) print *, '  Write grid coordinate variables.'
 
-   varexp = 'ROW' // grid_dims				! define subscripts
+   varexp = 'LAT' // grid_dims				! define subscripts
    call writevar (varexp, 'Latitude',  'degrees_north', real (grid_lats), &
       no_missing)
 
-   varexp = 'COL' // grid_dims
+   varexp = 'LON' // grid_dims
    call writevar (varexp, 'Longitude', 'degrees_east',  real (grid_lons), &
       no_missing)
 
@@ -143,20 +144,18 @@ subroutine write_corrected_netcdf (outfile, outvar, grid_lats, grid_lons, &
    vmax = maxval (real (grid_lats))
 
    fmt1 = '(2(a,f0.4))'
-   if (diag >= 2) print fmt1, '     ROW actual range (latitudes)  = ', vmin, &
-      ', ', vmax
+   if (diag >= 2) print fmt1, '     LAT actual range = ', vmin, ', ', vmax
 
-   call write_var_att ('ROW', 'actual_range', (/ vmin, vmax /) )
+   call write_var_att ('LAT', 'actual_range', (/ vmin, vmax /) )
 
 ! Longitude range attribute.
 
    vmin = minval (real (grid_lons))
    vmax = maxval (real (grid_lons))
 
-   if (diag >= 2) print fmt1, '     COL actual range (longitudes) = ', vmin, &
-      ', ', vmax
+   if (diag >= 2) print fmt1, '     LON actual range = ', vmin, ', ', vmax
 
-   call write_var_att ('COL', 'actual_range', (/ vmin, vmax /) )
+   call write_var_att ('LON', 'actual_range', (/ vmin, vmax /) )
 
 !-------------------------------------------------
 ! Write primary bias corrected forecast grids.
@@ -198,7 +197,7 @@ subroutine write_corrected_netcdf (outfile, outvar, grid_lats, grid_lons, &
 
 ! Write supplemental attributes.
 
-   call write_var_att (outvar, 'coordinates', 'ROW COL')    ! CF compliant
+   call write_var_att (outvar, 'coordinates', 'LAT LON')    ! CF compliant
 
 !-------------------------------------------------
 ! Write bias grids.
@@ -239,7 +238,7 @@ subroutine write_corrected_netcdf (outfile, outvar, grid_lats, grid_lons, &
 
 ! Write supplemental attributes.
 
-   call write_var_att (bias_var, 'coordinates', 'ROW COL')    ! CF compliant
+   call write_var_att (bias_var, 'coordinates', 'LAT LON')    ! CF compliant
 
 !-------------------------------------------------
 ! Close output file properly.

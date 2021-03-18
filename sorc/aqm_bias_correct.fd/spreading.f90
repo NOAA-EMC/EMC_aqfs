@@ -12,6 +12,15 @@
 ! 2016-jan-20	Rename main routine for name conflict with fortran intrinsic!
 ! 2016-feb-09	Add output_limit_method parameter.
 !
+! 2019-may-30	Interface change for read_gridded_vars.
+!		Add consistency checks for input file mismatch.
+!
+! 2020-aug-02	Return bias corrected forecast grids to calling program,
+!		  for other uses such as probability forecast.
+!		Add option to suppress writing output file, calculate only.
+!
+! * Remember to update the date in the module_id below.
+!
 ! This spreading module incorporates three major functions:
 !
 ! * Read raw gridded forecasts for a given forecast cycle.
@@ -31,6 +40,7 @@
 ! * Single bias corrected gridded file containing:
 !   1. Bias corrected grids for all forecast hours.
 !   2. Bias grids for all forecast hours.
+! * Bias corrected grids returned to calling program.
 !
 ! Notes:
 !
@@ -55,7 +65,7 @@ contains
 subroutine spreading (in_gridded_template, grid_coord_file, &
       output_file_template, target_var, output_limit_method, forecast_date, &
       cycle_time, base_year, calendar, uncorr_sites, corr_sites, site_lats, &
-      site_lons, vmiss, diag)
+      site_lons, vmiss, diag, corr_grids)
 
    use config, only : dp
    use expand__filename
@@ -65,6 +75,8 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    use stdlit, only : normal
    use write__corrected_netcdf
    implicit none
+
+   character(*), parameter :: module_id = 'spreading.f90 version 2020-aug-02'
 
 ! Input arguments.
 
@@ -87,6 +99,11 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    real(dp),     intent(in) :: vmiss		    ! common missing value code
    integer,      intent(in) :: diag		    ! diag verbosity level, 0-N
 
+! Output argument.
+
+   real(dp), allocatable, intent(out) :: corr_grids (:,:,:)  ! (X, Y, hours)
+						    ! bias corrected grids
+
 ! Local program parameter.
 
 ! Local assumption that all raw forecasts to be processed will be
@@ -98,12 +115,15 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 
 ! Local variables.
 
-   character fdate_str*24, fmt1*60, outfile*200
+   character fdate_str*24, fmt1*60, fmt2*60, outfile*200
 
-   integer year, month, day, nhours
+   integer year, month, day
+   integer nhours_expect, nhours_actual_max
    integer ivar, status
 
 ! Dynamic arrays.
+
+   integer,  allocatable :: nhours_actual(:)	    ! actual hours for input var
 
    real(dp), allocatable :: grid_lats(:,:)	    ! grid coordinates (X, Y)
    real(dp), allocatable :: grid_lons(:,:)
@@ -113,28 +133,29 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 						    ! note single precision here
    real(dp), allocatable :: bias_grids (:,:,:)	    ! output bias grids
 						    !   (X, Y, hours)
-   real(dp), allocatable :: corr_grids (:,:,:)	    ! bias corrected grids
-						    !   (X, Y, hours)
 
 !-------------------------------------------------------
 ! Read raw gridded forecast data for target variable.
 !-------------------------------------------------------
 
-   if (diag >= 3) print *, 'spreading: Begin spreading module.'
+   if (diag >= 2) print *
+   if (diag >= 2) print *, 'spreading: Begin spreading module.'
+   if (diag >= 2) print *, '  Module ID = ' // module_id
 
 ! Decode the date index for the current forecast cycle.
 
    call index_to_date (forecast_date, year, month, day, base_year, calendar)
       						! get current Y M D integers
 
-! Extract number of forecast hours from input array.
-! Reader needs this dim size due to variability across source files.
+! Get expected number of forecast hours before calling reader.
+! Actual forecast hours for target var in file should match exactly,
+! unless interpolated data set and gridded forecast file are mismatched.
 
-   nhours = size (uncorr_sites, 1)
+   nhours_expect = size (uncorr_sites, 1)
 
-! Utilize the same reader used by the interpolation program.
-! To include all possible file configurations, this routine also reads
-! the companion grid coordinates.
+! Utilize the same gridded reader used by the interpolation program.
+! To include all possible file configurations, this routine also
+! reads the companion grid coordinates.
 
 ! This routine reads forecast grids in the original single precision.
 ! Later they will be converted on the fly to doubles.
@@ -145,17 +166,40 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 
    call read_gridded_vars ( (/ target_var /), (/ reader_code /), &
       (/ in_gridded_template /), grid_coord_file, year, month, day, &
-      cycle_time, nhours, diag, uncorr_grids, grid_lats, grid_lons, status)
+      cycle_time, nhours_expect, real (vmiss), diag, uncorr_grids, &
+      nhours_actual, nhours_actual_max, grid_lats, grid_lons, status)
+      			! read single target var into 4-D (X, Y, [var], hours)
 
 ! Abort if raw forecast grids for target variable are not available.
+! Reader may have also printed some diagnostic details.
 
    if (status /= normal) then
       fmt1 = '(a,i0.4,3(1x,i0.2),"Z")'
-      print '(3a)', '*** spreading: Raw ', trim (target_var), &
-         ' forecast grids for target forecast cycle are not available.'
-      print fmt1,   '*** Target forecast cycle = ', year, month, day, cycle_time
-      print '(3a)', '*** Fatal, can not complete bias correction for this', &
-         ' forecast cycle.'
+      print *
+      print fmt1, '*** spreading: Raw ' // trim (target_var) &
+              // ' forecast grids for target forecast cycle are not available.'
+      print fmt1, '*** Target forecast cycle = ', year, month, day, cycle_time
+      print fmt1, '*** Fatal, can not complete bias correction for this' &
+                         // ' forecast cycle.'
+      call exit (1)
+   end if
+
+! Abort if forecast hour dimension sizes are mismatched.
+
+   if (  nhours_actual(1)  /= nhours_expect &
+    .or. nhours_actual_max /= nhours_expect) then
+      fmt1 = '(a,i0.4,3(1x,i0.2),"Z")'
+      fmt2 = '(a,i0)'
+      print *
+      print fmt1, '*** spreading: Inconsistent array sizes for forecast hours.'
+      print fmt2, '*** nhours_expect     = ', nhours_expect
+      print fmt2, '*** nhours_actual(1)  = ', nhours_actual(1)
+      print fmt2, '*** nhours_actual_max = ', nhours_actual_max
+      print fmt1, '*** Interpolated data set and current model files may be' &
+                         // ' mismatched .'
+      print fmt1, '*** Target forecast cycle = ', year, month, day, cycle_time
+      print fmt1, '*** Fatal, can not complete bias correction for this' &
+                         // ' forecast cycle.'
       call exit (1)
    end if
 
@@ -168,29 +212,36 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 
 ! Convert gridded input to double precision on the fly, for calculations.
 
-   ivar = 1				! index for target variable input grids
+   ivar = 1			! index for target variable input grids;
+   				! is 1 because only single var was just read
 
-   call spread_bias (dble (uncorr_grids(:,:,ivar,:)), uncorr_sites, &
-      corr_sites, grid_lats, grid_lons, site_lats, site_lons, vmiss, diag, &
-      output_limit_method, bias_grids, corr_grids)
+   call spread_bias (dble (uncorr_grids(:,:,ivar,1:nhours_actual(1))), &
+      uncorr_sites, corr_sites, grid_lats, grid_lons, site_lats, site_lons, &
+      vmiss, diag, output_limit_method, bias_grids, corr_grids)
 
 !-------------------------------------------------------
 ! Write bias corrected output file.
 !-------------------------------------------------------
 
-   call fdate (fdate_str)
-   print '(2a)', fdate_str, '  spreading: Write output file.'
+   if (output_file_template == 'none') then
+      print *, &
+         '*** spreading: Hourly output file is suppressed.  No file written.'
+
+   else
+      call fdate (fdate_str)
+      print '(2a)', fdate_str, '  spreading: Write output file.'
 
 ! Create actual output file name for current forecast cycle.
 
-   call expand_filename (output_file_template, year, month, day, cycle_time, &
-      outfile)
+      call expand_filename (output_file_template, year, month, day, &
+         cycle_time, outfile)
 
-! Write output file.  Data and coordinate vars must be converted
-! to single precision, before calling output routine.
+! Write output file.  Data and coordinate vars will be converted from
+! double to single precision, when writing to file.
 
-   call write_corrected_netcdf (outfile, target_var, grid_lats, grid_lons, &
-      corr_grids, bias_grids, vmiss, diag)
+      call write_corrected_netcdf (outfile, target_var, grid_lats, grid_lons, &
+         corr_grids, bias_grids, vmiss, diag)
+   end if
 
    if (diag >= 3) print *, 'spreading: Return.'
 

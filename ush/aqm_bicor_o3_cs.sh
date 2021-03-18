@@ -35,7 +35,7 @@ ln -s $PARMaqm/aqm.*grdcro2d.ncf  data/coords/
 ln -s ${COMINbicordat}/bcdata* data/
 
 startmsg  
-aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.8pred.equal-weights  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.bias_corr  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 
@@ -45,4 +45,7 @@ then
 fi
 
  cp $DATA/out/ozone.corrected*   $COMOUT
+if [ ${cycle} = 't12z'  ] ; then
+ cp -p $DATA/sites/sites.valid.ozone.$PDY.${cyc}z.list  $COMOUT
+fi
 

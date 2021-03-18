@@ -9,6 +9,7 @@ SHELL=/bin/sh
 # 2017-apr-06   read_netcdf_var.f90 moves to standard F90 library.
 # 2017-jun-09   get_command_args.f90 moves into local directory.
 # 2017-aug-08   tranfer the code from Theia to Cray
+# 2021-Mar-07   upgrade the bias corrcction code
 
 #
 # This make file uses a single large compile command, rather
@@ -37,10 +38,12 @@ LIB_NETCDF = -I${NETCDF}/include ${NETCDF_LDFLAGS}
 F90_CMD   = ifort 
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
-F90_FLAGS2 = -traceback -warn all -warn errors
-F90_FLAGS3 = -fstack-security-check -fpe-all=0
-F90_FLAGS4 = -O3
-F90_FLAGS5 = -qopenmp
+F90_FLAGS2 = -traceback -warn all -warn errors 
+F90_FLAGS2 = 
+F90_FLAGS3 = -fstack-security-check -fpe-all=0 -check all -check noarg_temp_created
+F90_FLAGS4 = -O0
+#F90_FLAGS5 = -qopenmp
+F90_FLAGS5 = 
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
@@ -53,7 +56,7 @@ F90_CONFIG =  f90_config.gfortran.f90
 
 # Lib = General fortran support library.
 
-Lib1 =		$(Lib)/$(F90_CONFIG)		$(Lib)/config.f90 \
+Lib1 =		$(Lib)/config.f90 \
 		$(Lib)/parse_varexp.f90		$(Lib)/stdlit.f90 \
 		$(Lib)/string_utils.f90
 
@@ -72,8 +75,9 @@ Subs.plib =     $(Plib)/expand_filename.f90     $(Plib)/gridlocation.f90 \
 
 # Local support routines in main program directory.
 
-Subs.local =    get_command_args.interp.f90     interpolate.f90 \
-                read_config_file.f90            read_station_file.f90 \
+Subs.local =    derivatives.f90 \
+                get_command_args.interp.f90     interpolate.f90 \
+                read_config_file_interp.f90     read_station_file.f90 \
                 write_interp_netcdf.f90
 
 # Main program.

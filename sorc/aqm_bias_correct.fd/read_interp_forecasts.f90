@@ -10,12 +10,16 @@
 !
 ! 2014-jun-18	Original version.  By Dave Allured, NOAA/ESRL/PSD/CIRES.
 !
+! 2019-may-30	Add option to compute interpolated wind speed and direction
+!	`	  on the fly, from U and V wind.
+!		Add support for varying number of forecast hours per variable.
+!
 ! Primary inputs:
 !
 ! * Data set of daily Netcdf files containing MET and CMAQ 48-hour
 !   forecasts interpolated to site locations.  Data set is prepared
 !   and maintained by interpolate_update.f90.
-! * Names of requested for3cast variables.
+! * Names of requested forecast variables.
 ! * Specified range of forecast start dates.  The final date should
 !   be the start date of the target forecast cycle for bias
 !   correction.
@@ -38,10 +42,14 @@
 ! Output arrays are auto-allocated for all available sites, and
 ! for the requested range of dates.
 !
-! Currently, there are no missing values encoded in the source or
-! interpolated data sets.  Therefore, an assumed missing value is
-! used as needed to fill gaps in the input data set.  This
-! assumed missing value code is provided by the caller.
+! The number of forecast hours may vary between dates, and also
+! between variables.  The actual number of forecast hours to be
+! processed and output in bias correction will be determined by
+! the first analog variable in the first date in the training
+! period.
+!
+! The assumed missing value "vmiss" is used as needed to fill
+! gaps in the input data set.
 !
 ! No units conversion is performed.  Data are returned in the
 ! original units as stored in the data set.
@@ -73,26 +81,29 @@ module read__interp_forecasts
 contains
 
 subroutine read_interp_forecasts (infile_template, varnames, start_date, &
-      end_date, base_year, cycle_time, vmiss, diag, site_ids, site_lats, &
-      site_lons, out_data)
+      end_date, base_year, cycle_time, dpar, vmiss, diag, site_ids, &
+      site_lats, site_lons, out_data)
 
-   use config, only : dp, i64
+   use compute__wind
+   use config,             only : dp, i64
    use expand__filename
    use index_to_date_mod
+   use netcdf,             only : nf90_get_att, nf90_noerr
    use read__netcdf_var
-   use stdlit, only : normal
+   use stdlit,             only : normal
    implicit none
 
 ! Input arguments.
 
-   character(*), intent(in) :: infile_template	! template for input file paths
-   character(*), intent(in) :: varnames(:)	! requested model var names
-   integer,      intent(in) :: start_date	! starting date index
-   integer,      intent(in) :: end_date		! ending date index
-   integer,      intent(in) :: base_year	! base year for date indexes
-   integer,      intent(in) :: cycle_time	! start hour of forecast cycle
-   real(dp),     intent(in) :: vmiss		! caller's missing value code
-   integer,      intent(in) :: diag		! diag verbosity level, 0-N
+   character(*),   intent(in) :: infile_template ! template for input file paths
+   character(*),   intent(in) :: varnames(:)	 ! requested model var names (V)
+   integer,        intent(in) :: start_date	 ! starting date index
+   integer,        intent(in) :: end_date	 ! ending date index
+   integer,        intent(in) :: base_year	 ! base year for date indexes
+   integer,        intent(in) :: cycle_time	 ! start hour of forecast cycle
+   type(dpar_type),intent(in) :: dpar		 ! controls for derived vars
+   real(dp),       intent(in) :: vmiss		 ! caller's missing value code
+   integer,        intent(in) :: diag		 ! diag verbosity level, 0-N
 
 ! Output arguments.
 
@@ -107,27 +118,31 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
 
 ! Local variables.
 
-   character(len(varnames)) varname
+   character(len(varnames)) varname, derived_vars(2)
    character(200) infile, save_infile
    character fmt1*50, mbstr*50
 
    integer year, month, day
    integer vi, idate, date_index, i
-   integer status, status1, status2
+   integer nhours, nhours_alloc, nhours_copy
+   integer status, status1, status2, att_status
+   integer ncid, varid
    integer ndays_valid, ndays_missing, ndays_error
    integer with_data, nvalid, nmiss
 
-   integer(i64) ndays, nhours, nvars, nsites	! long integers
+   integer(i64) ndays, nvars, nsites		! long integers
    integer(i64) nbytes, total_size		! for total size calculations
 
    real(dp) mbytes, percent_miss, vmin, vmax
-   logical ex
+
+   logical ex, udata_valid, vdata_valid
 
 ! Dynamic arrays.
 
    character(len(site_ids)), allocatable :: save_ids(:)	  ! (sites)
    real(dp), allocatable :: save_lats(:), save_lons(:)	  ! (sites)
    real(dp), allocatable :: file_data(:,:)		  ! (sites, hours)
+   real(dp), allocatable :: udata(:,:), vdata(:,:)	  ! (sites, hours)
 
    logical, allocatable :: mask_valid(:,:,:)	     ! data mask for single var
    						     ! (days, hours, sites)
@@ -146,6 +161,8 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
    ndays_valid   = 0			! init statistics
    ndays_missing = 0
    ndays_error   = 0
+
+   derived_vars = (/ dpar%derived_wind_dir_var, dpar%derived_wind_speed_var /)
 
 !-----------------------------------------------------------
 ! Main loop over each input file.  One file per day.
@@ -285,7 +302,51 @@ date_loop: &
 ! Maybe should check embedded date.  Add later.
 
 !-----------------------------------------------------------
-! Read each requested variable from current file.
+! Read optional input variables for computing derivatives,
+! before main loop for analog variables.
+!-----------------------------------------------------------
+
+! See detailed reader comments in the next section.
+
+! Read optional U wind.
+
+      udata_valid = .false.
+
+      if (dpar%uwind_var /= 'none') then
+         call read_netcdf_var (infile, dpar%uwind_var, diag, udata, status)
+         					! udata (sites, hours)
+         if (status == normal) then
+            udata_valid = .true.
+         else
+            fmt1 = '(4a,i5.4,3i3.2,a)'
+            print fmt1, ' *** read_interp_forecasts: Warning: Error', &
+               ' reading "', trim (dpar%uwind_var), '" for cycle', year, &
+               month, day, cycle_time, 'Z.'
+            print *
+         end if
+      end if
+
+! Read optional V wind.
+
+      vdata_valid = .false.
+
+      if (dpar%vwind_var /= 'none') then
+         call read_netcdf_var (infile, dpar%vwind_var, diag, vdata, status)
+         					! vdata (sites, hours)
+         if (status == normal) then
+            vdata_valid = .true.
+         else
+            fmt1 = '(4a,i5.4,3i3.2,a)'
+            print fmt1, ' *** read_interp_forecasts: Warning: Error', &
+               ' reading "', trim (dpar%vwind_var), '" for cycle', year, &
+               month, day, cycle_time, 'Z.'
+            print *
+         end if
+      end if
+
+!-----------------------------------------------------------
+! Read each requested analog variable from current file.
+! But compute derived variables from other input variables.
 !-----------------------------------------------------------
 
       with_data = 0
@@ -294,19 +355,40 @@ var_loop: &
       do vi = 1, nvars
          varname = varnames(vi)
 
+! Deallocate, then reallocate the data input array each time,
+! in support of varying number of forecast hours per variable.
+
+         if (allocated (file_data)) then
+            deallocate (file_data)
+         end if
+
+! Compute derived analog variable on the fly.
+
+var_type: if (any (varname == derived_vars(:)) ) then
+
+            call compute_wind (varname, dpar, udata, vdata, udata_valid, &
+               vdata_valid, vmiss, diag, file_data, nhours, status)
+
+! Read normal analog variable directly from file.
+
 ! Internal detail:  This Netcdf reader is optimized for reading
 ! several variables in sequence from the same input file.  For
 ! efficiency, the file is not closed and re-opened between variables.
 
-! The current version requires that all dimensions of the input
-! data array remain constant between data variables and input files.
-! Otherwise a size error is detected, and the program halts.
+         else
+            call read_netcdf_var (infile, varname, diag, file_data, status, &
+               nc_id=ncid, var_id=varid)	! file_data (sites, hours)
 
-! This assumption should be good when reading a correctly prepared
-! interpolated data set.
+! Try to read actual hours attribute for this variable.
 
-         call read_netcdf_var (infile, varname, diag, file_data, status)
-         					! file_data (sites, hours)
+            if (status == normal) then
+               att_status = nf90_get_att (ncid, varid, 'nhours_valid', nhours)
+
+               if (att_status /= nf90_noerr) then	! if no attribute...
+                  nhours = size (file_data, 2)		! use return array size
+               end if
+            end if
+         end if var_type
 
 ! Failure to read a single variable should not occur by design of
 ! the current data set.  But if it does, treat this as a soft error
@@ -326,7 +408,6 @@ var_loop: &
 ! Read successful.  Allocate the main output array, first time only.
 
          if (.not. allocated (out_data)) then
-            nhours = size (file_data, 2)
 
             if (diag >= 2) then
 
@@ -364,6 +445,8 @@ var_loop: &
 
             allocate (out_data(ndays, nhours, nvars, nsites))
 
+            nhours_alloc = nhours	! nhours may vary; remember array size
+
 ! Clear to all missing, in case of possible gaps.
 
             if (diag >= 3) print *, '  Clear main array to all missing.'
@@ -373,9 +456,15 @@ var_loop: &
 
 ! Insert current file, current var data into main array.
 
-         if (diag >= 5) print *, '  Insert input data into main array.'
+         nhours_copy = min (nhours, nhours_alloc)
 
-         out_data(idate,:,vi,:) = transpose (file_data(:,:))	! DHVS <-- SH
+         if (diag >= 3) print '(3a,i0)', &
+            '   Insert input data into main array: ', trim (varname), &
+            ', nhours_copy = ', nhours_copy
+
+         out_data(idate,1:nhours_copy,vi,:) &
+            = transpose (file_data(:,1:nhours_copy))	! (D,H,V,S) <-- (S,H)
+            			! any shortfall is already filled with missing
 
 ! Check for all missing data in current variable.
 
@@ -432,7 +521,7 @@ var_loop: &
 
 ! Part 2.  Print summary statistics for each input variable.
 
-   allocate (mask_valid(ndays, nhours, nsites))		! mask for single var
+   allocate (mask_valid(ndays, nhours_alloc, nsites))	! mask for single var
 
    print *
    print *, 'Variable       Min data     Max data' &

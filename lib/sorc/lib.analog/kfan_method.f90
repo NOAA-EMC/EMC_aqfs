@@ -26,13 +26,17 @@
 !		Move some parameters into parameter structure.
 ! 2017-may-12	New protocol, method name embedded in filter routine.
 !
+! 2019-jun-18	Add output for best analog obs values, current forecast only.
+! 2020-may-11	Minor, parameter name change.
+!
 !------------------------------------------------------------------------------
 
 module kfan__method
 contains
 
 function kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
-    pred_weights, isite, site_id, diag, kfan_result) result (return_status)
+    pred_weights, isite, site_id, diag, kfan_result, best_analogs_obs) &
+    result (return_status)
 
   use config, only : dp
   use find__analog, only : fpar_type
@@ -53,6 +57,7 @@ function kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
   integer,         intent(in ) :: diag			! verbosity, 0=errs only
 
   real(dp),        intent(out) :: kfan_result(:,:)	! DH - bias corr. result
+  real(dp),        intent(out) :: best_analogs_obs(:,:)	! HA - best analogs
 
   logical return_status		! function return status: true = processed,
   				! false = method name not matched
@@ -66,16 +71,16 @@ function kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
   character fdate_str*24
   integer ndays, nhours
 
-  real(dp), allocatable :: anenmean_result(:,:)     ! DH
+  real(dp), allocatable :: anenmean_result(:,:)	  ! DH
+  real(dp), allocatable :: analog_in_an(:,:,:)	  ! DHA, nearest analogs found
 
-  real(dp), allocatable :: obs_flat(:)		    ! reshaping temp arrays
+  real(dp), allocatable :: obs_flat(:)		  ! reshaping temp arrays
   real(dp), allocatable :: ensan_flat(:)
   real(dp), allocatable :: result_1d(:)
 
-! Unused result arrays from kf_analog.  See subroutine docs.
+! Unused result array from kf_analog.  See subroutine docs.
 
   integer,  allocatable :: Ianalog(:,:,:)	! indices of found analogs
-  real(dp), allocatable :: analog_in_an(:,:,:)	! nearest analogs found
 
 ! Check requested filter method name.
 
@@ -107,9 +112,9 @@ function kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
 					! last day is current forecast cycle
   nhours = size (pred, 2)		! number of hours in each forecast cycle
 
-  allocate (anenmean_result(ndays, nhours))		! DH
-  allocate (ianalog(ndays, nhours, apar2%num_an))	! DHA
-  allocate (analog_in_an(ndays, nhours, apar2%num_an))	! DHA
+  allocate (anenmean_result(ndays, nhours))			! DH
+  allocate (ianalog(ndays, nhours, apar2%num_analogs))		! DHA
+  allocate (analog_in_an(ndays, nhours, apar2%num_analogs))	! DHA
 
 ! KF/AN part 1.  Compute multiple analog forecasts.
 
@@ -118,6 +123,11 @@ function kfan_method (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
   call analog_ensemble (obs, pred, pred_weights, vmiss, apar2, fpar2, isite, &
     site_id, diag, anenmean_result, Ianalog, analog_in_an)
 						! last three are outputs
+
+! Also return best analogs for the current forecast cycle only.
+! This is independent from KFAN step 2.
+
+  best_analogs_obs(:,:) = analog_in_an(ndays,:,:)	! HA <-- DHA
 
 ! KF/AN part 2.  Apply Kalman filter to AnEnMean result (analog ensemble mean).
 

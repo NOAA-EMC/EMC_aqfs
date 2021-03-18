@@ -1,6 +1,6 @@
 !-----------------------------------------------------------------------------
 !
-! read_config_file_main.f90 -- Read custom config file for bias_corr.f90.
+! read_config_file_main.f90 -- Read custom config file for bias_correct.f90.
 !
 ! This is a support routine for the NOAA NCO/ARL/PSD bias
 ! correction system for CMAQ forecast outputs.
@@ -22,6 +22,16 @@
 !
 ! 2018-jan-19	Add parameter to select bias formula.
 !
+! 2019-may-29	Add derived variable controls for wind speed & direction.
+! 2019-jun-17	Move lower/upper var limits to separate arrays.
+! 2019-aug-02	Add parameters for probability forecasts.
+!
+! 2020-may-26	Parameter changes for analogs and site weighting.
+! 2020-jun-11	Add site_result_file_template.  Change related parameter names.
+! 2020-jul-31	Add parameters for linear regression probability method.
+! 2020-nov-10	Split off the var table reader into a separate subroutine.
+!		Add parameter "analog search window offsets".
+!
 ! Notes:
 !
 ! The configuration file is a simple text file containing file
@@ -38,22 +48,27 @@ module read__config_file_main
 contains
 
 subroutine read_config_file_main (config_file, obs_file_template, &
-      interp_file_template, in_gridded_template, output_file_template, &
+      interp_file_template, in_gridded_template, hourly_output_template, &
+      probability_output_template, &
       new_site_list_template, grid_coord_file, pred_weights_file, &
       site_exception_file, target_obs_var, target_model_var, analog_vars, &
-      filter_method, output_limit_method, site_file_template, &
-      filter_array_file_template, stop_after_filter, &
-      obs_blackout_start, obs_blackout_end, apar, fpar, kpar, wpar)
+      filter_method, output_limit_method, site_array_file_template, &
+      site_result_file_template, &
+      day_array_file_template, stop_after_filter, obs_blackout_start, &
+      obs_blackout_end, apar, dpar, fpar, kpar, prob, wpar)
 
-   use analog__ensemble,  only : apar_type
-   use config,            only : dp
-   use find__analog,      only : fpar_type
+   use analog__ensemble,   only : apar_type
+   use compute__wind,      only : dpar_type
+   use config,             only : dp
+   use find__analog,       only : fpar_type
    use get_param_module
-   use kf__luca,          only : kpar_type
-   use read__table_lines
-   use stdlit,            only : normal
+   use get__window_offsets
+   use kf__luca,           only : kpar_type
+   use probability_type,   only : prob_type
+   use read__var_table
+   use stdlit,             only : normal
    use string_utils
-   use weight__control,   only : wpar_type
+   use weight__control,    only : wpar_type
    implicit none
 
    character(*), intent(in ) :: config_file	! name of config file to read
@@ -61,7 +76,8 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    character(*), intent(out)              :: obs_file_template
    character(*), intent(out)              :: interp_file_template
    character(*), intent(out)              :: in_gridded_template
-   character(*), intent(out)              :: output_file_template
+   character(*), intent(out)              :: hourly_output_template
+   character(*), intent(out)              :: probability_output_template
    character(*), intent(out)              :: new_site_list_template
    character(*), intent(out)              :: grid_coord_file
    character(*), intent(out)              :: pred_weights_file
@@ -73,54 +89,46 @@ subroutine read_config_file_main (config_file, obs_file_template, &
 
    character(*), intent(out)              :: filter_method
    character(*), intent(out)              :: output_limit_method
-   character(*), intent(out)              :: site_file_template
-   character(*), intent(out)              :: filter_array_file_template
+   character(*), intent(out)              :: site_array_file_template
+   character(*), intent(out)              :: site_result_file_template
+   character(*), intent(out)              :: day_array_file_template
    integer,      intent(out)              :: obs_blackout_start(3)	! M-D-H
    integer,      intent(out)              :: obs_blackout_end(3)	! M-D-H
    logical,      intent(out)              :: stop_after_filter
 
    type (apar_type), intent(out)          :: apar	! subsystem parameter
-   type (fpar_type), intent(out)          :: fpar	! structures
+   type (dpar_type), intent(out)          :: dpar	! structures
+   type (fpar_type), intent(out)          :: fpar
    type (kpar_type), intent(out)          :: kpar
+   type (prob_type), intent(out)          :: prob
    type (wpar_type), intent(inout)        :: wpar	! contains prior setting
 
    integer get_free_unit			! function def.
 
 ! Local variables.
 
-   integer, parameter :: max_table_size = 20	! max number of lines in any
-   						! single table in config file;
-						! at least one more than needed
-
-   character(200) lines(max_table_size)		! line buffer for maximal table
-
    character(200) errmsg
    character(200) weight_file_template
-   character(100) header_expected
-   character(20) limits(2)			! input strings for 2 limits
-   character(60) opt_mb, opt_fb
-   character circular_str*10, suffix*1
    character subset_str*30
    character required_gen_method*60
    character string*60
 
-   integer j, n, vi, ios, status
+   integer ios, status
    integer cf					! unit number for config file
    integer lnum					! line number within config file
-   integer nvars				! size of var table
-   integer num_analogs				! selected no. of best analogs
 
-   real(dp) num
+! Analog var limits from var table.  Will be converted to output arguments
+! when QC for gridded analog var inputs is implemented.
 
-! Fixed program parameters.
-
-   real(dp), parameter :: celsius_to_kelvin = 273.15	! unit conversion
+   real(dp), allocatable :: var_lower_limits(:)
+   real(dp), allocatable :: var_upper_limits(:)
 
 ! Open config file for input.
 
    print *
    print '(a)', 'Read configuration file.'
    print '(a)', '  File = ' // trim (config_file)
+   print *
 
    cf = get_free_unit ()			! get unit # for control file
 
@@ -145,6 +153,9 @@ subroutine read_config_file_main (config_file, obs_file_template, &
 read_file: &
    do			! one pass control block, for escape handling only
 
+      print '(a)', '* File control parameters:'
+      print *
+
       call get_param_string ('obs file template', obs_file_template, cf, &
          status, lnum, nonblank)
       if (status /= normal) exit read_file
@@ -157,8 +168,14 @@ read_file: &
          cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
-      call get_param_string ('output file template', output_file_template, &
+      print *
+
+      call get_param_string ('hourly output template', hourly_output_template, &
          cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('probability output template', &
+         probability_output_template, cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('new site list template', new_site_list_template, &
@@ -191,73 +208,40 @@ read_file: &
 ! Read analog var table.
 !-----------------------------------------------------------
 
-! First read table as raw lines of text.  Get line count.
+      call read_var_table (analog_vars, var_lower_limits, var_upper_limits, &
+         apar%fvar, fpar, kpar, target_model_var, cf, status, lnum)
+      if (status /= normal) exit read_file
 
-      print *
-      print '(a)', 'Read analog var table in config file:'
+!-----------------------------------------------------------
+! Read derived variable controls.
+!-----------------------------------------------------------
 
-      header_expected = '--------'		! start of line
-      call read_table_lines (cf, header_expected, lines, nvars, lnum)
-
-! Now have count of analog vars.  Allocate var parameter arrays.
-
-      allocate (analog_vars(nvars),       fpar%is_circular(nvars))
-      allocate (kpar%lower_limits(nvars), kpar%upper_limits(nvars))
-
-! Parse table lines.  Fortran free format, space delimited.
-! Only read the first four columns.  Any remainders are comments.
-! Must read columns 2 and 3 as strings, because of possible C suffix.
-
-var_loop: &
-      do vi = 1, nvars
-         print '(a)', trim (lines(vi))		! progress display & diagnostic
-
-         read (lines(vi), *, iostat=ios, iomsg=errmsg) analog_vars(vi), &
-            limits(1:2), circular_str		! re-read into substrings
-
-         call check_read_error (ios, errmsg, lines(vi))
-
-         fpar%is_circular(vi) = (circular_str == 'Y' .or. circular_str == 'y')
-
-! Handle "C" unit suffixes on limit strings.  Convert Celsius to Kelvin.
-! Assume all limit strings are non-blank and valid numbers, after
-! suffixes are removed.
-
-         do n = 1, 2				! for each limit string...
-            j = len_trim (limits(n))		! get final character
-            suffix = limits(n)(j:j)
-
-            if (suffix == 'C') j = j - 1	! omit suffix
-
-            read (limits(n)(1:j), *, iostat=ios, iomsg=errmsg) num
-            					! read number part only
-
-            call check_read_error (ios, errmsg, lines(vi))
-
-            if (suffix == 'C') num = num + celsius_to_kelvin
-            					! convert as needed
-
-            if (n == 1) kpar%lower_limits(vi) = num	! insert limit value
-            if (n == 2) kpar%upper_limits(vi) = num	! into proper array
-         end do
-
-      end do var_loop
-
+      print '(a)', '* Derived variable controls:'
       print *
 
-! Consistency check for specified model var.
+      call get_param_string ('derived wind direction variable', &
+         dpar%derived_wind_dir_var, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
 
-      if (.not. any (analog_vars(:) == target_model_var)) then
-         print *
-         print *, '*** Specified target model variable is not in the given' &
-            // ' var table.'
-         print *, '*** Target model variable = ' // trim (target_model_var)
-         exit read_file
-      end if
+      call get_param_string ('derived wind speed variable', &
+         dpar%derived_wind_speed_var, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('derivative input U wind', &
+         dpar%uwind_var, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('derivative input V wind', &
+         dpar%vwind_var, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
 
 !-----------------------------------------------------------
 ! Read input filter controls.
 !-----------------------------------------------------------
+
+      print *
+      print '(a)', '* Input filter controls:'
+      print *
 
       call get_param_mdhz ('obs blackout start date', obs_blackout_start, cf, &
          status, lnum)
@@ -271,6 +255,8 @@ var_loop: &
 ! Read analog filter controls.
 !-----------------------------------------------------------
 
+      print *
+      print '(a)', '* Analog filter controls:'
       print *
 
       call get_param_string ('filter method', filter_method, cf, status, lnum, &
@@ -290,29 +276,34 @@ var_loop: &
          filter_method = required_gen_method
       end if
 
-      call get_param_int ('number of analogs', num_analogs, cf, status, lnum)
+      call get_param_int ('number of analogs', apar%num_analogs, cf, status, &
+         lnum)
       if (status /= normal) exit read_file
 
-! Bias formula.
-
-      call get_param_string ('bias formula', string, cf, status, lnum, nonblank)
+      call get_param_int ('minimum number of analogs', apar%min_num_analogs, &
+         cf, status, lnum)
       if (status /= normal) exit read_file
 
-      opt_mb = 'mean (forecast plus model predictions) plus bias'
-      opt_fb = 'forecast plus bias'
+      call get_param_string ('analog weights', apar%weight_type, cf, status, &
+         lnum, nonblank)
+      if (status /= normal) exit read_file
 
-      if (string == opt_mb) then
-         apar%bias_formula = 'mb'
-      else if (string == opt_fb) then
-         apar%bias_formula = 'fb'
+! Formula to calculate AnEnMean.  Originally misnamed as "bias formula".
+
+      call get_param_string ('analog mean', string, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      if (string == 'mean (forecast plus model predictions) plus bias') then
+         apar%analog_mean = 'mean plus bias'	! less cumbersome internal name
       else
-         print *, '*** read_config_file_main:  Invalid parameter value.'
-         print *, '*** Bias formula must be one of these choices:'
-         print *, '***   ' // trim (opt_mb)
-         print *, '***   ' // trim (opt_fb)
-         print *
-         filter_method = required_gen_method
+         apar%analog_mean = string	! names will be checked internally
       end if
+      
+      print *
+
+      call get_window_offsets ('analog search window offsets', fpar%window, &
+         cf, status, lnum)
+      if (status /= normal) exit read_file
 
       call get_param_string ('output limit method', output_limit_method, cf, &
          status, lnum, nonblank)
@@ -324,39 +315,170 @@ var_loop: &
 
       print *
       print '(a)', '* For weight generation only:'
+      print *
 
       call get_param_int ('number of weight increments', wpar%nweights, cf, &
          status, lnum)
       if (status /= normal) exit read_file
 
-      call get_param_int ('forecast start day for weight generation', &
-         wpar%forecast_start_day, cf, status, lnum)
+      call get_param_int ('number of days in test period', &
+         wpar%ndays_test_period, cf, status, lnum)
       if (status /= normal) exit read_file
 
       call get_param_int ('last forecast hour for weight generation', &
          wpar%forecast_last_hour, cf, status, lnum)
       if (status /= normal) exit read_file
 
-!-----------------------------------------------------------
-! Read debug controls.
-!-----------------------------------------------------------
+!-------------------------------------------------------
+! Read probability forecast controls.
+!-------------------------------------------------------
+
+      print *
+      print '(a)', '* Probability forecast controls:'
+      print *
+
+      call get_param_string ('probability method', prob%probability_method, &
+         cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('type of daily statistic', &
+         prob%daily_statistic_type, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_list ('probability threshold levels', prob%thresh, cf, &
+         status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('probability threshold units', prob%thresh_units, &
+         cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_real ('horizontal length scale (rho), kilometers', &
+         prob%horizontal_length_scale_rho, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_real ('vertical length scale (vdconst), meters', &
+         prob%vertical_length_scale_vdconst, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of days in linear best fit period', &
+         prob%ndays_best_fit, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+!-------------------------------------------------------
+! Read controls for climatology inputs for probability.
+!-------------------------------------------------------
 
       print *
 
-      call get_param_string ('site file template', site_file_template, cf, &
-         status, lnum, nonblank)
+      call get_param_real ('percent valid daily values for valid analog' &
+         // ' climatology', prob%analog_climo_thresh, cf, status, lnum)
       if (status /= normal) exit read_file
 
-      call get_param_string ('filter array file template', &
-         filter_array_file_template, cf, status, lnum, nonblank)
+      call get_param_real ('percent valid daily values for valid model' &
+         // ' climatology', prob%model_climo_thresh, cf, status, lnum)
       if (status /= normal) exit read_file
+
+      call get_param_int ('number of days in model climatology period', &
+         prob%model_ndays_climo, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('end of model climatology period, number of days' &
+         // ' before current forecast', prob%model_ndays_end, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_real ('minumum variance for analog climatology', &
+         prob%analog_variance_low_limit, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_real ('minumum variance for model climatology', &
+         prob%model_variance_low_limit, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+!-------------------------------------------------------
+! Read controls for daily averages for probability.
+!-------------------------------------------------------
+
+      print *
+
+      call get_param_int ('UTC start time for daily averages', &
+         prob%daily_avg_start_time_utc, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('nominal number of hours in each daily average', &
+         prob%daily_avg_nhours, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('minimum number of hours for valid daily average', &
+         prob%daily_avg_nhours_min, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('minimum number of non-missing values for valid' &
+         // ' daily average', prob%daily_avg_navg_min, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+!-------------------------------------------------------
+! Read controls for daily 8-h maximums for probability.
+!-------------------------------------------------------
+
+      print *
+
+      call get_param_int ('UTC start time for daily maximums', &
+         prob%daily_max_start_time_utc, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of sliding averages to search for daily' &
+         // ' maximum', prob%daily_max_nhours, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of hours in sliding averages for daily' &
+         // ' maximum', prob%daily_max_len_avg, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('minimum number of non-missing values for valid' &
+         // ' sliding average', prob%daily_max_navg_min, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('minimum number of sliding averages for valid daily' &
+         // ' maximum', prob%daily_max_nhours_min, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+!-----------------------------------------------------------
+! Read diagnostic controls.
+!-----------------------------------------------------------
+
+      print *
+      print '(a)', '* Dignostic controls:'
+      print *
+
+      call get_param_string ('site array file template', &
+         site_array_file_template, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('site result file template', &
+         site_result_file_template, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_string ('day array file template', &
+         day_array_file_template, cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      print *
 
       call get_param_yesno ('stop after filter', stop_after_filter, cf, &
          status, lnum)
       if (status /= normal) exit read_file
 
+      call get_param_yesno ('write supplemental probability variables', &
+         prob%write_supplemental_vars, cf, status, lnum)
+      if (status /= normal) exit read_file
+
       print *
-      exit			! normal exit for single pass block structure
+      print '(a)', '* End of config file.'
+      print *
+
+      exit read_file		! normal exit for single pass block structure
+
    end do read_file
 
 !-----------------------------------------------------------
@@ -413,11 +535,6 @@ var_loop: &
 ! Note, some items within these structures are now dynamically managed
 ! within filter methods, not here.
 
-   apar%num_an = num_analogs	! Number of best analogs to use for AN
-   apar%weight_type = 1		! Type of analog weighting:
-				! 0: Do not weight analogs
-				! 1: Weight them by the inverse metric
-				! 2: Weight them linearly
    apar%skipMissingAnalogs = 1	! Applies to both ANKF and AN
 				! 1: Always use num_an analogs, even if
 				! some of the best ones are missing
@@ -443,8 +560,6 @@ var_loop: &
 
 ! Analog parameters.
 
-   fpar%window = 0		! check analog at the exact hour per day
-
    fpar%trend = (/ 1,1,1 /)	! check hour-1, hour & hour+1 for the var trend
   				! with equal weighting coefficients
 				! MUST have odd number of elements.
@@ -455,30 +570,4 @@ var_loop: &
 ! as much as possible at this point.
 
 end subroutine read_config_file_main
-
-!-----------------------------------------------------------
-! Error handler for table reader.  Local use only.
-!-----------------------------------------------------------
-
-! If no error, this routine returns quietly.
-! If error, this routine prints diagnostic and halts.
-
-subroutine check_read_error (ios, errmsg, line)
-   implicit none
-
-   integer,      intent (in) :: ios
-   character(*), intent (in) :: errmsg
-   character(*), intent (in) :: line
-
-   if (ios == 0) return
-
-   print '(3a)',  '*** read_config_file_main: Fatal: Read error in', &
-      ' analog var table.'
-   print '(3a)',  '*** Line = "', trim (line), '"'
-   print '(a,i0)','*** Iostat = ', ios
-   print '(3a)',  '*** Iomsg =', trim (errmsg)
-   call exit (1)
-
-end subroutine check_read_error
-
 end module read__config_file_main

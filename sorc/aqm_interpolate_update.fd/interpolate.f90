@@ -2,8 +2,9 @@
 !
 ! interpolate.f90
 !
-! This routine interpolates gridded data to specified site locations.
-! Parabolic interpolation over local 4 x 4 grid subsets is used.
+! This routine performs spatial interpolation of gridded data to specified
+! site locations.  Parabolic interpolation over local 4 x 4 grid subsets
+! is used.
 !
 ! This is a support routine for interpolate_update.f90, part of the
 ! NOAA NCO/ARL/PSD bias correction system for CMAQ forecast outputs.
@@ -27,6 +28,14 @@
 ! 2014-may-12	Adjust verbosity for 2 = sparse progress display.
 ! 2014-jun-22	Add subscript protection for coordinates off grid.
 !
+! 2019-may-20	Allow output array to change size between calls, in support
+!		  of varying length forecasts.
+!		Fix missing value handling for data ranging both positive
+!		  and negative, such as newly added U and V wind.
+! 2019-may-21	Remove output lower limit for variables ranging both
+!		  positive and negative, such as U and V.  Keep zero
+!		  lower limit for variables that must remain non-negative.
+!
 ! INPUTS:
 ! 4-D array with gridded raw forecast data.
 ! 2-D grid coordinate arrays.
@@ -35,6 +44,12 @@
 ! OUTPUTS:
 ! 3-D array of forecast time series, interpolated to the given
 !   site locations.
+!
+! Variables with fewer forecast hours than the length of the
+! gridded data input array must be padded with missing values.
+!
+! The 3-D output array "interp_data" is dynamically allocated or
+! reallocated on each call, in support of variable length forecasts.
 !
 ! Precision notes:
 !
@@ -84,7 +99,7 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 
 ! Output arguments.
 
-   real, intent (inout), allocatable :: interp_data(:,:,:)
+   real, intent (out), allocatable :: interp_data(:,:,:)
    					! interpolated time series at
   					! site locations (sites, vars, hours)
 ! Local variables.
@@ -92,18 +107,15 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
    integer nsites, nx, ny, nvars, nhours
    integer i, i0, j, j0, isite, vi, hi
 
-   real(dp) x, y
+   real(dp) x, y, input_min
    real(dp) cell_4x4(4,4), interp
 
    logical in_bounds, off_grid, too_close
 
 ! Automatic arrays.
 
-   integer i_corners(size(stn_lats)), j_corners(size(stn_lats))
-
-! Suppress compiler warnings for unused arguments, which may be used later.
-
-   x = vmiss
+   integer  i_corners(size(stn_lats)), j_corners(size(stn_lats))
+   real(dp) lower_limit(size(grid_data,3))	! lower bound for each var
 
 ! Get array dimensions.
 
@@ -114,12 +126,9 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
    nvars  = size (grid_data, 3)
    nhours = size (grid_data, 4)
 
-! Allocate result array.  Possibly one time only, depending on caller.
-! Result array must always be the same shape!
+! Allocate or reallocate the output array.  May change size between calls.
 
-   if (.not. allocated (interp_data)) then
-     allocate (interp_data(nsites, nvars, nhours))
-   end if
+   allocate (interp_data(nsites, nvars, nhours))
 
 ! TEST ONLY: Print EPA site locations
 
@@ -161,7 +170,30 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 
    end if
 
+! Calculate the lower bound for each interpolated variable, to limit
+! occasional overshoot (ringing) from parabolic interpolation.
+
+   do vi = 1, nvars
+      input_min = minval (grid_data(:,:,vi,:), &
+                                 (grid_data(:,:,vi,:) /= vmiss) )
+					! minimum input value for each var,
+					! excluding missing values
+
+! Fields that are always non-negative:  Limit to zero or positive.
+
+      if (input_min >= 0) then
+         lower_limit(vi) = 0
+
+! Fields that can range negative:  Effectively no lower bound.
+
+      else
+         lower_limit(vi) = 100 * input_min
+      end if
+   end do
+
+!-----------------------------------------------------------
 ! Compute interpolated values for each site location.
+!-----------------------------------------------------------
 
    if (diag >= 3) print *
    if (diag >= 3) print *, 'Compute interpolated values.'
@@ -170,7 +202,7 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 
 site_loop: &
    do isite = 1, nsites
-     I0 = i_corners(isite)		! lower left corner of 1 x 1 target cell
+     I0 = i_corners(isite)	! lower left corner of 1 x 1 target cell
      J0 = j_corners(isite)
 
      if (diag >= 4) print *, '  isite,  I0, J0 =', isite, i0, j0
@@ -194,7 +226,7 @@ site_loop: &
      if (too_close) then
        if (diag >= 3) print '(a,3(2x,i0))', '*** Too close to grid edge:' &
          // ' isite, i0, j0 =', isite, i0, j0
-       interp_data(isite, :, :) = grid_data(I0, J0, :, :)
+       interp_data(isite,:,:) = grid_data(I0,J0,:,:)
        cycle site_loop
      end if
 
@@ -208,7 +240,7 @@ site_loop: &
      do vi = 1, nvars
        do hi = 1, nhours
 
-! Isolate the 4x4 data cell surrounding the site locaiton.
+! Isolate the 4x4 data cell surrounding the site location.
 
          cell_4x4 = grid_data(i0-1:i0+2, j0-1:j0+2, vi, hi)
 				      ! explicit subset, avoid compiler warning
@@ -217,7 +249,7 @@ site_loop: &
 ! the lower left corner of the 1x1 center cell.  Do not interpolate.
 ! Result might be a valid number, or a missing value.
 
-         if (any (cell_4x4 < 0)) then
+         if (any (cell_4x4 == vmiss)) then
            interp = cell_4x4(2,2)		! same as grid_data(I0,J0)
 
 ! All 16 values in cell are normal.  Do parabolic interpolation.
@@ -225,10 +257,8 @@ site_loop: &
 
          else
            interp = real (PARABOLIC_OVERLAP_16 (x, y, cell_4x4))
-
-           if (interp < 0) then
-             interp = 0
-           end if
+           interp = max (interp, lower_limit(vi))
+           			! limit variables that should not go negative
          end if
 
 ! Insert result into the output array.

@@ -3,7 +3,7 @@
 ! align_obs_to_forecasts.f90  -- Align obs data with interp. forecast arrays.
 !
 ! * Align obs data with interpolated forecast arrays, by site ID's.
-! * Reshape and duplicate into conforming 48-hour overlapping subsets.
+! * Reshape and duplicate into conforming N-hour overlapping subsets.
 ! * Phase shift obs hours for correct alignment with forecast hours.
 !
 ! This is a support routine for the NOAA NCO/ARL/PSD bias
@@ -15,6 +15,9 @@
 ! 2015-jun-13	Quick fix for obs time alignment problem.
 !		Align obs HOUR+1 with model HOUR.  See below.
 !
+! 2020-apr-17	Minor.  Remove invalid missing value count in diagnostic.
+! 2020-may-03	Comment fix only.  Change 48-hour forecasts to N-hour.
+!
 ! Primary inputs:
 !
 ! * Obs straight hourly time series for bias correction target variable.
@@ -24,7 +27,7 @@
 ! Primary output:
 !
 ! * Obs data reshaped and duplicated as needed, to conform to the
-!   48-hour forecast arrays.
+!   N-hour forecast arrays (48, 72, etc.)
 !
 ! Time alignment of obs and model data:
 !
@@ -54,8 +57,8 @@
 ! Any obs sites that are not matched to interpolated sites are
 ! discarded, with diagnostic messages.
 !
-! Obs data are stretched to conform to 48-hour model forecast
-! cycles, by copying 48 hour time segments for each 24 hour
+! Obs data are stretched to conform to N-hour model forecast
+! cycles, by copying N-hour time segments for each 24 hour
 ! increment in the forecast starting date and hour.  Thus,
 ! duplicate obs data is returned in the output array.
 !
@@ -116,14 +119,12 @@ subroutine align_obs_to_forecasts (obs_in, cycle_time, ndays, nhours, &
    integer si_obs, si_model, si2
    integer nsites_obs_in, nsites_model
    integer ntimes_in, nvars
-   integer nvalid, nmiss_all, nmiss_remaining
-   integer nvals_discarded, nvals_remaining
+   integer nvalid, nmiss_out
    integer nmatch, no_match
    integer iday, ivar, ti1, ti2
    integer ti_obs_hour0, nhours_copy
 
-   real(dp) dist, vmin, vmax
-   real(dp) percent_all, percent_rem
+   real(dp) dist, vmin, vmax, percent_miss
 
    logical found
 
@@ -205,7 +206,7 @@ site_loop: &
             ' will be used for final output.'
       end if
 
-! Align and copy 48-hour conforming obs segments into output array.
+! Align and copy N-hour conforming obs segments into output array.
 ! ti1, ti2, etc. are time indices into OBS continuous time series.
 
       do iday = 1, ndays		! for each cycle starting date...
@@ -242,28 +243,20 @@ site_loop: &
    vmin  = minval ( obs_reshaped, (obs_reshaped /= vmiss) )
    vmax  = maxval ( obs_reshaped, (obs_reshaped /= vmiss) )
 
-! Count missing values, with and without discarded sites.
+! Count missing values after discarding sites and reshaping.
+! Will include multiple counts for values in overlap areas.
 
-   nvalid          = count (obs_reshaped /= vmiss)
-   nvals_discarded = no_match * (ndays * nhours)
-   nvals_remaining = size (obs_reshaped) - nvals_discarded
-
-   nmiss_all       = size (obs_reshaped) - nvalid
-   nmiss_remaining = nmiss_all - nvals_discarded
-
-   percent_all = (nmiss_all       * 100.0_dp) / size (obs_reshaped)
-   percent_rem = (nmiss_remaining * 100.0_dp) / nvals_remaining
+   nvalid       = count (obs_reshaped /= vmiss)
+   nmiss_out    = size (obs_reshaped) - nvalid
+   percent_miss = (nmiss_out * 100.0_dp) / size (obs_reshaped)
 
    print '(a,i0)',         '   Number of sites included  = ', nmatch
    print '(a,i0)',         '   Number of sites discarded = ', no_match
    print '(2(a,g0.4))',    "   Min, max aligned data     = ", vmin, ', ', vmax
 
-   print '(a,i0,a,f0.1,a)','   Number of missing values  = ', nmiss_remaining, &
-      ' (', percent_rem, '% of remaining)'
-   print '(2a)',           '     not including discarded '
-   print '(a,i0,a,f0.1,a)','   Number of missing values  = ', nmiss_all, &
-      ' (', percent_all, '% of whole array)'
-   print '(2a)',           '     including discarded '
+   print '(a,i0,a,f0.1,a)','   Number of missing values  = ', nmiss_out, &
+      ' (', percent_miss, '%)'
+   print '(2a)',           '     after discarding sites and reshaping'
    print *
 
    if (diag>=3) print *, 'align_obs_to_forecasts: Done. Return to main program.'

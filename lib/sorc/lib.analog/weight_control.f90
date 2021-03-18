@@ -21,6 +21,15 @@
 !		Routine will return equal weights as guaranteed first set.
 ! 2017-jun-06	Add support for weight generation by subsets.
 !
+! 2019-jun-18	Add output for best analog obs values, current forecast only.
+! 2019-sep-08	Documentation fixes only.
+!		Remove invalid comment changes from 2019-jun-18.
+!		Rename variable "filter_result" to more accurate "corrected".
+!
+! 2020-apr-17	Add diagnostics for weight generation.
+! 2020-may-05	Parameter change to "number of days in test period".
+! 2020-may-11	Prevent use of future obs when computing site weights.
+!
 !-----------------------------------------------------------------------------
 
 module weight__control		! standard visibility
@@ -34,7 +43,7 @@ module weight__control		! standard visibility
     				!   across all combinations
                                 !   e.g. 10 = increments of 0.1
                                 ! note, each weight combination will sum to 1.0
-    integer forecast_start_day	! start day of test forecasts for weight gen.
+    integer ndays_test_period	! number of days in weight gen. test period
     integer forecast_last_hour	! last hour of test forecasts for weight gen.
     integer subset1		! first & last weight set numbers to generate;
     integer subset2		! no subset if subset1 is neg. (make all sets)
@@ -44,7 +53,7 @@ contains
 
 subroutine weight_control (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
     wpar, pred_weights, bias_thresh_low, bias_thresh_high, isite, site_id, &
-    diag, filter_result, new_weights, new_rmse)
+    diag, corrected, best_analogs_obs, new_weights, new_rmse)
 
   use analog__ensemble,  only : apar_type
   use compute__weight_sets
@@ -74,26 +83,32 @@ subroutine weight_control (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
   integer,         intent(in ) :: diag		     ! verbosity, 0=errors only
 
 ! Output arguments.
-! Valid only in normal mode: filter_result
+! Valid only in normal mode: corrected, best_analogs_obs
 ! Valid only in weight generation mode: new_weights, new_rmse
 
-  real(dp),        intent(out) :: filter_result(:,:) ! DH - bias corr. result
-  real(dp),        intent(out) :: new_weights(:)     ! V - generated weights
-  real(dp),        intent(out) :: new_rmse	     ! best RMSE for gen weights
+  real(dp),    intent(out) :: corrected(:,:)	     ! DH - bias corr. filter
+  						     !   result at current site
+  real(dp),    intent(out) :: best_analogs_obs(:,:)  ! HA - best analogs
+  real(dp),    intent(out) :: new_weights(:)	     ! V - generated weights
+  real(dp),    intent(out) :: new_rmse		     ! best RMSE for gen weights
 
 ! Local variables.
 
-  character fdate_str*24, fmt_line*60, flag*1
+  character fdate_str*24, fmt_line*80, fmt2*80, flag*1
 
   integer nvars, nsets, nsets_run, ndays, nhours
   integer iday1, iday2, hour1, hour2, fvar
   integer iset, iset1, iset2, iset_min
+  integer obs_valid, obs_missing, pred_valid, pred_missing
 
   real(dp) rmse2, rmse_min, equal_weights_value
+  real(dp) obs_min, obs_max, pred_min, pred_max
 
   type (apar_type) apar2			! modifiable copy of structure
 
   real(dp), allocatable :: weight_sets(:,:)	! SV - all weight combinations
+
+  logical, allocatable :: obs_mask(:,:), pred_mask(:,:)  ! for diagnostics only
 
 ! Start weight control.
 
@@ -124,7 +139,7 @@ subroutine weight_control (filter_method, obs, pred, vmiss, apar, fpar, kpar, &
 
 ! Ensure initialized memory for possibly unused output variables.
 
-  filter_result(:,:) = pred (:,:,fvar)	   ! default for no obs = no bias corr.
+  corrected(:,:) = pred (:,:,fvar)	   ! default for no obs = no bias corr.
 
   equal_weights_value = 1 / dble (nvars)   ! equal weights, normalized
   new_weights(:) = equal_weights_value	   ! default for no obs = equal weights
@@ -138,9 +153,10 @@ gen_mode: &
   if (wpar%gen_weights) then
 
 ! Set bounds for forecast days and hours to test for weight generation.
+! The test period is a given number of days at the end of the training period.
 
-    iday1 = wpar%forecast_start_day	! start on user selected start day
-    					!   within training period
+    iday1 = ndays - wpar%ndays_test_period    ! start day of test period
+    iday1 = max (1, iday1)		! limit to available training period
     iday2 = ndays - 1			! end on last day of training period
 
     hour1 = 1				! start on first forecast hour
@@ -148,6 +164,8 @@ gen_mode: &
 
     apar2%start_stat         = iday1	! pass bound params to filter routines
     apar2%forecast_last_hour = hour2
+
+    apar2%block_future_obs    = .true.	! block use of retrospective future obs
 
 ! Skip site with no obs data within selected time ranges.
 ! Outputs are the defaults set above.
@@ -166,10 +184,35 @@ no_data: &
       nsets       = size (weight_sets, 1)
 
       if (diag >= 3) print *
+
       if (diag >= 2 .and. isite == 1) print '(a,i2,a,i9)', '   site', isite, &
         ', total number of weight combinations =', nsets
 
-! If selected, confine weight set indices to valid range.
+! If selected, print some detail site diagnostics for RMSE inputs.
+
+      if (diag >= 2) then
+        obs_mask  =        (obs (iday1:iday2, hour1:hour2)        /= vmiss )
+        obs_min   = minval (obs (iday1:iday2, hour1:hour2),       obs_mask )
+        obs_max   = maxval (obs (iday1:iday2, hour1:hour2),       obs_mask )
+
+        pred_mask =        (pred(iday1:iday2, hour1:hour2, fvar)  /= vmiss )
+        pred_min  = minval (pred(iday1:iday2, hour1:hour2, fvar), pred_mask)
+        pred_max  = maxval (pred(iday1:iday2, hour1:hour2, fvar), pred_mask)
+
+        obs_valid    = count (obs_mask )
+        pred_valid   = count (pred_mask)
+
+        obs_missing  = size (obs_mask ) -  obs_valid
+        pred_missing = size (pred_mask) - pred_valid
+
+        fmt2 = "(i8, '  Test ', a5, ' min, max, #valid, #missing ='," &
+               // " 2f11.7, 2i7)"
+
+        print fmt2, isite, '  Obs',  obs_min,  obs_max,  obs_valid,  obs_missing
+        print fmt2, isite, 'Model', pred_min, pred_max, pred_valid, pred_missing
+      end if
+
+! If selected, confine weight set indices to currently selected range.
 
       if (wpar%subset1 < 0) then		! case: subset not selected
         iset1 = 1
@@ -224,12 +267,13 @@ set_loop: &
 ! Run analog filter for current weight set.
 
         call filter_dispatch (filter_method, obs, pred, vmiss, apar2, fpar, &
-          kpar, weight_sets(iset,:), isite, site_id, diag, filter_result)
+          kpar, weight_sets(iset,:), isite, site_id, diag, corrected, &
+          best_analogs_obs)
 
 ! Compute RMSE for current weights, on the bias corrected filter result.
 
-        rmse2 = rmse (obs          (iday1:iday2, hour1:hour2), &
-                      filter_result(iday1:iday2, hour1:hour2), vmiss)
+        rmse2 = rmse (obs      (iday1:iday2, hour1:hour2), &
+                      corrected(iday1:iday2, hour1:hour2), vmiss)
 
 ! Remember the weight set with the lowest RMSE.
 
@@ -254,8 +298,11 @@ set_loop: &
       if (diag >= 2) print fmt_line, isite, iset_min, new_rmse, ':', &
         new_weights(:)
 
-! Note, in weight generation mode, the main filter result is left over
-! from the very last weight combination.  It should be considered invalid.
+! In weight generation mode, primary filter results are invalid.
+! Erase these primary results to prevent misinterpretation.
+
+      corrected(:,:)        = vmiss
+      best_analogs_obs(:,:) = vmiss
 
     end if no_data
 
@@ -272,10 +319,12 @@ set_loop: &
 
     apar2%forecast_last_hour = nhours	! bias correct over all forecast hours
 
+    apar2%block_future_obs = .false.	! do not block use of retro. future obs
+
 ! Run the selected analog filter.
 
-    call filter_dispatch (filter_method, obs, pred, vmiss, apar2, fpar, &
-      kpar, pred_weights, isite, site_id, diag, filter_result)
+    call filter_dispatch (filter_method, obs, pred, vmiss, apar2, fpar, kpar, &
+      pred_weights, isite, site_id, diag, corrected, best_analogs_obs)
 
   end if gen_mode
 
