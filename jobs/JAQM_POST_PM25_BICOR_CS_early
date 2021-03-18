@@ -78,7 +78,7 @@ mkdir -p $COMOUT $PCOM $COMOUTbicorm1 $COMOUTbicorm2 $COMOUTbicorm3
 
 env
 
-export post_proc_hour=${post_proc_hour:-72}
+export post_proc_hour=${post_proc_hour:-48}
 
 $HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
 export err=$?; err_chk

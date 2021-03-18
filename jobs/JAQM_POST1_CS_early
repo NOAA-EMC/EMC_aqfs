@@ -48,8 +48,41 @@ mkdir -p ${COMOUT} ${PCOM}
 
 export pgmout=OUTPUT.$$
 
-export post_proc_hour=${post_proc_hour:-72}
 env
+
+if [ "${cyc}" != "06" ] && [ "${cyc}" != "12" ]; then
+   echo "ERROR WARNING - JAQM_POST1_CS_early only be applied to CMAQ 06z and 12z cycle"
+   echo "ERROR WARNING - PROGRAM exit without doing the inter-mediate POST1 processes"
+   exit
+fi
+
+##  Need to match with soft link runtime file defined in ~/scripts/exaqm_cmaqv531_cs.sh.ecf
+file_check=${COMOUT}/aqm.${cycle}.aconc.ncf
+let ic=0
+let icnt=210
+while [ ${ic} -le ${icnt} ]; do
+  if [ -s ${file_check} ]; then
+     tstep=$(ncdump -h ${file_check} | grep 'TSTEP = UNLIMITED' | sed 's/[^0-9]*//g')
+     if [ ${tstep} -ge 48 ]; then
+        echo "Current time ${tstep} reach or pass hour 48"
+        break
+     else
+        echo "Waiting FCST hours to reach hour 48 : ${tstep}"
+        sleep 20
+     fi
+  fi
+  ((ic++))
+done
+
+echo "ic = ${ic}"
+if [ ${ic} -gt ${icnt} ]; then
+   echo "ERROR WARNING - ${cycle} forecast run has not finished 48 hours in 70 mins"
+   echo "ERROR WARNING - JAQM_POST1_CS_early exit without doing the inter-mediate POST1 processes"
+   if [ "${KEEPDATA}" != "YES" ] ; then rm -rf ${DATA}; fi
+   exit
+fi
+## Begin stage 1 48 hours output post-processing
+export post_proc_hour=${post_proc_hour:-48}
 
 ${HOMEaqm}/scripts/exaqm_post1_cb6r3_cs.sh.ecf
 export err=$?; err_chk
