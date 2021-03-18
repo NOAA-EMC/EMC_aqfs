@@ -2,8 +2,8 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_cmaq_maxi.sh
-# Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
+# Script name:         exaqm_post_o3_bicor_cs.sh.ecf
+# Script description:  CMAQ post processing for bias-correction daily surface maximum O3/PM2.5
 #
 # Author:  Jianping Huang 06/29/2015 
 #  8/14/2017
@@ -11,6 +11,12 @@
 #
 # H.-C. Huang  Oct 21 2019   Remove the lines of Spec_humid.${cycle}.ncf and UV_wind.${cycle}.ncf
 #                            Per email instruction of Dave Allure ESRL/GSD on October 21 2019
+# H.-C. Huang  Mar 18 2021   Implement new bias correction package suitable for both 48 and 72 hours
+#                            from Jianping's version
+# H.-C. Huang  Mar 18 2021   Modified code for 2-stage pos processing output.
+#                            Allow aqm.${cycle}.O3_pm25.ncf and sfc_met_n_PBL.${cycle}.ncf
+#                            to be overwritten later by the one derived
+#                            from 72 hours forecast output
 #
 ######################################################################
 set -xa
@@ -22,15 +28,13 @@ export id_grib=148
 
 case $cyc in
  00) export bc_interp_hr=06;;
- 06) export bc_interp_hr=72;;
-# 12) export bc_interp_hr=72;;
- 12) export bc_interp_hr=48;;
+ 06) export bc_interp_hr=${post_proc_hour};;
+ 12) export bc_interp_hr=${post_proc_hour};;
  18) export bc_interp_hr=06;;
 esac
 
 cd ${DATA}
 
-if [ "1" = "2" ] ; then
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 ic=1
@@ -49,10 +53,6 @@ if [ $ic -ge 100 ]; then
 fi
 
 #------------------------------------------------------
-## ALERT HHC return to operational form for NCO delivery
-## During operational run, there is always no existing aqm.${cycle}.O3_pm25.ncf
-## Current changes is designed for sequential run for EMC experiemntal runs that o3 bias alwasy go first
-## force to remove existing aqm.${cycle}.O3_pm25.ncf in case of re-run
 ##
 if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
    echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
@@ -80,16 +80,14 @@ fi
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
-fi
-
 startmsg
-${USHaqm}/aqm_bicor_o3_interp_cs.sh  >> $pgmout 2>errfile_interp 
+${USHaqm}/aqm_bicor_o3_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
 
 #-----------------------------------------------------------------------
 # STEP 3:  Performing Bias Correction for PM2.5 
 startmsg
-${USHaqm}/aqm_bicor_o3_cs.sh   
+${USHaqm}/aqm_bicor_o3_cs.sh 
 export err=$?; err_chk
 
 #------------------------------------------------------------------------
@@ -114,8 +112,8 @@ export fhr=01
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=72;;
- 12) endfhr=72;;
+ 06) endfhr=${post_proc_hour};;
+ 12) endfhr=${post_proc_hour};;
  18) endfhr=06;;
 esac
 
@@ -211,7 +209,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp  | awk '{print $5} '` > filesize
@@ -220,7 +218,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3-bc.227.grib2
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
 ##########################################################
@@ -232,7 +230,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp
-	${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
 
 	echo `ls -l  aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp | awk '{print $5} '` > filesize
 	export XLFRTEOPTS="unit_vars=yes"
@@ -240,7 +238,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=awpaqm.${cycle}.${hr}ho3-max-bc.227.grib2
-	${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
 
 ##############################
 # Post Files to PCOM

@@ -45,8 +45,9 @@ F90_CONFIG =  f90_config.gfortran.f90
 
 # Lib = General fortran support library.
 
-Lib1 =		$(Lib)/$(F90_CONFIG)		$(Lib)/config.f90 \
+Lib1 =		$(Lib)/config.f90 \
 		$(Lib)/parse_varexp.f90		$(Lib)/stdlit.f90 \
+		$(Lib)/read_netcdf_var.f90 \
 		$(Lib)/string_utils.f90
 
 Lib2 =		$(Lib)/date_utils.f90		$(Lib)/get_free_unit.f90 \
@@ -66,14 +67,13 @@ Lib4   =  $(NETCDF_LIB) \
 	${JASPER_LIB} \
 	${Z_LIB}
 
-Subs.lib =	$(Lib1) $(Lib2) $(Lib3)
+Subs.lib =	$(Lib1) $(Lib2)	${Lib3}
 
 # Plib = Shared project support library.
 
-Subs.plib =	$(Plib)/expand_filename.f90	$(Plib)/get_command_args.f90 \
-		$(Plib)/gridlocation.f90	$(Plib)/read_netcdf_var.f90 \
+Subs.plib =	$(Plib)/expand_filename.f90 \
+		$(Plib)/gridlocation.f90 \
 		$(Plib)/read_grid_coords.f90	$(Plib)/read_gridded_aqm.f90 \
-		$(Plib)/day_mon.f90 \
 		$(Plib)/read_gridded_vars.f90	$(Plib)/read_table_lines.f90
 
 # Local support routines in main program directory.

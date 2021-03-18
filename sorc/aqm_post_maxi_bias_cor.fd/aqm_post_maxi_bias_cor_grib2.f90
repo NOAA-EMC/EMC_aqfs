@@ -112,7 +112,7 @@ program aqm_post_maxi_bias_cor_grib2
 
 !    logical  ave1hr
 
-   integer indexcmaq(ncmaq),id_gribdomain,L,L2,nspcmaq  !
+   integer indexcmaq(ncmaq),id_gribdomain,L,L2,nspcmaq,max_proc  !
 
    data cmaqspec(1),gipds1(1),gipds2(1),gipds27(1)/'O3_1h_max',14,200,23/
    data cmaqspec(2),gipds1(2),gipds2(2),gipds27(2)/'O3_8h_max',14,201,23/
@@ -121,7 +121,7 @@ program aqm_post_maxi_bias_cor_grib2
 
    data varlist/ncmaq*'     '/
 
-   namelist /control/varlist,outfile,id_gribdomain
+   namelist /control/varlist,outfile,id_gribdomain,max_proc
 
    open(7,file='bias_cor_max.ini')
    read(7,control)
@@ -239,6 +239,7 @@ program aqm_post_maxi_bias_cor_grib2
 ! Round from double to single precision, using default rounding mode.
 
    nhours  = size (indata1, 4)
+   
    nhours8 = nhours - 7
 
    allocate (bc_data(imax,jmax))
@@ -256,35 +257,65 @@ program aqm_post_maxi_bias_cor_grib2
 !  combine previoud day 12z and today 06 or 12z to create a complete data for day1 and
 !  day 2 (from current day 05z to 04z of the next day)
    if  ( icyc .eq. 6 ) then
-      do i = 1, imax
-         do j = 1, jmax
-            if ( ichk .eq. 1 ) then
-               bc_op(i,j,1:2)  = indata2(i,j,1,5:6)  ! using today 00z file
-            else
-               bc_op(i,j,1:2)  = indata2(i,j,1,17:18) ! using previous day 12z file
-            endif
-!!               bc_op(i,j,3:nhours) = indata1(i,j,1,1:46)
-            bc_op(i,j,3:nhours) = indata1(i,j,1,1:70)   ! n_bias_cor_day *24 - 2
-         enddo  
-      enddo 
+      if ( max_proc .eq. 48 ) then
+         do i = 1, imax
+            do j = 1, jmax
+               if ( ichk .eq. 1 ) then
+                  bc_op(i,j,1:2)  = indata2(i,j,1,5:6)  ! using today 00z file
+               else
+                  bc_op(i,j,1:2)  = indata2(i,j,1,17:18) ! using previous day 12z file
+               endif
+               bc_op(i,j,3:nhours) = indata1(i,j,1,1:46)   ! n_bias_cor_day *24 - 2
+            enddo  
+         enddo 
+      else
+         do i = 1, imax
+            do j = 1, jmax
+               if ( ichk .eq. 1 ) then
+                  bc_op(i,j,1:2)  = indata2(i,j,1,5:6)  ! using today 00z file
+               else
+                  bc_op(i,j,1:2)  = indata2(i,j,1,17:18) ! using previous day 12z file
+               endif
+               bc_op(i,j,3:nhours) = indata1(i,j,1,1:70)   ! n_bias_cor_day *24 - 2
+            enddo  
+         enddo 
+      end if
    elseif ( icyc .eq. 12 ) then
-      do i = 1, imax
-         do j = 1, jmax
-            if ( ichk .eq. 1 ) then    !! today's 00Z output is available
-               bc_op(i,j,1:2)  = indata2(i,j,1,5:6)      ! from 05z and 06z at 00z run
-            else
-               bc_op(i,j,1:2)  = indata2(i,j,1,17:18)    ! 17-18Z using previous day 12z file
-            endif
+      if ( max_proc .eq. 48 ) then
+         do i = 1, imax
+            do j = 1, jmax
+               if ( ichk .eq. 1 ) then    !! today's 00Z output is available
+                  bc_op(i,j,1:2)  = indata2(i,j,1,5:6)      ! from 05z and 06z at 00z run
+               else
+                  bc_op(i,j,1:2)  = indata2(i,j,1,17:18)    ! 17-18Z using previous day 12z file
+               endif
 !
-            if ( ichk1 .eq. 1 ) then    !! today's 06Z output is available
-               bc_op(i,j,3:8)  = indata3(i,j,1,1:6)      ! from 01-06 hour at 06z run
-            else
-               bc_op(i,j,3:8)  = indata3(i,j,1,19:24)    ! from 19-24hr at previous day 12z run
-            endif
-!!            bc_op(i,j,9:nhours) = indata1(i,j,1,1:40) ! from 12z run
-            bc_op(i,j,9:nhours) = indata1(i,j,1,1:64) ! from 12z run  n_bias_cor_day *24 - 8
+               if ( ichk1 .eq. 1 ) then    !! today's 06Z output is available
+                  bc_op(i,j,3:8)  = indata3(i,j,1,1:6)      ! from 01-06 hour at 06z run
+               else
+                  bc_op(i,j,3:8)  = indata3(i,j,1,19:24)    ! from 19-24hr at previous day 12z run
+               endif
+               bc_op(i,j,9:nhours) = indata1(i,j,1,1:40) ! from 12z run  n_bias_cor_day *24 - 8
+            enddo
          enddo
-      enddo
+      else
+         do i = 1, imax
+            do j = 1, jmax
+               if ( ichk .eq. 1 ) then    !! today's 00Z output is available
+                  bc_op(i,j,1:2)  = indata2(i,j,1,5:6)      ! from 05z and 06z at 00z run
+               else
+                  bc_op(i,j,1:2)  = indata2(i,j,1,17:18)    ! 17-18Z using previous day 12z file
+               endif
+!
+               if ( ichk1 .eq. 1 ) then    !! today's 06Z output is available
+                  bc_op(i,j,3:8)  = indata3(i,j,1,1:6)      ! from 01-06 hour at 06z run
+               else
+                  bc_op(i,j,3:8)  = indata3(i,j,1,19:24)    ! from 19-24hr at previous day 12z run
+               endif
+               bc_op(i,j,9:nhours) = indata1(i,j,1,1:64) ! from 12z run  n_bias_cor_day *24 - 8
+            enddo
+         enddo
+      endif
    endif
 !
 !-- set file unit

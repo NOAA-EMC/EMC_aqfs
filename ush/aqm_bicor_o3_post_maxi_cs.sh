@@ -31,6 +31,7 @@ cat >bias_cor_max.ini <<EOF1
 varlist='O3_1h_max','O3_8h_max'
 outfile='aqm-maxi_bc'
 id_gribdomain=148
+max_proc=${post_proc_hour}
 /
 EOF1
 
@@ -122,7 +123,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
       export FORT12="filesize"
       export FORT31=
       export FORT51=aqm-${hr}hro3-maxi.227.grib2.temp
-      ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+      ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
    
       echo `ls -l  aqm-${hr}hro3-maxi.227.grib2.temp | awk '{print $5} '` > filesize
       export XLFRTEOPTS="unit_vars=yes"
@@ -130,7 +131,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
       export FORT12="filesize"
       export FORT31=
       export FORT51=awpaqm.${cycle}.${hr}ho3-max.227.grib2
-      ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
+      ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3-maxi.${cycle}.227
    done
    
    

@@ -2,7 +2,7 @@
 ######################################################################
 #  UNIX Script Documentation Block
 #                      .
-# Script name:         exaqm_cmaq_maxi.sh
+# Script name:         aqm_bicor_post_maxi_cs.sh
 # Script description:  CMAQ post processing for daily surface maximum O3/PM2.5
 #
 # Author:  Youhua Tang  Org: NP22  Date: 2009-06-30
@@ -31,6 +31,7 @@ cat >bias_cor_max.ini <<EOF1
 varlist='pm25_24h_ave','pm25_1h_max'
 outfile='aqm-pm25_bc'
 id_gribdomain=148
+max_proc=${post_proc_hour}
 /
 EOF1
 
