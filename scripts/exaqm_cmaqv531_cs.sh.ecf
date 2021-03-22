@@ -300,8 +300,9 @@ SPCS_8s="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR"
 SPCS_8="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR PAR ETHA PRPA MEOH ETH ETOH OLE ACET TOL"
 SPCS_9="XYLMN BENZENE FORM GLY KET ETHY ALD2 IOLE ALDX ISOP TERP NAPH APIN"
 ## export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
-export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8s}"
+#  export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8s}"
 # export CONC_SPCS="ALL"
+export CONC_SPCS="O3"
 # export CONC_BLEV_ELEV=" 1 1" #> CONC file layer range; comment to write all layers to CONC
 # export AVG_CONC_SPCS="ALL"
 ## export AVG_CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
@@ -321,6 +322,7 @@ export CTM_ERODE_AGLAND=N    #> use agricultural activity for windblown dust [ d
 ## export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
+## Turn off WVEL output in CONC and ACONC
 export CTM_WVEL=N            #> save derived vertical velocity component to conc file [ default: N ]
 export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
 export CTM_ILDEPV=Y          #> calculate in-line deposition velocities [ default: Y ]
@@ -332,7 +334,8 @@ export CTM_DEPV_FILE=Y #N       #> write diagnostic file for deposition velociti
 export CTM_BIOGEMIS=Y        #> calculate in-line biogenic emissions [ default: N ]
 export B3GTS_DIAG=Y          #> write biogenic mass emissions diagnostic file [ default: N ]; ignore if CTM_BIOGEMIS = N
 export CTM_PT3DEMIS=Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
-export PT3DDIAG=Y            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
+## Turn off 3D point source emission output (including fire)
+export PT3DDIAG=N            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
 export PT3DFRAC=N            #> optional layer fractions diagnostic (play) file(s) [ default: N]; ignore if CTM_PT3DEMIS = N
 export IOAPI_LOG_WRITE=F     #> turn on excess WRITE3 logging [ options: T | F ]
 export FL_ERR_STOP=N         #> stop on inconsistent input files
