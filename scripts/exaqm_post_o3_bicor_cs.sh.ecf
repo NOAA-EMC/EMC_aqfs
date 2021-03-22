@@ -53,13 +53,14 @@ if [ $ic -ge 100 ]; then
 fi
 
 #------------------------------------------------------
-##
+## remove any pre-exit aqm.${cycle}.O3_pm25.ncf sfc_met_n_PBL.${cycle}.ncf
+## for 2-stage post processing [ 48 hour first then 72 hour 2nd
 if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
    echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
    /bin/rm -f $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf
    /bin/rm -f $COMOUTbicor/grid/$PDY/sfc_met_n_PBL.${cycle}.ncf
 fi
-## else
+
    startmsg
    ${USHaqm}/aqm_bicor_prep_cs.sh  >> $pgmout 2>errfile  
    export err=$?; err_chk
@@ -75,7 +76,6 @@ fi
 
     cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
     cp ${DATA}/$f3 $COMOUTbicor/grid/$PDY
-##fi
 
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
