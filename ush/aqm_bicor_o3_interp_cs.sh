@@ -13,8 +13,6 @@ set -xa
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
-export bc_fcst_hr=72
-
 cd $DATA
 
 mkdir -p data/coords site-lists
@@ -34,7 +32,7 @@ ln -s $PARMaqm/aqm_config.interp.ozone.8-vars  $DATA
 ln -s ${COMINbicor}   $DATA/data
 
 startmsg
-$EXECaqm/aqm_interpolate_update  aqm_config.interp.ozone.8-vars ${cyc}z $bc_fcst_hr  $PDY $PDY  >> $pgmout 2>errfile 
+$EXECaqm/aqm_interpolate_update  aqm_config.interp.ozone.8-vars ${cyc}z ${bc_interp_hr} $PDY $PDY  >> $pgmout 2>errfile 
 export err=$?;err_chk
 
 if [ -e ${COMINbicor}/interpolated/ozone/$Yr ] 
