@@ -1,6 +1,6 @@
 SHELL=/bin/sh
 
-MODEL      = aqm_subset_x
+MODEL      = aqm_subset
 
 # Compiler Definitions
 FC         = ifort 

@@ -8,7 +8,7 @@ export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf"
 
 BASEDIR=$PWD
 
-for src in nacc_parallel_v1 fcst_v531 parallel_glbc fireemis cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
+for src in nacc fcst_v531 parallel_glbc gbbepx2pts cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
  cd $BASEDIR/aqm_$src.fd
  make -f Makefile clobber
  make -f Makefile
@@ -31,7 +31,7 @@ module switch intel/19.0.5.281
 module switch bufr-intel/11.3.0
 export NETCDF_LDFLAGS="-L$NETCDF/lib -lnetcdff -lnetcdf -L$HDF5/lib -lhdf5_hl -lhdf5 -lz"
 ###############################
-for src in subset subc bicor_combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
+for src in subset setup_date_timesp bicor_combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
 do
 cd ${BASEDIR}/aqm_${src}.fd
 make -f Makefile clobber

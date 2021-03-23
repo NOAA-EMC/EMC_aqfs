@@ -785,6 +785,7 @@ postmsg "${jlogfile}" "${msg}"
 ## Soft link CONC and ACONC for POST processing in the middle of run
 ##
 if [ "${FCST}" == "YES" ]; then
+   /bin/rm -f ${COMOUT}/aqm.${cycle}.conc.ncf ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.pmdiag.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    ln -s ${DATA}/CONC.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.conc.ncf
    ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
    ln -s ${DATA}/PMDIAG.${CTM_APPL}     ${COMOUT}/aqm.${cycle}.pmdiag.ncf
@@ -832,10 +833,10 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" =="Y" ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
    else
-      if [ "${FLAG_WF_ON}" == "YES" ] && [ "${PT3DDIAG}" =="Y" ]; then
+      if [ "${FLAG_WF_ON}" == "YES" ] && [ "${PT3DDIAG}" == "Y" ]; then
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi

@@ -82,7 +82,7 @@ echo ' '
 
 #export err=$?;err_chk
 #startmsg
-$EXECaqm/aqm_subset_x 
+$EXECaqm/aqm_subset
 #export err=$?;err_chk
 
 exit

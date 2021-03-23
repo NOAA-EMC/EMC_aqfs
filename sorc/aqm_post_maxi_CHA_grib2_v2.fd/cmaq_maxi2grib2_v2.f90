@@ -138,6 +138,8 @@
       nowstime=stime3d
       maxrec1=mxrec3d
 
+      print*,'total hour CMAQFILE1 ', maxrec1
+
       allocate(cgrib1(max_bytes)) 
       allocate(cgrib2(max_bytes)) 
       allocate(bmap(imax,jmax))
@@ -157,6 +159,7 @@
       ietime(1)=ntmpdate*100+ntmptime/10000   ! file end time in YYYYDDDHH
       
       time1_end=ntmptime/10000                 ! end time of  the first file
+      print*,'end time of CMAQFILE1 ', time1_end
 
       allocate(lb(imax,jmax))
       lb(:,:)=.true.
@@ -178,6 +181,7 @@
       endif 
 
       maxrec2=mxrec3d
+      print*,'total hour CMAQFILE2 ', maxrec2
 
       istime(2)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
             
@@ -214,6 +218,7 @@
        endif 
 
       maxrec3=mxrec3d
+      print*,'total hour CMAQFILE3 ', maxrec3
 
       istime(3)=sdate3d*100+stime3d/10000     ! file start time in YYYYDDDHH
             
@@ -229,7 +234,7 @@
 
       endif	
 
-      print*,'mintime,maxtime=',mintime,maxtime,nowsdate*100+markutc
+      print*,'mintime,maxtime=,nowsdate*100+markutc',mintime,maxtime,nowsdate*100+markutc
 
 !----calculate the total time steps  
       
@@ -247,7 +252,9 @@
       ntmpdate=nowdate
       ntmptime=markutc*10000
 
+      print *, "imetime = ", imetime
       do ksteps=1,300
+         print *, ksteps, " imetime = ", imetime, " Current time", ntmpdate*100+ntmptime/10000
        if(ntmpdate*100+ntmptime/10000.ge.imetime) exit
        call nextime(ntmpdate,ntmptime,tstep3d)
       enddo
@@ -289,7 +296,7 @@
          print*,'read file error ',nt
          stop
         endif      
-       
+       print *, "nt, FILE USE ", nt, "  ", currentfile
        o3(1:imax,1:jmax,nt)=work(1:imax,1:jmax)*1000 ! ppmv to ppbv
        
        pm25(1:imax,1:jmax,nt)=0.

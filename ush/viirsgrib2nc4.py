@@ -39,26 +39,6 @@ def execute_subprocess(cmd, verbose=False):
         raise subprocess.CalledProcessError('',cmd,output=e.output)
     return
 
-
-def get_exec_path(exec_name, verbose=False):
-    '''
-    get the full path to a given executable name
-    :param exec_name: executable to fine
-    :param type: str
-    '''
-
-    ## exec_path_def = '/nwprod2/grib_util.v1.0.0/exec/%s' % exec_name
-    exec_path_def = '/gpfs/hps/nco/ops/nwprod/grib_util.v1.0.5/exec/%s' % exec_name
-
-    exec_path = find_executable(exec_name)
-    if exec_path is None:
-        exec_path = exec_path_def
-
-    if verbose:
-        print( '%s: %s' % (exec_name, exec_path))
-
-    return exec_path
-
 def chdir(fname):
 #    dir_path = os.path.dirname(os.path.realpath(fname))
     dir_path = os.path.dirname(fname)
@@ -75,10 +55,11 @@ def change_file(finput,foutput=None,execpath=None,verbose=False):
 
     # this will create 3 files and append to them
     if xpath == None:
-    	wgrib2 = get_exec_path('wgrib2', verbose=verbose)
+    	wgrib2 = os.environ['WGRIB2']
     else:
     	wgrib2 = xpath
     
+    print("wgrib2="+wgrib2)
     # ENTIRE ATMOSPHERE GRIB LAYER
     #cmd = '%s %s -match "entire atmosphere:" -nc_nlev 1 -append -set_ext_name 1 -netcdf %s.entire_atm.nc' % (wgrib2, fname, fname)
     #execute_subprocess(cmd, verbose=verbose)
