@@ -672,7 +672,11 @@ if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then us
    fi
 else
    if [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+      if [ "${cycle}" == "t06z" ] && [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_t06z_35L.ncf ]; then
+         export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_t06z_35L.ncf
+      else
+         export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+      fi
    elif [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
       export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
    elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then

@@ -106,7 +106,7 @@ export err=$?;err_chk
 #
 cat >cmaq2grib2.ini <<EOF5
 &control
-varlist='O3','NO','NO2','NOY','PM25_TOT','PM25_EC','PM25_NH4','PM25_NO3','PM25_OC','PM25_SO4','PMC_TOT'
+varlist='O3','NO','NO2','NOY','VOC','PM25_TOT','PM25_EC','PM25_NH4','PM25_NO3','PM25_OC','PM25_SO4','PMC_TOT'
 metlist='    '
 outfile='aqm.${cycle}.chem_sfc'
 nlayers=1

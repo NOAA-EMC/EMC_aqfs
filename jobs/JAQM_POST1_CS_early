@@ -64,10 +64,10 @@ while [ ${ic} -le ${icnt} ]; do
   if [ -s ${file_check} ]; then
      tstep=$(ncdump -h ${file_check} | grep 'TSTEP = UNLIMITED' | sed 's/[^0-9]*//g')
      if [ ${tstep} -ge 48 ]; then
-        echo "Current time ${tstep} reach or pass hour 48"
+        echo "Current time ${tstep} reach or pass hour 48  - `date`"
         break
      else
-        echo "Waiting FCST hours to reach hour 48 : ${tstep}"
+        echo "Waiting FCST hours to reach hour 48 : ${tstep} - `date`"
         sleep 20
      fi
   fi

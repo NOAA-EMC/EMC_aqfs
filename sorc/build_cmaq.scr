@@ -16,22 +16,36 @@ for src in nacc fcst_v531 parallel_glbc gbbepx2pts cmaq_combine cmaq2grib2_v2 cm
  make -f Makefile clobber
 done
 
-##############################
-## module unload module load cray-netcdf/4.3.2
-## module load NetCDF-intel-haswell/3.6.3
-## module load HDF4-intel-haswell/4.2.8
-## module load HDF5-serial-intel-haswell/1.8.9
-## module switch  intel/16.3.210
-## module switch bufr-intel/11.0.2
 
+##############################
 module unload module load cray-netcdf/4.3.2
+module load NetCDF-intel-haswell/3.6.3
+module load HDF4-intel-haswell/4.2.8
+module load HDF5-serial-intel-haswell/1.8.9
+module switch  intel/16.3.210
+module switch bufr-intel/11.0.2
+
+for src in subset setup_date_timesp bicor_combine 
+do
+cd ${BASEDIR}/aqm_${src}.fd
+make -f Makefile clobber
+make -f Makefile
+make -f Makefile install
+make -f Makefile clobber
+done
+
+###################################################
+module unload module load cray-netcdf/4.3.2
+module unload NetCDF-intel-haswell/3.6.3
+module unload HDF4-intel-haswell/4.2.8
+module unload HDF5-serial-intel-haswell/1.8.9
 module load NetCDF-intel-sandybridge/4.2
 module load HDF5-serial-intel-sandybridge/1.8.9
 module switch intel/19.0.5.281
 module switch bufr-intel/11.3.0
 export NETCDF_LDFLAGS="-L$NETCDF/lib -lnetcdff -lnetcdf -L$HDF5/lib -lhdf5_hl -lhdf5 -lz"
-###############################
-for src in subset setup_date_timesp bicor_combine interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
+###################################################
+for src in interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
 do
 cd ${BASEDIR}/aqm_${src}.fd
 make -f Makefile clobber

@@ -231,6 +231,10 @@
 
       mintime=min(istime(1),istime(2),istime(3))
       maxtime=max(ietime(1),ietime(2),ietime(3))
+      !! update maxtime to CMAQFILE1
+      print *, "before changes maxtime=", maxtime
+      maxtime=ietime(1)
+      print *, "after  changes maxtime=", maxtime
 
       endif	
 
