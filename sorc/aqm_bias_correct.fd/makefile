@@ -63,6 +63,7 @@ F90_FLAGS2 = -warn nointerfaces -traceback
 F90_FLAGS3 = -fstack-security-check -fpe-all=0
 F90_FLAGS4 = -O3
 F90_FLAGS5 = -qopenmp
+F90_FLAGS5 = 
 F90_FLAGS6 = -check noarg_temp_created
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
@@ -111,7 +112,7 @@ Subs.blib =     $(Blib)/bufrlib_interface.f90   $(Blib)/expand_filename.f90 \
 Analog1 =       $(Alib)/compute_weight_sets.f90 $(Alib)/rmse.f90 \
                 $(Alib)/stdevTNcirc.f90         $(Alib)/wind_dir_error.f90
 
-Analog2 =       $(Alib)/find_analog_v1.f90      $(Alib)/kf_luca.f90 \
+Analog2 =       $(Alib)/find_analog.f90      $(Alib)/kf_luca.f90 \
                 $(Alib)/analog_ensemble.f90     $(Alib)/anenmean_method.f90 \
                 $(Alib)/kfan_method.f90         $(Alib)/filter_dispatch.f90 \
                 $(Alib)/weight_control.f90      $(Alib)/analog_control.f90

@@ -62,7 +62,7 @@ F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 F90_FLAGS2 = -warn nointerfaces -traceback  
 F90_FLAGS3 = -fstack-security-check -fpe-all=0
 F90_FLAGS4 = -O3
-#F90_FLAGS5 = -qopenmp
+F90_FLAGS5 = -qopenmp
 F90_FLAGS5 = 
 F90_FLAGS6 = -check noarg_temp_created
 

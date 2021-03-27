@@ -218,6 +218,11 @@ C Local variables:
       INTEGER, SAVE :: myNREPS = 0
       INTEGER       :: STATUS
 
+      INTEGER, PARAMETER :: MAX_CGRID_STEP = 8  ! The  CGRID output time interval is 6 hour
+                                                !(specified in LINE 792) OUTPUT 8 Times is to
+                                                ! stop output at HOURS 24 OR the end of 2nd day
+      INTEGER, SAVE      :: N_CGRID             ! The counter for CGRID output
+      data N_CGRID/0/                           ! initialize to 0
 #ifdef mpas
       INTEGER       :: TIME2SEC, SEC2TIME
 
@@ -785,10 +790,12 @@ C write conc fields
       END IF
       
 C write CGRID fields every six hours
+C FOR MAXIMUM NUMBER OF IC FIELDS = MAX_CGRID_STEP
 
-         IF ( MOD( TIME2SEC( JTIME ), TIME2SEC( 60000 ) ) .EQ. 0 ) THEN
-          CALL WR_CGRID ( CGRID, JDATE, JTIME, 60000 )	  
-	 ENDIF	 
+      IF ( MOD( TIME2SEC( JTIME ), TIME2SEC( 60000 ) ) .EQ. 0 .AND. N_CGRID .LT. MAX_CGRID_STEP ) THEN
+         N_CGRID = N_CGRID + 1
+         CALL WR_CGRID ( CGRID, JDATE, JTIME, 60000 )	  
+      ENDIF	 
 
 #ifdef twoway
       IF ( SD_TIME_SERIES ) THEN

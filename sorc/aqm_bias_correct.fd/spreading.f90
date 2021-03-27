@@ -19,6 +19,9 @@
 !		  for other uses such as probability forecast.
 !		Add option to suppress writing output file, calculate only.
 !
+! 2021-mar-24	Add support for mixed forecast lengths, rather than failing.
+!		Match output lengths to the uncorrected forecast input file.
+!
 ! * Remember to update the date in the module_id below.
 !
 ! This spreading module incorporates three major functions:
@@ -35,7 +38,7 @@
 ! * Auxiliary grid coordinate file, as needed.
 ! * Site coordinates.
 !
-! Primary output:
+! Primary outputs:
 !
 ! * Single bias corrected gridded file containing:
 !   1. Bias corrected grids for all forecast hours.
@@ -76,7 +79,7 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    use write__corrected_netcdf
    implicit none
 
-   character(*), parameter :: module_id = 'spreading.f90 version 2020-aug-02'
+   character(*), parameter :: module_id = 'spreading.f90 version 2021-mar-24'
 
 ! Input arguments.
 
@@ -118,6 +121,7 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    character fdate_str*24, fmt1*60, fmt2*60, outfile*200
 
    integer year, month, day
+   integer nhours_sites, nsites, nhours_out, nhours_common
    integer nhours_expect, nhours_actual_max
    integer ivar, status
 
@@ -134,6 +138,9 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    real(dp), allocatable :: bias_grids (:,:,:)	    ! output bias grids
 						    !   (X, Y, hours)
 
+   real(dp), allocatable :: uncorr_sites2(:,:)      ! site input arrays
+   real(dp), allocatable :: corr_sites2(:,:)	    ! after size matching
+
 !-------------------------------------------------------
 ! Read raw gridded forecast data for target variable.
 !-------------------------------------------------------
@@ -147,11 +154,16 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    call index_to_date (forecast_date, year, month, day, base_year, calendar)
       						! get current Y M D integers
 
-! Get expected number of forecast hours before calling reader.
-! Actual forecast hours for target var in file should match exactly,
-! unless interpolated data set and gridded forecast file are mismatched.
+! Get dimensions for input site arrays.
 
-   nhours_expect = size (uncorr_sites, 1)
+   nhours_sites = size (uncorr_sites, 1)
+   nsites       = size (uncorr_sites, 2)
+
+! Expect same number of hours when reading the uncorrected forecast grids.
+! Actual forecast hours for target var in file are usually the same,
+! but may differ with mixed length training data.
+
+   nhours_expect = nhours_sites
 
 ! Utilize the same gridded reader used by the interpolation program.
 ! To include all possible file configurations, this routine also
@@ -184,24 +196,49 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
       call exit (1)
    end if
 
-! Abort if forecast hour dimension sizes are mismatched.
+! Warn if forecast lengths are mismatched, but continue processing.
 
    if (  nhours_actual(1)  /= nhours_expect &
     .or. nhours_actual_max /= nhours_expect) then
       fmt1 = '(a,i0.4,3(1x,i0.2),"Z")'
       fmt2 = '(a,i0)'
       print *
-      print fmt1, '*** spreading: Inconsistent array sizes for forecast hours.'
+      print fmt1, '*** spreading: Warning, inconsistent forecast lengths.'
       print fmt2, '*** nhours_expect     = ', nhours_expect
       print fmt2, '*** nhours_actual(1)  = ', nhours_actual(1)
       print fmt2, '*** nhours_actual_max = ', nhours_actual_max
-      print fmt1, '*** Interpolated data set and current model files may be' &
-                         // ' mismatched .'
+      print fmt1, '*** Input data sets are mixed lengths, or data set mismatch.'
       print fmt1, '*** Target forecast cycle = ', year, month, day, cycle_time
-      print fmt1, '*** Fatal, can not complete bias correction for this' &
-                         // ' forecast cycle.'
-      call exit (1)
    end if
+
+!-----------------------------------------------------------
+! Expand or contract site arrays to match forecast file.
+!-----------------------------------------------------------
+
+! Support mixed forecast lengths between training data and target forecast.
+! Pad with missing values as needed, to neutralize bias correction.
+! This method is valid to both expand and contract.
+
+   nhours_out    = nhours_actual(1)
+   nhours_common = min (nhours_sites, nhours_out)
+
+   if (diag >= 2) then
+      fmt1 = '(3x,a,i0)'
+      print *
+      print fmt1, 'Expand or contract site arrays to match forecast file.'
+      print fmt1, '  Site hours input          = ', nhours_sites
+      print fmt1, '  Site hours after matching = ', nhours_out
+      print *
+   end if
+
+   allocate (uncorr_sites2(nhours_out, nsites))
+   allocate (corr_sites2  (nhours_out, nsites))
+
+   uncorr_sites2(:,:) = vmiss
+   corr_sites2  (:,:) = vmiss
+
+   uncorr_sites2(1:nhours_common,:) = uncorr_sites(1:nhours_common,:)
+   corr_sites2  (1:nhours_common,:) = corr_sites  (1:nhours_common,:)
 
 !-------------------------------------------------------
 ! Spread bias corrections to forecast grids.
@@ -215,8 +252,8 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    ivar = 1			! index for target variable input grids;
    				! is 1 because only single var was just read
 
-   call spread_bias (dble (uncorr_grids(:,:,ivar,1:nhours_actual(1))), &
-      uncorr_sites, corr_sites, grid_lats, grid_lons, site_lats, site_lons, &
+   call spread_bias (dble (uncorr_grids(:,:,ivar,1:nhours_out)), &
+      uncorr_sites2, corr_sites2, grid_lats, grid_lons, site_lats, site_lons, &
       vmiss, diag, output_limit_method, bias_grids, corr_grids)
 
 !-------------------------------------------------------

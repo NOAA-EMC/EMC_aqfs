@@ -51,6 +51,8 @@
 ! 2020-nov-16	Fix support for search window wider than current forecast hour.
 !		Add support for asymmetric search window bounds.
 !
+! 2021-mar-24	Fix support for mixed forecast lengths in spreading.f90.
+!
 ! * Remember to update the program_id below.
 !
 ! Credits:
@@ -174,7 +176,7 @@ program bias_correct
    implicit none
 
    character(*), parameter :: &
-      program_id = 'bias_correct.f90 version 2020-nov-16'
+      program_id = 'bias_correct.f90 version 2021-mar-24'
 
 ! Local variables.
 
