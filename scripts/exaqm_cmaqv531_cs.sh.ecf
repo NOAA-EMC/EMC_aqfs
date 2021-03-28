@@ -408,9 +408,6 @@ echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-## ALERT HHC removed for NCO delivery if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-## ALERT HHC removed for NCO delivery    err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-## ALERT HHC removed for NCO delivery fi
 ic=0
 while [ ${ic} -lt 1081 ]; do
    if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
@@ -418,6 +415,7 @@ while [ ${ic} -lt 1081 ]; do
    else
       ((ic++))
       if [ ${ic} -gt 180 ]; then
+         echo "ERROR WARNING :: ================== FATAL ERROR ======================"
          err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
       fi
       sleep 10
@@ -449,49 +447,59 @@ ${FSYNC} ${METpath}/aqm.${cycle}.soicro.ncf
 ${FSYNC} ${METpath}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
+## export GR_EMIS_001=${EMISpath}/emis-noRWC-nei17-${YM}.ncf #surface emission file
+## export GR_EMIS_002=${EMISpath}/emis-RWC-nei17-${YM}.ncf #surface RWC file
 export N_EMIS_GR=2
-export GR_EMIS_001=${EMISpath}/emis-noRWC-nei17-${YM}.ncf #surface emission file
+export GR_EMIS_001=${EMISpath}/emis-noRWC-cb6-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
 export GR_EM_SYM_DATE_001=F
-export GR_EMIS_002=${EMISpath}/emis-RWC-nei17-${YM}.ncf #surface RWC file
+export GR_EMIS_002=${EMISpath}/emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
-   echo "WARNING :: Can not find ${GR_EMIS_001}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${GR_EMIS_001}"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 if [ ! -s ${GR_EMIS_002} ]; then
-   echo "WARNING :: Can not find ${GR_EMIS_002}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${GR_EMIS_002}"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
+## if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ]; then
+##   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf"
+## if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
+##   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf"
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ]; then
-   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf"
-   err=999
-   err_chk
+if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 
-if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
-   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf"
-   err=999
-   err_chk
+if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 done
 
 ## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
 ## 2DSUM [default] or 3D
+##   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ] && \
+##      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
+##      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf
+##      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf ] && \
-      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf ]; then
+   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
+      [ -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2017gb_17j.ncf
-      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6ae7_2017gb_17j.ncf
+      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf
+      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=${TYPE_POINT_EMIS_OUT}
       export STK_EM_SYM_DATE_${ic}=F
@@ -502,16 +510,6 @@ done
 if [ "$FCST" == "YES" ]; then
    FIRE_DIR=${COMIN}
    FIRE_SUFFIX=${cycle}
-##   if [ "${cyc}" == "00" ]; then
-##      FIRE_DIR=${COMINm1}
-##      FIRE_SUFFIX=t12z
-##   else
-##      FIRE_DIR=${COMIN}
-##      if [ "${cyc}" == "18" ]; then
-##         FIRE_SUFFIX=t12z
-##      else
-##      fi
-##   fi
 else
     FIRE_DIR=${COMINm1}   # 06z run for yesterday only
     FIRE_SUFFIX=${cycle}
@@ -540,9 +538,10 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YE
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
    export STK_EMIS_DIAG_${ic}=${TYPE_FIRE_EMIS_OUT}
    export STK_EM_SYM_DATE_${ic}=F
-## else
-##    echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
-##    exit
+else
+   echo "WARNING :: ========================================================"
+   echo "WARNING :: Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
+   echo "WARNING :: ========================================================"
 fi
 
 if [ ${ic} -le 0 ]; then
@@ -583,14 +582,14 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    fi
    # Sanitary Check
    if [ ! -s ${GSPRO} ]; then
-      echo "Can not find ${GSPRO}"
-      err=999
-      err_chk
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+      echo "ERROR WARNING :: Can not find ${GSPRO}"
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    fi
    if [ ! -s ${B3GRD} ]; then
-      echo "Can not find ${B3GRD}"
-      err=888
-      err_chk
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+      echo "ERROR WARNING :: Can not find ${B3GRD}"
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    fi
 fi
 
@@ -805,8 +804,9 @@ num_row=24
 let total_procs=${num_col}*${num_row}
 echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
 if [ ${total_procs} -gt ${nprocs} ]; then
-   echo "exceeds max processors requested"
-   exit
+   echo "WARNING :: ========================================================"
+   echo "AWRNING :: Request #processor ${nproc} exceeds expected ${total_procs}"
+   echo "WARNING :: ========================================================"
 fi
 export NPCOL_NPROW="${num_col} ${num_row}"
 ## aprun -n${total_procs} -N 24 ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
