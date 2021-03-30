@@ -1,0 +1,93 @@
+#BSUB -J %E%aqm_prep_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -q %QUEUE%
+#BSUB -cwd /tmp
+#BSUB -W 00:30
+#BSUB -M 3072
+#BSUB -P %PROJ%-%PROJENVIR%
+#BSUB -extsched 'CRAYLINUX[]'
+
+%include <head.h>
+%include <envir-xc40.h>
+
+#
+# ecflow file dependency
+# start when following GFS file is completed
+#
+# case $CYC% in
+#    00) gfs_hour=006;;
+#    06) gfs_hour=072;;
+#    12) gfs_hour=072;;
+#    18) gfs_hour=006;;
+# esac
+#
+# /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour}.nc
+#
+# Or if [ -s /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour+1}.nc]; 
+#    
+# versions file for cmaq sets $cmaq_ver
+model=cmaq
+%include <model_ver.h>
+
+set -x
+
+export cyc=%CYC%
+case ${cyc} in
+   00) num_node=1;;
+   06) num_node=10;;
+   12) num_node=10;;
+   18) num_node=1;;
+esac
+
+export RUN=aqm
+export NODES=${num_node}
+export FCST=YES
+
+. /opt/modules/default/init/ksh
+module unload PrgEnv-cray
+module load PrgEnv-intel
+module load cray-netcdf/4.3.2
+module load cray-hdf5/1.8.13
+module load cray-mpich/7.2.0
+module load nemsio-intel/2.2.2
+module load nemsiogfs-intel
+module load bacio-intel/2.0.1
+module load w3emc-intel/2.2.0  w3nco-intel/2.0.6
+module load jasper-gnu-haswell/1.900.1
+module load png-intel-sandybridge
+## module use /gpfs/hps/nco/ops/nwtest/lib/modulefiles
+module load g2-intel/3.1.0
+module load prod_util
+module load prod_envir
+
+module unload grib_util/${grib_util_ver}
+module load grib_util/1.0.5
+module load python/3.6.3
+module list
+
+${HOMEcmaq}/jobs/JAQM_PREP
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end
