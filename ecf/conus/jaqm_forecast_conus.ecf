@@ -22,6 +22,21 @@ set -x
 module unload PrgEnv-cray
 module load PrgEnv-intel
 module load iobuf/${iobuf_ver}
+module load cray-netcdf/4.3.2
+module load cray-hdf5/1.8.13
+module load cray-mpich/7.2.0
+module load nemsio-intel/2.2.2
+module load nemsiogfs-intel
+module load bacio-intel/2.0.1
+module load w3emc-intel/2.2.0  w3nco-intel/2.0.6
+module load jasper-gnu-haswell/1.900.1
+module load png-intel-sandybridge
+## module use /gpfs/hps/nco/ops/nwtest/lib/modulefiles
+module load g2-intel/3.1.0
+module load prod_util
+module load prod_envir
+module unload grib_util/${grib_util_ver}
+module load grib_util/1.0.3
 module list
 
 export NODES=24
