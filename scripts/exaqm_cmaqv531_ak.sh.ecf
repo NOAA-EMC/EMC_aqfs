@@ -295,10 +295,11 @@ SPCS_3="ALVPO1J ASVPO1J ASVPO2J ASVPO3J APOCJ APNCOMJ ALVOO1J ALVOO2J ASVOO1J AS
 SPCS_4="ASVOO3J AOTHRJ AIVPO1J AISO1J AISO2J AISO3J AMT1J AMT2J AMT3J AMT4J AMT5J"
 SPCS_5="AMT6J AMTNO3J AMTHYDJ AGLYJ ASQTJ AORGCJ AOLGBJ AOLGAJ APCSOJ AAVB1J AAVB2J"
 SPCS_6="AAVB3J AAVB4J AFEJ ASIJ ATIJ ACAJ AMGJ AMNJ AALJ AKJ ASO4K ANO3K ANH4K ACLK"
-SPCS_7="ASOIL ACORS ASEACAT O3 NO NO2 CO NO3 N2O5 HONO HNO3 PNA CRON CLNO2"
+SPCS_7="ASOIL ACORS ASEACAT O3 NO NO2 NO3 N2O5 HONO HNO3 PNA CRON CLNO2"
+SPCS_8s="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR"
 SPCS_8="CLNO3 PAN PANX OPAN NTR1 NTR2 INTR PAR ETHA PRPA MEOH ETH ETOH OLE ACET TOL"
 SPCS_9="XYLMN BENZENE FORM GLY KET ETHY ALD2 IOLE ALDX ISOP TERP NAPH APIN"
-export CONC_SPCS="${SPCS_1} ${SPCS_2} ${SPCS_3} ${SPCS_4} ${SPCS_5} ${SPCS_6} ${SPCS_7} ${SPCS_8} ${SPCS_9}"
+export CONC_SPCS="O3"
 # export CONC_SPCS="ALL"
 # export CONC_BLEV_ELEV=" 1 1" #> CONC file layer range; comment to write all layers to CONC
 # export AVG_CONC_SPCS="ALL"
@@ -318,7 +319,8 @@ export CTM_ERODE_AGLAND=N    #> use agricultural activity for windblown dust [ d
 ## export CTM_DUSTEM_DIAG=N     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_DUSTEM_DIAG=Y     #> windblown dust emissions diagnostic file [ default: N ]; ignore if CTM_WB_DUST = N
 export CTM_LTNG_NO=N #Y         #> turn on lightning NOx [ default: N ]
-export CTM_WVEL=Y            #> save derived vertical velocity component to conc file [ default: N ]
+## Turn off WVEL output in CONC and ACONC
+export CTM_WVEL=N            #> save derived vertical velocity component to conc file [ default: N ]
 export KZMIN=Y               #> use Min Kz option in edyintb [ default: Y ], otherwise revert to Kz0UT
 export CTM_ILDEPV=Y          #> calculate in-line deposition velocities [ default: Y ]
 export CTM_MOSAIC=N          #> landuse specific deposition velocities [ default: N ]
@@ -329,7 +331,8 @@ export CTM_DEPV_FILE=Y #N       #> write diagnostic file for deposition velociti
 export CTM_BIOGEMIS=Y        #> calculate in-line biogenic emissions [ default: N ]
 export B3GTS_DIAG=Y          #> write biogenic mass emissions diagnostic file [ default: N ]; ignore if CTM_BIOGEMIS = N
 export CTM_PT3DEMIS=Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
-export PT3DDIAG=Y            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
+## Turn off 3D point source emission output (including fire)
+export PT3DDIAG=N            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
 export PT3DFRAC=N            #> optional layer fractions diagnostic (play) file(s) [ default: N]; ignore if CTM_PT3DEMIS = N
 export IOAPI_LOG_WRITE=F     #> turn on excess WRITE3 logging [ options: T | F ]
 export FL_ERR_STOP=N         #> stop on inconsistent input files
@@ -354,8 +357,6 @@ export CTM_GRAV_SETL=Y       #> vdiff aerosol gravitational sedimentation [ defa
 export VERTEXT=N             #> Vertical Extraction Options.  If Y need file defined as "export VERTEXT_COORD_PATH=${HOMEaqm}/scripts/lonlat.csv"
 if [ "${VERTEXT}" == "Y" ] && [ ! -s ${VERTEXT_COORD_PATH} ]; then
    echo "WARNING :: exaqm_cmaqv531_ak.sh.ecf : VERTEXT is set as ${VERTEXT} and no ${VERTEXT_COORD_PATH} can be found"
-   err=999
-   err_chk
 fi
 
 #> I/O Controls
@@ -412,6 +413,7 @@ while [ ${ic} -lt 1081 ]; do
    else
       ((ic++))
       if [ ${ic} -gt 180 ]; then
+         echo "ERROR WARNING :: ================== FATAL ERROR ======================"
          err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
       fi
       sleep 10
@@ -451,29 +453,29 @@ export GR_EMIS_002=${EMISpath}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
-   echo "WARNING :: Can not find ${GR_EMIS_001}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${GR_EMIS_001}"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 if [ ! -s ${GR_EMIS_002} ]; then
-   echo "WARNING :: Can not find ${GR_EMIS_002}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${GR_EMIS_002}"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
 ## for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 
 if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
-   echo "WARNING :: or  ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 done
 
@@ -535,9 +537,10 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf ] && [ "${FCST}" ==
    export STK_EMIS_LAB_${ic}=${FIRE_EMIS_LABEL}
    export STK_EMIS_DIAG_${ic}=${TYPE_FIRE_EMIS_OUT}
    export STK_EM_SYM_DATE_${ic}=F
-## else
-##    echo "Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
-##    exit
+else
+   echo "WARNING :: ========================================================"
+   echo "WARNING :: Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf"
+   echo "WARNING :: ========================================================"
 fi
 
 if [ ${ic} -le 0 ]; then
@@ -578,14 +581,14 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    fi
    # Sanitary Check
    if [ ! -s ${GSPRO} ]; then
-      echo "Can not find ${GSPRO}"
-      err=999
-      err_chk
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+      echo "ERROR WARNING :: Can not find ${GSPRO}"
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    fi
    if [ ! -s ${B3GRD} ]; then
-      echo "Can not find ${B3GRD}"
-      err=888
-      err_chk
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+      echo "ERROR WARNING :: Can not find ${B3GRD}"
+      echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    fi
 fi
 
@@ -655,6 +658,7 @@ fi
 ## else
 ##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
 ## fi
+export BNDY_GASC_1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${MM}.35L.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
    if [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
       export BNDY_GASC_1=${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf
@@ -675,7 +679,6 @@ fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
   export BNDY_GASC_1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${MM}.35L.ncf
-
 fi
 
 export BNDY_AERO_1=${BNDY_GASC_1}
@@ -784,8 +787,9 @@ num_row=24
 let total_procs=${num_col}*${num_row}
 echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
 if [ ${total_procs} -gt ${nprocs} ]; then
-   echo "exceeds max processors requested"
-   exit
+   echo "WARNING :: ========================================================"
+   echo "AWRNING :: ${total_procs} procs need for the run is greater than ${nprocs} requested"
+   echo "WARNING :: ========================================================"
 fi
 export NPCOL_NPROW="${num_col} ${num_row}"
 ## aprun -n${total_procs} -N 24 ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile

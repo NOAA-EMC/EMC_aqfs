@@ -360,8 +360,6 @@ export CTM_GRAV_SETL=Y       #> vdiff aerosol gravitational sedimentation [ defa
 export VERTEXT=N             #> Vertical Extraction Options.  If Y need file defined as "export VERTEXT_COORD_PATH=${HOMEaqm}/scripts/lonlat.csv"
 if [ "${VERTEXT}" == "Y" ] && [ ! -s ${VERTEXT_COORD_PATH} ]; then
    echo "WARNING :: exaqm_cmaqv531_cs.sh.ecf : VERTEXT is set as ${VERTEXT} and no ${VERTEXT_COORD_PATH} can be found"
-   err=999
-   err_chk
 fi
 
 #> I/O Controls
@@ -803,7 +801,7 @@ let total_procs=${num_col}*${num_row}
 echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
 if [ ${total_procs} -gt ${nprocs} ]; then
    echo "WARNING :: ========================================================"
-   echo "AWRNING :: Request #processor ${nproc} exceeds expected ${total_procs}"
+   echo "AWRNING :: ${total_procs} procs need for the run is greater than ${nprocs} requested"
    echo "WARNING :: ========================================================"
 fi
 export NPCOL_NPROW="${num_col} ${num_row}"
