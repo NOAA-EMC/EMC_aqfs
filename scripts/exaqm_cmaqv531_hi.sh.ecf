@@ -820,10 +820,10 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
    else
-      if [ "${FLAG_WF_ON}" == "YES" ]; then
+      if [ "${FLAG_WF_ON}" == "YES" ] && [ "${PT3DDIAG}" == "Y" ]; then
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi
@@ -866,10 +866,10 @@ if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_2_r.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_3_r.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
    else
-      if [ "${FLAG_WF_ON}" == "YES" ]; then
+      if [ "${FLAG_WF_ON}" == "YES" ] && [ "${PT3DDIAG}" == "Y" ]; then
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi

@@ -514,7 +514,7 @@ else
 fi
 
 ## Type of fire emission diagnosis output is defined as TYPE_FIRE_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
-## 2DSUM or 3D [default]
+## 2DSUM [default] or 3D
 export FLAG_WF_ON="NO"
 if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf ] && [ "${FCST}" == "NO" ]; then
    let ic=${ic}+1

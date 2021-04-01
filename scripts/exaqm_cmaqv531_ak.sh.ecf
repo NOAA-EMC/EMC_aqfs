@@ -499,23 +499,13 @@ done
 if [ "$FCST" == "YES" ]; then
    FIRE_DIR=${COMIN}
    FIRE_SUFFIX=${cycle}
-##   if [ "${cyc}" == "00" ]; then
-##      FIRE_DIR=${COMINm1}
-##      FIRE_SUFFIX=t12z
-##   else
-##      FIRE_DIR=${COMIN}
-##      if [ "${cyc}" == "18" ]; then
-##         FIRE_SUFFIX=t12z
-##      else
-##      fi
-##   fi
 else
     FIRE_DIR=${COMINm1}   # 06z run for yesterday only
     FIRE_SUFFIX=${cycle}
 fi
 
 ## Type of fire emission diagnosis output is defined as TYPE_FIRE_EMIS_OUT ~/jobs/JAQM_FORECAST_AK
-## 2DSUM or 3D [default]
+## 2DSUM [default] or 3D
 export FLAG_WF_ON="NO"
 if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf ] && [ "${FCST}" == "NO" ]; then
    let ic=${ic}+1
@@ -820,10 +810,10 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
    else
-      if [ "${FLAG_WF_ON}" == "YES" ]; then
+      if [ "${FLAG_WF_ON}" == "YES" ] && [ "${PT3DDIAG}" == "Y" ]; then
          echo "WARNING :: FLAG_WF_ON = ${FLAG_WF_ON} but can not find ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc"
       fi
    fi
@@ -872,7 +862,7 @@ if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_2_r.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_3_r.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" =="Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
    else
       if [ "${FLAG_WF_ON}" == "YES" ]; then

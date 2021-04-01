@@ -95,14 +95,12 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
       lbc_day=${new_lbc_day}
    else
       if [ "${RUN_ENVIR}" == "nco" ]; then
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN HARD FAILED" | mail SABSupervisor@noaa.gov
+         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
       else
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN HARD FAILED" | mail ho-chun.huang@noaa.gov
+         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail ho-chun.huang@noaa.gov
       fi
-      ## err=9898
       echo "WARNING ***  Can not find ${lbc_cyc} and ${lbccyc} GEFS output to produce ${BND2}, MANUAL INSPECTION required, model run continue"
-      postmsg "ERROR IN ${pgm} for GEFS LBC files"
-      ## err_chk
+      postmsg "ERROR IN ${pgm} for needed GEFS LBC files"
       exit
    fi
 fi
@@ -174,14 +172,14 @@ else
    echo "WARNING ***  Model run continue with current cycle CMAQ MET -  ${METEO3D} and ${TOPO}"
 fi
 if [ ! -s ${METEO3D} ]; then
-   echo "ERROR, can not find ${METEO3D}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${METEO3D} to produce LBC file, MANUAL INSPECTION required"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 if [ ! -s ${TOPO} ]; then
-   echo "ERROR, can not find ${TOPO}"
-   err=999
-   err_chk
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${TOPO} to produce LBC file, MANUAL INSPECTION required"
+   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 #
 # ALERT August 27 2020 : HHC ARL suggest to reverse LBC file used as before
@@ -205,25 +203,30 @@ fi
 export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
 if [ ! -s ${BND1} ]; then    ## Soft Fail
-   echo "WARNING ***  Can not find ${BND1} to produce ${BND2}, MANUAL INSPECTION required, model run continue"
-   ## export err=999
-   ## err_chk
+   echo "ERROR WARNING :: ================== ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${BND1}, MANUAL INSPECTION required"
+   echo "ERROR WARNING :: ================== ERROR ======================"
 fi
 rm -rf chkreads.log
+## 
+## Remove existed ncf files that are going to be produced by aqm_parallel_glbc
+## 
+if [ -s ${BND2} ]; then /bin/rm ${BND2}; fi
+if [ -s ${CHECK2D} ]; then /bin/rm ${CHECK2D}; fi
 
 startmsg
 aprun -n${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
 export err=$?;err_chk
-
 ##
 ## Keep record of the LBC used in differretn cycle
 ## CMAQ FCST run will always use the latest BND2 of the day, i.e., 12Z produced LBC will replace LBC produced at 06Z
-## if [ -s ${BND2} ]; then cp -p ${BND2} ${BND2_cyc}; fi
+##
 if [ -s ${BND2} ]; then
    cp -p ${BND2} ${BND2_cyc}
 else
-   echo "Can not find ${BND2}"
-   err=888
-   err_chk
+   echo "ERROR WARNING :: ================== ERROR ======================"
+   echo "ERROR WARNING :: Can not find ${BND2}, MANUAL INSPECTION required"
+   echo "ERROR WARNING :: Model will continue with Static LBC condition"
+   echo "ERROR WARNING :: ================== ERROR ======================"
 fi
 ##
