@@ -789,6 +789,7 @@ if [ "${FCST}" == "YES" ]; then
    /bin/rm -f ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
    ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
+   ln -s ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
 fi
 
 startmsg
@@ -924,6 +925,8 @@ else
    echo "${PDY}" "done" >${COMOUT}/aqm.${cycle}.log
    postmsg "${jlogfile}" "${msg}"
 fi
+
+mv ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
 
 echo Exiting $0
 

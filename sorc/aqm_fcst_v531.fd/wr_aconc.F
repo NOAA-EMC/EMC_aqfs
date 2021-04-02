@@ -64,6 +64,7 @@ C Local variables:
 
       INTEGER      MDATE        ! modified model date, coded YYYYDDD
       INTEGER      MTIME        ! modified model time, coded HHMMSS
+      INTEGER      OUT_MSG_ACONC! To CONTROL FCST HOUR FINISHED MESSAGE IN BATCH_LOG
 
       CHARACTER( 16 ) :: PNAME = 'WR_ACONC'
       CHARACTER( 96 ) :: XMSG = ' '
@@ -193,5 +194,15 @@ C Override default beginning time timestamp for ACONC?
      &      'Timestep written to', A_CONC_1,
      &      'for date and time', MDATE, MTIME
 
+      OUT_MSG_ACONC=1
+      IF ( OUT_MSG_ACONC .EQ. 1 .AND. MYPE .EQ. 0 ) THEN
+         OPEN(999, FILE='ACONC_FCST_STATUS', FORM='FORMATTED', 
+     &             STATUS='UNKNOWN')
+!!!         WRITE( OUTDEV, '( /5X, 3( A, :, 1X ), I8, ":", I6.6 )' )
+         WRITE( 999, '( 5X, 3( A, :, 1X ), I8, ":", I6.6 )' )
+     &      'Timestep written to', A_CONC_1,
+     &      'for date and time', MDATE, MTIME
+         CLOSE(999)
+      END IF
       RETURN 
       END

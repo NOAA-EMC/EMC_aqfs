@@ -1,10 +1,10 @@
-#BSUB -J %E%aqm_premaq_ana_cs_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_premaq_ana_cs_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_premaq_ana_cs_%CYC%.o%J
+#BSUB -J %E%aqm_prep_ana_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_ana_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_ana_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q %QUEUE%
 #BSUB -cwd /tmp
-#BSUB -W 01:30
+#BSUB -W 00:30
 #BSUB -M 3072
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
@@ -12,23 +12,42 @@
 %include <head.h>
 %include <envir-xc40.h>
 
+#
 # versions file for cmaq sets $cmaq_ver
 model=cmaq
 %include <model_ver.h>
 
 set -x
 
-export NODES=1
-export cyc=%CYC%
+export RUN=aqm
+export num_node=10
+
+export NODES=${num_node}
 export FCST=NO
 
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
 module load PrgEnv-intel
-module load grib_util/${grib_util_ver}
+module load cray-netcdf/4.3.2
+module load cray-hdf5/1.8.13
+module load cray-mpich/7.2.0
+module load nemsio-intel/2.2.2
+module load nemsiogfs-intel
+module load bacio-intel/2.0.1
+module load w3emc-intel/2.2.0  w3nco-intel/2.0.6
+module load jasper-gnu-haswell/1.900.1
+module load png-intel-sandybridge
+## module use /gpfs/hps/nco/ops/nwtest/lib/modulefiles
+module load g2-intel/3.1.0
+module load prod_util
+module load prod_envir
+
+module unload grib_util/${grib_util_ver}
+module load grib_util/1.0.5
+module load python/3.6.3
 module list
 
-${HOMEcmaq}/jobs/JAQM_PREMAQ_CS
+${HOMEcmaq}/jobs/JAQM_PREP
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

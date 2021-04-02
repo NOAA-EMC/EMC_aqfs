@@ -16,8 +16,6 @@
 model=cmaq
 %include <model_ver.h>
 
-set -x
-
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
 module load PrgEnv-intel
@@ -38,6 +36,8 @@ module load prod_envir
 module unload grib_util/${grib_util_ver}
 module load grib_util/1.0.3
 module list
+
+set -x
 
 export NODES=24
 export IOBUF_PARAMS="12M:verbose"
