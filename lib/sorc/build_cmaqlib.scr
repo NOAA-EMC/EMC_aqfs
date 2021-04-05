@@ -11,35 +11,21 @@ BASE=`pwd`
 set -ax
 
 ##########################
-for src in ioapi_v32 
+for src in ioapi_v32
 do
- ## model_ver=v5.2.3
- ## export BASEDIR=${BASE}/aqm_${src}
- ## export BIN=Linux3_x86_64intel
+ model_ver=v6.0.0
+ export BASEDIR=${BASE}/aqm_${src}
+ export BIN=Linux2_x86_64ifort
  export IOAPI_OFFSET_64=YES
  export NETCDF_LDFLAGS="-L$NETCDF_DIR/lib -lnetcdff -lnetcdf -L$HDF5_DIR/lib -lhdf5_fortran -lhdf5_hl -lhdf5 -lz"
  cd ${BASE}/aqm_${src}
- make clean
- make all
- if [ ! -s Linux2_x86_64ifort/libioapi.a ]; then
-  echo "make failed"
-  exit 1
- fi
-
- mv Linux2_x86_64ifort/libioapi.a ../../libaqm_ioapi.a
- mv Linux2_x86_64ifort/*.mod ../../include
- cp -p ioapi/*.EXT ../../include
-## cp -p ioapi/fixed_src/*.EXT ../../include
- cp -p ioapi/*.h ../../include
-done
-
-##############################
-for src in pario se_snl
-do
- cd ${BASE}/aqm_${src}
- make -f Makefile clobber
- make -f Makefile
+ mkdir -p $BIN
+ make configure
+ cd ioapi
+ make -f Makefile all
  make -f Makefile install
  make -f Makefile clobber
 done
+
+##############################
 

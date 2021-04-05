@@ -834,6 +834,9 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_1.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_2.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUT}/aqm.${cycle}.rj_3.ncf 
+   if [ -s ${DATA}/ACONC_FCST_STATUS ]; then
+      mv ${DATA}/ACONC_FCST_STATUS ${COMOUT}/aconc.${cycle}.fcst.status.txt
+   fi
    if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.fireemis.ncf
    else
@@ -925,8 +928,6 @@ else
    echo "${PDY}" "done" >${COMOUT}/aqm.${cycle}.log
    postmsg "${jlogfile}" "${msg}"
 fi
-
-mv ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
 
 echo Exiting $0
 

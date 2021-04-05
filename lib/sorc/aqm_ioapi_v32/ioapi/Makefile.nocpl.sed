@@ -208,12 +208,11 @@ all: ${LIB} ${MODS} fixed_src
 mod:  ${MODS}
 
 modmpasfio.o modmpasfio.mod:  m3utilio.mod modncfio.mod
-clean:  ${OBJDIR}
-	cd ${OBJDIR}; rm $(fOBJ); rm $(FOBJ); rm $(MOBJ); rm $(COBJ); rm ${LIB} ${MODS}
-	cd ${SRCDIR}; rm *.o core* *.mod *.MOD
+clobber:  ${OBJDIR}
+	cd ${OBJDIR}; rm *.o  *.mod
 
 install: ${INSTDIR}
-	echo "Installing in ${INSTDIR}" ; cd ${OBJDIR}; cp ${LIB} ${MODS} ${INSTDIR}
+	echo "Installing in ${INSTDIR}" ; cd ${OBJDIR}; cp ${LIB} ../../../libaqm_ioapi.a; cp ${OBJDIR}/*mod ../../../include; cd ${BASEDIR}/ioapi; cp *.EXT ../../../include; cp *.h ../../../include
 
 dir:
 	mkdir -p ${OBJDIR}
