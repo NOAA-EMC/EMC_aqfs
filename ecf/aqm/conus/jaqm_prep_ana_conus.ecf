@@ -1,25 +1,33 @@
-#BSUB -J %E%aqm_forecast_conus_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_conus_%CYC%.o%J
+#BSUB -J %E%aqm_prep_ana_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_ana_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_ana_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q %QUEUE%
-#BSUB -M 3000
 #BSUB -cwd /tmp
-#BSUB -W 01:50
+#BSUB -W 00:30
+#BSUB -M 3072
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
-#
+
 %include <head.h>
 %include <envir-xc40.h>
 
+#
 # versions file for cmaq sets $cmaq_ver
 model=cmaq
 %include <model_ver.h>
 
+set -x
+
+export RUN=aqm
+export num_node=10
+
+export NODES=${num_node}
+export FCST=NO
+
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
-module load PrgEnv-intel
-module load iobuf/${iobuf_ver}
+module load PrgEnv-intel/${intel_ver}
 module load cray-netcdf/4.3.2
 module load cray-hdf5/1.8.13
 module load cray-mpich/7.2.0
@@ -33,21 +41,13 @@ module load png-intel-sandybridge
 module load g2-intel/3.1.0
 module load prod_util
 module load prod_envir
+
 module unload grib_util/${grib_util_ver}
-module load grib_util/1.0.3
+module load grib_util/1.0.5
+module load python/3.6.3
 module list
 
-set -x
-
-export NODES=24
-export IOBUF_PARAMS="12M:verbose"
-
-ulimit -s unlimited
-
-export cyc=%CYC%
-export FCST=YES
-
-${HOMEcmaq}/jobs/JAQM_FORECAST_CS
+${HOMEcmaq}/jobs/JAQM_PREP
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
@@ -55,12 +55,11 @@ if [ $? -ne 0 ]; then
    exit
 fi
 
-
 %include <tail.h>
 %manual
 ######################################################################
 #
-#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
 #
 ######################################################################
 

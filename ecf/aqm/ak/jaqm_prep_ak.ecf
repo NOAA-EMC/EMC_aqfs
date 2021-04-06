@@ -1,6 +1,6 @@
-#BSUB -J %E%aqm_prep_conus_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
+#BSUB -J %E%aqm_prep_ak_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_ak_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_ak_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q %QUEUE%
 #BSUB -cwd /tmp
@@ -41,13 +41,13 @@ case ${cyc} in
    18) num_node=1;;
 esac
 
-export RUN=aqm
+export RUN=AK
 export NODES=${num_node}
 export FCST=YES
 
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
-module load PrgEnv-intel
+module load PrgEnv-intel/${intel_ver}
 module load cray-netcdf/4.3.2
 module load cray-hdf5/1.8.13
 module load cray-mpich/7.2.0

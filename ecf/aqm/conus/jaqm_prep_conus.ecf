@@ -1,27 +1,53 @@
-#BSUB -J %E%aqm_forecast_ak_%CYC%
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_forecast_ak_%CYC%.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_forecast_ak_%CYC%.o%J
+#BSUB -J %E%aqm_prep_conus_%CYC%
+#BSUB -o /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
+#BSUB -e /%COM%/output/%ENVIR%/today/aqm_prep_conus_%CYC%.o%J
 #BSUB -L /bin/sh
 #BSUB -q %QUEUE%
-##BSUB -n 64
-##BSUB -R span[ptile=16]
 #BSUB -cwd /tmp
-#BSUB -W 00:50
-#BSUB -M 3000
+#BSUB -W 00:30
+#BSUB -M 3072
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
 
 %include <head.h>
 %include <envir-xc40.h>
 
+#
+# ecflow file dependency
+# start when following GFS file is completed
+#
+# case $CYC% in
+#    00) gfs_hour=006;;
+#    06) gfs_hour=072;;
+#    12) gfs_hour=072;;
+#    18) gfs_hour=006;;
+# esac
+#
+# /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour}.nc
+#
+# Or if [ -s /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour+1}.nc]; 
+#    
 # versions file for cmaq sets $cmaq_ver
 model=cmaq
 %include <model_ver.h>
 
+set -x
+
+export cyc=%CYC%
+case ${cyc} in
+   00) num_node=1;;
+   06) num_node=10;;
+   12) num_node=10;;
+   18) num_node=1;;
+esac
+
+export RUN=aqm
+export NODES=${num_node}
+export FCST=YES
+
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
-module load PrgEnv-intel
-module load iobuf/${iobuf_ver}
+module load PrgEnv-intel/${intel_ver}
 module load cray-netcdf/4.3.2
 module load cray-hdf5/1.8.13
 module load cray-mpich/7.2.0
@@ -35,20 +61,13 @@ module load png-intel-sandybridge
 module load g2-intel/3.1.0
 module load prod_util
 module load prod_envir
+
 module unload grib_util/${grib_util_ver}
-module load grib_util/1.0.3
+module load grib_util/1.0.5
+module load python/3.6.3
 module list
 
-export NODES=12
-export IOBUF_PARAMS="12M:verbose"
-
-set -x
-
-export cyc=%CYC%
-export FCST=YES
-
-# CALL executable job script here
-${HOMEcmaq}/jobs/JAQM_FORECAST_AK
+${HOMEcmaq}/jobs/JAQM_PREP
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
@@ -60,7 +79,7 @@ fi
 %manual
 ######################################################################
 #
-#  PURPOSE:  To execute the job that runs CMAQ Forecast for Alaska.
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
 #
 ######################################################################
 

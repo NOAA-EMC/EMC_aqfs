@@ -47,7 +47,7 @@ export FCST=YES
 
 . /opt/modules/default/init/ksh
 module unload PrgEnv-cray
-module load PrgEnv-intel
+module load PrgEnv-intel/${intel_ver}
 module load cray-netcdf/4.3.2
 module load cray-hdf5/1.8.13
 module load cray-mpich/7.2.0
