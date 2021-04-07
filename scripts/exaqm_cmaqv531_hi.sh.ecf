@@ -84,17 +84,7 @@ num_node=${NODES}
 extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
 num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
 let num_proc=${LSB_MAX_NUM_PROCESSORS}-1
-## export NPCOL_NPROW="${num_node} ${num_ptile}"
-## let nprocs=${num_node}*${num_ptile}
 export nprocs=${num_proc}
-
-### CMAQ v5.0.2 setting
-### export NPCOL_NPROW="48 24"
-### export nprocs=1152
-###
-### CMAQ v5.3.1 setting
-### export NPCOL_NPROW="24 24"
-### export nprocs=576
 
 if [ "${FCST}" == "YES" ]; then
 
@@ -279,16 +269,11 @@ fi
 STTIME=${cyc}"0000"
 TSTEP=010000
 
-#CMAQv5.0.2 Options
 export GRIDDESC=${PARMaqm}/aqm_griddesc${RUN}
 export GRID_NAME=AQF_${RUN}
 
 export LOGFILE=${DATA}/${APPL}.log
 
-#> CMAQ v5.0.2 Output Species and Layer Options
-#export AVG_CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
-#export ACONC_BLEV_ELEV="1 1"
-#export CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
 SPCS_1="ASO4I ANO3I ANH4I ANAI ACLI AECI ALVPO1I ASVPO1I ASVPO2I APOCI APNCOMI"
 SPCS_2="ALVOO1I ALVOO2I ASVOO1I ASVOO2I AOTHRI ASO4J ANO3J ANH4J ANAJ ACLJ AECJ"
 SPCS_3="ALVPO1J ASVPO1J ASVPO2J ASVPO3J APOCJ APNCOMJ ALVOO1J ALVOO2J ASVOO1J ASVOO2J"
@@ -397,15 +382,12 @@ DISP=delete
 #ozone column data
 OMIfile=OMI_1979_to_2017.dat
 
-## Directory defined in JAQM_FORECAST_CS
+## Directory defined in JAQM_FORECAST_HI
 echo "DIAG : meterology files ingested from ${METpath}"
 echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-## ALERT HHC removed for NCO delivery if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-## ALERT HHC removed for NCO delivery    err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-## ALERT HHC removed for NCO delivery fi
 ic=0
 while [ ${ic} -lt 1081 ]; do
    if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
@@ -421,9 +403,6 @@ while [ ${ic} -lt 1081 ]; do
 done
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
-
- #> Spatial Masks For Emissions Scaling
-  #export CMAQ_MASKS=$SZpath/12US1_surf.ncf
 
 export GRID_CRO_2D=${METpath}/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=${METpath}/aqm.${cycle}.grddot2d.ncf
@@ -464,7 +443,6 @@ if [ ! -s ${GR_EMIS_002} ]; then
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
-## for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
 for sectors in ptegu ptnonipm cmv_c1c2 cmv_c3 ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
    echo "ERROR WARNING :: ================== FATAL ERROR ======================"
@@ -479,7 +457,7 @@ if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
 fi
 done
 
-## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
+## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_HI
 ## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm cmv_c1c2 cmv_c3 ; do
@@ -499,22 +477,12 @@ done
 if [ "$FCST" == "YES" ]; then
    FIRE_DIR=${COMIN}
    FIRE_SUFFIX=${cycle}
-##   if [ "${cyc}" == "00" ]; then
-##      FIRE_DIR=${COMINm1}
-##      FIRE_SUFFIX=t12z
-##   else
-##      FIRE_DIR=${COMIN}
-##      if [ "${cyc}" == "18" ]; then
-##         FIRE_SUFFIX=t12z
-##      else
-##      fi
-##   fi
 else
     FIRE_DIR=${COMINm1}   # 06z run for yesterday only
     FIRE_SUFFIX=${cycle}
 fi
 
-## Type of fire emission diagnosis output is defined as TYPE_FIRE_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
+## Type of fire emission diagnosis output is defined as TYPE_FIRE_EMIS_OUT ~/jobs/JAQM_FORECAST_HI
 ## 2DSUM or 3D [default]
 export FLAG_WF_ON="NO"
 if [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf ] && [ "${FCST}" == "NO" ]; then
@@ -592,13 +560,6 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    fi
 fi
 
-#> Windblown dust emissions configuration !Not used for NAQFC, NACC-CMAQ Inline Fengsha
-## if [ "${CTM_WB_DUST}" == "Y" ]; then
-##    # Input variables for BELD3 Landuse option
-##    export DUST_LU_1=${FIXaqm}/aqm_LANDA_HI_new.ncf
-##    export DUST_LU_2=${FIXaqm}/LAND_TOTALS_US12_442X265
-## fi
-
 if [ "${CTM_ERODE_AGLAND}" == "Y" ]; then
    # Input variables for BELD3 Landuse option
    export CROPMAP01=${FIXaqm}/aqm_CROPMAP01_cs
@@ -635,8 +596,6 @@ fi
 # set floor file (neg concs)
 export FLOOR_FILE=${DATA}/FLOOR_${CTM_APPL}
 
-#log files??
-
 test=`ls CTM_LOG_*.${CTM_APPL}`
 if [ "$test" != "" ] ; then
  if [ "${DISP}" == "delete" ] ; then
@@ -652,12 +611,7 @@ if [ "$test" != "" ] ; then
  fi 
 fi 
 
-## BCpath is defined in JAQM_FORECAST_CS for LBC location [same as CMAQ MET location]
-## if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
-##    export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-## else
-##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
-## fi
+## BCpath is defined in JAQM_FORECAST_HI for LBC location [same as CMAQ MET location]
 export BNDY_GASC_1=${FIXaqm}/${RUN}_80X52_mean_2002${MM}_GEOSCHEM-35L-tracer.nmmb.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
    if [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
@@ -705,7 +659,6 @@ export OMI=${FIXaqm}/${OMIfile}
 export INIT_CONC_1=${ICFILE}
 export BNDY_CONC_1=${BNDY_GASC_1}
 export OPTICS_DATA=${PARMaqm}/PHOT_OPTICS.dat
-#export XJ_DATA=$JVALpath/$JVALfile
 TR_DVpath=${COMIN}
 TR_DVfile=${MET_CRO_2D}
 
@@ -792,7 +745,6 @@ if [ ${total_procs} -gt ${nprocs} ]; then
    echo "WARNING :: ========================================================"
 fi
 export NPCOL_NPROW="${num_col} ${num_row}"
-## aprun -n${total_procs} -N 24 ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 aprun -n${total_procs} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 export err=$?
 

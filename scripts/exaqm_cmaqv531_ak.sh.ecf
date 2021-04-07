@@ -397,15 +397,12 @@ DISP=delete
 #ozone column data
 OMIfile=OMI_1979_to_2017.dat
 
-## Directory defined in JAQM_FORECAST_CS
+## Directory defined in JAQM_FORECAST_AK
 echo "DIAG : meterology files ingested from ${METpath}"
 echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-## ALERT HHC removed for NCO delivery if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-## ALERT HHC removed for NCO delivery    err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-## ALERT HHC removed for NCO delivery fi
 ic=0
 while [ ${ic} -lt 1081 ]; do
    if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
@@ -421,9 +418,6 @@ while [ ${ic} -lt 1081 ]; do
 done
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
-
- #> Spatial Masks For Emissions Scaling
-  #export CMAQ_MASKS=$SZpath/12US1_surf.ncf
 
 export GRID_CRO_2D=${METpath}/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=${METpath}/aqm.${cycle}.grddot2d.ncf
@@ -463,8 +457,7 @@ if [ ! -s ${GR_EMIS_002} ]; then
    echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 
-#>CMAQv5.3 In-Line Point Emissions Files
-## for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
+## CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
    echo "ERROR WARNING :: ================== FATAL ERROR ======================"
@@ -479,7 +472,7 @@ if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
 fi
 done
 
-## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_CS
+## Type of point emission diagnosis output is defined as TYPE_POINT_EMIS_OUT ~/jobs/JAQM_FORECAST_AK
 ## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
@@ -582,13 +575,6 @@ if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    fi
 fi
 
-#> Windblown dust emissions configuration !Not used for NAQFC, NACC-CMAQ Inline Fengsha
-## if [ "${CTM_WB_DUST}" == "Y" ]; then
-##    # Input variables for BELD3 Landuse option
-##    export DUST_LU_1=${FIXaqm}/aqm_LANDA_AK_new.ncf
-##    export DUST_LU_2=${FIXaqm}/LAND_TOTALS_US12_442X265
-## fi
-
 if [ "${CTM_ERODE_AGLAND}" == "Y" ]; then
    # Input variables for BELD3 Landuse option
    export CROPMAP01=${FIXaqm}/aqm_CROPMAP01_cs
@@ -613,7 +599,6 @@ fi
 #------------------------------------------------------
 # output files
 #------------------------------------------------------
-#jpexport CTM_APPL=${CFG}_${YMD}
 export CTM_APPL=${CFG}
 
 # In-line biogenic emissions output files
@@ -624,8 +609,6 @@ fi
 
 # set floor file (neg concs)
 export FLOOR_FILE=${DATA}/FLOOR_${CTM_APPL}
-
-#log files??
 
 test=`ls CTM_LOG_*.${CTM_APPL}`
 if [ "$test" != "" ] ; then
@@ -642,12 +625,7 @@ if [ "$test" != "" ] ; then
  fi 
 fi 
 
-## BCpath is defined in JAQM_FORECAST_CS for LBC location [same as CMAQ MET location]
-## if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
-##    export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-## else
-##    export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
-## fi
+## BCpath is defined in JAQM_FORECAST_AK for LBC location [same as CMAQ MET location]
 export BNDY_GASC_1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${MM}.35L.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
    if [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
@@ -695,7 +673,6 @@ export OMI=${FIXaqm}/${OMIfile}
 export INIT_CONC_1=${ICFILE}
 export BNDY_CONC_1=${BNDY_GASC_1}
 export OPTICS_DATA=${PARMaqm}/PHOT_OPTICS.dat
-#export XJ_DATA=$JVALpath/$JVALfile
 TR_DVpath=${COMIN}
 TR_DVfile=${MET_CRO_2D}
 
@@ -782,7 +759,6 @@ if [ ${total_procs} -gt ${nprocs} ]; then
    echo "WARNING :: ========================================================"
 fi
 export NPCOL_NPROW="${num_col} ${num_row}"
-## aprun -n${total_procs} -N 24 ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 aprun -n${total_procs} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 export err=$?
 

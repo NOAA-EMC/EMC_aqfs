@@ -32,12 +32,13 @@ if [ "${cycle}" == "t06z" ]; then
    lbc_cyc=t00z
 else
    lbc_cyc=t06z
-   ## ALERT HHC for 1 cycle testing
    if [ "${FLAG_ONE_CYCLE}" == "YES" ]; then lbc_cyc=t00z; fi ## for one cycle testing
 fi
 gefscyc=`echo ${lbc_cyc} | cut -c2-3`
-# LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
-# Checking GEFS-Aerosol LBC files
+##
+## LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
+## Checking GEFS-Aerosol LBC files
+##
 echo "DIAG : Lateral BC files ingested from ${LBCIN}"
 flag_lbc_exist=yes
 let ic=${LBC_INI}
@@ -182,8 +183,6 @@ if [ ! -s ${TOPO} ]; then
    echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 #
-# ALERT August 27 2020 : HHC ARL suggest to reverse LBC file used as before
-#  From August 06 to August 27 :   export BND1=${FIXaqm}/lbc-gmi-adj2-${cmonth}.5x-L35.ncf
 if [ $RUN = 'aqm' ]; then
    export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_FV3_35L.ncf
    export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
