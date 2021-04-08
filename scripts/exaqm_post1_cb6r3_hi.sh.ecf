@@ -135,10 +135,6 @@ if [ "${SENDCOM}" == "YES" ]; then
    for pmfile in ${DATA}/aqm.${cycle}.pm25*; do
       ifile=$(basename ${pmfile})
       cp ${ifile} ${COMOUT}/
-      # JY - Add this pm25 hourly data alert for conus - 11/05/2018
-      # if [ "${SENDDBN}" == "YES" ]; then
-      #   ${DBNROOT}/bin/dbn_alert MODEL AQM_PM ${job} ${COMOUT}/${ifile}
-      # fi
    done
 fi
 

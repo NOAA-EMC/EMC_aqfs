@@ -120,7 +120,6 @@ EOF5
    for hr in 1 8
    do
    
-   #$CNVGRIB -g12 -m -p32  aqm-${hr}hro3-maxi.198.grib aqm-${hr}hro3-maxi.198.grib2
    echo 0 > filesize
    export XLFRTEOPTS="unit_vars=yes"
    export FORT11=aqm-${hr}hro3-maxi.198.grib2
@@ -134,7 +133,6 @@ EOF5
    export FORT11=aqm-${hr}hro3-maxi.198.grib2.temp
    export FORT12="filesize"
    export FORT31=
-   #export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.198
    export FORT51=awpaqm.${cycle}.${hr}ho3-max.198.grib2
    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq-${hr}hro3-maxi.${cycle}.198
    
@@ -173,7 +171,6 @@ EOF5
    export FORT51=aqm.${cycle}.24hrpm25-ave.198.grib2.temp
    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_ave_24hrpm25_awp.${cycle}.198
    
-   #echo `ls -l aqm.${cycle}.24hrpm25-ave.198.grib2 | awk '{print $5} '` > filesize
    echo `ls -l  aqm.${cycle}.24hrpm25-ave.198.grib2.temp | awk '{print $5} '` > filesize
    export XLFRTEOPTS="unit_vars=yes"
    export FORT11=aqm.${cycle}.24hrpm25-ave.198.grib2.temp
@@ -207,8 +204,6 @@ EOF5
                 postmsg "${jlogfile}" "${msg}"
              fi
           fi
-   
-   #done
    
    if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
       cp aqm-1hro3-maxi.198.grib2             ${COMOUT}/aqm.${cycle}.max_1hr_o3.198.grib2

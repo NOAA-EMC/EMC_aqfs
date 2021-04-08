@@ -46,7 +46,6 @@ export INFILE4=${COMOUT}/aqm.${cycle}.metcro2d.ncf
 
 export OUTFILE=${COMOUT}/aqm.${cycle}.aconc_sfc.ncf
 
-### ALERT HHC use combine_v531 for NCO delivery -- consistent with executable creation script
 ${EXECaqm}/aqm_combine_v531
 export err=$?;err_chk
 
@@ -82,7 +81,6 @@ ave1hr=.true.
 EOF5
 
 startmsg
-### ALERT HHC use aqm_cmaq2grib2_v2 for NCO delivery -- consistent with executable creation script
 ${EXECaqm}/aqm_cmaq2grib2_v2 >> ${pgmout} 2>errfile
 export err=$?;err_chk
 
@@ -137,10 +135,6 @@ if [ "${SENDCOM}" == "YES" ]; then
    for pmfile in ${DATA}/aqm.${cycle}.pm25*; do
       ifile=$(basename ${pmfile})
       cp ${ifile} ${COMOUT}/
-      # JY - Add this pm25 hourly data alert for conus - 11/05/2018
-      # if [ "${SENDDBN}" == "YES" ]; then
-      #   ${DBNROOT}/bin/dbn_alert MODEL AQM_PM ${job} ${COMOUT}/${ifile}
-      # fi
    done
 fi
 
@@ -152,7 +146,6 @@ while [ ${fhr} -le ${endfhr} ]; do
    fi
 #
 # Create GRIB file to convert to grid 198 then to GRIB2 for NDFD
-# ALERT HHC : tmpfile.8hr only be produced for 06z and 12z where fhr > 07
 #
    cat ${DATA}/aqm.${cycle}.awpozcon.f${fhr}.${id_grib}.grib2 >> tmpfile
    cat ${DATA}/aqm.${cycle}.pm25.f${fhr}.${id_grib}.grib2 >> tmpfile_pm25
