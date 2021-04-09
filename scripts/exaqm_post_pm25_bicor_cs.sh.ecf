@@ -39,7 +39,7 @@ cd ${DATA}
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 
 ic=1
-while [ $ic -lt 100 ]; do
+while [ $ic -lt 120 ]; do
    if [ -s ${COMIN}/aqm.t${cyc}z.aconc_sfc.ncf ]; then
       echo "cycle ${cyc} post1 is done!"
       break 
@@ -49,28 +49,29 @@ while [ $ic -lt 100 ]; do
     fi
 done
 
-if [ $ic -ge 100 ]; then
+if [ $ic -ge 120 ]; then
     err_exit "****FATAL ERROR***** - COULD NOT LOCATE:${COMIN}/aqm.${cycle}.aconc_sfc.ncf"
 fi
+
 ##
 ## For 2 stage post-processing
 ## PM bias correction always need to wait till O3 bias produce ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf
 ## To avoid 48 hour file previously generated been used by 72 hour processing
 ##
-ic=1
-while [ $ic -lt 100 ]; do
-   if [ -s ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
-      echo " ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
-      break
-   else
-      ((ic++))
-      sleep 10
-   fi
-done
+   ic=1
+   while [ $ic -lt 100 ]; do
+      if [ -s ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
+         echo " ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
+         break
+      else
+         ((ic++))
+         sleep 10
+      fi
+   done
 
-if [ $ic -ge 100 ]; then
-   err_exit "****FATAL ERROR***** - COULD NOT LOCATE:${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf"
-fi
+   if [ $ic -ge 100 ]; then
+      err_exit "****FATAL ERROR***** - COULD NOT LOCATE:${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf"
+   fi
 
 #
 #-----------------------------------------------------------------------

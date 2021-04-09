@@ -391,24 +391,12 @@ echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-ic=0
-while [ ${ic} -lt 1081 ]; do
-   if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-      break
-   else
-      ((ic++))
-      if [ ${ic} -gt 180 ]; then
-         echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-         err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-      fi
-      sleep 10
-   fi
-done
+if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
+fi
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}_vivpo1.nml
-
- #> Spatial Masks For Emissions Scaling
-  #export CMAQ_MASKS=$SZpath/12US1_surf.ncf
 
 export GRID_CRO_2D=${METpath}/aqm.${cycle}.grdcro2d.ncf
 export GRID_DOT_2D=${METpath}/aqm.${cycle}.grddot2d.ncf
@@ -440,28 +428,24 @@ export GR_EMIS_002=${EMISpath}/emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_001}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_001}"
 fi
 if [ ! -s ${GR_EMIS_002} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_002}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_002}"
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
 fi
 
 if [ ! -s ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
 fi
 done
 
@@ -516,6 +500,7 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf ] && [ "${FCST}" == "YE
 else
    echo "WARNING :: ========================================================"
    echo "WARNING :: Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_cs.ncf"
+   echo "WARNING :: Assuming no fire for this cycle"
    echo "WARNING :: ========================================================"
 fi
 
@@ -748,11 +733,12 @@ postmsg "${jlogfile}" "${msg}"
 
 ##
 ## Soft link CONC and ACONC for POST processing in the middle of run
+## for 2-stage post processing
 ##
 if [ "${FCST}" == "YES" ]; then
-   /bin/rm -f ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
-   ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
-   ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
+   ## /bin/rm -f ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
+   ## ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
+   ## ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    ln -s ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
 fi
 

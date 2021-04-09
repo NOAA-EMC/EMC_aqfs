@@ -40,6 +40,9 @@ rm -rf ${COMOUT}/aqm.${cycle}.aconc_sfc.ncf
 
 export SPECIES_DEF=${PARMaqm}/SpecDef_cb6r3_ae7_sfc_subset.txt
 export INFILE1=${COMOUT}/aqm.${cycle}.aconc.ncf
+if [ ! -s ${INFILE1} ]; then
+   err_exit "****FATAL ERROR**** - COULD NOT LOCATE: ${INFILE1}"
+fi
 export INFILE2=${COMOUT}/aqm.${cycle}.metcro3d.ncf
 export INFILE3=${COMOUT}/aqm.${cycle}.apmdiag.ncf
 export INFILE4=${COMOUT}/aqm.${cycle}.metcro2d.ncf

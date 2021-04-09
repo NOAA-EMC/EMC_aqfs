@@ -76,9 +76,10 @@ EMM=`echo ${endday} |cut -c5-6`
 EDD=`echo ${endday} |cut -c7-8`
 
 if [ ! -d ${METIN} ]; then
-   err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}"
+   echo "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}"
+else
+   echo "DIAG : meterology files ingested from ${METIN}"
 fi
-echo "DIAG : meterology files ingested from ${METIN}"
 
 ###
 ### Check hourly GFS output for both atm and sfc files
@@ -153,7 +154,7 @@ if [ "${grib2_gvf}" == "" ]; then                   ## if no GVF files found for
    done
    grib2_gvf=`tail tlist`
    if [ "${grib2_gvf}" == "" ]; then
-      echo "Error WARNING - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
+      echo "ERROR WARNING - Can not find any VIIRS Green Vegetation fraction file (j01 or npp) over last 10 day in ${GVFIN}"
    fi
 fi
 
@@ -174,7 +175,7 @@ if [ "${grib2_gvf}" != "" ] && [ -s ${grib2_gvf} ]; then         ## sanitary che
       NACC_GVF_IN="no_file"
    fi
 else
-   echo "Error WARNING - GFS encoded Green Vegetation Fraction file will be used"
+   echo "ERROR WARNING - GFS encoded Green Vegetation Fraction file will be used"
    NACC_GVF_IN="no_file"
 fi
 

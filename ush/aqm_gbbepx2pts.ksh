@@ -9,6 +9,7 @@
 export pgm=aqm_prep_cs_fire_emi
 fire_emission_hdr=GBBEPx_all01GRID.emissions_v003
 if [ ${FCST} = "NO" ] ; then  ## For 24-hour-back analysis run using PDYm1 fire emission
+   flag_with_gbbepx=yes
    if [ -s ${EMIFIREIN}/${fire_emission_hdr}_${PDYm1}.nc ]; then
       FIREDATE=${PDYm1}
       emisfile=${fire_emission_hdr}_${PDYm1}.nc
@@ -28,9 +29,10 @@ if [ ${FCST} = "NO" ] ; then  ## For 24-hour-back analysis run using PDYm1 fire 
       echo "WARNING NO ${EMIFIREIN}/${fire_emission_hdr}_${PDYm1}.nc"
       echo "WARNING NO ${EMIFIREIN}/${fire_emission_hdr}_${PDYm2}.nc"
       echo "WARNING NO ${EMIFIREINm1}/${fire_emission_hdr}_${PDYm2}.nc"
-      exit
+      flag_with_gbbepx=no
    fi 
 else   ## For day1, day2, and day3 forecast runs using PDYm1 fire emission OR create control run
+   flag_with_gbbepx=yes
    if [ -s ${EMIFIREIN}/${fire_emission_hdr}_${PDY}.nc ] && [ "${FLAG_TODAY_FIRE}" == "YES" ]; then
       FIREDATE=${PDY}
       emisfile=${fire_emission_hdr}_${PDY}.nc
@@ -56,14 +58,15 @@ else   ## For day1, day2, and day3 forecast runs using PDYm1 fire emission OR cr
       echo "WARNING NO ${EMIFIREIN}/${fire_emission_hdr}_${PDYm1}.nc"
       echo "WARNING NO ${EMIFIREIN}/${fire_emission_hdr}_${PDYm2}.nc"
       echo "WARNING NO ${EMIFIREINm1}/${fire_emission_hdr}_${PDYm2}.nc"
-      exit
+      flag_with_gbbepx=no
    fi 
 fi
 
 
-echo "=========================================================="
-echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
-echo "=========================================================="
+if [ "${flag_with_gbbepx}" == "yes" ]; then
+   echo "=========================================================="
+   echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
+   echo "=========================================================="
 ##
 ##  Present fire emission scheme includes gas-phase emission
 ##      check aqm.t*z.fire_emi_cs.ncf with CO, SO2, NO, NO2, NH3 output
@@ -117,49 +120,51 @@ Species Converting Factor
 'PMG' 0.314  'PNA' 5.7335 'PNCOM' 323.2 'PNH4' 8.7915 'PSI' 1.8185  'PTI' 0.0515
 !
 
-export IOAPI_ISPH=20 # make consistent with met-preprocessor R_earth=6370000m
-if [ ${RUN} = 'aqm' ]; then
-   export GRIDDESC=${PARMaqm}/aqm_griddesc05
-   export GRID_NAME=AQF_CONUS_5x
-   export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.5x.ncf
-   regid='cs'
-elif [ ${RUN} = 'HI' ]; then
-   export GRIDDESC=${PARMaqm}/aqm_griddescHI
-   export GRID_NAME=AQF_HI
-   export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.HI.ncf
-   regid=${RUN}
-elif [ ${RUN} = 'AK' ]; then
-   export GRIDDESC=${PARMaqm}/aqm_griddescAK
-   export GRID_NAME=AQF_AK
-   export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.AK.ncf
-   regid=${RUN}
-else
-   echo " unknown domain ${RUN} "
-   exit 1
-fi
-
-# output
-if [ "${FCST}" = "YES" ]; then
-   export STACK_GROUP=aqm.${cycle}.fire_location_${regid}.ncf
-   export PTFIRE=aqm.${cycle}.fire_emi_${regid}.ncf
-else
-   export STACK_GROUP=aqm.${cycle}.fire_location_${regid}_r.ncf
-   export PTFIRE=aqm.${cycle}.fire_emi_${regid}_r.ncf
-fi
-
-startmsg
-${EXECaqm}/aqm_gbbepx2pts
-export err=$?;err_chk
-
-if [ -s ${PTFIRE} ] && [ -s ${STACK_GROUP} ]; then
-   if [ "${FCST}" = "YES" ]; then
-      cp -p ${DATA}/${PTFIRE}      ${COMIN}
-      cp -p ${DATA}/${STACK_GROUP} ${COMIN}
+   export IOAPI_ISPH=20 # make consistent with met-preprocessor R_earth=6370000m
+   if [ ${RUN} = 'aqm' ]; then
+      export GRIDDESC=${PARMaqm}/aqm_griddesc05
+      export GRID_NAME=AQF_CONUS_5x
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.5x.ncf
+      regid='cs'
+   elif [ ${RUN} = 'HI' ]; then
+      export GRIDDESC=${PARMaqm}/aqm_griddescHI
+      export GRID_NAME=AQF_HI
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.HI.ncf
+      regid=${RUN}
+   elif [ ${RUN} = 'AK' ]; then
+      export GRIDDESC=${PARMaqm}/aqm_griddescAK
+      export GRID_NAME=AQF_AK
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.AK.ncf
+      regid=${RUN}
    else
-      cp -p ${DATA}/${PTFIRE}      ${COMINm1}
-      cp -p ${DATA}/${STACK_GROUP} ${COMINm1}
+      echo " unknown domain ${RUN} "
+      exit 1
    fi
+   
+   # output
+   if [ "${FCST}" = "YES" ]; then
+      export STACK_GROUP=aqm.${cycle}.fire_location_${regid}.ncf
+      export PTFIRE=aqm.${cycle}.fire_emi_${regid}.ncf
+   else
+      export STACK_GROUP=aqm.${cycle}.fire_location_${regid}_r.ncf
+      export PTFIRE=aqm.${cycle}.fire_emi_${regid}_r.ncf
+   fi
+   
+   startmsg
+   ${EXECaqm}/aqm_gbbepx2pts
+   
+   if [ -s ${PTFIRE} ] && [ -s ${STACK_GROUP} ]; then
+      if [ "${FCST}" = "YES" ]; then
+         cp -p ${DATA}/${PTFIRE}      ${COMIN}
+         cp -p ${DATA}/${STACK_GROUP} ${COMIN}
+      else
+         cp -p ${DATA}/${PTFIRE}      ${COMINm1}
+         cp -p ${DATA}/${STACK_GROUP} ${COMINm1}
+      fi
+   else
+      echo "WARNING can not find both ${DATA}/${PTFIRE} and ${DATA}/${STACK_GROUP}.  Assuming no fire today FCST=${FCST}"
+   fi
+
 else
-   echo "can not find both ${DATA}/${PTFIRE} and ${DATA}/${STACK_GROUP}.  gbbepx2emis run failed. FCST=${FCST}"
-   exit 1
+   echo "WARNING :: NO Current and Previous day's GBBEPX fire emission input.  Assuming no fire today"
 fi

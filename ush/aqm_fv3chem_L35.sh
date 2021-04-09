@@ -173,14 +173,10 @@ else
    echo "WARNING ***  Model run continue with current cycle CMAQ MET -  ${METEO3D} and ${TOPO}"
 fi
 if [ ! -s ${METEO3D} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    echo "ERROR WARNING :: Can not find ${METEO3D} to produce LBC file, MANUAL INSPECTION required"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 if [ ! -s ${TOPO} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
    echo "ERROR WARNING :: Can not find ${TOPO} to produce LBC file, MANUAL INSPECTION required"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
 fi
 #
 if [ $RUN = 'aqm' ]; then
@@ -201,10 +197,9 @@ else
 fi
 export CHECK2D=${COMOUT}/check_fv3chem_aero_${cyear}${cmonth}${cdate}_35L.ncf
 
-if [ ! -s ${BND1} ]; then    ## Soft Fail
-   echo "ERROR WARNING :: ================== ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${BND1}, MANUAL INSPECTION required"
-   echo "ERROR WARNING :: ================== ERROR ======================"
+if [ ! -s ${BND1} ]; then    ## hard Fail - Gas LBC in the PARM should be provided
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${BND1}"
 fi
 rm -rf chkreads.log
 ## 

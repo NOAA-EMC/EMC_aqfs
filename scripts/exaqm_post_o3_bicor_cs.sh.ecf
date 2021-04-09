@@ -38,7 +38,7 @@ cd ${DATA}
 #-----------------------------------------------------------------------------
 # STEP 1:  Extracting PM2.5, O3, and met variables from CMAQ input and outputs
 ic=1
-while [ $ic -lt 100 ]; do
+while [ $ic -lt 120 ]; do
    if [ -s ${COMIN}/aqm.t${cyc}z.aconc_sfc.ncf ]; then
       echo "cycle ${cyc} post1 is done!"
       break 
@@ -48,8 +48,8 @@ while [ $ic -lt 100 ]; do
     fi
 done
 
-if [ $ic -ge 100 ]; then
-    err_exit "****FATAL ERROR***** - COULD NOT LOCATE:${COMIN}/aqm.${cycle}.aconc_sfc.ncf"
+if [ $ic -ge 120 ]; then
+    err_exit "FATAL ERROR - COULD NOT LOCATE:${COMIN}/aqm.${cycle}.aconc_sfc.ncf"
 fi
 
 #------------------------------------------------------
