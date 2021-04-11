@@ -63,8 +63,11 @@ else
    err_exit "****FATAL ERROR**** - COULD NOT LOCATE: ${OUTFILE}"
 fi
 
-### ALERT HHC remove comment mark for NCO delivery
-### ecflow_client --event release_bicor
+## Allow NCO to triger ecflow event for bias_correction after the availability of ${OUTFILE}
+## This functionality does not work in user's workflow that does not use the ecflow
+if [ "${RUN_ENVIR}" == "nco" ]; then
+  ecflow_client --event release_bicor
+fi
 
 #-------------
 . prep_step

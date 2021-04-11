@@ -44,11 +44,6 @@ export pgm=aqm_fcst_cs
 
 cd ${DATA}
 
-#  SYM=`echo ${PDY}| cut -c1-6`
-#  SMM=`echo ${PDY}| cut -c5-6`
-#------------------------------------------------------
-#export NETCDF_FFIOSPEC='cachea:75:3'
-
 APPL=v531
 EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
@@ -388,19 +383,10 @@ echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-ic=0
-while [ ${ic} -lt 1081 ]; do
-   if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-      break
-   else
-      ((ic++))
-      if [ ${ic} -gt 180 ]; then
-         echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-         err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-      fi
-      sleep 10
-   fi
-done
+if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
+fi
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
 
@@ -432,28 +418,24 @@ export GR_EMIS_002=${EMISpath}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_001}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_001}"
 fi
 if [ ! -s ${GR_EMIS_002} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_002}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_002}"
 fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm cmv_c1c2 cmv_c3 ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
 fi
 
 if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
 fi
 done
 
@@ -508,6 +490,7 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf ] && [ "${FCST}" ==
 else
    echo "WARNING :: ========================================================"
    echo "WARNING :: Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf"
+   echo "WARNING :: Assuming no fire for this cycle"
    echo "WARNING :: ========================================================"
 fi
 
@@ -571,7 +554,6 @@ fi
 # OCEAN FILE FOR THE Aerosol run
 #-----------------------------------------------------------------
 
-#export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$MM.ncf
 export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_80X52.ncf
 
 #> Bidirectional ammonia configuration
@@ -584,7 +566,6 @@ fi
 #------------------------------------------------------
 # output files
 #------------------------------------------------------
-#jpexport CTM_APPL=${CFG}_${YMD}
 export CTM_APPL=${CFG}
 
 # In-line biogenic emissions output files

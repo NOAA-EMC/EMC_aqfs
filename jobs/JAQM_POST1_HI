@@ -39,7 +39,6 @@ export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
-#export PCOM=${PCOM:-${PCOMROOT}/$NET}
 export PCOM=${PCOM:-${COMOUT}/wmo}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
@@ -53,7 +52,6 @@ env
 ${HOMEaqm}/scripts/exaqm_post1_cb6r3_hi.sh.ecf
 export err=$?; err_chk
 
-## if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] ; then
 if [ "${cyc}" == "06" ] || [ "${cyc}" == "12" ]; then
   ${HOMEaqm}/scripts/exaqm_post1_cb6r3_hi.maxi.sh.ecf
   export err=$?; err_chk

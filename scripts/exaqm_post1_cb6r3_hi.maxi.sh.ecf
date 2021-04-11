@@ -120,8 +120,6 @@ EOF5
    for hr in 1 8
    do
    
-   #$CNVGRIB -g12 -m -p32  aqm-${hr}hro3-maxi.196.grib aqm-${hr}hro3-maxi.196.grib2
-   
    echo 0 > filesize
    export XLFRTEOPTS="unit_vars=yes"
    export FORT11=aqm-${hr}hro3-maxi.196.grib2
@@ -135,7 +133,6 @@ EOF5
    export FORT11=aqm-${hr}hro3-maxi.196.grib2.temp
    export FORT12="filesize"
    export FORT31=
-   #export FORT51=grib2.${envir}.${cycle}.aqm-${hr}hro3-max.196
    export FORT51=awpaqm.${cycle}.${hr}ho3-max.196.grib2
    ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq-${hr}hro3-maxi.${cycle}.196
    

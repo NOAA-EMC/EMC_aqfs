@@ -73,9 +73,12 @@ fi
    else
       mkdir -p $COMOUTbicor/grid/$PDY
    fi
-
-    cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
+#
+# exaqm_post_pm25_bicor_cs.sh.ecf will check the existence of $f1 before starting the BC_PM
+# Thus, copy $f1 later to make sure $f3 is already available
+#
     cp ${DATA}/$f3 $COMOUTbicor/grid/$PDY
+    cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
 
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
@@ -172,8 +175,7 @@ if [ "${SENDDBN}" = 'YES' ] ; then
   fi
 fi
 
-if [ "${envir}" = 'para6z' ] ;
-then
+if [ "${RUN_ENVIR}" == "emc" ] && [ "${envir}" = 'para6z' ]; then
   echo "copying to developer's personal directory"
  if [ -e ${COMOUT_grib}/${RUN}.$PDY ] ; then
    cp ${DATA}/aqm.${cycle}.ave_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.$PDY

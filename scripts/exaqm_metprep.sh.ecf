@@ -256,8 +256,16 @@ export LUFRAC_CRO=aqm.${cycle}.lufraccro.ncf
 export SOI_CRO=aqm.${cycle}.soicro.ncf
 export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 
-### ALERT HHC use aqm_nacc for NCO delivery -- consistent with executable creation script
+startmsg
 aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc
+export err=$?
+if [ $err -ne 0 ]; then
+   err_chk
+else
+   msg="${pgm} completed normally"
+   postmsg "${jlogfile}" "${msg}"
+fi
+
 if [ "${SENDCOM}" = 'YES' ]; then
   mv GRIDDESC  ${COMOUT}/aqm_griddesc${grd_suffix}
   mv *.ncf ${COMOUT}

@@ -36,9 +36,7 @@ EOF1
 ##------------------------
 # convert from netcdf to grib2 format
 
-#export id_gribdmn=148
 startmsg
-#$EXECaqm/aqm_post_bias_cor_grib2 pm2.5.corrected.${PDY}.${cyc}z.nc pm25 ${PDY} $cyc ${id_gribdmn} 
 ${EXECaqm}/aqm_post_bias_cor_grib2 ${PDY} $cyc 
 export err=$?;err_chk
 
@@ -47,10 +45,6 @@ then
     for pmfile in ${DATA}/aqm.t${cyc}z.awpozcon*bc*.grib2;do
         ifile=$(basename ${pmfile})
         cp -rp ${ifile} ${COMOUT}/
-        # JY - remove all ozone hourly /com data alert  - 11/05/201
-        # if [ "$SENDDBN" = 'YES' ]; then
-        #    $DBNROOT/bin/dbn_alert MODEL AQM_PM $job ${COMOUT}/${ifile}
-        # fi
     done
 fi
 

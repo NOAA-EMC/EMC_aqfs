@@ -87,12 +87,6 @@ setenv IOAPI_LOG_WRITE N
 
 $Exec
 
-#if ($filetype == bin) then
-#   /sss/emc/naqfc/shared/Pius.Lee/mytools/convert_prog/convert $target
-#   rm $target
-#endif
-
-# chmod 644 $source
 
 rm $HeadDefn $SpecDefn
 

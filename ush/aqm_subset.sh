@@ -29,7 +29,6 @@ if (-f $outputfile) then
    endif
 endif
 
-# if (`head $inputfile | strings | head -n 1 | grep TSTEP | wc -l` == 1 ) then
 if (`head $inputfile | strings | head -n 50 | grep TFLAG | wc -l` > 0 ) then
    setenv ncf Y
 else
@@ -121,8 +120,6 @@ set outputtype = ''
 set mt = 0
 set mr = 0
 
-# if (`echo $argv | grep "-" | wc -l `) then
-
    if ($count > 0) then
       @ stop = 1
       @ lc = 0
@@ -206,7 +203,6 @@ set mr = 0
       end
 
    endif
-# endif
 
 if (($mt) && ($mr)) then
    echo ' '

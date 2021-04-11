@@ -92,6 +92,7 @@ if [ "${FCST}" == "YES" ]; then
    ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
    export  err=$?; err_chk
 
+   startmsg
    aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
    export err=$?; err_chk
    ##
@@ -110,6 +111,7 @@ elif [ "${FCST}" == "NO" ]; then
    ## 
    if [ -s ${COMINm1}/aqm.${cycle}.metcro3d.ncf ]; then
       if [ "${cycle}" == "t06z" ]; then   ## current setting is allowed for t06z cycle
+         startmsg
          aprun -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
          export err=$?; err_chk
       fi

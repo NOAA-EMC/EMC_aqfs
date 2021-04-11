@@ -44,11 +44,6 @@ export pgm=aqm_fcst_cs
 
 cd ${DATA}
 
-#  SYM=`echo ${PDY}| cut -c1-6`
-#  SMM=`echo ${PDY}| cut -c5-6`
-#------------------------------------------------------
-#export NETCDF_FFIOSPEC='cachea:75:3'
-
 APPL=v531
 EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
@@ -87,14 +82,6 @@ let num_proc=${LSB_MAX_NUM_PROCESSORS}-1
 ## export NPCOL_NPROW="${num_node} ${num_ptile}"
 ## let nprocs=${num_node}*${num_ptile}
 export nprocs=${num_proc}
-
-### CMAQ v5.0.2 setting
-### export NPCOL_NPROW="48 24"
-### export nprocs=1152
-###
-### CMAQ v5.3.1 setting
-### export NPCOL_NPROW="24 24"
-### export nprocs=576
 
 if [ "${FCST}" == "YES" ]; then
 
@@ -279,16 +266,11 @@ fi
 STTIME=${cyc}"0000"
 TSTEP=010000
 
-#CMAQv5.0.2 Options
 export GRIDDESC=${PARMaqm}/aqm_griddesc${RUN}
 export GRID_NAME=AQF_${RUN}
 
 export LOGFILE=${DATA}/${APPL}.log
 
-#> CMAQ v5.0.2 Output Species and Layer Options
-#export AVG_CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
-#export ACONC_BLEV_ELEV="1 1"
-#export CONC_SPCS="$SPCS_1 $SPCS_2 $SPCS_3 $SPCS_4"
 SPCS_1="ASO4I ANO3I ANH4I ANAI ACLI AECI ALVPO1I ASVPO1I ASVPO2I APOCI APNCOMI"
 SPCS_2="ALVOO1I ALVOO2I ASVOO1I ASVOO2I AOTHRI ASO4J ANO3J ANH4J ANAJ ACLJ AECJ"
 SPCS_3="ALVPO1J ASVPO1J ASVPO2J ASVPO3J APOCJ APNCOMJ ALVOO1J ALVOO2J ASVOO1J ASVOO2J"
@@ -403,19 +385,10 @@ echo "DIAG : emission   files ingested from ${EMISpath}"
 echo "DIAG : Lateral BC files ingested from ${BCpath}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-ic=0
-while [ ${ic} -lt 1081 ]; do
-   if [ -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
-      break
-   else
-      ((ic++))
-      if [ ${ic} -gt 180 ]; then
-         echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-         err_exit "****FATAL ERROR*** - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
-      fi
-      sleep 10
-   fi
-done
+if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
+fi
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
 
@@ -447,28 +420,24 @@ export GR_EMIS_002=${EMISpath}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_001}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_001}"
 fi
 if [ ! -s ${GR_EMIS_002} ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${GR_EMIS_002}"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${GR_EMIS_002}"
 fi
 
 ## CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
 if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
 fi
 
 if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
-   echo "ERROR WARNING :: Can not find ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
-   echo "ERROR WARNING :: ================== FATAL ERROR ======================"
+   echo "======================================================================"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
 fi
 done
 
@@ -523,6 +492,7 @@ elif [ -s ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf ] && [ "${FCST}" ==
 else
    echo "WARNING :: ========================================================"
    echo "WARNING :: Can not find ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}_r.ncf or ${FIRE_DIR}/aqm.${FIRE_SUFFIX}.fire_emi_${RUN}.ncf"
+   echo "WARNING :: Assuming no fire for this cycle"
    echo "WARNING :: ========================================================"
 fi
 
@@ -586,7 +556,6 @@ fi
 # OCEAN FILE FOR THE Aerosol run
 #-----------------------------------------------------------------
 
-#export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$MM.ncf
 export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_199X163.ncf
 
 #> Bidirectional ammonia configuration

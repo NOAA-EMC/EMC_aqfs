@@ -44,11 +44,6 @@ export pgm=aqm_fcst_cs
 
 cd ${DATA}
 
-#  SYM=`echo ${PDY}| cut -c1-6`
-#  SMM=`echo ${PDY}| cut -c5-6`
-#------------------------------------------------------
-#export NETCDF_FFIOSPEC='cachea:75:3'
-
 APPL=v531
 EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
@@ -269,7 +264,6 @@ fi
 STTIME=${cyc}"0000"
 TSTEP=010000
 
-#CMAQv5.0.2 Options
 export GRIDDESC=${PARMaqm}/aqm_griddesc05
 export GRID_NAME=AQF_CONUS_5x
 
@@ -418,8 +412,6 @@ ${FSYNC} ${METpath}/aqm.${cycle}.soicro.ncf
 ${FSYNC} ${METpath}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
-## export GR_EMIS_001=${EMISpath}/emis-noRWC-nei17-${YM}.ncf #surface emission file
-## export GR_EMIS_002=${EMISpath}/emis-RWC-nei17-${YM}.ncf #surface RWC file
 export N_EMIS_GR=2
 export GR_EMIS_001=${EMISpath}/emis-noRWC-cb6-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
@@ -564,7 +556,6 @@ fi
 # OCEAN FILE FOR THE Aerosol run
 #-----------------------------------------------------------------
 
-#export OCEAN_1=${FIXaqm}/ocean_US12_442X265_igbp_2010$MM.ncf
 export OCEAN_1=${FIXaqm}/SSMASK_US12_442X265_igbp2010.ncf
 
 #> Bidirectional ammonia configuration
@@ -573,12 +564,10 @@ if [ ${CTM_ABFLUX} == 'Y' ]; then
    export E2C_SOIL=${FIXaqm}/test_soil_5x_new.nc
    export E2C_CHEM=${EMISpath}/FERT_12km_5x_time${YM}.ncf
    export E2C_LU=$FIXaqm/beld5_CONUS_19Dec20.aggwndj.ncf
-   ## export E2C_LU=${FIXaqm}/beld4_AQF_5x_output.ncf
 fi
 #------------------------------------------------------
 # output files
 #------------------------------------------------------
-#jpexport CTM_APPL=${CFG}_${YMD}
 export CTM_APPL=${CFG}
 
 # In-line biogenic emissions output files
@@ -589,8 +578,6 @@ fi
 
 # set floor file (neg concs)
 export FLOOR_FILE=${DATA}/FLOOR_${CTM_APPL}
-
-#log files??
 
 test=`ls CTM_LOG_*.${CTM_APPL}`
 if [ "$test" != "" ] ; then
@@ -739,6 +726,9 @@ if [ "${FCST}" == "YES" ]; then
    ## /bin/rm -f ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    ## ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
    ## ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
+   if [ -s ${COMOUT}/aconc.${cycle}.fcst.status.txt ]; then
+      /bin/rm -f ${COMOUT}/aconc.${cycle}.fcst.status.txt
+   fi
    ln -s ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
 fi
 

@@ -22,7 +22,7 @@ cd ${DATA}
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 export XLFRTEOPTS="unit_vars=yes"
 
-## Alaskadomain size
+## Alaska domain size
 export imx=199
 export jmx=163
 export id_grib=140

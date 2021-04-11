@@ -1,7 +1,6 @@
 #!/bin/ksh
 
 source /opt/modules/default/init/ksh
-#module load prod_util
 
 
 date
@@ -69,10 +68,11 @@ env
 ###################################################
 # Execute the Script
 ###################################################
-if [ ! -s ${COMINm1}/aqm.t${cyc}z.emission_r.ncf ] && [ $cyc == '06' ] && [ $FCST = NO ]; then
-   echo "No BlueSky-calcuated fle emissions for 24-hr reanalysis run at 06z cycle"
+if [ ! -s ${COMINm1}/aqm.t${cyc}z.fire_emi_AK_r.ncf ] && [ $cyc == '06' ] && [ $FCST = NO ]; then
+   echo "No GBBEPx fle emissions for 24-hr reanalysis run at 06z cycle"
    err=999; err_chk
 else
+   startmsg
    ${HOMEaqm}/scripts/exaqm_cmaqv531_ak.sh.ecf
    export err=$?; err_chk
 fi
