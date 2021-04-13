@@ -20,9 +20,8 @@ model=cmaq
 set -x
 
 export RUN=aqm
-export num_node=10
 
-export NODES=${num_node}
+export NODES=10
 export FCST=NO
 
 . /opt/modules/default/init/ksh
