@@ -34,14 +34,18 @@ model=cmaq
 set -x
 
 export cyc=%CYC%
-case ${cyc} in
-   00) export NODES=1;;
-   06) export NODES=10;;
-   12) export NODES=10;;
-   18) export NODES=1;;
-esac
+if [ "${cyc}" == "00" ]; then
+   export NODES=1
+elif [ "${cyc}" == "06" ]; then
+   export NODES=10
+elif [ "${cyc}" == "12" ]; then
+   export NODES=10
+elif [ "${cyc}" == "18" ]; then
+   export NODES=1
+else
+   export NODES=10
+fi
 
-export NODES=10
 export RUN=AK
 export FCST=YES
 
