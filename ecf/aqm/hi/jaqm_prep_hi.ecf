@@ -41,6 +41,7 @@ case ${cyc} in
    18) export NODES=1;;
 esac
 
+export NODES=10
 export RUN=HI
 export FCST=YES
 
