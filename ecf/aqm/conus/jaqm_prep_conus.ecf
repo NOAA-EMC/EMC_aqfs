@@ -42,7 +42,6 @@ case ${cyc} in
 esac
 
 export RUN=aqm
-export NODES=10
 export FCST=YES
 
 . /opt/modules/default/init/ksh
