@@ -31,7 +31,7 @@ export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc} | cut -c1-8`  # 1 year 
 # The earliest day of training data is August 1 2020
-if [ ${TMP_STDAY} -le 20201001 ]; then export TMP_STDAY=20201001; fi
+if [ ${TMP_STDAY} -le 20200801 ]; then export TMP_STDAY=20200801; fi
 export BC_STDAY=${BC_STDAY:-${TMP_STDAY}}
 
 export Yr=`echo ${PDY} | cut -c1-4`
