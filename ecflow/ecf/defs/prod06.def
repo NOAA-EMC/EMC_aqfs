@@ -1,0 +1,63 @@
+suite prod06
+  repeat day 1
+  edit ECF_TRIES '1'
+  edit CYC '06'
+  edit ENVIR 'prod'
+  edit PROJ 'OPS'
+  edit E 'j'
+  edit QUEUE 'prod'
+  edit PROJENVIR 'OPS'
+  edit MACHINE_SITE 'production'
+  family aqm
+    edit COM 'gpfs/hps/nco/ops/com'
+    edit ECF_FILES '/ecf/ecfnets/scripts/aqm'
+    edit PROJ 'CMAQ'
+    edit QUEUESERV 'prod_transfer'
+    edit ALERT_FROM_P3 'YES'
+    family hi
+      task jaqm_prep_hi
+        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
+        edit NUMNODE '10'
+      task jaqm_forecast_hi
+        trigger jaqm_prep_hi == complete
+      task jaqm_post1_hi
+        trigger jaqm_forecast_hi == complete
+      task jaqm_post3_hi
+        trigger jaqm_post1_hi == complete
+    endfamily
+    family ak
+      task jaqm_prep_ak
+        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
+        edit NUMNODE '10'
+      task jaqm_forecast_ak
+        trigger jaqm_prep_ak == complete
+      task jaqm_post1_ak
+        trigger jaqm_forecast_ak == complete
+      task jaqm_post3_ak
+        trigger jaqm_post1_ak == complete
+    endfamily
+    family conus
+      edit KEEPDATA 'YES'
+      edit COMPATH '/gpfs/hps/nco/ops/com/aqm/prod'
+      task jaqm_prep_conus
+        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
+        edit NUMNODE '10'
+      task jaqm_prep_ana_cs
+        time 08:35
+      task jaqm_fcst_ana_cs
+        trigger jaqm_prep_ana_cs == complete
+      task jaqm_forecast_conus
+        trigger jaqm_prep_conus == complete and jaqm_fcst_ana_cs == complete
+      task jaqm_post1_conus
+        trigger jaqm_forecast_conus == complete
+        event 1 release_bicor
+      task jaqm_post3_conus
+        trigger jaqm_forecast_conus == complete
+      task jaqm_post_o3_bicor_conus
+        trigger jaqm_post1_conus:release_bicor
+        event 1 release_pm25_bicor
+      task jaqm_post_pm25_bicor_conus
+        trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
+    endfamily
+  endfamily
+endsuite

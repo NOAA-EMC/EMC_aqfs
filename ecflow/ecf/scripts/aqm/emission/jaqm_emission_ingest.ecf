@@ -1,17 +1,20 @@
 #BSUB -J %E%aqm_emission_ingest
-#BSUB -o /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
-#BSUB -e /%COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -o %COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
+#BSUB -e %COM%/output/%ENVIR%/today/aqm_emission_ingest.o%J
 #BSUB -L /bin/sh
-#BSUB -q %QUEUE%_serv
-#BSUB -cwd /tmpnwprd
+#BSUB -q %QUEUE%
+#BSUB -M 3000
+#BSUB -cwd /tmp
 #BSUB -W 02:30
-#BSUB -n 1
-#BSUB -R "rusage[mem=2500]" -R "affinity[core]"
-##BSUB -P %PROJ%
-#BSUB -P CMAQ-T2O
+#BSUB -P %PROJ%-%PROJENVIR%
+#BSUB -extsched 'CRAYLINUX[]'
 
+module purge
 %include <head.h>
-%include <envir-p2.h>
+%include <envir-xc40.h>
+
+model=cmaq
+%include <model_ver.h>
 
 set -x
 
@@ -27,18 +30,10 @@ set -x
 #where dd is the day of month to be rerun
 #########################################
 
+export NODES=1
+export cyc=%CYC%
 
-# versions file for AQM CMAQ sets $cmaq_ver
-VERSION_FILE=$NWROOT/versions/cmaq.ver
-if [ -f $VERSION_FILE ]; then
-  . $VERSION_FILE
-else
-  ecflow_client --msg="***JOB ${ECF_NAME} ERROR: Version File $VERSION_FILE does not exist ***"
-  ecflow_client --abort
-  exit
-fi
-
-$NWROOT/cmaq.${cmaq_ver}/jobs/JAQM_EMISSION_INGEST
+${HOMEcmaq}/jobs/JAQM_EMISSION_INGEST
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
