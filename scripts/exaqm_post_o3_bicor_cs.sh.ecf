@@ -80,6 +80,9 @@ fi
     cp ${DATA}/$f3 $COMOUTbicor/grid/$PDY
     cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
 
+    if [ "${RUN_ENVIR}" == "nco" ]; then
+      ecflow_client --event release_pm25_bicor
+    fi
 #-----------------------------------------------------------------------
 # STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
 
