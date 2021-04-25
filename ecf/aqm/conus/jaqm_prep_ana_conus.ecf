@@ -19,6 +19,7 @@ model=cmaq
 
 set -x
 
+export cyc=%CYC%
 export RUN=aqm
 
 export NODES=10
