@@ -34,17 +34,7 @@ model=cmaq
 set -x
 
 export cyc=%CYC%
-if [ "${cyc}" == "00" ]; then
-   export NODES=1
-elif [ "${cyc}" == "06" ]; then
-   export NODES=10
-elif [ "${cyc}" == "12" ]; then
-   export NODES=10
-elif [ "${cyc}" == "18" ]; then
-   export NODES=1
-else
-   export NODES=10
-fi
+export NODES=%NUMNODE%
 
 export RUN=AK
 export FCST=YES

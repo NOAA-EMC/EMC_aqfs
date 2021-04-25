@@ -678,7 +678,7 @@ export        CTM_RJ_1=${DATA}/RJ_1.${CTM_APPL}
 export        CTM_RJ_2=${DATA}/RJ_2.${CTM_APPL}
 export        CTM_RJ_3=${DATA}/RJ_3.${CTM_APPL}
 
-if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" == "Y" ]; then
    export   CTM_PT3D_DIAG=${DATA}/PT3D.${CTM_APPL} 
 fi
 
@@ -782,7 +782,7 @@ if [ "${SENDCOM}" == "YES" ]  && [ "${FCST}" == "YES" ] && [ -s ${DATA}/SOILOUT.
          mv ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ${COMOUT}/aqm.${cycle}.othpt.ncf
       fi
    fi
-   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/PT3D.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.pt3d.ncf 
    fi
 fi
@@ -807,7 +807,7 @@ if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${
    mv ${DATA}/RJ_1.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_1_r.ncf
    mv ${DATA}/RJ_2.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_2_r.ncf
    mv ${DATA}/RJ_3.${CTM_APPL}       ${COMOUTm1}/aqm.${cycle}.rj_3_r.ncf 
-   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" =="Y" ]; then
+   if [ -s ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/CCTM_EMDIAG_${FIRE_EMIS_LABEL}_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.fireemis_r.ncf
    else
       if [ "${FLAG_WF_ON}" == "YES" ]; then
@@ -834,7 +834,7 @@ if [ "${SENDCOM}" == "YES" ] && [ "${FCST}" == "NO" ] && [ -s ${DATA}/SOILOUT.${
          mv ${DATA}/CCTM_EMDIAG_OTHPT_${CTM_APPL}.nc ${COMOUTm1}/aqm.${cycle}.othpt_r.ncf
       fi
    fi
-   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" =="Y" ]; then
+   if [ "${FLAG_3DPOINT_EMIS_OUT}" == "YES" ] && [ "${CTM_PT3DEMIS}" == "Y" ] && [ "${PT3DDIAG}" == "Y" ]; then
       mv ${DATA}/PT3D.${CTM_APPL}    ${COMOUTm1}/aqm.${cycle}.pt3d_r.ncf 
    fi
 fi
