@@ -28,7 +28,7 @@ export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
-# Update the training data period for the PM25 from 1 year (8760) to 3 month (90 day; 2150)
+# Update the training data period for the PM25 from 1 year (8760) to 3 month (90 day; 2160)
 export TMP_STDAY=`${NDATE} -2160 ${PDY}${cyc} | cut -c1-8`  # 1 year 
 # The earliest day of training data is August 1 2020
 if [ ${TMP_STDAY} -le 20201001 ]; then export TMP_STDAY=20201001; fi
