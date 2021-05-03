@@ -32,10 +32,10 @@ export err=$?;err_chk
 
 if [ -e ${COMINbicor}/interpolated/ozone/${Yr} ] 
 then 
-  cp -p ${DATA}/out/ozone/${Yr}/*nc  ${COMINbicor}/interpolated/ozone/${Yr}
+  cp ${DATA}/out/ozone/${Yr}/*nc  ${COMINbicor}/interpolated/ozone/${Yr}
 else
   mkdir -p ${COMINbicor}/interpolated/ozone/${Yr}
-  cp -p  ${DATA}/out/ozone/${Yr}/*nc  ${COMINbicor}/interpolated/ozone/${Yr}
+  cp ${DATA}/out/ozone/${Yr}/*nc  ${COMINbicor}/interpolated/ozone/${Yr}
 fi
 
 echo "Interploation is done for " ${PDY} 

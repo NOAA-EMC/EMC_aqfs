@@ -60,7 +60,7 @@ if [ "${SENDCOM}" = 'YES' ]
 then
     for pmfile in ${DATA}/aqm.t${cyc}z.pm25*bc*.grib2;do
         ifile=$(basename ${pmfile})
-        cp -rp ${ifile} ${COMOUT}/
+        cp ${ifile} ${COMOUT}/
         if [ "$SENDDBN" = 'YES' ]; then
             $DBNROOT/bin/dbn_alert MODEL AQM_PM ${job} ${COMOUT}/${ifile}
         fi

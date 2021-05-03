@@ -162,13 +162,13 @@ newgrib2file2=aqm.t${cyc}z.ave_8hr_o3_bc.227.grib2
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
 
 ${COPYGB2}  -g "$grid227" -x  -i"1 1" tmpfile.1hr  ${newgrib2file1} 
-cp -rp tmpfile.1hr     $COMOUT/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
-cp -rp aqm.t${cyc}z.ave_1hr_o3_bc.227.grib2 $COMOUT/
+cp tmpfile.1hr     $COMOUT/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
+cp aqm.t${cyc}z.ave_1hr_o3_bc.227.grib2 $COMOUT/
 
 if [ $cyc -eq 06 -o $cyc -eq 12 ]  ; then
  ${COPYGB2}  -g "$grid227" -x  -i"1 1" tmpfile.8hr  ${newgrib2file2} 
- cp -rp tmpfile.8hr     $COMOUT/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
- cp -rp aqm.t${cyc}z.ave_8hr_o3_bc.227.grib2 $COMOUT/
+ cp tmpfile.8hr     $COMOUT/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
+ cp aqm.t${cyc}z.ave_8hr_o3_bc.227.grib2 $COMOUT/
 fi
 
 if [ "${SENDDBN}" = 'YES' ] ; then
@@ -182,16 +182,16 @@ if [ "${RUN_ENVIR}" == "emc" ] && [ "${envir}" = 'para6z' ]; then
   echo "copying to developer's personal directory"
  if [ -e ${COMOUT_grib}/${RUN}.$PDY ] ; then
    cp ${DATA}/aqm.${cycle}.ave_*hr_o3_bc.*.grib2  ${COMOUT_grib}/${RUN}.$PDY
-   cp -rp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
+   cp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
   if [ $cyc -eq 06 -o $cyc -eq 12 ]  ; then
-   cp -rp tmpfile.8hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
+   cp tmpfile.8hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
   fi
  else
   mkdir -p ${COMOUT_grib}/${RUN}.$PDY
   cp ${DATA}/aqm.${cycle}.ave_*hr_o3_bc.227.grib2  ${COMOUT_grib}/${RUN}.$PDY
-  cp -rp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
+  cp tmpfile.1hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_1hr_o3_bc.148.grib2
   if [ $cyc -eq 06 -o $cyc -eq 12 ]  ; then
-   cp -rp tmpfile.8hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
+   cp tmpfile.8hr     ${COMOUT_grib}/${RUN}.$PDY/aqm.t${cyc}z.ave_8hr_o3_bc.148.grib2
   fi
  fi
 fi

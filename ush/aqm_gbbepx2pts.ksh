@@ -156,11 +156,11 @@ Species Converting Factor
    
    if [ -s ${PTFIRE} ] && [ -s ${STACK_GROUP} ]; then
       if [ "${FCST}" = "YES" ]; then
-         cp -p ${DATA}/${PTFIRE}      ${COMIN}
-         cp -p ${DATA}/${STACK_GROUP} ${COMIN}
+         cp ${DATA}/${PTFIRE}      ${COMIN}
+         cp ${DATA}/${STACK_GROUP} ${COMIN}
       else
-         cp -p ${DATA}/${PTFIRE}      ${COMINm1}
-         cp -p ${DATA}/${STACK_GROUP} ${COMINm1}
+         cp ${DATA}/${PTFIRE}      ${COMINm1}
+         cp ${DATA}/${STACK_GROUP} ${COMINm1}
       fi
    else
       echo "WARNING can not find both ${DATA}/${PTFIRE} and ${DATA}/${STACK_GROUP}.  Assuming no fire today FCST=${FCST}"

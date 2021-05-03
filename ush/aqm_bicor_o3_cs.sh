@@ -46,6 +46,6 @@ fi
 
  cp $DATA/out/ozone.corrected*   $COMOUT
 if [ ${cycle} = 't12z'  ] ; then
- cp -p $DATA/sites/sites.valid.ozone.$PDY.${cyc}z.list  $COMOUT
+ cp $DATA/sites/sites.valid.ozone.$PDY.${cyc}z.list  $COMOUT
 fi
 

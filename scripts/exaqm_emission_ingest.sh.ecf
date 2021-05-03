@@ -93,10 +93,10 @@ fi
  
 mkdir -p -m 775 $out_dir
 # JY - will comment out the following two lines ??
-cp -p $in_dir/*AK* $out_dir/.
-cp -p $in_dir/*HI* $out_dir/.
-cp -p $in_dir/*5x* $in_dir/emis*ncf $out_dir/.
-cp -p $in_dir/gfs.geo*nc $out_dir/.
+cp $in_dir/*AK* $out_dir/.
+cp $in_dir/*HI* $out_dir/.
+cp $in_dir/*5x* $in_dir/emis*ncf $out_dir/.
+cp $in_dir/gfs.geo*nc $out_dir/.
 # check the file number monthly directory
 
 no_file_in_com=`ls $out_dir/* | wc -l`

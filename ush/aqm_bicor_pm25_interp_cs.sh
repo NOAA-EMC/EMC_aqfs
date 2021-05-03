@@ -34,10 +34,10 @@ export err=$?;err_chk
 
 if [ -e ${COMINbicor}/interpolated/pm25/${Yr} ] 
 then 
-  cp -p ${DATA}/out/pm25/${Yr}/*nc  ${COMINbicor}/interpolated/pm25/${Yr}
+  cp ${DATA}/out/pm25/${Yr}/*nc  ${COMINbicor}/interpolated/pm25/${Yr}
 else
   mkdir -p ${COMINbicor}/interpolated/pm25/${Yr}
-  cp -p  ${DATA}/out/pm25/${Yr}/*nc  ${COMINbicor}/interpolated/pm25/${Yr}
+  cp ${DATA}/out/pm25/${Yr}/*nc  ${COMINbicor}/interpolated/pm25/${Yr}
 fi
 
 echo "Interploation is done for " ${PDY} 

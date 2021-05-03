@@ -44,7 +44,7 @@ if [ "${SENDCOM}" = 'YES' ]
 then
     for pmfile in ${DATA}/aqm.t${cyc}z.awpozcon*bc*.grib2;do
         ifile=$(basename ${pmfile})
-        cp -rp ${ifile} ${COMOUT}/
+        cp ${ifile} ${COMOUT}/
     done
 fi
 

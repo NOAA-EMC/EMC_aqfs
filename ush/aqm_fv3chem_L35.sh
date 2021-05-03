@@ -216,7 +216,7 @@ export err=$?;err_chk
 ## CMAQ FCST run will always use the latest BND2 of the day, i.e., 12Z produced LBC will replace LBC produced at 06Z
 ##
 if [ -s ${BND2} ]; then
-   cp -p ${BND2} ${BND2_cyc}
+   cp ${BND2} ${BND2_cyc}
 else
    echo "ERROR WARNING :: ================== ERROR ======================"
    echo "ERROR WARNING :: Can not find ${BND2}, MANUAL INSPECTION required"

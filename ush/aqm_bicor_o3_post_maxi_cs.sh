@@ -101,7 +101,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
    
    
    if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = "YES" ]; then
-      cp -rp ${DATA}/aqm.${cycle}.max_*hr_o3_bc.*.grib2  ${COMOUT}/
+      cp ${DATA}/aqm.${cycle}.max_*hr_o3_bc.*.grib2  ${COMOUT}/
    
       if [ "$SENDDBN" = 'YES' ] ; then
          ${DBNROOT}/bin/dbn_alert MODEL AQM_MAX ${job} ${COMOUT}/aqm.${cycle}.max_1hr_o3_bc.227.grib2
