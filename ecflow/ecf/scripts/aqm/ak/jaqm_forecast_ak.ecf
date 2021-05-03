@@ -9,7 +9,7 @@
 #BSUB -P %PROJ%-%PROJENVIR%
 #BSUB -extsched 'CRAYLINUX[]'
 
-module purge
+# module purge  ## NCO SPA comments out this line
 %include <head.h>
 %include <envir-xc40.h>
 

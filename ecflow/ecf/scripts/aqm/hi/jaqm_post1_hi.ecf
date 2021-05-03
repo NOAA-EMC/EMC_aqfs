@@ -8,7 +8,7 @@
 #BSUB -M 3000
 #BSUB -P %PROJ%-%PROJENVIR%
 
-module purge
+# module purge  ## NCO SPA comments out this line
 %include <head.h>
 %include <envir-xc40.h>
 
