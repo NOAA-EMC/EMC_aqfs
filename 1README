@@ -7,3 +7,4 @@
                                  transfer_aqm_ak.list, transfer_aqm_conus_1.list,
                                  transfer_aqm_conus_2.list, transfer_aqm_emission.list,
                                  transfer_aqm_hi.list
+(3) All compiler need to run a test using "F90_FLAGS = -check all"

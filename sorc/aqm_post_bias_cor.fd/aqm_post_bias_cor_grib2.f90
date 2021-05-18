@@ -213,17 +213,10 @@
       nowtime=(ihour+1)*10000
       do nt=1,nhours
 
-       GRID=148
-       if(GRID.eq.148) then   !For HRRR grid
+         GRID=148
          im=442
          jm=265
          jf=im*jm
-       else
-         call makgds(GRID, kgdss, gdss, lengds, ier)
-         im=kgdss(2)
-         jm=kgdss(3)
-         jf=kgdss(2)*kgdss(3)
-       end if
 !
       base_year=iyear
 !      nowtime=ihour*10000
