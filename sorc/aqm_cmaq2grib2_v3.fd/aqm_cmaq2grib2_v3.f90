@@ -154,7 +154,7 @@
       enddo
 
       nspcmet=L-1
-      if(nspecmet.lt.1) print*,'no met species provided'
+      if(nspcmet.lt.1) print*,'no met species provided'
 
 
 ! open files
@@ -198,7 +198,7 @@
       allocate(cgrib1(max_bytes))
       allocate(cgrib2(max_bytes))
       allocate(bmap(imax,jmax))
-      allocate(bmap1(nax*ny))
+      allocate(bmap1(nx*ny))
 !      allocate(ibmap1(nx*ny))
       allocate(fld1(nx*ny))
       allocate(fld2(nx*ny))

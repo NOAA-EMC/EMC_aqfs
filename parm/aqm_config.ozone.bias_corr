@@ -148,8 +148,8 @@ NOY              0          5       N      NOy concentration
 PBL              0       4500       N      PBL height, ACM2 based Richardson #
 RGRND            0       1500       N      Solar radiation reaching surface
 TEMP2          -50C        50C      N      Temperature, 2 meters
-WDIR10           0        360       Y      Wind direction, 10 meters, derived
-WSPD10           0        100       N      Wind speed, 10 meters, derived
+*WDIR10           0        360       Y      Wind direction, 10 meters, derived
+*WSPD10           0        100       N      Wind speed, 10 meters, derived
 
 * Controls for derived variables.  Set to "none" if not used.
 * These two should be in the var table, but not in the input file.

@@ -196,8 +196,8 @@ c      if(iflag.ne.NF_NOERR) stop
        yind=(y-yorig)/ddx+0.5
 c       print*,'mfire,i,j,tlon(i),tlat(j),xind,yind=',
 c     1    mfire,i,j,tlon(i),tlat(j),xind,yind,gbbepx(i,j,:)
-       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1
-     1  .or.frp(i,j).le.0.or.lwmask(xind,yind).lt.0.5 ) cycle jloop  ! out of domain or no FRP or over water
+       if(xind.gt.imax.or.xind.lt.1.or.yind.gt.jmax.or.yind.lt.1) cycle jloop  ! out of domain
+       if( frp(i,j).le.0.or.lwmask(xind,yind).lt.0.5 ) cycle jloop  ! no FRP or over water
 
        xloca(mfire)=x
        yloca(mfire)=y
