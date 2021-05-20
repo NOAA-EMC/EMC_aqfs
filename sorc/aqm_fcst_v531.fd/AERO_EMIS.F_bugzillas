@@ -374,7 +374,8 @@ C-----------------------------------------------------------------------
        LOGICAL                          :: EM_STREAM_RULE( N_EM_SRM )
        CHARACTER( 16 )                  :: CSUR
        CHARACTER( 16 ), SAVE            :: PNAME = 'EM_SD_INIT  '
-
+       character(16) :: tmp_aero_ref_name(n_em_aero_ref)
+       
        INTEGER IRULE, ISUR, N, NLEN, ISD, IM, IEM, NRULE
        LOGICAL   :: LREMOVE
        
@@ -392,14 +393,15 @@ C-----------------------------------------------------------------------
        SD = 0
        SD_NAME = ''
 
+       tmp_aero_ref_name(:)=EM_AERO_REF( : )%NAME
        DO ISRM = 1,N_EM_SRM
          N_SD( ISRM ) = 2
          SD_NAME( ISRM,1 ) = 'FINE'
-         SD( ISRM,1 ) = INDEX1( 'FINE_REF',   N_EM_AERO_REF, EM_AERO_REF( : )%NAME )
+         SD( ISRM,1 ) = INDEX1( 'FINE_REF',   N_EM_AERO_REF, tmp_aero_ref_name )
          SD_NAME( ISRM,2 ) = 'COARSE'
-         SD( ISRM,2 ) = INDEX1( 'COARSE_REF', N_EM_AERO_REF, EM_AERO_REF( : )%NAME )
+         SD( ISRM,2 ) = INDEX1( 'COARSE_REF', N_EM_AERO_REF, tmp_aero_ref_name )
        END DO
-       
+              
        ! Now Modify those defaults or add new modes to desired streams
        DO IRULE = 1, N_SD_RULE
          ! Expand Size Distribution Rule to All Streams if Requested
@@ -417,12 +419,12 @@ C-----------------------------------------------------------------------
                    ! Overwrite the FINE mode. All fine particle species
                    ! will go to this mode by default
                    SD( ISRM,1 ) = INDEX1( SD_NML( IRULE )%MODE_REF,
-     &                               N_EM_AERO_REF, EM_AERO_REF( : )%NAME )
+     &                               N_EM_AERO_REF, tmp_aero_ref_name )
                ELSEIF ( SD_NML( IRULE )%MODE .EQ. 'COARSE' ) THEN
                    ! Overwrite the COARSE mode. All coarse particle
                    ! species will go to this mode by default
                    SD( ISRM,2 ) = INDEX1( SD_NML( IRULE )%MODE_REF,
-     &                               N_EM_AERO_REF, EM_AERO_REF( : )%NAME )
+     &                               N_EM_AERO_REF, tmp_aero_ref_name )
                ELSE
                    ! Add a New Available Mode. For example, add a mode
                    ! just for BC, call it PUREBC, and make sure the AEC
@@ -432,7 +434,7 @@ C-----------------------------------------------------------------------
                    N_SD( ISRM ) = N_SD( ISRM ) + 1
                    SD_NAME( ISRM,N_SD( ISRM ) ) = SD_NML( IRULE )%MODE
                    SD( ISRM,N_SD( ISRM ) ) = INDEX1( SD_NML( IRULE )%MODE_REF,
-     &                                 N_EM_AERO_REF, EM_AERO_REF( : )%NAME )
+     &                                 N_EM_AERO_REF, tmp_aero_ref_name )
                    IF ( SD( ISRM,N_SD( ISRM )) .EQ. 0 ) THEN
                       WRITE( XMSG,'(A,A,A,/,A,I2,A)' ), '*** Reference Aerosol Mode (', 
      &                       SD_NML( IRULE )%MODE_REF, 'Specified in Emissions Size ',

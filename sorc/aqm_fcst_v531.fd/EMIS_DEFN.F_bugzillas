@@ -1177,7 +1177,8 @@ C-----------------------------------------------------------------------
          INTEGER, ALLOCATABLE :: EM_REG( :,:,: )
          INTEGER              :: N_EM_RULE
          LOGICAL              :: LREMOVE
-
+         character(16), allocatable :: tmp_aerospc_name(:),tmp_emis_surr_name(:)
+	 
 C Retrieve Environment Variable Letting User Ignore this Check
 C and allowing the model to proceed.
          CALL LOG_SUBHEADING( LOGDEV, "Check Emissions Mapping" )
@@ -1212,6 +1213,10 @@ C and allowing the model to proceed.
          WRITE( LOGDEV, '(/,5x,A)' ),'|> Map Available Emissions Surrogates to Defaults:'
          WRITE( LOGDEV, '(5x,A)'   ),'=================================================='
          N_SURR_CATCH = 0
+	 
+	 if(.not.allocated(tmp_emis_surr_name)) allocate(tmp_emis_surr_name(N_EMIS_SURR_TABLE))
+	 tmp_emis_surr_name(:)=EMIS_SURR_TABLE( : )%NAME
+	 
          DO ISRM = 1,N_EM_SRM
 
             IF ( ISRM .EQ. ISEASRM .OR. ISRM .EQ. IBIOSRM .OR. 
@@ -1227,7 +1232,7 @@ C and allowing the model to proceed.
             DO ISUR = 1,EM_FILE_SURR( ISRM )%LEN
                ! Assign Default Molecular Weight to Each Surrogate Species
                B = EM_FILE_SURR( ISRM )%ARRY( ISUR )
-               IA  = INDEX1( B, N_EMIS_SURR_TABLE, EMIS_SURR_TABLE( : )%NAME )
+               IA  = INDEX1( B, N_EMIS_SURR_TABLE, tmp_emis_surr_name )
                IF ( IA .GT. 0 ) THEN
                   EM_FILE_SURR( ISRM )%MW   ( ISUR ) = EMIS_SURR_TABLE( IA )%MW
                ELSE
@@ -1553,6 +1558,9 @@ C and allowing the model to proceed.
             ! Initialize CMAQ Species Array
             EM_SPEC_RULE = .FALSE.
             LSPEC_KEY = .FALSE.
+	    
+	    if(.not.allocated(tmp_aerospc_name)) allocate(tmp_aerospc_name(n_aerospc))
+	    tmp_aerospc_name(:)=AEROSPC( : )%BULKNAME
 
             IF ( EM_NML( IRULE )%SPEC .EQ. 'ALL' ) THEN
                ! Expand the Rule to Apply to All Species
@@ -1574,7 +1582,7 @@ C and allowing the model to proceed.
                DO ICHEM = 1,NCHEM
                  ! Find the Specific Species this Rule Identifies
                  IDX = INDEX1( CHEM_NAME( ICHEM ), N_SPC_DIFF, DIFF_SPC )
-                 JDX = INDEX1( CHEM_NAME( ICHEM ), N_AEROSPC,  AEROSPC( : )%BULKNAME )
+                 JDX = INDEX1( CHEM_NAME( ICHEM ), N_AEROSPC, tmp_aerospc_name)
                  IF ( IDX .NE. 0 ) THEN
                    EM_SPEC_RULE( IDX ) = .TRUE.
                  ELSE IF ( JDX .NE. 0 ) THEN

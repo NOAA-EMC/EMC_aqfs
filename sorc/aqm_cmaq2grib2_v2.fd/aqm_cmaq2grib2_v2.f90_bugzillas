@@ -189,7 +189,7 @@
       enddo
 
       nspcmet=L-1
-      if(nspecmet.lt.1) print*,'no met species provided'
+      if(nspcmet.lt.1) print*,'no met species provided'
 
 
 ! open files
