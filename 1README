@@ -1,10 +1,10 @@
-(1) May 11 2021   Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide complete set
+(1) May 11 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide complete set
                                  of ecflow pacgake (and fully tested ==> get help from EIB)
                                  as those in ~/ecflow
-(2) May 11 2021   Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide the list for
+(2) May 11 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide the list for
                                  mirroring from PROD to DEV, as in current ~/parm;
 
                                  transfer_aqm_ak.list, transfer_aqm_conus_1.list,
                                  transfer_aqm_conus_2.list, transfer_aqm_emission.list,
                                  transfer_aqm_hi.list
-(3) All compiler need to run a test using "F90_FLAGS = -check all"
+(3) May 18 2021 Ho-Chun Huang  All compiler need to run a test using "F90_FLAGS = -check all"
