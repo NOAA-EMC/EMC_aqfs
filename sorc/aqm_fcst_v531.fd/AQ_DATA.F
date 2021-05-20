@@ -367,7 +367,7 @@ C Local Variable used to determine what optional TX to add to surrogates
       !Integer :: n_which_txadd( nadd_tx )
 
       Logical, Save :: Firstcall = .True.
-      
+      character(16) :: tmp_aeroname(n_mode)
 C-----------------------------------------------------------------------
 
 
@@ -455,8 +455,9 @@ C...Initialize aerosol surrogate species from AERO_DATA table
 
          ! Skip H2O, H2OP, and SOIL species
          If ( var .Eq. ah2o_idx .Or. var .Eq. ah3op_idx ) Then
+	    tmp_aeroname(1:n_mode)= aerospc( spc-nadd_tx )%name( 1:n_mode )
               write(xmsg,'(4(A,1x))')'Skipping AQ surrogate for AEROSPC ',
-     &                               aerospc( spc-nadd_tx )%name( 1:n_mode )
+     &                             tmp_aeroname  
               Call m3warn( 'aq_data_init', 0, 0, xmsg )
               Cycle
          End if
