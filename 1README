@@ -7,6 +7,21 @@
                                  transfer_aqm_ak.list, transfer_aqm_conus_1.list,
                                  transfer_aqm_conus_2.list, transfer_aqm_emission.list,
 (3) May 18 2021 Ho-Chun Huang  All compiler need to run a test using "F90_FLAGS = -check all"
-(4) May 21 2021 Ho-Chun Huang  Can not use csh script for operational model.
+(4) May 20 2021 Ho-Chun Huang  The files are updated to remove the warning message from
+                                 compiler option "-check all".  These file are marked with
+                                 "_bugzillas" and stored in their corresponding directory.
+                               Steven of NCO recommended the update be done through the
+                                 "bugzillas fix" processes in the next implementation.
+                               Files need to be updated are 
+                                 ~/sorc/aqm_cmaq2grib2_v2.fd/aqm_cmaq2grib2_v2.f90
+                                 ~/sorc/aqm_cmaq2grib2_v3.fd/aqm_cmaq2grib2_v3.f90
+                                 ~/sorc/aqm_fcst_v531.fd/AERO_EMIS.F
+                                 ~/sorc/aqm_fcst_v531.fd/AQ_DATA.F
+                                 ~/sorc/aqm_fcst_v531.fd/EMIS_DEFN.F
+                                 ~/sorc/aqm_fcst_v531.fd/m3dry.F
+                                 ~/sorc/aqm_gbbepx2pts.fd/aqm_gbbepx2pts.f
+                                 ~/sorc/aqm_nacc.fd/rdfv3.f90
+                                 ~/parm/aqm_config.ozone.bias_corr
+(5) May 21 2021 Ho-Chun Huang  Can not use csh script for operational model.
                                Update aqm_bicor_prep_cs.sh for argument input
                                Revision to both aqm_subset.sh aqm_subc.sh from csh to sh
