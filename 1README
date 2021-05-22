@@ -22,6 +22,7 @@
                                  ~/sorc/aqm_gbbepx2pts.fd/aqm_gbbepx2pts.f
                                  ~/sorc/aqm_nacc.fd/rdfv3.f90
                                  ~/parm/aqm_config.ozone.bias_corr
-(5) May 21 2021 Ho-Chun Huang  Can not use csh script for operational model.
-                               Update aqm_bicor_prep_cs.sh for argument input
-                               Revision to both aqm_subset.sh aqm_subc.sh from csh to sh
+(5) May 21 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
+                                 operational implementation.
+                                 > Update aqm_bicor_prep_cs.sh for argument input
+                                 > create bash shell version for both aqm_subset.sh aqm_subc.sh
