@@ -21,8 +21,22 @@
                                  ~/sorc/aqm_fcst_v531.fd/m3dry.F
                                  ~/sorc/aqm_gbbepx2pts.fd/aqm_gbbepx2pts.f
                                  ~/sorc/aqm_nacc.fd/rdfv3.f90
-                                 ~/parm/aqm_config.ozone.bias_corr
 (5) May 21 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
-                                 operational implementation.
+                                 operational implementation - PART I
                                  > Update aqm_bicor_prep_cs.sh for argument input
                                  > create bash shell version for both aqm_subset.sh aqm_subc.sh
+(5) May 24 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
+                                 operational implementation - PART2
+                                 (a) Location ~/lib/sorc/aqm_ioapi_v32
+                                   > Replace HTML/fix_src.csh  ioapi/fix_src.csh  ioapi/nm_test.csh
+                                     with    HTML/fix_src.sh   ioapi/fix_src.sh   ioapi/nm_test.sh
+
+                                 (b) Location ~/lib/sorc/aqm_ioapi_v32/ioapi
+                                   > Replace Makefile.cpl             Makefile.cpl.sed
+                                             Makefile.cpphack         Makefile.nocpl
+                                             Makefile.nocpl.sed       Makefile.pncf
+                                             Makefile.pncf.sed
+                                     with    Makefile.cpl_sh          Makefile.cpl.sed_sh
+                                             Makefile.cpphack_sh      Makefile.nocpl_sh
+                                             Makefile.nocpl.sed_sh    Makefile.pncf_sh
+                                             Makefile.pncf.sed_sh
