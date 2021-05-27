@@ -25,7 +25,7 @@
                                  operational implementation - PART I
                                  > Update aqm_bicor_prep_cs.sh for argument input
                                  > create bash shell version for both aqm_subset.sh aqm_subc.sh
-(5) May 24 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
+(6) May 24 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
                                  operational implementation - PART2
                                  (a) Location ~/lib/sorc/aqm_ioapi_v32
                                    > Replace HTML/fix_src.csh  ioapi/fix_src.csh  ioapi/nm_test.csh
@@ -40,3 +40,9 @@
                                              Makefile.cpphack_sh      Makefile.nocpl_sh
                                              Makefile.nocpl.sed_sh    Makefile.pncf_sh
                                              Makefile.pncf.sed_sh
+(7) May 25 2021 Ho-Chun Huang  NCO want to advance module load version to the latest as possible
+                               from grib_util/1.0.3 to grib_util/1.1.1 (post1, bias_post_o3, bias_post_pm25)
+                               from grib_util/1.0.5 to grib_util/1.1.1 (nacc)
+
+                               module load gcc/4.9.2
+                               module load grib_util/1.1.1 (need to load gcc for needed library GOMP_4.0)
