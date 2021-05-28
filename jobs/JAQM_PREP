@@ -86,38 +86,6 @@ export pgmout=OUTPUT.$$
 env
 
 if [ "${FCST}" == "YES" ]; then
-   ##
-   ## To assure the gfs.t${cyc}z.sfcf${endfhr}.nc and gfs.t${cyc}z.atmf${endfhr}.nc are ready to be used, but not merely existed
-   ## Error exit after 50 mins of waiting for ecah logf files
-   ##
-   case ${cyc} in
-      00) endfhr=6;;
-      06) endfhr=72;;
-      12) endfhr=72;;
-      18) endfhr=6;;
-   esac
-   icnt=0
-   let tend=${endfhr}
-   while [ ${icnt} -le ${tend} ]; do
-      fhr=`printf %3.3d ${icnt}`
-      targte_file=${METIN}/${cyc}/atmos/gfs.${cycle}.logf${fhr}.txt
-      icnt_gfs=0
-      while [ ${icnt_gfs} -lt 300 ]; do
-         if [ -s ${targte_file} ]; then
-            echo "Found file : ${targte_file}"
-            break
-         else
-            echo "===== Waiting for file : ${targte_file}"
-            ((icnt_gfs++))
-            sleep 10
-         fi
-      done
-      if [ ${icnt_gfs} -ge 300 ]; then
-         err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${cyc}/atmos/gfs.${cycle}.logf${fhr}.txt"
-      fi
-      ((icnt++))
-   done
-
    export YM=`echo ${PDY} | cut -c1-6`
    export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
 

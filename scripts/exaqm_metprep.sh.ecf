@@ -84,13 +84,30 @@ fi
 ###
 ### Check hourly GFS output for both atm and sfc files
 ###
-### ALERT_HHC should count as fhr=endfhr+1
-###
 metcyc=`echo ${cycle} | cut -c2-3`
 icnt=0
 let tend=${endfhr}
 while [ ${icnt} -le ${tend} ]; do
    fhr=`printf %3.3d ${icnt}`
+   ##
+   ## To assure the gfs.t${cyc}z.sfcf${endfhr}.nc and gfs.t${cyc}z.atmf${endfhr}.nc are ready to be used, but not merely existed
+   ##
+   targte_file=${METIN}/${metcyc}/atmos/gfs.${cycle}.logf${fhr}.txt
+   icnt_gfs=0
+   while [ ${icnt_gfs} -lt 300 ]; do
+      if [ -s ${targte_file} ]; then
+         echo "Found file : ${targte_file}"
+         break
+      else
+         echo "===== Waiting for file : ${targte_file}"
+         ((icnt_gfs++))
+         sleep 10
+      fi
+   done
+   if [ ${icnt_gfs} -ge 180 ]; then
+      err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${metcyc}/atmos/gfs.${cycle}.logf${fhr}.txt"
+   fi
+
    icnt_gfs=0
    while [ ${icnt_gfs} -lt 300 ]; do
       if [ -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc ]; then
@@ -105,6 +122,7 @@ while [ ${icnt} -le ${tend} ]; do
          err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${metcyc}/atmos/gfs.${cycle}.atmf${fhr}.nc"
       fi
    done
+
    icnt_gfs=0
    while [ ${icnt_gfs} -lt 300 ]; do
       if [ -s ${METIN}/${metcyc}/atmos/gfs.${cycle}.sfcf${fhr}.nc ]; then
