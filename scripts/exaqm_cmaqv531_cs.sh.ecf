@@ -726,7 +726,7 @@ if [ "${FCST}" == "YES" ]; then
    ## /bin/rm -f ${COMOUT}/aqm.${cycle}.aconc.ncf ${COMOUT}/aqm.${cycle}.apmdiag.ncf
    ## ln -s ${DATA}/ACONC.${CTM_APPL}      ${COMOUT}/aqm.${cycle}.aconc.ncf
    ## ln -s ${DATA}/APMDIAG.${CTM_APPL}    ${COMOUT}/aqm.${cycle}.apmdiag.ncf
-   if [ -s ${COMOUT}/aconc.${cycle}.fcst.status.txt ]; then
+   if [ -e ${COMOUT}/aconc.${cycle}.fcst.status.txt ]; then
       /bin/rm -f ${COMOUT}/aconc.${cycle}.fcst.status.txt
    fi
    ln -s ${DATA}/ACONC_FCST_STATUS      ${COMOUT}/aconc.${cycle}.fcst.status.txt
