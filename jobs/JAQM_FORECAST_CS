@@ -47,7 +47,7 @@ else
    export YM=`echo ${PDYm1} | cut -c1-6`
    export MM=`echo ${PDYm1} | cut -c5-6`
 fi
-export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
+export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/${envir}/emission/${YM}}  #> emissions input directory
 export METpath=${METpath:-${COMIN}} #> CMAQ processed meteorology directory
 export BCpath=${BCpath:-${METpath}} #> boundary conditions input  directory
 

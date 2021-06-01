@@ -87,7 +87,7 @@ env
 
 if [ "${FCST}" == "YES" ]; then
    export YM=`echo ${PDY} | cut -c1-6`
-   export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/prod/emission/${YM}}  #> emissions input directory
+   export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/${envir}/emission/${YM}}  #> emissions input directory
 
    ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
    export  err=$?; err_chk
