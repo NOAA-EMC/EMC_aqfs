@@ -58,7 +58,7 @@ setpdy.sh
 
 export RUN_DAY=${RUN_DAY:-16}
 
-export DCOMbase=${DCOMbase:-${DCOMROOT:?}/prod}
+export DCOMbase=${DCOMbase:-${DCOMROOT:?}/${envir}}
 export DCOMIN=${DCOMIN:-${DCOMbase}/aqm_emission}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}
 export COMOUThps=${COMOUThps:-/gpfs/hps/nco/ops/com/${NET}/${envir}/emission}
