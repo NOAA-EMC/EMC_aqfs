@@ -46,3 +46,20 @@
 
                                module load gcc/4.9.2
                                module load grib_util/1.1.1 (need to load gcc for needed library GOMP_4.0)
+
+(8) June 17 2021 Ho-Chun Huang Emission ingestion and archive are handled between ARL and NCO.
+                               It need ARL to check all scripts/code and incorporated into the delivery package.
+                               The complete code include
+                               ~/jobs/JAQM_EMISSION_ARCHIVE
+                               ~/jobs/JAQM_EMISSION_INGEST
+                               ~/scripts/exaqm_emission_archive.sh.ecf
+                               ~/scripts/Exaqm_emission_ingest.sh.ecf
+                               ~/ush/aqm_rhist_errchk.sh
+                               ~/ush/aqm_rhist_savedir.sh
+                               ~/ecflow/ecf/scripts/aqm/emission/jaqm_emission_archive.ecf
+                               ~/ecflow/ecf/scripts/aqm/emission/jaqm_emission_ingest.ecf
+                               in ~/ecflow/ecf/defs/prod12.def
+                               family emission
+                                 task jaqm_emission_ingest
+                                   time 14:00
+                               endfamily

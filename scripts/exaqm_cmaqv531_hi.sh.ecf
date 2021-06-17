@@ -312,7 +312,9 @@ export CTM_BIOGEMIS=Y        #> calculate in-line biogenic emissions [ default: 
 export B3GTS_DIAG=Y          #> write biogenic mass emissions diagnostic file [ default: N ]; ignore if CTM_BIOGEMIS = N
 export CTM_PT3DEMIS=Y        #> calculate in-line plume rise for elevated point emissions [ default: N ]
 ## Turn off 3D point source emission output (including fire)
-export PT3DDIAG=N            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
+## PROD setting export PT3DDIAG=N            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
+## EMC setting for fire location in 2DSUM
+export PT3DDIAG=Y            #> optional 3d point source emissions diagnostic file [ default: N]; ignore if CTM_PT3DEMIS = N
 export PT3DFRAC=N            #> optional layer fractions diagnostic (play) file(s) [ default: N]; ignore if CTM_PT3DEMIS = N
 export IOAPI_LOG_WRITE=F     #> turn on excess WRITE3 logging [ options: T | F ]
 export FL_ERR_STOP=N         #> stop on inconsistent input files
