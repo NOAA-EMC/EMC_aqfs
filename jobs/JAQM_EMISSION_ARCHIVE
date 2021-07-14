@@ -11,7 +11,7 @@ export pid=$$
 
 # PATH for working directory
 
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+export DATAROOT=${DATAROOT:-/gpfs/hps2/nco/ops/tmpnwprd}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
