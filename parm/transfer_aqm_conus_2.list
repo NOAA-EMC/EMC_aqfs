@@ -33,7 +33,7 @@ com/aqm/_ENVIR_/aqm._PDY_/
 + /aqm_griddesc05
 + /pm2.5.corrected.*.nc
 + /ozone.corrected*nc
-+ /aqm_conus_geos_fv3chem_aero*.ncf  
++ /aqm_conus_geos_fv3chem_aero*
 + /sites.*.list
 + /aqm.t??z.grib2_5xpm25nmmb.227
 + /wmo
@@ -52,7 +52,7 @@ com/aqm/_ENVIR_/aqm._PDYm1_/
 + /aqm_griddesc05
 + /pm2.5.corrected.*.nc
 + /ozone.corrected*nc
-+ /aqm_conus_geos_fv3chem_aero*.ncf  
++ /aqm_conus_geos_fv3chem_aero*
 + /sites.*.list
 + /aqm.t??z.grib2_5xpm25nmmb.227
 + /wmo
