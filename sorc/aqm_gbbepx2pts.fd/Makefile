@@ -3,9 +3,10 @@
 TARGET =  aqm_gbbepx2pts
 
 # Compiler Definitions
- FC = ifort
- CC = cc
-
+# FC = ftn
+# CC = cc 
+  FC = mpiifort
+  CC = icc 
 # Preprocessor
  FPP  = 
 

@@ -50,7 +50,9 @@
       
       CALL MPI_Init(ierr)
       CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+!      print*,"hjp220,my_rank=",my_rank
       CALL MPI_Comm_size(MPI_COMM_WORLD, npe, ierr) 
+!      print*,"hjp221,npe=",npe
       
       call aq_blank(16*nspecies,bndname)
       call aq_blank(16*nspecies,checkname)
@@ -244,13 +246,17 @@
        print*,'Now time is ', nowdate,              &
         nowtime,' in GMT.',inowtime,' my_rank=',my_rank
       
+      print*,"inowtime=",inowtime,"jfiletime=",jfiletime 
+
        do while(inowtime.ne.jfiletime)
         call daymon(nowdate,mmonth,mday)
 	
        write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
 
 !       if(mtime.gt.1) call nemsio_close(gfile)
+       print*,"hjp111"
        print*, aline
+       print*, "hjp112","iret=",iret
        call nemsio_open(gfile,trim(aline),'READ',iret=iret,gdatatype="bin4")
        if(iret.ne.0) then
          print*,'failed to open ',trim(aline)
@@ -281,6 +287,7 @@
         enddo
 !	jfhour=jfhour+dtstep      
 
+        print*,"hjp113"
          igocart=im+2*nframe
 	 jgocart=jm+2*nframe
 	 kgocart=lm
@@ -299,8 +306,11 @@
          allocate(airgocart(igocart,jgocart,kgocart),STAT=ierr)
 	 allocate(vgocart(igocart,jgocart,kgocart),STAT=ierr)
            
-
+        print*,"hjp114"
        call nemsio_getfilehead(gfile,iret=iret,lat=work,lon=work2)
+        print*,"hjp115"
+
+
        do i=1,igocart
         do j=1,jgocart
 	 glat(i,j)=work(i+(j-1)*igocart)

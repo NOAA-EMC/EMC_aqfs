@@ -12,9 +12,9 @@
 set -xa
 
 export OMP_STACKSIZE=58000000
-export OMP_NUM_THREADS=24
-export MKL_NUM_THREADS=24
-export KMP_AFFINITY=disabled
+#export OMP_NUM_THREADS=24
+#export MKL_NUM_THREADS=24
+#export KMP_AFFINITY=disabled
 
 export DBNALERT_TYPE=${DBNALERT_TYPE:-GRIB_HIGH}
 
@@ -39,7 +39,8 @@ ln -s ${COMINbicordat}/bcdata* data/
 ln -s $PARMaqm/aqm_bias_thresholds.pm2.5.2015.1030.32-sites.txt ./bias_thresholds.pm2.5.2015.1030.32-sites.txt 
 
 startmsg  
-aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+#aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 if [ ${envir} = 'para6z' ] ;

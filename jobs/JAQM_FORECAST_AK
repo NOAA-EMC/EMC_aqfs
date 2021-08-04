@@ -1,7 +1,5 @@
 #!/bin/ksh
 
-source /opt/modules/default/init/ksh
-
 
 date
 export PS4=' $SECONDS + '

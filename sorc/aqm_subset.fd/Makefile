@@ -3,8 +3,10 @@ SHELL=/bin/sh
 MODEL      = aqm_subset
 
 # Compiler Definitions
-FC         = ifort 
-CC         = cc
+FC         = mpiifort 
+#FC         = ftn 
+#CC         = cc
+CC         = icc
 
 # Preprocessor
 FPP         = 

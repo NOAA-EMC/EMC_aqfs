@@ -1,7 +1,6 @@
 #!/bin/ksh
-source /opt/modules/default/init/ksh
-module load iobuf
-module load prod_util
+#module load iobuf
+#module load prod_util
 
 
 date

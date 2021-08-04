@@ -54,7 +54,8 @@ Plib     =   ../../lib/sorc/lib.probability
 
 LIB_NETCDF = -I$(NETCDF)/include ${NETCDF_LDFLAGS} 
 
-F90_CMD = ifort 
+F90_CMD = mpiifort 
+#F90_CMD = ftn 
 
 LIB_BUFR = ${BUFR_LIB4}
 

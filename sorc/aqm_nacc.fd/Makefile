@@ -21,12 +21,13 @@
 
 MODEL = aqm_nacc
 
-FC      = ifort
-NETCDF =  $(NETCDF_DIR)
+#FC      = ifort 
+FC      = mpiifort 
+
 IOAPI_ROOT = ../../lib
-MPI_ROOT = $(MPICH_DIR)
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
-LIBS     = $(NETCDF_LDFLAGS) -qopenmp -L$(IOAPI_ROOT) -laqm_ioapi -L$(MPI_ROOT)/lib -lmpich
+#FFLAGS  = -FR -O3 -I$(NETCDF_INC) -I$(IOAPI_ROOT)/include 
+FFLAGS  = -FR -O3 -I${NETCDF_INC} -I$(IOAPI_ROOT)/include -I${MPICH_DIR}/include 
+LIBS     = ${NETCDF_LDFLAGS} -qopenmp -L$(IOAPI_ROOT) -laqm_ioapi  -L${MPICH_DIR}/lib -lmpifort 
 
 MODULES =\
  const_mod.o \

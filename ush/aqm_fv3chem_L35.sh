@@ -73,6 +73,7 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    flag_lbc2_exist=yes
    let ic=${LBC_INI}
    let endhour=${LBC_END}
+   echo "hjp888,endhour=",$endhour
    let lbc_int=${LBC_FREQ}
    let num_file=${endhour}/${lbc_int}+1
    while [ ${ic} -le ${endhour} ]; do
@@ -209,7 +210,9 @@ if [ -s ${BND2} ]; then /bin/rm ${BND2}; fi
 if [ -s ${CHECK2D} ]; then /bin/rm ${CHECK2D}; fi
 
 startmsg
-aprun -n${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+#mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+mpiexec -n 41 ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+#mpirun -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
 export err=$?;err_chk
 ##
 ## Keep record of the LBC used in differretn cycle

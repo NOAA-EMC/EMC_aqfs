@@ -35,7 +35,8 @@ Lib    =   ../../lib/sorc/lib.f90
 # Command argument sequences.
 LIB_NETCDF = -I${NETCDF}/include ${NETCDF_LDFLAGS}
 
-F90_CMD   = ifort 
+#F90_CMD   = ftn 
+F90_CMD   = mpiifort 
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 ## turn-off by Jianping's recommendation 03/18/2021

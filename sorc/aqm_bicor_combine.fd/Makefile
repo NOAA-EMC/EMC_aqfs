@@ -13,8 +13,10 @@ LIB          =   $(IOAPI_LIB) \
      $(NETCDF_LIB)
 
 
-FC           = ifort -132 -O3 -D_LARGE_FILES
-CC           = cc -D_LARGE_FILES -DFLDMN=1
+#FC           = ftn -132 -O3 -D_LARGE_FILES
+FC           = mpiifort -132 -O3 -D_LARGE_FILES
+#CC           = cc -D_LARGE_FILES -DFLDMN=1
+CC           = icc -D_LARGE_FILES -DFLDMN=1
 
 INCLUDES     = -I $(IOAPI)
 INCLUDES-h   = -I $(IOAPI)

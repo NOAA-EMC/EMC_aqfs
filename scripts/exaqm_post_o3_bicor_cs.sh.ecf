@@ -57,8 +57,8 @@ fi
 ## for 2-stage post processing [ 48 hour first then 72 hour 2nd
 if [ -s $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf ]; then
    echo " $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf  exists ! "
-   /bin/rm -f $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf
-   /bin/rm -f $COMOUTbicor/grid/$PDY/sfc_met_n_PBL.${cycle}.ncf
+   rm -f $COMOUTbicor/grid/$PDY/aqm.${cycle}.O3_pm25.ncf
+   rm -f $COMOUTbicor/grid/$PDY/sfc_met_n_PBL.${cycle}.ncf
 fi
 
    startmsg

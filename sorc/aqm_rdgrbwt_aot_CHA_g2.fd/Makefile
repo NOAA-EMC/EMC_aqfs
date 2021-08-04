@@ -18,12 +18,13 @@ LIBS   =  $(IOAPI_LIB) \
 
 INC    = $(LIB_LOC)/include
 
-FC      = ifort 
+#FC      = ftn 
+FC      = mpiifort 
 
 FLAGS  = -I$(INC) 
 
 $(CMD): $(SRCS)
-	$(FC) -o $(@) $(FLAGS)  $(SRCS) $(LIBS) -openmp 
+	$(FC) -o $(@) $(FLAGS)  $(SRCS) $(LIBS) -qopenmp 
 clean :
 	rm -f *.mod 
 install:

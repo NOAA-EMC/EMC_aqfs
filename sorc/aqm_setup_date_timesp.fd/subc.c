@@ -3,6 +3,7 @@
 
 #include "iodecl3.h"
 #include "state3.h"
+#include "ctype.h"
 
 #if FLDMN
 #define OPEN_BINARY_FILE    open_binary_file_

@@ -10,20 +10,21 @@ W3_LIB      = ${W3NCO_LIB4} ${W3EMC_LIB4}
 LIBS   =  $(IOAPI_LIB) \
           $(NETCDF_LIB) \
           ${G2_LIB4} \
-	  $(W3_LIB) \
-          ${PNG_LIB} \
+          $(W3_LIB) \
+	  ${PNG_LIB} \
 	  ${BACIO_LIB4} \
 	  ${JASPER_LIB} \
 	  ${Z_LIB}
 
 INC    = $(LIB_LOC)/include
 
-FC      = ifort 
+#FC      = ftn 
+FC      = mpiifort 
 
 FLAGS  = -I$(INC) 
 
 $(CMD): $(SRCS)
-	$(FC) -o $(@) $(FLAGS)  $(SRCS) $(LIBS) -openmp 
+	$(FC) -o $(@) $(FLAGS)  $(SRCS) $(LIBS) -qopenmp 
 clean :
 	rm -rf *.mod 
 install:

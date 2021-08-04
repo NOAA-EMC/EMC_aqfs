@@ -24,7 +24,7 @@
 
  EXEC = aqm_fcst_v531
 
- FC = ifort
+ FC = mpiifort
  CC = icc
 
  LIB = ../../lib
@@ -32,7 +32,8 @@
  include_path = -I$(LIB)/include -I$(MPI_INC) -I.
 #debug=TRUE
  WARN = 
- FSTD = -O3 -fno-alias -mp1 -fp-model source -ftz -simd -align all -xHost -vec-guard-write -unroll-aggressive
+ FSTD = -O3 -fno-alias -mp1 -fp-model source -ftz -simd -align all -vec-guard-write -unroll-aggressive
+# FSTD = -O3 -fno-alias -mp1 -fp-model source -ftz -simd -align all -xHost -vec-guard-write -unroll-aggressive -lpthread
 #jp DBG  = -O0 -g -check bounds -check uninit -fpe0 -fno-alias -ftrapuv -traceback
  DBG  = 
 
@@ -91,6 +92,8 @@
 
  IOAPI  = -L$(LIB) -laqm_ioapi
  LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpich
+# LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpifort
+# LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpif90
 
  BASE_INC = .
 

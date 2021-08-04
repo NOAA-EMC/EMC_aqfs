@@ -34,6 +34,7 @@
 #   12/17/2020   Ho-Chun Huang  Merge ARL code delivery for dust and fire emissions bug fix, new plume
 #                               choice "Sofiev plume rise", BI-direction NH3, BIOSEASON switch, and
 #                               HI/AK unified code structure.
+#  8/3/2021  Jianping Huang  clean up in support of WCOSS2 transition
 #####################################################################
 set -xa
 
@@ -75,11 +76,11 @@ MECH=cb6r3_ae7_aq
 ### ' 1*{select[craylinux && !vnode] rusage[mem=3000]} + 576*{select[craylinux && vnode]span[ptile=24] cu[type=cabinet]} '
 ###     extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
 ###     num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
-num_node=${NODES}
-extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
-num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
-let num_proc=${LSB_MAX_NUM_PROCESSORS}-1
-export nprocs=${num_proc}
+#num_node=${NODES}
+#extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
+#num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
+##jplet num_proc=${LSB_MAX_NUM_PROCESSORS}-1
+#export nprocs=${num_proc}
 
 if [ "${FCST}" == "YES" ]; then
 
@@ -737,18 +738,19 @@ fi
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-num_col=24
-num_row=24
+num_col=22
+num_row=22
 ## Check if total number of processors used is more than requested
-let total_procs=${num_col}*${num_row}
-echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
-if [ ${total_procs} -gt ${nprocs} ]; then
-   echo "WARNING :: ========================================================"
-   echo "AWRNING :: ${total_procs} procs need for the run is greater than ${nprocs} requested"
-   echo "WARNING :: ========================================================"
-fi
+#let total_procs=${num_col}*${num_row}
+#echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
+#if [ ${total_procs} -gt ${nprocs} ]; then
+#   echo "WARNING :: ========================================================"
+#   echo "AWRNING :: ${total_procs} procs need for the run is greater than ${nprocs} requested"
+#   echo "WARNING :: ========================================================"
+#fi
 export NPCOL_NPROW="${num_col} ${num_row}"
-aprun -n${total_procs} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
+let ntasks=${num_col}*${num_row}
+mpiexec -n $ntasks -ppn 128 --cpu-bind core ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 export err=$?
 
 #------------------------------------------------------

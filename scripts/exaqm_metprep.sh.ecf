@@ -1,4 +1,4 @@
-#!/bin/ksh -x
+#!/bin/ksh -x 
 #####################################################################
 #  UNIX Script Documentation Block
 #  Script Name: exaqm_prep_cs.sh.ecf
@@ -92,6 +92,7 @@ while [ ${icnt} -le ${tend} ]; do
    ##
    ## To assure the gfs.t${cyc}z.sfcf${endfhr}.nc and gfs.t${cyc}z.atmf${endfhr}.nc are ready to be used, but not merely existed
    ##
+   if [ 1 == 2 ] ; then
    targte_file=${METIN}/${metcyc}/atmos/gfs.${cycle}.logf${fhr}.txt
    icnt_gfs=0
    while [ ${icnt_gfs} -lt 300 ]; do
@@ -106,6 +107,8 @@ while [ ${icnt} -le ${tend} ]; do
    done
    if [ ${icnt_gfs} -ge 180 ]; then
       err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${METIN}/${metcyc}/atmos/gfs.${cycle}.logf${fhr}.txt"
+   fi
+   
    fi
 
    icnt_gfs=0
@@ -183,6 +186,8 @@ if [ "${grib2_gvf}" != "" ] && [ -s ${grib2_gvf} ]; then         ## sanitary che
 
    nacc_gvf_prefix="nacc_gvf"
    NACC_GVF_IN=${nacc_gvf_prefix}.nc
+    
+   echo "hjp115:wgrib2", ${WGRIB2}
 
    ${USHaqm}/viirsgrib2nc4.py -v -f DCOM_GVF_FILE -o ${nacc_gvf_prefix} -x ${WGRIB2}
 
@@ -275,7 +280,12 @@ export SOI_CRO=aqm.${cycle}.soicro.ncf
 export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 
 startmsg
-aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc
+#aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc  (old Cray)
+#mpiexec -n 7 -ppn 7  ${EXECaqm}/aqm_nacc.exe
+#mpiexec -n 25 ${EXECaqm}/aqm_nacc.exe
+#mpiexec -n 49 ${EXECaqm}/aqm_nacc.exe
+mpiexec -n 73 ${EXECaqm}/aqm_nacc.exe
+#mpirun -n 7 --cpu-bind core ${EXECaqm}/aqm_nacc.exe
 export err=$?
 if [ $err -ne 0 ]; then
    err_chk
