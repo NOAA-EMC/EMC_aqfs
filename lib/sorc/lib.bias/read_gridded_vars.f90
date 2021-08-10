@@ -9,8 +9,14 @@
 ! 2014-may-06	Original version.  By Dave Allured, NOAA/CIRES/PSD.
 ! 2014-may-13	Adjust verbosity for 2 = sparse progress display.
 !
-! Input:   infile = path to Netcdf input file with multiple variables.
-!          var_codes = list of short codes for requested variables.
+! 2019-may-17	Handle varying number of forecast hours.
+!		Get forecast hours from input file, rather than predetermined.
+!		Skip derived variables in the list of variables to read.
+! 2019-may-20	Add nhours_actual_max output for caller's convenience.
+!
+! Input:   Input file specs for Netcdf input files with multiple variables.
+!          List of of requested Netcdf variables, with related parameters.
+!	   Grid coordinate file.
 !          diag = verbosity control, 0 = errors only.  See below for more.
 !
 ! Output:  grid_data = 4-D array for time series data.
@@ -20,31 +26,39 @@
 !
 ! Notes:
 !
-! In a single call, this version reads the given input file, and
-! returns the data for a specified set of variables in a single
-! multidimensional array.
+! In a single call, this version reads a given list of variables
+! from the indicated set of input files.  Gridded data for all
+! variables is returned in a single multidimensional array.
+! Two-dimensional coordinate grids are also read and returned.
 !
-! For the Kalman/Analog filter program, call this program once to
-! read all the obs data, and another time to read all the model
-! data.
-!
-! The variables to read are specified by a list of short code
-! names.  Translation to the actual Netcdf var names is handled
-! within this module.
-!
-! This version assumes a fixed dimension order in the input data.
-! This is (stations, forecast_time, fcst_cycle) in Fortran order.
-! The actual dimension names are not significant, only the
-! ordering.
+! Variables marked "derived" in the reader_codes list are skipped,
+! to be computed later in a different module.  However, slots for
+! derived variables are incuded in the master output array.
 !
 ! Output arrays are allocated by this routine, and need not be
-! pre-allocated.  Any that were previously allocated are
-! deallocated on entry, then re-allocated.
+! pre-allocated.  Any previously allocated arrays are deallocated
+! on entry, then re-allocated.
 !
-! CMAQ and MET gridded archives do not normally contain missing
-! values, or else there is an assumed missing value code.
-! Therefore, this routine does not currently include any handling
-! for missing values or missing value attributes.
+! This version supports input variables with differing numbers of
+! forecast hours.  In particular, MET variables currently include
+! one more forecast hour than AQM variables.  This is because
+! MET variables include the initialization hour, whereas AQM
+! variables do not.
+!
+! The returned gridded data array will probably be over-
+! dimensioned for the number of forecast hours.  Supplemental
+! output array "nhours_actual" contains the actual hours for each
+! returned variable.
+!
+! This version assumes that CMAQ and MET gridded input files do
+! not contain any missing values.  No recognition or processing
+! of input missing values or missing value attributes is
+! currently done.
+!
+! However, missing values are used as padding at the end of
+! varying-length forecast hour time series.  Missing values are
+! also used to fill the allocated array slots for derived
+! variables.
 !
 ! diag:  Set verbosity, i.e. diagnostic messaging level.  The
 ! messaging level is cumulative.  0 = errors only, 1 = sparse,
@@ -54,7 +68,6 @@
 !------------------------------------------------------------------------------
 
 module read__gridded_vars
-
 contains
 
 !-----------------------------------------------------------------------------
@@ -62,14 +75,16 @@ contains
 !-----------------------------------------------------------------------------
 
 subroutine read_gridded_vars (varnames, reader_codes, grid_file_templates, &
-      grid_coord_file, year, month, day, cycle_time, nhours, diag, &
-      grid_data, grid_lats, grid_lons, status)
+      grid_coord_file, year, month, day, cycle_time, nhours_spec, vmiss, &
+      diag, grid_data, nhours_actual, nhours_actual_max, grid_lats, &
+      grid_lons, status)
 
    use config, only : dp
    use expand__filename
    use read__grid_coords
    use read__gridded_aqm
    use stdlit, only : normal
+   use string_utils
    implicit none
 
 ! Input arguments.
@@ -81,25 +96,36 @@ subroutine read_gridded_vars (varnames, reader_codes, grid_file_templates, &
 
    integer,      intent(in) :: year, month, day		! forecast start date
    integer,      intent(in) :: cycle_time		! forecast cycle time
-   integer,      intent(in) :: nhours			! # hrs in forecast cyc.
+   integer,      intent(in) :: nhours_spec		! no. of forecast hours
+   real,         intent(in) :: vmiss			! missing value for fill
    integer,      intent(in) :: diag			! verbosity level, 0-N
 
 ! Output arguments.
 
    real, intent(out), allocatable :: grid_data(:,:,:,:)	 ! gridded forecast data
   							 !  (X, Y, vars, hours)
-   real(dp), intent(inout), allocatable :: grid_lats(:,:)   ! grid coordinates
-   real(dp), intent(inout), allocatable :: grid_lons(:,:)   !  (X, Y)
+
+   integer, intent(out), allocatable :: nhours_actual(:) ! actual hours each var
+   integer, intent(out)             :: nhours_actual_max ! maximum hours used
+
+   real(dp), intent(inout), allocatable :: grid_lats(:,:)  ! grid coordinates
+   real(dp), intent(inout), allocatable :: grid_lons(:,:)  !  (X, Y)
+
    integer,  intent(out)                :: status	 ! normal or fail
 
 ! Local variables.
 
    character(len(varnames)) varname
-   character(len(reader_codes)) reader_code
+   character(len(reader_codes)) reader_code, prefix
    character(len(grid_file_templates)) data_file
-
    character fmt1*50
+
    integer vi, nx, ny, nvars
+   integer nhours_expected, extra_hour
+   integer nhours_dim, nhours_insert
+
+   real, allocatable :: indata(:,:,:)	! gridded data input buffer
+   					! (X, Y, hours) from (COL, ROW, TSTEP)
 
 !-------------------------------------------------
 ! Initialize.
@@ -132,46 +158,71 @@ subroutine read_gridded_vars (varnames, reader_codes, grid_file_templates, &
       call read_grid_coords (grid_coord_file, diag, grid_lats, grid_lons)
    end if
 
-! Allocate the master gridded data array for the current forecast cycle,
-! all variables.
+! Get grid dimensions from coordinate grid.
 
-   nx = size (grid_lats, 1)			! get dims from coordinate file
+   nx = size (grid_lats, 1)
    ny = size (grid_lats, 2)
 
-   if (diag >= 3) print *, 'read_gridded_vars: Allocate main array for one' &
-      // ' forecast cycle, all variables.'
-   if (diag >= 3) print '(a,4(1x,i0))', '   nx, ny, nvars, nhours =', &
-      nx, ny, nvars, nhours
+! Set up to track actual hours read for each variable.
 
-   allocate (grid_data(nx, ny, nvars, nhours))
+   allocate (nhours_actual(nvars))
+   nhours_actual(:) = 0
 
 !-------------------------------------------------
 ! Main loop over each requested variable.
 ! Read forecast data, add to master data array.
 !-------------------------------------------------
 
+var_loop: &
    do vi = 1, nvars
       varname     = varnames(vi)		! control info for current var
       reader_code = reader_codes(vi)
 
-! Make the file name for the current variable and date.
+! Skip derived variables, to be computed later in a different module.
+
+      prefix = reader_code(1:7)			! check for keyword prefix only
+      call lowercase (prefix)			! case insensitive here
+
+      if (prefix == 'derived') cycle
+
+! Make input file name for the current variable and date.
 
       call expand_filename (grid_file_templates(vi), year, month, day, &
          cycle_time, data_file)
 
-! Call the specified reader for the current variable.
+! Set up for the specified reader for the current variable.
 
-      if (any (reader_code == (/ 'reader.aqm', 'reader.met' /))) then
+! Currently there is only a single common reader, shared between
+! similar NCEP file types.  The file types differ only in the
+! expected number of forecast hours.
 
-         call read_gridded_aqm (data_file, varname, diag, grid_data(:,:,vi,:), &
-            status)
+      if (reader_code == 'reader.aqm') then
+         extra_hour = 0
+
+      else if (reader_code == 'reader.met') then
+         extra_hour = 1
 
       else
          print *, '*** read_gridded_vars: Unknown reader code "' &
             // trim (reader_code) // '" in config file.'
-         print *, '*** Var name = ' // trim (varname) // '.  Abort.'
+         print *, '*** Var name = ' // trim (varname) // '.'
+         print *, '*** Fundamental configuration problem.  Abort.'
          call exit (1)
       end if
+
+! Call the common reader, read in the whole data array.
+
+! Input buffer is dynamically allocated to support variable hours dimension.
+! Typically, AQM and MET files have differing number of forecast hours.
+! In this version, all actual hours from each file are always read in
+! at this point.
+
+! This reader quietly removes the vestigial "LAY" dimension in NCEP files.
+
+      nhours_expected = nhours_spec + extra_hour   ! for making warnings only
+
+      call read_gridded_aqm (data_file, varname, nx, ny, nhours_expected, &
+         diag, indata, status)		! (X, Y, hours) from (COL, ROW, TSTEP)
 
 ! Abort this entire forecast cycle, on failure to read any single variable.
 
@@ -181,14 +232,52 @@ subroutine read_gridded_vars (varnames, reader_codes, grid_file_templates, &
             trim (varname), '" for cycle', year, month, day, cycle_time
          print *, '*** Abort output file for this cycle.'
          print *
-         return			! return abort status from reader subroutine
+         return			! return abort "status" from reader subroutine
       end if
-   end do
+
+! First time only, initialize master data array to hold all variables.
+! Internal array is overdimensioned to handle varying hours dimension.
+! Shorter variables will be padded with standard missing value.
+
+      nhours_actual(vi) = size (indata, 3)	! actual hours for current var
+
+      if (vi == 1) then
+
+! Over-estimate number of hours to contain all variables,
+! including some degenerate situations.
+! Include at least one extra, for difference between AQM and MET files.
+
+         nhours_dim = 2 + maxval ((/ 48, nhours_spec, nhours_actual(vi) /))
+
+! Allocate the master gridded data array for the current forecast cycle,
+! all variables.  Includes empty slots for derived vars.
+
+         if (diag >= 3) print *, 'read_gridded_vars: Allocate main array for' &
+            // ' one forecast cycle, all variables.'
+         if (diag >= 3) print '(a,4(1x,i0))', '   nx, ny, nvars, nhours =', &
+            nx, ny, nvars, nhours_dim
+
+         allocate (grid_data(nx, ny, nvars, nhours_dim))
+
+         grid_data(:,:,:,:) = vmiss	! pre-fill all with missing values
+      end if
+
+! Insert gridded data for current variable into the master data array.
+! Missing value padding past actual hours was already pre-filled.
+
+      nhours_insert = min (nhours_actual(vi), nhours_dim)
+      					! guard against overrun for weird cases
+
+      grid_data(:,:,vi,1:nhours_insert) = indata(:,:,1:nhours_insert)
+   end do var_loop
+
+! Return maximum hours across all vars, for extent of complete data array.
+
+   nhours_actual_max = maxval (nhours_actual(:))
 
 ! All variables read successfully.  Return success status from last reader.
 
    if (diag >= 3) print *, 'read_gridded_vars: Return success.'
 
 end subroutine read_gridded_vars
-
 end module read__gridded_vars

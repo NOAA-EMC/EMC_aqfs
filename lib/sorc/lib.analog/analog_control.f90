@@ -72,6 +72,17 @@
 ! 2017-jun-02	Minor improvements to diagnostic prints.
 ! 2017-jun-15	Minor.  Fix array parameter for Intel fortran version 14.
 !
+! 2019-jun-18	Add output for best analog obs values, current forecast only.
+!		Omit name lookup for target forecast var.  Now done in advance.
+! 2019-sep-08	Documentation fixes only.
+!		Remove invalid comment and var name changes from 2019-jun-18.
+! 2019-nov-07	Fix minor display bugs for short forecasts less than 12 hours.
+!
+! 2020-apr-17	Add more input diagnostics.
+! 2020-may-11	Suppress invalid diagnostic in weight generation mode.
+! 2020-jun-03	Bug fix for unallocated predictor weights array.
+!		Fix minor display bug.
+!
 ! Notes:
 !
 ! Advanced Fortran features in use:
@@ -91,8 +102,8 @@ contains
 
 subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
     analog_vars, apar, fpar, kpar, wpar, pred_weights, bias_thresh_low, &
-    bias_thresh_high, diag, site_ids, site_lats, site_lons, &
-    uncorrected, corrected, filter_result, new_weights, new_rmse)
+    bias_thresh_high, diag, site_ids, site_lats, site_lons, uncorrected, &
+    corrected, filter_result_all, best_analogs_obs, new_weights, new_rmse)
 
   use config,            only : dp
   use find__analog,      only : fpar_type
@@ -118,8 +129,8 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
   type (kpar_type), intent(in) :: kpar
   type (wpar_type), intent(in) :: wpar
 
-  real(dp),     intent(in) :: pred_weights(:,:)    ! predictor weights
-  						   !   (vars, sites)
+  real(dp), intent(in), allocatable :: pred_weights(:,:)  ! predictor weights
+  							  !   (vars, sites)
 
   real(dp),     intent(in) :: bias_thresh_low(:)   ! bias thresholds (sites)
   real(dp),     intent(in) :: bias_thresh_high(:)  !   for exception sites
@@ -136,10 +147,15 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
   real(dp), intent(out), allocatable :: corrected(:,:)	  ! corrected forecasts
   							  ! for final day only
   							  !   (hours, sites)
-  real(dp), intent(out), allocatable :: filter_result(:,:,:)
-  					   ! filter final result array
-					   ! (days, hours, sites)
-					   ! output only for writing test files
+  real(dp), intent(out), allocatable :: filter_result_all(:,:,:)
+  						   ! filter final result array
+						   ! (days, hours, sites)
+						   ! only for writing test files
+
+  real(dp), intent(out), allocatable :: best_analogs_obs(:,:,:)
+  						  ! best analogs for final day
+						  ! (hours, analogs, sites)
+  						  ! sorted up, best analogs last
 
   real(dp), intent(out), allocatable :: new_weights(:,:)  ! generated weights
   							  !   (vars, sites)
@@ -150,13 +166,18 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
 ! Local variables.
 !-------------------------------------------------
 
-  type (apar_type) apar2			! modifiable copy of structure
+  character fdate_str*24, fmt1*60, fmt2*60, vtype*5
+  character(len(analog_vars)) vname
 
-  character fdate_str*24
+  integer j, di, hi, isite, vi, fvar, iobs
+  integer ndays, nhours, nvars, nsites, nbest
+  integer ndays_show, nhours_show
+  integer nvalid, nmissing
 
-  integer j, di, hi, isite, vi
-  integer ndays, nhours, nvars, nsites
-  integer iobs_var, ndays_show
+  real(dp) vmin, vmax, percent_miss
+
+  real(dp), allocatable :: pred_weights2(:,:)	! writeable copy (vars, sites)
+  real(dp), allocatable :: vdata(:,:,:)		! for diagnostics only (DHS)
 
   integer, parameter :: samp(4) = (/ 1, 2, 3, 12 /)   ! hours for data samples
 
@@ -179,27 +200,12 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
   				! training period is 1 to ndays-1
 				! last day is current forecast cycle
 
-! Get array subscript for the target forecast variable to be corrected.
+  iobs   = 1			! obs variable fixed index
 
-  apar2 = apar				! writeable copy for local mods
+! Get parameter short names.
 
-  apar2%fvar = 0
-  do vi = 1, nvars
-    if (analog_vars(vi) == target_var) then
-      apar2%fvar = vi
-      exit
-    end if
-  end do
-
-  if (apar2%fvar == 0) then
-    print '(2a)', '*** analog_control: Specified target variable is not in', &
-      ' table of analog vars.'
-    print '(2a)',        '*** Target variable  = ', trim (target_var)
-    print '(999(1x,a))', '*** Analog vars      =', &
-      (trim (analog_vars(j)), j = 1, nvars)
-    print '(2a)', '*** Abort.'
-    call exit (1)
-  end if
+  fvar   = apar%fvar		! var index of target forecast variable
+  nbest  = apar%num_analogs	! number of best analogs to find
 
 !-----------------------------------------------------------------
 ! Obs and forecast model input data:
@@ -236,25 +242,62 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
 
   if (diag >= 2) then
     print *
-    print *, 'Samples of model forecast input data, multiple variables:'
+    print *, 'Samples of obs input data:'
 
-    ndays_show = min (ndays, 3)
+    ndays_show  = min (ndays, 3)
+    nhours_show = count (samp(:) <= nhours)
+    fmt1        = '(3i6, 5f12.4)'
+
+    vi = 0				! dummy var index to show obs
+
+    print *, trim (target_var) // ':'
+    print fmt1, ((di, samp(hi), vi, obs(di, samp(hi), iobs, 1:5), &
+      hi = 1, nhours_show), di = 1, ndays_show)
+
+    print *
+    print *, 'Samples of model forecast input data, multiple variables:'
 
     do vi = 1, nvars			! test only
       print *, trim (analog_vars(vi)) // ':'
-      print '(3i6, 5f12.4)', ((di, samp(hi), vi, pred(di, samp(hi), vi, 1:5), &
-        hi = 1, size(samp)), di = 1, ndays_show)
+      print fmt1, ((di, samp(hi), vi, pred(di, samp(hi), vi, 1:5), &
+        hi = 1, nhours_show), di = 1, ndays_show)
     end do
+  end if
 
+! If selected, print some raw input data statistics.
+
+  if (diag >= 2) then
     print *
-    print *, 'Samples of obs input data:'
+    print *, 'Analog input summary, all sites combined:'
+    print *, '       Variable      Min data      Max data  No. valid' &
+      // '    No. missing'
 
-    iobs_var = 1
+    do vi = 0, nvars		! index 0 = special, print obs data
+      if (vi == 0) then
+        vtype = 'Obs'
+        vname = target_var
+        vdata = obs(:,:,iobs,:)
+      else
+        vtype = 'Model'
+        vname = analog_vars(vi)
+        vdata = pred(:,:,vi,:)
+      end if
 
-    do vi = iobs_var, iobs_var		! test only
-      print *, trim (target_var) // ':'
-      print '(3i6, 5f12.4)', ((di, samp(hi), vi, obs(di, samp(hi), vi, 1:5), &
-        hi = 1, size(samp)), di = 1, ndays_show)
+      nvalid       = count (vdata(:,:,:) /= vmiss)
+      nmissing     = size (vdata) - nvalid
+      percent_miss = (nmissing * 100.0_dp) / size (vdata)
+
+      if (nvalid == 0) then
+        vmin = vmiss			! fix min and max display
+        vmax = vmiss			! if all missing
+      else
+        vmin = minval (vdata(:,:,:), (vdata(:,:,:) /= vmiss))
+        vmax = maxval (vdata(:,:,:), (vdata(:,:,:) /= vmiss))
+      end if
+
+      fmt2 = "(a6, a10, 2f14.7, i11, i8, ' (', f0.1, '%)')"
+      print fmt2, trim (vtype), trim (vname), vmin, vmax, nvalid, nmissing, &
+        percent_miss
     end do
   end if
 
@@ -265,11 +308,23 @@ subroutine analog_control (filter_method, pred, obs, vmiss, target_var, &
   if (diag >= 2) print *
   if (diag >= 2) print *, 'Allocate analog_control result arrays.'
 
-  allocate (filter_result(ndays, nhours, nsites))	! DHS
+  allocate (filter_result_all(ndays, nhours, nsites))	! DHS
+  allocate (best_analogs_obs(nhours, nbest, nsites))	! HAS
   allocate (new_weights(nvars, nsites))			! VS
   allocate (new_rmse(nsites))				! S
 
   if (diag >= 3) print *, 'Main allocates complete.'
+
+! In weight generation mode, predictor weights input array is not
+! allocated.  Make an always allocated copy for main loop.
+
+  allocate (pred_weights2(nvars, nsites))		! VS
+
+  if (allocated (pred_weights)) then
+    pred_weights2(:,:) = pred_weights(:,:)
+  else
+    pred_weights2(:,:) = vmiss
+  end if
 
   call fdate (fdate_str)
   print *
@@ -292,13 +347,13 @@ site_loop: &
 
 ! Call the next lower filter layer for the current site.
 ! This routine must be parallel compatibile.
-! Arguments isite and site_id are for diagnostics only.
+! Separate arguments isite and site_id are for diagnostics only.
 
-    call weight_control (filter_method, obs(:,:,iobs_var,isite), &
-      pred(:,:,:,isite), vmiss, apar2, fpar, kpar, wpar, &
-      pred_weights(:,isite), bias_thresh_low(isite), bias_thresh_high(isite), &
-      isite, site_ids(isite), diag, filter_result(:,:,isite), &
-      new_weights(:,isite), new_rmse(isite))
+    call weight_control (filter_method, obs(:,:,iobs,isite), &
+      pred(:,:,:,isite), vmiss, apar, fpar, kpar, wpar, &
+      pred_weights2(:,isite), bias_thresh_low(isite), bias_thresh_high(isite), &
+      isite, site_ids(isite), diag, filter_result_all(:,:,isite), &
+      best_analogs_obs(:,:,isite), new_weights(:,isite), new_rmse(isite))
 
   end do site_loop
 
@@ -307,9 +362,9 @@ site_loop: &
   call fdate (fdate_str)
   print '(2a)', fdate_str, '  analog_control: All sites complete.'
 
-!-----------------------------------------------------------------
-! Return original and corrected data for final cycle to caller.
-!-----------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Return original and corrected forecast values for final cycle to caller.
+!---------------------------------------------------------------------------
 
   if (diag >= 2) print *
   if (diag >= 2) print *, 'analog_control: Allocate output data arrays.'
@@ -317,22 +372,23 @@ site_loop: &
   allocate (uncorrected (nhours, nsites), corrected (nhours, nsites))
 
   if (diag >= 2) print '(9a)', ' analog_control: Copy uncorrected ', &
-     trim (target_var), ' data to output array.'
+     trim (target_var), ' forecast values to output array.'
 
-  uncorrected(:,:) = pred(ndays, :, apar2%fvar, :)	! HS <-- DHVS
+  uncorrected(:,:) = pred(ndays, :, fvar, :)		! HS <-- DHVS
 
   if (diag >= 2) print '(9a)', ' analog_control: Copy bias corrected ', &
-     trim (target_var), ' data to output array.'
+     trim (target_var), ' forecast values to output array.'
 
-  corrected(:,:) = filter_result(ndays, :, :)		! HS <-- DHS
+  corrected(:,:) = filter_result_all(ndays, :, :)	! HS <-- DHS
 
 ! Display sample output data.
 
-  if (diag >= 2) then
+  if ( (diag >= 2) .and. (.not. wpar%gen_weights) ) then
+    nhours_show = min (nhours, 8)
     print *
-    print *, 'Samples of bias corrected output data:'
+    print *, 'Samples of bias corrected forecast values:'
     print *, trim (target_var) // ':'
-    print '(i6, 5f12.4)', (hi, corrected(hi, 1:5), hi = 1, 8)
+    print '(i6, 5f12.4)', (hi, corrected(hi, 1:5), hi = 1, nhours_show)
     print *
   end if
 

@@ -15,6 +15,7 @@ setpdy.sh
 export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-NO}
 
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
 export USHaqm=$HOMEaqm/ush
@@ -27,8 +28,10 @@ export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
-
-export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc} | cut -c1-8`  # 1 year 
+# Update the training data period for the PM25 from 1 year (8760) to 3 month (90 day; 2160)
+export TMP_STDAY=`${NDATE} -2160 ${PDY}${cyc} | cut -c1-8`  # 1 year 
+# The earliest day of training data is August 1 2020
+if [ ${TMP_STDAY} -le 20201001 ]; then export TMP_STDAY=20201001; fi
 export BC_STDAY=${BC_STDAY:-${TMP_STDAY}}
 
 export Yr=`echo ${PDY} | cut -c1-4`
@@ -62,11 +65,10 @@ else
  mkdir -p $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008
 fi
 
-cp -rp ${DCOMROOT}/us007003/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
-cp -rp ${DCOMROOT}/us007003/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
-cp -rp ${DCOMROOT}/us007003/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
+cp ${DCOMROOT}/prod/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
+cp ${DCOMROOT}/prod/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
+cp ${DCOMROOT}/prod/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
 
-#export PCOM=${PCOM:-${PCOMROOT}/${NET}}
 export PCOM=${PCOM:-${COMOUT}/wmo}
 
 export pgmout=OUTPUT.$$
@@ -74,6 +76,8 @@ export pgmout=OUTPUT.$$
 mkdir -p $COMOUT $PCOM $COMOUTbicorm1 $COMOUTbicorm2 $COMOUTbicorm3
 
 env
+
+export post_proc_hour=${post_proc_hour:-72}
 
 $HOMEaqm/scripts/exaqm_post_pm25_bicor_cs.sh.ecf
 export err=$?; err_chk

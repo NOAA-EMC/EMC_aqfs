@@ -24,6 +24,11 @@
 ! 2017-apr-28	Move ratio input argument into kpar structure.
 !		Minor comment fixes.
 !
+! 2019-jun-17	Fix latent bug.  Remove hard coded assumption that target
+!		  forecast variable is in first position in analog var table.
+!		Better, switch to scalar limits for forecast variable only.
+!		This omits all limits for unrelated vars, for this subroutine.
+!
 ! --- KF input parameters
 ! --- Inputs
 !     obs       = array of observations
@@ -34,8 +39,8 @@
 !                 kpar.varp = variance prediction variance
 !                 kpar.ratio = sigmas ratio
 !                 kpar.iperiod = initialization period (training period)
-!                 kpar.lower_limits = variable lower bounds
-!                 kpar.upper_limits = variable upper bounds
+!                 kpar.lower_limit = variable lower bound
+!                 kpar.upper_limit = variable upper bound
 !                 kpar.update = time between update (24 hours)
 !                 kpar.start = start time of time series [obs pred]
 !                 kpar.timeZone = timeZone of measurements (for output graphics)
@@ -72,14 +77,13 @@ module kf__luca			! standard visibility
     real(dp) varp		! variance prediction variance
     real(dp) ratio		! KF method parameter (sigma_ratio)
     integer  iperiod		! initialization period (training period)
+    real(dp) lower_limit	! forecast variable lower bound
+    real(dp) upper_limit	! forecast variable upper bound
     integer  update		! time between update (24 hours)
     				! *** or: number of time steps per forecast
     integer  start(2)		! start time of time series [obs pred]
     integer  timezone		! timeZone of measurements, for output graphics
     integer  enforce_positive	! 1 = enforce correction for values > 0
-
-    real(dp), allocatable :: lower_limits(:)	! variable lower bound
-    real(dp), allocatable :: upper_limits(:)	! variable upper bound
 
   end type kpar_type
 
@@ -148,8 +152,8 @@ subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
 
 ! Reject analogs with error values out of range.  ldm, 14-6-2005.
 
-  where (obs  < kpar%lower_limits(1) .or. obs  > kpar%upper_limits(1)) y = vmiss
-  where (pred < kpar%lower_limits(1) .or. pred > kpar%upper_limits(1)) y = vmiss
+  where (obs  < kpar%lower_limit .or. obs  > kpar%upper_limit) y = vmiss
+  where (pred < kpar%lower_limit .or. pred > kpar%upper_limit) y = vmiss
 
 !---------------------------------------
 ! Calculate coefficients.
@@ -188,11 +192,11 @@ hour_loop: &
 time_loop: &
     do t = t1, t2, tstep
 
-      obs_valid  = (      obs(t)  >= kpar%lower_limits(1) &
-                    .and. obs(t)  <= kpar%upper_limits(1)  )
+      obs_valid  = (      obs(t)  >= kpar%lower_limit &
+                    .and. obs(t)  <= kpar%upper_limit  )
 
-      pred_valid = (      pred(t) >= kpar%lower_limits(1) &
-                    .and. pred(t) <= kpar%upper_limits(1)  )
+      pred_valid = (      pred(t) >= kpar%lower_limit &
+                    .and. pred(t) <= kpar%upper_limit  )
 
 ! Both obs and pred are valid.  Apply Kalman formula.
 

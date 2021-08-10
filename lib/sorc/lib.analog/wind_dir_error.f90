@@ -13,6 +13,9 @@
 !		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 ! 2014-mar-10	Change function to subroutine, for better interface checking.
 !
+! 2020-nov-15	Replace old compiler bug workarounds with modern array code.
+!		Enable automatic reallocation for output array.
+!
 !-----------------------------------------------------------------------------
 
 module wind__dir_error
@@ -48,18 +51,12 @@ end subroutine wind_dir_error_scalar
 subroutine wind_dir_error_2d (dir1, dir2, output)
   implicit none
 
-  real(dp), intent (in)                 :: dir1(:,:), dir2(:,:)
-  real(dp), intent (inout), allocatable :: output(:,:)
+  real(dp), intent (in)               :: dir1(:,:), dir2(:,:)
+  real(dp), intent (out), allocatable :: output(:,:)
 
-!!  real(dp), allocatable :: sol1(:,:), sol2(:,:)    ! local vars
-!!						     ! gfortran 4.8.2 problem
+  real(dp), allocatable :: sol1(:,:), sol2(:,:)		! local vars
 
-  real(dp) sol1(size(dir1,1),size(dir1,2))	! automatic arrays
-  real(dp) sol2(size(dir1,1),size(dir1,2))
-
-  allocate (output(size(dir1,1),size(dir1,2)))
-
-  sol1   = abs (dir1 - dir2)			! all are array expressions
+  sol1   = abs (dir1 - dir2)		! all are array expressions
   sol2   = abs (sol1 - 360)
   output = min (sol1, sol2)
 

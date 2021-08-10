@@ -15,6 +15,11 @@
 !
 ! 2016-feb-22	Add diagnostic for missing hours in BUFR file.
 !
+! 2019-apr-25	Remove check for expected message count, clean up log file.
+!		Test was unwarranted.  Number of messages is quite variable.
+!
+! 2020-oct-30	Restrict BUFR module access to only actual symbols in use.
+!
 ! Notes:
 !
 ! Primary inputs are a BUFR file name, and the requested BUFR
@@ -93,9 +98,9 @@ subroutine read_bufr_var (infile, varname, typo_expect, tphr_expect, &
       max_sites, diag, year, month, day, nsites, site_ids, lats, lons, &
       idata, vmiss, status)
 
-   use bufrlib
-   use config, only : dp
-   use stdlit, only : normal, fail
+   use bufrlib, only : getbmiss, openbf, readmg, readsb, ufbint
+   use config,  only : dp
+   use stdlit,  only : normal, fail
    implicit none
 
 ! Input arguments.
@@ -659,18 +664,6 @@ start_of_message: &
       print fmt1, "Number of unique site ID's in this file = ", nsites
       print fmt1, 'Number of messages         in this file = ', nmessages
       print fmt1, 'Total number of subsets    in this file = ', nsubsets_total
-   end if
-
-! Check for expected number of messages.
-
-   if (nmessages /= nhours) then
-      print *, '*** read_bufr_var: Warning: Unexpected number of BUFR' &
-         // ' messages in file.'
-      print '(2a)',   ' *** File = ' // trim (infile)
-      print '(a,i0)', ' *** Expected number of messages = ', nhours
-      print '(a,i0)', ' *** Number of messages in file  = ', nmessages
-      print *, '*** Soft error, will assume available data is correct.'
-      print *
    end if
 
 ! Check for missing hours.

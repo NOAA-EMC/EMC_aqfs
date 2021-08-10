@@ -1,12 +1,15 @@
 #!/bin/ksh
+#module load iobuf
+#module load prod_util
+
 
 date
 export PS4=' $SECONDS + '
 set -x
 
 export DATA=${DATA:-${DATAROOT:?}/$jobid}
-mkdir -p $DATA
-cd $DATA
+mkdir -p ${DATA}
+cd ${DATA}
 
 export cycle=${cycle:-t${cyc}z}
 setpdy.sh
@@ -15,13 +18,14 @@ setpdy.sh
 export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-NO}
 
 export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
-export USHaqm=$HOMEaqm/ush
-export EXECaqm=$HOMEaqm/exec
-export PARMaqm=$HOMEaqm/parm
-export FIXaqm=$HOMEaqm/fix
-export UTILaqm=$HOMEaqm/util
+export USHaqm=${USHaqm:-${HOMEaqm}/ush}
+export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
+export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
+export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
+export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
 export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
@@ -34,33 +38,29 @@ export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
 
-#export PCOM=${PCOM:-${PCOMROOT}/$NET}
 export PCOM=${PCOM:-${COMOUT}/wmo}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
-mkdir -p $COMOUT $PCOM
+mkdir -p ${COMOUT} ${PCOM}
 
 export pgmout=OUTPUT.$$
 
 env
 
-
-$HOMEaqm/scripts/exaqm_post1_cb05_hi.sh.ecf
+${HOMEaqm}/scripts/exaqm_post1_cb6r3_hi.sh.ecf
 export err=$?; err_chk
 
-if [ $cyc -eq 06 -o $cyc -eq 12 ] ; then
-  $HOMEaqm/scripts/exaqm_post1_cb05_hi.maxi.sh.ecf
+if [ "${cyc}" == "06" ] || [ "${cyc}" == "12" ]; then
+  ${HOMEaqm}/scripts/exaqm_post1_cb6r3_hi.maxi.sh.ecf
   export err=$?; err_chk
 fi
 
-cat $pgmout
-msg="JOB $job HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+if [ -s ${pgmout} ]; then cat ${pgmout}; fi
 
-if [ "$KEEPDATA" != "YES" ] ; then
-  cd $DATAROOT
-  rm -rf $DATA
-fi
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "${jlogfile}" "${msg}"
+
+if [ "${KEEPDATA}" != "YES" ] ; then rm -rf ${DATA}; fi
 
 date

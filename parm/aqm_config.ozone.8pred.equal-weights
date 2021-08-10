@@ -16,6 +16,8 @@
 *
 * 2017-jul-11	Release version for ozone.  Eight predictors, equal weights.
 *
+* H.-C. Huang  Jul 08 2020   Change from PBL2 to PBL in AQMv6 metcro2d ncf
+*
 * Blank lines and asterisk in column 1 are comment lines.
 * Tables are free format, space delimited.
 * Most names are case sensitive.
@@ -104,7 +106,7 @@ WSPD10           0        100       N      Wind speed, 10 meters
 TEMP2          -50C        50C      N      Temperature, 2 meters
 NOX              0          5       N      NOx concentration
 NOY              0          5       N      NOy concentration
-PBL2             0       4500       N      PBL height, ACM2 based Richardson #
+PBL              0       4500       N      PBL from GFSv16 model, in meter
 RGRND            0       1500       N      Solar radiation reaching surface
 
 *pm25             0        250       N      PM2.5 concentration
@@ -113,7 +115,7 @@ RGRND            0       1500       N      Solar radiation reaching surface
 *RN               0         10       N      Nonconvent. precipitation in cm
 *RC               0         10       N      Convent. precipitation in cm
 *HFX           -800       1200       N      Sensible heat flux in Watt/m**2
-*QFX           -500       1000       N      Latent heat flux in Watt/m**2
+*LH            -500       1000       N      Latent heat flux in Watt/m**2
 *CFRAC            0          5       N      Total cloud fraction
 *QV               0         0.1      N      Water vapor mixing ratio in kg/kg
 *QR               0         0.1      N      Rain water mixing ratio

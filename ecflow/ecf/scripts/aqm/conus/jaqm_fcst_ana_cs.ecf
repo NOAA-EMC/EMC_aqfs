@@ -1,0 +1,66 @@
+#BSUB -J %E%aqm_fcst_ana_cs_%CYC%
+#BSUB -o %COM%/output/%ENVIR%/today/aqm_fcst_ana_cs_%CYC%.o%J
+#BSUB -e %COM%/output/%ENVIR%/today/aqm_fcst_ana_cs_%CYC%.o%J
+#BSUB -L /bin/sh
+#BSUB -q %QUEUE%
+#BSUB -M 3000
+#BSUB -cwd /tmp
+#BSUB -W 01:50
+#BSUB -P %PROJ%-%PROJENVIR%
+#BSUB -extsched 'CRAYLINUX[]'
+
+# module purge  ## NCO SPA comments out this line
+%include <head.h>
+%include <envir-xc40.h>
+
+model=cmaq
+%include <model_ver.h>
+
+set -x
+
+module load iobuf/${iobuf_ver}
+module load cray-netcdf/${cray_netcdf_ver}
+module load cray-hdf5/${cray_hdf5_ver}
+module load cray-mpich/${cray_mpich_ver}
+module load nemsio-intel/${nemsio_intel_ver}
+module load nemsiogfs-intel
+module load bacio-intel/${bacio_intel_ver}
+module load w3emc-intel/${w3emc_intel_ver}
+module load w3nco-intel/${w3nco_intel_ver}
+module load jasper-gnu-haswell/${jasper_gnu_haswell_ver}
+module load png-intel-sandybridge
+module load g2-intel/${g2_intel_ver}
+module load grib_util/${grib_util_ver}
+module list
+
+export NODES=24
+export IOBUF_PARAMS="12M:verbose"
+ulimit -s unlimited
+export cyc=%CYC%
+export FCST=NO
+
+${HOMEcmaq}/jobs/JAQM_FORECAST_CS
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs CMAQ CONUS Forecast.
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

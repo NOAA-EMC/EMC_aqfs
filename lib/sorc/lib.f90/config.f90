@@ -20,6 +20,10 @@
 ! 1.05	2010-oct-26	Add a few Fortran standard kind parameters.
 ! 1.06	2010-dec-07	Add kind parameters for i64, dp.
 !
+! 2019-jul-30	Omit module f90_config, simplify build systems.
+!		Programs should use F2003 standard inquiry features,
+!		  such as functions is_iostat_end, is_iostat_eor.
+!
 ! Note:	This module is used to set various system-dependent and compile-
 !	dependent paramaters, such as the following.  It may also be
 !	used for application-dependent global parameters.
@@ -32,10 +36,6 @@
 !------------------------------------------------------------------------------
 
 module config
-
-! Compiler dependent constants.
-
-   use f90_config			! pass module defs to higher user
 
 ! General-purpose dimensions for character strings.
 

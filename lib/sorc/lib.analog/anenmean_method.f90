@@ -28,13 +28,17 @@
 ! 2017-may-25	apar%start_stat and apar%forecast_last_hour must now
 !		  be provided by all callers.
 !
+! 2019-jun-18	Add output for best analog obs values, current forecast only.
+! 2020-may-11	Minor, parameter name change.
+!
 !------------------------------------------------------------------------------
 
 module anenmean__method
 contains
 
 function anenmean_method (filter_method, obs, pred, vmiss, apar, fpar, &
-    pred_weights, isite, site_id, diag, anenmean_result) result (return_status)
+    pred_weights, isite, site_id, diag, anenmean_result, best_analogs_obs) &
+    result (return_status)
 
   use config, only : dp
   use find__analog, only : fpar_type
@@ -53,6 +57,7 @@ function anenmean_method (filter_method, obs, pred, vmiss, apar, fpar, &
   integer,         intent(in ) :: diag			! verbosity, 0=errs only
 
   real(dp),        intent(out) :: anenmean_result(:,:)	! DH - bias corr. result
+  real(dp),        intent(out) :: best_analogs_obs(:,:)	! HA - best analogs
 
   logical return_status		! function return status: true = processed,
   				! false = method name not matched
@@ -99,14 +104,19 @@ function anenmean_method (filter_method, obs, pred, vmiss, apar, fpar, &
 					! last day is current forecast cycle
   nhours = size (pred, 2)		! number of hours in each forecast cycle
 
-  allocate (ianalog(ndays, nhours, apar2%num_an))	! DHA
-  allocate (analog_in_an(ndays, nhours, apar2%num_an))	! DHA
+  allocate (ianalog(ndays, nhours, apar2%num_analogs))		! DHA
+  allocate (analog_in_an(ndays, nhours, apar2%num_analogs))	! DHA
 
 ! Apply Analog Ensemble filter.
 
   call analog_ensemble (obs, pred, pred_weights, vmiss, apar2, fpar2, isite, &
     site_id, diag, anenmean_result, Ianalog, analog_in_an)
 					! last three are outputs
+
+! Also return best analogs for the current forecast cycle only.
+
+  best_analogs_obs(:,:) = analog_in_an(ndays,:,:)	! HA <-- DHA
+
   if (diag >= 4) then
     call fdate (fdate_str)
     print '(2a,i5,a)', fdate_str, '  anenmean_method, site', isite, ': Return.'

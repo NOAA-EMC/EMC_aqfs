@@ -1,0 +1,65 @@
+(1) May 11 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide complete set
+                                 of ecflow pacgake (and fully tested ==> get help from EIB)
+                                 as those in ~/ecflow
+(2) May 11 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC needs to provide the list for
+                                 mirroring from PROD to DEV, as in current ~/parm;
+
+                                 transfer_aqm_ak.list, transfer_aqm_conus_1.list,
+                                 transfer_aqm_conus_2.list, transfer_aqm_emission.list,
+(3) May 18 2021 Ho-Chun Huang  All compiler need to run a test using "F90_FLAGS = -check all"
+(4) May 20 2021 Ho-Chun Huang  The files are updated to remove the warning message from
+                                 compiler option "-check all".  These file are marked with
+                                 "_bugzillas" and stored in their corresponding directory.
+                               Steven of NCO recommended the update be done through the
+                                 "bugzillas fix" processes in the next implementation.
+                               Files need to be updated are 
+                                 ~/sorc/aqm_cmaq2grib2_v2.fd/aqm_cmaq2grib2_v2.f90
+                                 ~/sorc/aqm_cmaq2grib2_v3.fd/aqm_cmaq2grib2_v3.f90
+                                 ~/sorc/aqm_fcst_v531.fd/AERO_EMIS.F
+                                 ~/sorc/aqm_fcst_v531.fd/AQ_DATA.F
+                                 ~/sorc/aqm_fcst_v531.fd/EMIS_DEFN.F
+                                 ~/sorc/aqm_fcst_v531.fd/m3dry.F
+                                 ~/sorc/aqm_gbbepx2pts.fd/aqm_gbbepx2pts.f
+                                 ~/sorc/aqm_nacc.fd/rdfv3.f90
+(5) May 21 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
+                                 operational implementation - PART I
+                                 > Update aqm_bicor_prep_cs.sh for argument input
+                                 > create bash shell version for both aqm_subset.sh aqm_subc.sh
+(6) May 24 2021 Ho-Chun Huang  Starting cmaq.v6.0.0 EMC can not use csh script for
+                                 operational implementation - PART2
+                                 (a) Location ~/lib/sorc/aqm_ioapi_v32
+                                   > Replace HTML/fix_src.csh  ioapi/fix_src.csh  ioapi/nm_test.csh
+                                     with    HTML/fix_src.sh   ioapi/fix_src.sh   ioapi/nm_test.sh
+
+                                 (b) Location ~/lib/sorc/aqm_ioapi_v32/ioapi
+                                   > Replace Makefile.cpl             Makefile.cpl.sed
+                                             Makefile.cpphack         Makefile.nocpl
+                                             Makefile.nocpl.sed       Makefile.pncf
+                                             Makefile.pncf.sed
+                                     with    Makefile.cpl_sh          Makefile.cpl.sed_sh
+                                             Makefile.cpphack_sh      Makefile.nocpl_sh
+                                             Makefile.nocpl.sed_sh    Makefile.pncf_sh
+                                             Makefile.pncf.sed_sh
+(7) May 25 2021 Ho-Chun Huang  NCO want to advance module load version to the latest as possible
+                               from grib_util/1.0.3 to grib_util/1.1.1 (post1, bias_post_o3, bias_post_pm25)
+                               from grib_util/1.0.5 to grib_util/1.1.1 (nacc)
+
+                               module load gcc/4.9.2
+                               module load grib_util/1.1.1 (need to load gcc for needed library GOMP_4.0)
+
+(8) June 17 2021 Ho-Chun Huang Emission ingestion and archive are handled between ARL and NCO.
+                               It need ARL to check all scripts/code and incorporated into the delivery package.
+                               The complete code include
+                               ~/jobs/JAQM_EMISSION_ARCHIVE
+                               ~/jobs/JAQM_EMISSION_INGEST
+                               ~/scripts/exaqm_emission_archive.sh.ecf
+                               ~/scripts/Exaqm_emission_ingest.sh.ecf
+                               ~/ush/aqm_rhist_errchk.sh
+                               ~/ush/aqm_rhist_savedir.sh
+                               ~/ecflow/ecf/scripts/aqm/emission/jaqm_emission_archive.ecf
+                               ~/ecflow/ecf/scripts/aqm/emission/jaqm_emission_ingest.ecf
+                               in ~/ecflow/ecf/defs/prod12.def
+                               family emission
+                                 task jaqm_emission_ingest
+                                   time 14:00
+                               endfamily

@@ -45,6 +45,15 @@
 ! 2018-jan-19	Add Irina's new bias formula for present forecast only.
 !		Add parameter apar%bias_formula.
 !
+! 2020-may-14	When computing site weights, prevent the use of future obs
+!		  that would not be available at initialization time for
+!		  each test day's forecast.
+!		Add parameters for site weighting.
+! 2020-may-26	Change parameter name from bias_formula to analog_mean.
+!		Add new analog mean formula, "mean obs".
+! 2020-nov-13	Remove kludgy adjustment for fpar2%trend following
+!		  improvements in find_analog.f90.
+!
 ! *** To do:
 ! *** After initial proving, convert reallocates to static arrays,
 !     for efficiency.
@@ -67,19 +76,17 @@ module analog__ensemble		! standard visibility
     integer   fvar		  ! array index for target var to be corrected
     integer   start_stat	  ! start day of forecasts needed to compute
     integer   forecast_last_hour  ! last forecast hour needed to compute
-    integer   num_an		  ! Number of best analogs to use for AN
-    integer   weight_type	  ! Type of analog weighting:
-				  ! 0: Do not weight analogs
-				  ! 1: Weight them by the inverse metric
-				  ! 2: Weight them linearly
+    integer   num_analogs	  ! Number of best analogs to use for AN
+    integer   min_num_analogs	  ! Minimum number to enable bias correction
+    character weight_type*14	  ! Type of analog weighting:  equal weights,
+				  !   inverse metric, or linear
     integer   skipMissingAnalogs  ! Applies to both ANKF and AN
-				  ! 1: Always use num_an analogs,
+				  ! 1: Always use num_analog analogs,
 				  ! even if some of the best ones are missing
-     real(dp) bias_thresh_low	  ! bias exclusion thresholds for analogs
-     real(dp) bias_thresh_high
-     character(2) bias_formula	  ! Selected bias formula:
-     				  ! mb = mean (forecast + predictions) plus bias
-				  ! fb = forecast plus bias
+    logical   block_future_obs	  ! F = normal, T = block retrospec. future obs
+    real(dp)  bias_thresh_low	  ! bias exclusion thresholds for analogs
+    real(dp)  bias_thresh_high
+    character analog_mean*18	  ! selected analog mean formula, reserved names
   end type apar_type
 
 contains
@@ -118,20 +125,21 @@ subroutine analog_ensemble (obs, pred, pred_weights, vmiss, apar, fpar, &
 
   integer a1, a2, d, h, i, i2, ilast, fvar
   integer nday, nhour, nvar, dim_analog
+  integer iday_obs_source
   integer winLower, winUpper, nanalogs
   integer num_available, num_selected, ct
   integer nan_count, count_missing
 
   real(dp) mean_ens, mean_obs, bias
 
-  type(fpar_type) fpar2
+  type(fpar_type) fpar2			! second copy for local modification
 
 ! Dynamic arrays.
 
   integer,  allocatable :: inds(:)	! sorted indices from find_analog
   integer,  allocatable :: isequence(:), Ian(:)
 
-  real(dp), allocatable :: obs_flat(:), pred_flat(:)
+  real(dp), allocatable :: obs_flat(:), pred_flat(:), obs2(:,:)
   real(dp), allocatable :: obstemp(:), predtemp(:)
   real(dp), allocatable :: an_weights(:), test_bias(:)
 
@@ -181,6 +189,23 @@ day_loop: &
   do d = apar%start_stat, nday		! only loop over target forecast days
   					! to be corrected; start of array is
 					! the training period
+
+! When computing site weights, block obs data that would be in the
+! future and not available at this day's forecast initialization time.
+
+! iday_obs_source = day index in current (reshaped) obs array,
+! of obs data at test forecast initialization time, or later.
+! The position changes for different forecast hours.
+
+    obs2 = obs(:,:)			! (D,H) copy obs, preserve original,
+    					! perform blocking only on the copy
+    if (apar%block_future_obs) then
+      do h = 1, nhour
+        iday_obs_source = d - ( (h - 1) / 24 )
+        obs2(iday_obs_source:nday,h) = vmiss
+      end do
+    end if
+
 hour_loop: &
     do h = 1, apar%forecast_last_hour	! only loop over forecast hours needed
 
@@ -194,7 +219,7 @@ hour_loop: &
 ! any variables are missing values, then default to the original target
 ! variable prediction for the current hour.  I.e., no bias correction.
 
-      if (any (pred(d, h, :) == vmiss)) then
+      if (any (pred(d, h, :) == vmiss)) then		! (D,H,V)
         if (diag >= 6) print '(3(a,i0))', &
           '*** Missing forecast values, day ', d, ', hour', h, &
           ', skipping bias correction.'
@@ -203,26 +228,9 @@ hour_loop: &
         cycle hour_loop
       end if
 
-! Fix for problem with trend for the first and last hours.
-
-! (3 trends currently required.  Needs upgrade to handle other sizes,
-! but that probably wants an algorithmic approach.  How about simple
-! proportional re-weighting after truncation?)
-
-      if (size (fpar%trend) /= 3) then
-        print *, &
-            '*** analog_ensemble: Abort, selected trend size is not supported.'
-        print *, '*** Currently there must be exactly three trend weights.'
-        print '(a,i0)', ' *** Number of weights in fpar%trend = ', &
-          size (fpar%trend)
-        call exit (1)
-      end if
-
-      if (h == 1 .or. h == nhour) then	! first and last hours:
-        fpar2%trend = (/ 1 /)		! window constrained, use single weight
-      else
-        fpar2%trend = fpar%trend	! middle hours: use original trends
-      end if
+!! Fix for problem with trend for the first and last hours.
+!! This part was REMOVED 2020 NOV 13.  Trend handling was corrected
+!! and simplified within find_analog.f90.
 
 !-----------------------------------------------------
 ! Find all analogs for the current forecast hour.
@@ -267,7 +275,7 @@ hour_loop: &
 !!      allocate (obs_flat (len_flat))		! instead, auto reallocate...
 !!      allocate (pred_flat(len_flat))
 
-      obs_flat  = (/ obs (1:d-1, winLower:winUpper)       /)	! 2-D to 1-D
+      obs_flat  = (/ obs2(1:d-1, winLower:winUpper)       /)	! 2-D to 1-D
       pred_flat = (/ pred(1:d-1, winLower:winUpper, fvar) /)
 
 ! Get the selected analog values.
@@ -316,7 +324,7 @@ bias_threshold_filter: &
 
       isequence = (/ (i, i = 1, nanalogs) /)	! make consecutive indices
 
-! If selected, ignore missing analogs such that we have apar%num_an
+! If selected, ignore missing analogs such that we have apar%num_analogs
 ! analogs, when possible.
 
       if (apar%skipMissingAnalogs == 1) then
@@ -330,8 +338,9 @@ bias_threshold_filter: &
 
         Ian = pack (isequence, mask2)		! indices of non-missing analogs
 
-        num_available = size (Ian)			! limit to requested
-        num_selected = min (num_available, apar%num_an)	! number of analogs
+        num_available = size (Ian)
+        num_selected = min (num_available, apar%num_analogs)
+					! limit to requested number of analogs
 
         i2 = num_available - num_selected + 1		! reduce index array
         if (i2 > 1) Ian = Ian(i2:)			! to size limit
@@ -357,10 +366,10 @@ bias_threshold_filter: &
 
 ! Determine type of weighting.
 
-      if (apar%weight_type == 0) then		! No weighting
+      if (apar%weight_type == 'equal weights') then
         an_weights = (/ (1, i = 1, ct) /)	! trick for array of ones
 
-      else if (apar%weight_type == 1) then	! Weighted by metric
+      else if (apar%weight_type == 'inverse metric') then
         an_weights = 1 / (metric(Ian) ** 2)
 
 ! The weights should not be nans, because the metric for a value
@@ -378,7 +387,7 @@ bias_threshold_filter: &
           call exit (1)
         end if
 
-      else if (apar%weight_type == 2) then	! Linear weighting
+      else if (apar%weight_type == 'linear') then
         an_weights = (/ (i, i = 1, ct) /)	! 1 through N
 
       else
@@ -426,7 +435,7 @@ bias_threshold_filter: &
       end if
 
 !------------------------------------------------------------------
-! Bias correction.  Use analogs if we have 3 or more available.
+! Bias correction.  Use analogs if we have a sufficient number.
 !------------------------------------------------------------------
 
 ! Thomas's method removed, 2014-mar-12.  See original Matlab, to recover.
@@ -435,16 +444,26 @@ bias_threshold_filter: &
 !!    %if (ct >= 3 && pred(d, h, par%fvar, e) <= 7) %  hybrid AN-ANKF, v2
 
 enough_analogs: &
-      if (ct >= 3) then
+      if (ct >= apar%min_num_analogs) then
 
         bias = mean_obs - mean_ens
         ilast = size (predtemp)
 
-        if (apar%bias_formula == 'mb') then
-          ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
-          					! original bias formula
-        else
+        if      (apar%analog_mean == 'mean obs') then
+          ensan(d, h) = mean_obs		! use only mean of best obs
+
+        else if (apar%analog_mean == 'forecast plus bias') then
           ensan(d, h) = predtemp(ilast) + bias	! use present forecast only
+
+        else if (apar%analog_mean == 'mean plus bias') then
+          ensan(d, h) = ( (mean_ens * ct + predtemp(ilast)) / (ct + 1) ) + bias
+			! orig. analog mean formula, full spec in config file is
+			! "mean (forecast plus model predictions) plus bias"
+        else
+          print *, '*** analog_ensemble: Abort, unknown code for analog mean' &
+                        // ' formula.'
+          print *, '*** Option apar%analog_mean = ' // trim (apar%analog_mean)
+          call exit (1)
         end if
 
 !!        %ensan(d, h) = predtemp(end) + bias;	    ! Thomas Palined...and me...
@@ -452,8 +471,8 @@ enough_analogs: &
 !!        %analog_in_an(d, h, 1:ct) = obstemp(Ian);  ! Save the analogs used
 !!						     ! for AN (until 9 Jan 12)
 
-        a1 = apar%num_an - ct + 1		! also return the analogs used
-        a2 = apar%num_an
+        a1 = apar%num_analogs - ct + 1		! also return the analogs used
+        a2 = apar%num_analogs
         analog_in_an(d, h, a1:a2) = obstemp(Ian)
 
 ! Otherwise default to prediction.

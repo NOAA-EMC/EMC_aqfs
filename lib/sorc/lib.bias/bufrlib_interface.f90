@@ -7,6 +7,9 @@
 !		  NOAA NCO/ARL/PSD bias correction system.
 ! 2014-jun-08	Simple workaround for sequence problem in ifort 14.0.1.
 !
+! 2020-nov-08	Add routines bvers, nemdefs (lib version, and units string).
+!		Minimum required BUFRLIB version is now 11.3.0.
+!
 ! Interfaces are adapted directly from BUFRLIB source code.
 ! See BUFRLIB for subroutine documentation.
 !
@@ -16,6 +19,10 @@ module bufrlib
 implicit none
 interface
 
+   subroutine bvers (cverstr)
+      character(*),     intent (out  ) :: cverstr
+   end subroutine bvers
+
    subroutine dxdump (lunit, ldxot)
       integer,          intent (in   ) :: lunit, ldxot
    end subroutine dxdump
@@ -23,6 +30,14 @@ interface
    function getbmiss () result (xmiss)
       double precision                 :: xmiss
    end function getbmiss
+
+   subroutine nemdefs (lunit, nemo, celem, cunit, iret)
+      integer,          intent (in   ) :: lunit
+      character(*),     intent (in   ) :: nemo
+      character(*),     intent (out  ) :: celem
+      character(*),     intent (out  ) :: cunit
+      integer,          intent (out  ) :: iret
+   end subroutine nemdefs
 
    subroutine openbf (lunit, io, lundx)
       integer,          intent (in   ) :: lunit

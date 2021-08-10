@@ -1,0 +1,140 @@
+#!/bin/sh -x 
+
+date
+export PS4=' $SECONDS + '
+
+export DATA=${DATA:-${DATAROOT:?}/${jobid}}
+#export DATA=${DATA:-${DATAROOT}/${jobid}}
+
+mkdir -p ${DATA}
+cd ${DATA}
+
+export cycle=${cycle:-t${cyc}z}
+setpdy.sh
+. PDY
+
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+
+export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export USHaqm=${USHaqm:-${HOMEaqm}/ush}
+export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
+export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
+export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
+export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
+
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
+
+SYYYY=`echo ${PDY} |cut -c1-4`
+SMM=`echo ${PDY} |cut -c5-6`
+SDD=`echo ${PDY} |cut -c7-8`
+export DAYOFYEAR=`date -d ${SYYYY}/${SMM}/${SDD} +%j`
+
+export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+
+##
+## met_envir, lbc_envir, and dcom_envir enable flexible testing for downstream
+## implementation, where upstream input data is still in para or dev directories.
+##
+## Location of FV3GFS output
+export met_envir=${met_envir:-prod}
+export METIN=${METIN:-$(compath.py gfs/${met_envir}/gfs.${PDY})}
+export METINm1=${METINm1:-$(compath.py gfs/${met_envir}/gfs.${PDYm1})}
+
+## Location of FV3GEFS-Aerosol output
+export lbc_envir=${lbc_envir:-prod}
+export LBCIN=${LBCIN:-$(compath.py gefs/${lbc_envir}/gefs.${PDY})}
+export LBCINm1=${LBCINm1:-$(compath.py gefs/${lbc_envir}/gefs.${PDYm1})}
+export LBC_INI=${LBC_INI:-0}     ## 1st  LBC file FCST time
+export LBC_END=${LBC_END:-120}   ## Last LBC file FCST time
+export LBC_FREQ=${LBC_FREQ:-3}   ## LBC file output frequency
+
+## Location of GBBEPx fire emissiob files
+## /gpfs/dell1/nco/ops/dcom/dev/$PDY/firewx
+export dcom_envir=${dcom_envir:-prod}
+export EMIFIREIN=${EMIFIREIN:-${DCOMROOT}/${dcom_envir}/${PDY}/firewx}
+export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${dcom_envir}/${PDYm1}/firewx}
+
+## Define Input directories for various information
+
+export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
+
+export GVFIN=${GVFIN:-${DCOMROOT}/prod/viirs}
+export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}  ## use j01 data first
+export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_v2r3_npp}  ## use npp as 2nd choice
+
+export KEEPDATA=${KEEPDATA:-YES}
+
+mkdir -p ${COMOUT}
+
+export pgmout=OUTPUT.$$
+ 
+## ALERT HHC remove lines for code delivery, for 1 cycle situation
+## if [ -s ${FIXaqm}/aqm.t12z.lufraccro.ncf ]; then
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${DATA}/aqm.${cycle}.lufraccro.ncf
+##    mkdir -p ${COMIN}
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMIN}/aqm.${cycle}.lufraccro.ncf
+##    mkdir -p ${COMINm1}
+##    cp ${FIXaqm}/aqm.t12z.lufraccro.ncf ${COMINm1}/aqm.${cycle}.lufraccro.ncf
+## fi
+## ALERT HHC remove lines for code delivery, for 1 cycle situation
+
+env
+
+if [ "${FCST}" == "YES" ]; then
+   export YM=`echo ${PDY} | cut -c1-6`
+   export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/${envir}/emission/${YM}}  #> emissions input directory
+
+  ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
+   export  err=$?; err_chk
+
+   startmsg
+   mpiexec -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
+   export err=$?; err_chk
+   ##
+   ## GEFS 06Z runs after CMAQ 06z Start, can only used GEFS 00Z output for PDY's LBC at 06Z
+   ## GEFS 06Z runs using day-1 fire emission, will re-calculate LBC using GEFS 06Z data for PDY [12Z,18Z] & PDY+1 00Z
+   ##
+   if [ "${cycle}" == "t06z" ] || [ "${cycle}" == "t12z" ] ; then
+    sh  ${USHaqm}/aqm_fv3chem_L35.sh ${PDY}
+      err=$?; err_chk
+   fi
+elif [ "${FCST}" == "NO" ]; then
+   ##
+   ## This is a precaution check in case no ${cycle} meteorology of yesterday is found for analysis run
+   ## It may happen if new implementation was started at 12Z the previous day and analysis run is called for 06Z.
+   ## Let the jobs complete successfully and move on to today ${cycle} run without 24-hour backward analysis run.
+   ## 
+   if [ -s ${COMINm1}/aqm.${cycle}.metcro3d.ncf ]; then
+      if [ "${cycle}" == "t06z" ]; then   ## current setting is allowed for t06z cycle
+         startmsg
+         mpiexec -n 1 ${USHaqm}/aqm_gbbepx2pts.ksh 
+         export err=$?; err_chk
+      fi
+   else
+      echo "WARNING :: ===================================================================="
+      echo "WARNING :: aqm.${cycle}.metcro3d.ncf can not be found for Analysis Forecast Run"
+      echo "WARNING :: ${cycle} MET_PREP for analysis run will exit normally"
+      echo "WARNING :: It is possible that no Meteorology is available at ${cycle} yesterady."
+      echo "WARNING :: ===================================================================="
+   fi
+fi
+
+msg="JOB ${job} HAS COMPLETED NORMALLY."
+postmsg "${jlogfile}" "${msg}"
+
+if [ -e "${pgmout}" ]; then
+   cat ${pgmout}
+fi
+
+if [ "${KEEPDATA}" != "YES" ]; then
+   rm -rf ${DATA}
+fi
+
+date
