@@ -4,7 +4,6 @@ date
 export PS4=' $SECONDS + '
 
 export DATA=${DATA:-${DATAROOT:?}/${jobid}}
-#export DATA=${DATA:-${DATAROOT}/${jobid}}
 
 mkdir -p ${DATA}
 cd ${DATA}
@@ -17,7 +16,8 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export cmaq_ver=${cmaq_ver:-v6.0.2}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
 export USHaqm=${USHaqm:-${HOMEaqm}/ush}
 export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
 export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
@@ -32,40 +32,41 @@ SMM=`echo ${PDY} |cut -c5-6`
 SDD=`echo ${PDY} |cut -c7-8`
 export DAYOFYEAR=`date -d ${SYYYY}/${SMM}/${SDD} +%j`
 
-export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMIN=${COMIN:-${COMROOT}/$NET/$ver/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
 
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
 
 ##
 ## met_envir, lbc_envir, and dcom_envir enable flexible testing for downstream
 ## implementation, where upstream input data is still in para or dev directories.
 ##
 ## Location of FV3GFS output
-export met_envir=${met_envir:-prod}
-export METIN=${METIN:-$(compath.py gfs/${met_envir}/gfs.${PDY})}
-export METINm1=${METINm1:-$(compath.py gfs/${met_envir}/gfs.${PDYm1})}
+#export met_envir=${met_envir:-prod}
+export gfs_ver=${gfs_ver:-v16.2}
+export METIN=${METIN:-$(compath.py gfs/${gfs_ver}/gfs.${PDY})}
+export METINm1=${METINm1:-$(compath.py gfs/${gfs_ver}/gfs.${PDYm1})}
 
 ## Location of FV3GEFS-Aerosol output
-export lbc_envir=${lbc_envir:-prod}
-export LBCIN=${LBCIN:-$(compath.py gefs/${lbc_envir}/gefs.${PDY})}
-export LBCINm1=${LBCINm1:-$(compath.py gefs/${lbc_envir}/gefs.${PDYm1})}
+export lbc_ver=${lbc_ver:-v12.2}
+export LBCIN=${LBCIN:-$(compath.py gefs/${lbc_ver}/gefs.${PDY})}
+export LBCINm1=${LBCINm1:-$(compath.py gefs/${lbc_ver}/gefs.${PDYm1})}
 export LBC_INI=${LBC_INI:-0}     ## 1st  LBC file FCST time
 export LBC_END=${LBC_END:-120}   ## Last LBC file FCST time
 export LBC_FREQ=${LBC_FREQ:-3}   ## LBC file output frequency
 
 ## Location of GBBEPx fire emissiob files
-## /gpfs/dell1/nco/ops/dcom/dev/$PDY/firewx
-export dcom_envir=${dcom_envir:-prod}
-export EMIFIREIN=${EMIFIREIN:-${DCOMROOT}/${dcom_envir}/${PDY}/firewx}
-export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${dcom_envir}/${PDYm1}/firewx}
+## /lfs/h1/ops/canned/dcom/${PDY}/firewx
+#export dcom_envir=${dcom_envir:-prod}
+export EMIFIREIN=${EMIFIREIN:-${DCOMROOT}/${PDY}/firewx}
+export EMIFIREINm1=${EMIFIREINm1:-${DCOMROOT}/${PDYm1}/firewx}
 
 ## Define Input directories for various information
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
-export GVFIN=${GVFIN:-${DCOMROOT}/prod/viirs}
+export GVFIN=${GVFIN:-${DCOMROOT}/viirs}
 export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}  ## use j01 data first
 export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_v2r3_npp}  ## use npp as 2nd choice
 
@@ -89,7 +90,7 @@ env
 
 if [ "${FCST}" == "YES" ]; then
    export YM=`echo ${PDY} | cut -c1-6`
-   export EMISpath=${EMISpath:-/gpfs/hps/nco/ops/com/aqm/${envir}/emission/${YM}}  #> emissions input directory
+   export EMISpath=${EMISpath:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions input directory
 
   ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
    export  err=$?; err_chk

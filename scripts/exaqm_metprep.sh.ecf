@@ -280,12 +280,8 @@ export SOI_CRO=aqm.${cycle}.soicro.ncf
 export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 
 startmsg
-#aprun -n${NTIMES} -m8000 ${EXECaqm}/aqm_nacc  (old Cray)
-#mpiexec -n 7 -ppn 7  ${EXECaqm}/aqm_nacc.exe
-#mpiexec -n 25 ${EXECaqm}/aqm_nacc.exe
-#mpiexec -n 49 ${EXECaqm}/aqm_nacc.exe
-mpiexec -n 73 ${EXECaqm}/aqm_nacc.exe
-#mpirun -n 7 --cpu-bind core ${EXECaqm}/aqm_nacc.exe
+mpiexec -n${NTIMES}  ${EXECaqm}/aqm_nacc
+#mpirun -n${NTIMES} --cpu-bind core ${EXECaqm}/aqm_nacc
 export err=$?
 if [ $err -ne 0 ]; then
    err_chk

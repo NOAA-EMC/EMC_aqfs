@@ -16,7 +16,8 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export cmaq_ver=${cmaq_ver:-v6.0.2}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
@@ -25,14 +26,15 @@ export UTILaqm=$HOMEaqm/util
 
 export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
+export ver=${ver:-v6.1}
 
-export COMIN=${COMIN:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
-export COMINm2=${COMINm2:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm2}}
-export COMINm3=${COMINm3:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm3}}
+export COMIN=${COMIN:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
+export COMINm2=${COMINm2:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm2}}
+export COMINm3=${COMINm3:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm3}}
 
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/${RUN}.${PDY}}
-export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${envir}/${RUN}.${PDYm1}}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
 
 export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 

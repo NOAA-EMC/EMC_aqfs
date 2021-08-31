@@ -186,7 +186,7 @@ program aqm_post_maxi_bias_cor_grib2
 !   endif
 
    print*,"iyear=",iyear,"imonth=",imonth,"iday=",iday,"icyc=",icyc
-   print*,"hjp111,ichk=",ichk,"ichk1=",ichk1
+!   print*,"hjp111,ichk=",ichk,"ichk1=",ichk1
    print*,"outfile=",outfile
 
 ! Read 4-D file variable.  Use generic Netcdf reader.

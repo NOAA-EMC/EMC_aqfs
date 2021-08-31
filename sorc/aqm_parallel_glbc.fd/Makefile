@@ -8,7 +8,6 @@ IOAPI_LIB  = $(LIB_LOC)/libaqm_ioapi.a
 
 NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
  
-#FC         = ftn 
 FC         = mpiifort 
  
 #F_FLAGS    = -O3 -FR -assume byterec -traceback -g
