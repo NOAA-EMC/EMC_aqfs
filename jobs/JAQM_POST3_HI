@@ -16,8 +16,7 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export cmaq_ver=${cmaq_ver:-v6.0.2}
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
@@ -36,8 +35,6 @@ export COMINm3=${COMINm3:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm3}}
 export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
 export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
 
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
-
 mkdir -p $COMOUT
 
 export pgmout=OUTPUT.$$
@@ -49,7 +46,7 @@ export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 if [ "$KEEPDATA" != "YES" ] ; then
   cd $DATAROOT

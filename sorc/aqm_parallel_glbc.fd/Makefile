@@ -11,7 +11,7 @@ NETCDF_LIB   = ${NETCDF_LDFLAGS} ${NETCDF_LDFLAGS_F}
 FC         = mpiifort 
  
 #F_FLAGS    = -O3 -FR -assume byterec -traceback -g
-F_FLAGS    = -O -FR -assume byterec
+F_FLAGS    = -O3 -FR -assume byterec
 
 NEMSIO_LIB9  = ${NEMSIO_LIB} 
 

@@ -3,28 +3,8 @@
 ##                                                          IMSG@NOAA/NWS/NCEP/EMC
 ## CMAQ v6.1.0
 ##_____________________________________________________
-#proc ModulesHelp { } {
-#puts stderr "Set environment veriables for compileing or running CMAQ"
-#puts stderr "This module initializes the enviro nment "
-#puts stderr "for the Intel Compiler Suite $version\n"
-#}
-#module-whatis " CMAQ whatis description"
 
-#source ../../versions/build.ver
-#source /lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/cmaq.v6.1.0/versions/build.ver
-
-#set model cmaq
-#set model_ver v6.1.0 
-#set envir canned 
-#set aqm_model cmaq
-#
-#set sys [uname sysname]
-
-#set CMAQ /lfs/h2/emc/physics/noscrub/Jianping.Huang/$envir/packages/${model}.${model_ver}/modulefiles/CMAQ
-
-#set lname CMAQ
-#set ver v6.1.0
-#set model_ver v6.1.0
+module purge
 
 module load envvar/${envvar_ver}
 module load PrgEnv-intel/${PrgEnv_intel_ver}

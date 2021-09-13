@@ -21,7 +21,7 @@
 ######################################################################
 set -xa
 msg="JOB ${job} HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 export pgm=aqm_ak_post1
 
@@ -236,7 +236,7 @@ fi
              ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.${hr}ho3.198.grib2
           else
              msg="File output_grb.${job} not posted to db_net."
-             postmsg "${jlogfile}" "${msg}"
+             postmsg   "${msg}"
           fi
        fi
    done
@@ -280,7 +280,7 @@ fi
          ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.1hpm25.198.grib2
       else
          msg="File ${output_grb}.${job} not posted to db_net."
-         postmsg "${jlogfile}" "${msg}"
+         postmsg   "${msg}"
       fi
    fi
 
@@ -288,7 +288,7 @@ fi
 fi
 #######################################################
 msg='ENDED NORMALLY.'
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 ################## END OF SCRIPT #######################
 exit

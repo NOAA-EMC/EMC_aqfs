@@ -16,8 +16,7 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export cmaq_ver=${cmaq_ver:-v6.0.2}
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=${USHaqm:-${HOMEaqm}/ush}
 export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
 export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
@@ -50,8 +49,6 @@ export EMISpath=${EMISpath:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions i
 export METpath=${METpath:-${COMIN}} #> CMAQ processed meteorology directory
 export BCpath=${BCpath:-${METpath}} #> boundary conditions input  directory
 
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
-
 mkdir -p ${COMOUT}
 
 export pgmout=OUTPUT.$$
@@ -78,7 +75,7 @@ fi
 cat ${pgmout}
 
 msg="JOB ${job} HAS COMPLETED NORMALLY."
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 ###################################
 # Remove temp directories

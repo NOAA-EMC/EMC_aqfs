@@ -29,8 +29,8 @@ export id_grib=148
 
 case $cyc in
  00) export bc_interp_hr=06;;
- 06) export bc_interp_hr=${post_proc_hour};;
- 12) export bc_interp_hr=${post_proc_hour};;
+ 06) export bc_interp_hr=72;;
+ 12) export bc_interp_hr=72;;
  18) export bc_interp_hr=06;;
 esac
 
@@ -241,13 +241,13 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
        ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2
      else
           msg="File output_grb.${job} not posted to db_net."
-          postmsg "${jlogfile}" "$msg"
+          postmsg "$msg"
      fi
   fi
 fi
 #######################################################
 msg='ENDED NORMALLY.'
-postmsg "${jlogfile}" "$msg"
+postmsg "$msg"
 ################## END OF SCRIPT #######################
 exit
 

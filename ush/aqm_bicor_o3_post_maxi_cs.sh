@@ -148,7 +148,7 @@ if [ "${flag_run_bicor_max}" == "yes" ]; then
            ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.8ho3-max.227.grib2
        else
           msg="File output_grb.${job} not posted to db_net."
-          postmsg "${jlogfile}" "${msg}"
+          postmsg "${msg}"
        fi
     fi
 else

@@ -38,7 +38,7 @@
 set -xa
 
 msg="JOB ${job} HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg "${msg}"
 
 export pgm=aqm_fcst_cs
 
@@ -715,7 +715,7 @@ done
 
 NS=`echo ${NSTEPS} |cut -c1-2`
 msg="Starting CMAQ Forecast at F00 out to F${NS}"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 startmsg
 echo "EXECUTE X.u2c"
@@ -836,7 +836,7 @@ if [ $err -ne 0 ]; then
 else
    msg="${pgm} completed normally"
    echo "${PDY}" "done" >${COMOUT}/aqm.${cycle}.log
-   postmsg "${jlogfile}" "${msg}"
+   postmsg   "${msg}"
 fi
 
 echo Exiting $0

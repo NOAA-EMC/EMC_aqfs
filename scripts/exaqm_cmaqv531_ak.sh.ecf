@@ -38,7 +38,7 @@
 set -xa
 
 msg="JOB ${job} HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 export pgm=aqm_fcst_cs
 
@@ -714,21 +714,13 @@ done
 
 NS=`echo ${NSTEPS} |cut -c1-2`
 msg="Starting CMAQ Forecast at F00 out to F${NS}"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
 num_col=16
 num_row=16
-## Check if total number of processors used is more than requested
-#let total_procs=${num_col}*${num_row}
-#echo "ncol=${num_col} nrow=${num_row} total procs need=${total_procs} avail procs=${nprocs}"
-#if [ ${total_procs} -gt ${nprocs} ]; then
-#   echo "WARNING :: ========================================================"
-#   echo "AWRNING :: ${total_procs} procs need for the run is greater than ${nprocs} requested"
-#   echo "WARNING :: ========================================================"
-#fi
 export NPCOL_NPROW="${num_col} ${num_row}"
 mpiexec -n ${NCPUS} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 export err=$?
@@ -846,7 +838,7 @@ if [ $err -ne 0 ]; then
 else
    msg="${pgm} completed normally"
    echo "${PDY}" "done" >${COMOUT}/aqm.${cycle}.log
-   postmsg "${jlogfile}" "${msg}"
+   postmsg   "${msg}"
 fi
 
 echo Exiting $0

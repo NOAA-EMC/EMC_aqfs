@@ -17,8 +17,7 @@ export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 export SENDDBN_NTC=${SENDDBN_NTC:-NO}
 
-export cmaq_ver=${cmaq_ver:-v6.0.2}
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
@@ -28,7 +27,6 @@ export UTILaqm=$HOMEaqm/util
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 # Update the training data period for the PM25 from 1 year (8760) to 3 month (90 day; 2160)
 export TMP_STDAY=`${NDATE} -2160 ${PDY}${cyc} | cut -c1-8`  # 1 year 
 # The earliest day of training data is August 1 2020
@@ -87,7 +85,7 @@ export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 if [ "$KEEPDATA" != "YES" ] ; then
   cd $DATAROOT

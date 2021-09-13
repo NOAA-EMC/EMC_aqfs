@@ -14,7 +14,7 @@
 set -xa
 
 msg="JOB ${job} HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 export pgm=aqm_ak_post1_maxi
 
@@ -201,7 +201,7 @@ EOF5
                 ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.${cycle}.24hr-pm25-ave.198.grib2
              else
                 msg="File output_grb.${job} not posted to db_net."
-                postmsg "${jlogfile}" "${msg}"
+                postmsg   "${msg}"
              fi
           fi
    

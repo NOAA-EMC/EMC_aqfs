@@ -21,7 +21,7 @@ cd $DATA
 ########################################
 set -x
 msg="JOB $job HAS BEGUN"
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 ##########################################
 
 # Run setpdy and initialize PDY variables
@@ -100,6 +100,6 @@ set -x
 
 msg="JOB $job HAS COMPLETED NORMALLY."
 echo $msg
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 ############## END OF SCRIPT #######################

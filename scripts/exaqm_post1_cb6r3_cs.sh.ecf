@@ -22,7 +22,7 @@
 ######################################################################
 set -xa
 msg="JOB ${job} HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 export pgm=aqm_cs_post1
 
@@ -245,7 +245,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
              ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.${hr}ho3.227.grib2
           else
              msg="File output_grb.${job} not posted to db_net."
-             postmsg "${jlogfile}" "${msg}"
+             postmsg   "${msg}"
           fi
        fi
    done
@@ -288,7 +288,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
          ${DBNROOT}/bin/dbn_alert ${DBNALERT_TYPE} ${NET} ${job} ${PCOM}/awpaqm.t${cyc}z.1hpm25.227.grib2
       else
          msg="File ${output_grb}.${job} not posted to db_net."
-         postmsg "${jlogfile}" "${msg}"
+         postmsg   "${msg}"
       fi
    fi
 
@@ -296,7 +296,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
 fi
 #######################################################
 msg='ENDED NORMALLY.'
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 ################## END OF SCRIPT #######################
 exit

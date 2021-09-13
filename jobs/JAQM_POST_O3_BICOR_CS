@@ -17,20 +17,15 @@ export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 export SENDDBN_NTC=${SENDDBN_NTC:-NO}
 
-export cmaq_ver=${cmaq_ver:-v6.0.2}
 export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
-
-
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/cmaq.${cmaq_ver}}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
 export FIXaqm=$HOMEaqm/fix
 export UTILaqm=$HOMEaqm/util
-
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 export TMP_STDAY=`${NDATE} -8760 ${PDY}${cyc} | cut -c1-8`  # 1 year back
 # The earliest day of training data is August 1 2020
@@ -89,7 +84,7 @@ export err=$?; err_chk
 
 cat $pgmout
 msg="JOB $job bias correction HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 if [ "$KEEPDATA" != "YES" ] ; then
   cd $DATAROOT

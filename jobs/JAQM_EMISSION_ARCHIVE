@@ -24,8 +24,6 @@ export RUN=emission
 export cyc=12
 export cycle=t12z
 
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${job}.${pid}}
-
 #  Default is NO: output to HPSS. YES: output to TSM
 export TSM_FLAG=NO
 
@@ -54,13 +52,13 @@ export SCP_CONFIG='-oNoneEnabled=yes -oNoneSwitch=yes -F /home/nwprod/.ossh/ssh_
 ####################################
 export pgmout="OUTPUT.$$"
 
-export HOMErhist=${HOMErhist:-${NWROOT}/cmaq.${cmaq_ver}}
+export HOMErhist=${HOMErhist:-${PACKAGEROOT}/${model}.${version}}
 export USHrhist=${USHrhist:-$HOMErhist/ush}
 export PARMrhist=${PARMrhist:-$HOMErhist/parm}
 
 export RUN_DAY=${RUN_DAY:-16}
 
-export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${envir}/emission}
+export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${ver}/emission}
 
 env
 

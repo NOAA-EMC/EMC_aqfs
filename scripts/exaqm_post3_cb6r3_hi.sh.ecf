@@ -13,7 +13,7 @@
 set -x
 
 msg="JOB $job HAS BEGUN"
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 export pgm=aqm_hi_post3
 
@@ -68,7 +68,7 @@ fi
 echo EXITING $0
 
 msg='ENDED NORMALLY.'
-postmsg "${jlogfile}" "${msg}"
+postmsg   "${msg}"
 
 exit
 

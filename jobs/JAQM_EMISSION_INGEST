@@ -16,7 +16,7 @@ export RUN=aqm
 export sendmail=${sendmail:-Y}
 
 #####################################
-export DATAROOT=${DATAROOT:-/gpfs/hps/nco/ops/tmpnwprd}
+export DATAROOT=${DATAROOT:-/lfs/f1/ops/prod/tmp}
 export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
@@ -24,7 +24,6 @@ cd $DATA
 ####################################
 # File To Log Msgs
 ####################################
-export jlogfile=${jlogfile:-${COMROOT}/logs/jlogfiles/jlogfile.${jobid}}
 
 ####################################
 # Determine Job Output Name on System
@@ -38,7 +37,7 @@ export SENDCOM=${SENDCOM:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-export HOMEaqm=${HOMEaqm:-${NWROOT}/cmaq.${cmaq_ver}}
+export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=${USHaqm:-$HOMEaqm/ush}
 
 ###################################
@@ -49,7 +48,7 @@ export USHaqm=${USHaqm:-$HOMEaqm/ush}
 
 # Run setup to initialize working directory and utility scripts
 msg="JOB $job HAS BEGUN"
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 # Run setpdy and initialize PDY variables
 export cycle=t12z
@@ -58,10 +57,9 @@ setpdy.sh
 
 export RUN_DAY=${RUN_DAY:-16}
 
-export DCOMbase=${DCOMbase:-${DCOMROOT:?}/${envir}}
-export DCOMIN=${DCOMIN:-${DCOMbase}/aqm_emission}
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${envir}/emission}
-export COMOUThps=${COMOUThps:-/gpfs/hps/nco/ops/com/${NET}/${envir}/emission}
+export DCOMIN=${DCOMIN:-${DCOMROOT}/aqm_emission}
+export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/emission}
+export COMOUThps=${COMOUThps:-/lfs/h1/ops/$envir/com/${NET}/${ver}/emission}
 env
 
 #############################################################
@@ -80,7 +78,7 @@ fi
 
 #cat $pgmout
 msg="JOB $job HAS COMPLETED NORMALLY."
-postmsg "$jlogfile" "$msg"
+postmsg "$msg"
 
 ###################################
 # Remove temp directories

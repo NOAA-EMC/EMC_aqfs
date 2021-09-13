@@ -13,13 +13,13 @@ then
   echo "******  PROBLEM ARCHIVING $pgm RETURN CODE $err  ******"
   echo "*******************************************************"
   msg1="PROBLEM ARCHIVING $pgm RETURN CODE $err"
-  sh $utilscript/postmsg.sh "$jlogfile" "$msg1"
+  sh $utilscript/postmsg.sh "$msg1"
 else
   echo " --------------------------------------------- "
   echo " ********** COMPLETED ARCHIVE $pgm  **********"
   echo " --------------------------------------------- "
   msg="ARCHIVE of $pgm COMPLETED NORMALLY"
-  sh $utilscript/postmsg.sh "$jlogfile" "$msg"
+  sh $utilscript/postmsg.sh "$msg"
 
   if test "$SENDECF" = "YES"
   then

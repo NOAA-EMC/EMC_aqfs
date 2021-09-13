@@ -21,11 +21,9 @@
 
 MODEL = aqm_nacc
 
-#FC      = ifort 
 FC      = mpiifort 
 
 IOAPI_ROOT = ../../lib
-#FFLAGS  = -FR -O3 -I$(NETCDF_INC) -I$(IOAPI_ROOT)/include 
 FFLAGS  = -FR -O3 -I${NETCDF_INC} -I$(IOAPI_ROOT)/include -I${MPICH_DIR}/include 
 LIBS     = ${NETCDF_LDFLAGS} -qopenmp -L$(IOAPI_ROOT) -laqm_ioapi  -L${MPICH_DIR}/lib -lmpifort 
 

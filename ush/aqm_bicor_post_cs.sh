@@ -83,5 +83,5 @@ echo EXITING $
 ########################################################
 
 msg='ENDED NORMALLY.'
-postmsg "${jlogfile}" "${msg}"
+postmsg "${msg}"
 
