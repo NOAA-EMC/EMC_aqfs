@@ -4,7 +4,7 @@
 ## CMAQ v6.1.0
 ##_____________________________________________________
 
-module purge
+#module purge
 
 module load envvar/${envvar_ver}
 module load PrgEnv-intel/${PrgEnv_intel_ver}

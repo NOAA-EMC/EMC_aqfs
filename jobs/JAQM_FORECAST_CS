@@ -5,7 +5,7 @@ date
 export PS4=' $SECONDS + '
 set -x
 
-export DATA=${DATA:-${DATAROOT:?}/${jobid}}
+export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
 mkdir -p ${DATA}
 cd ${DATA}
 
@@ -24,31 +24,29 @@ export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
 export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
 export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
-export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
-export ver=${ver:-v6.1}
 
-export COMIN=${COMIN:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
-export COMINm1=${COMINm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
-export COMINm2=${COMINm2:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm2}}
-export COMINm3=${COMINm3:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm3}}
+export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
+export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm1})}
+export COMINm2=${COMINm2:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm2})}
+export COMINm3=${COMINm3:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm3})}
 
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/${RUN}.${PDY}}
-export COMOUTm1=${COMOUTm1:-${COMROOT}/${NET}/${ver}/${RUN}.${PDYm1}}
+export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
+export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm1})}
 
 ## Define Input directories for various information
 if [ "${FCST}" = "YES" ] ; then
-   METpath=${COMIN} #> meteorology input directory
+   COMINmet=${COMIN} #> meteorology input directory
    export YM=`echo ${PDY} | cut -c1-6`
    export MM=`echo ${PDY} | cut -c5-6`
 else
-   METpath=${COMINm1}
+   COMINmet=${COMINm1}
    export YM=`echo ${PDYm1} | cut -c1-6`
    export MM=`echo ${PDYm1} | cut -c5-6`
 fi
-export EMISpath=${EMISpath:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions input directory
-export METpath=${METpath:-${COMIN}} #> CMAQ processed meteorology directory
-export BCpath=${BCpath:-${METpath}} #> boundary conditions input  directory
+export COMINemi=${COMINemi:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions input directory
+export COMINmet=${COMINmet:-${COMIN}} #> CMAQ processed meteorology directory
+export COMINbc=${COMINbc:-${COMINmet}} #> boundary conditions input  directory
 
 mkdir -p ${COMOUT}
 

@@ -17,7 +17,8 @@ export sendmail=${sendmail:-Y}
 
 #####################################
 export DATAROOT=${DATAROOT:-/lfs/f1/ops/prod/tmp}
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+#export DATA=${DATA:-${DATAROOT}/${jobid}}
+export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
 mkdir -p $DATA
 cd $DATA
 

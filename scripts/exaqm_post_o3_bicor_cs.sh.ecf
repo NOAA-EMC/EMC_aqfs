@@ -28,9 +28,7 @@ export id_grib=148
 
 case $cyc in
  00) export bc_interp_hr=06;;
-# 06) export bc_interp_hr=${post_proc_hour};;
  06) export bc_interp_hr=72;;
-# 12) export bc_interp_hr=${post_proc_hour};;
  12) export bc_interp_hr=72;;
  18) export bc_interp_hr=06;;
 esac

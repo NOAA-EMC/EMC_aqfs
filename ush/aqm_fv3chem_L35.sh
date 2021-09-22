@@ -39,7 +39,7 @@ gefscyc=`echo ${lbc_cyc} | cut -c2-3`
 ## LBC_INI, LBC_END, and LBC_FREQ are defined in ~/jobs/JAQM_PREP_CS
 ## Checking GEFS-Aerosol LBC files
 ##
-echo "DIAG : Lateral BC files ingested from ${LBCIN}"
+echo "DIAG : Lateral BC files ingested from ${COMINgefs}"
 flag_lbc_exist=yes
 let ic=${LBC_INI}
 let endhour=${LBC_END}
@@ -47,10 +47,10 @@ let lbc_int=${LBC_FREQ}
 let num_file=${endhour}/${lbc_int}+1
 while [ ${ic} -le ${endhour} ]; do
    icnt=`printf %3.3d ${ic}`
-   if [ -s ${LBCIN}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio ]; then
-      ln -s ${LBCIN}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio geaer.${lbc_cyc}.atmf${icnt}.nemsio
+   if [ -s ${COMINgefs}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio ]; then
+      ln -s ${COMINgefs}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio geaer.${lbc_cyc}.atmf${icnt}.nemsio
    else
-      echo "WARNING can not find ${LBCIN}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio"
+      echo "WARNING can not find ${COMINgefs}/${gefscyc}/chem/sfcsig/geaer.${lbc_cyc}.atmf${icnt}.nemsio"
       flag_lbc_exist=no
       break
    fi
@@ -58,17 +58,17 @@ while [ ${ic} -le ${endhour} ]; do
 done
 lbccyc=${lbc_cyc}
 if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aerosol files
-   /bin/rm -rf ${DATA}/geaer.*                      ## clean previous partial links in LBCIN file check above
+   /bin/rm -rf ${DATA}/geaer.*               ## clean previous partial links in COMINgefs file check above
    current_lbccyc=`echo ${lbc_cyc} | cut -c2-3`
    cdate=${PDY}${current_lbccyc}
    new_lbc_time=$( ${NDATE} -6 ${cdate} )   ## push one cycle back for GEFS output
    new_lbc_day=`echo ${new_lbc_time} | cut -c1-8`
    new_lbc_cyc=`echo ${new_lbc_time} | cut -c9-10`
    lbccyc=t${new_lbc_cyc}z
-   LBCIN2=${LBCIN}
+   COMINgefs2=${COMINgefs}
    if [ "${new_lbc_day}" == "${PDYm1}" ]; then
-      LBCIN2=${LBCINm1}
-      echo "WARNING :: Switch GEFS LBC input directory from ${LBCIN} to ${LBCIN2}"
+      COMINgefs2=${COMINgefsm1}
+      echo "WARNING :: Switch GEFS LBC input directory from ${LBCIN} to ${COMINgefs2}"
    fi
    flag_lbc2_exist=yes
    let ic=${LBC_INI}
@@ -78,10 +78,10 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    let num_file=${endhour}/${lbc_int}+1
    while [ ${ic} -le ${endhour} ]; do
       icnt=`printf %3.3d ${ic}`
-      if [ -s ${LBCIN2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio ]; then
-         ln -s ${LBCIN2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio geaer.${lbccyc}.atmf${icnt}.nemsio
+      if [ -s ${COMINgefs2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio ]; then
+         ln -s ${COMINgefs2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio geaer.${lbccyc}.atmf${icnt}.nemsio
       else
-         echo "WARNING can not find ${LBCIN2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio"
+         echo "WARNING can not find ${COMINgefs2}/${new_lbc_cyc}/chem/sfcsig/geaer.${lbccyc}.atmf${icnt}.nemsio"
          flag_lbc2_exist=no
          break
       fi

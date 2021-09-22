@@ -49,40 +49,6 @@ EXEC=aqm_fcst_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
 
-###
-### CHECK RUNTIME ENVIRONMENT VARIABLE FOR NODE SETTING
-### This is based on the IBM Load Sharing Facility (LSF) used by NCO, need to adjust code if different LSF system is used.
-### LSF : This module initializes required environment variables
-###
-### Obtain NODES INFORMATION
-### (1) Using NODES
-###     num_node=${NODES}  ## define in top ecf script "exprot NODES=xx"
-### (2) With information of nprocs and ptile [that can be retrived from statement below]
-###     let num_node=${nprocs}/${ptile}
-###
-### Obtain Number of Processors INFORMATION - nprocs
-### (1) Using LSB_SUB_RES_REQ, e.g.,
-### ' 1*{select[craylinux && !vnode] rusage[mem=3000]} + 576*{select[craylinux && vnode]span[ptile=24] cu[type=cabinet]} '
-###     extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"+" '{print $2}')
-###     nprocs=$(echo ${extract} | awk -F"*" '{print $1}')
-### (2) Using NODES with know ptile information
-###     let nprocs=${NODES}*24
-### (3) Using LSB_MAX_NUM_PROCESSORS [ 1 base + n computing nodes ]
-###     let nprocs=${LSB_MAX_NUM_PROCESSORS}-1
-###
-### Obtain Number of Processors per node INFORMATION - ptile
-### (1) Using LSB_SUB_RES_REQ, e.g.,
-### ' 1*{select[craylinux && !vnode] rusage[mem=3000]} + 576*{select[craylinux && vnode]span[ptile=24] cu[type=cabinet]} '
-###     extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
-###     num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
-#num_node=${NODES}
-#extract=$(echo ${LSB_SUB_RES_REQ} | awk -F"ptile=" '{print $2}')
-#num_ptile=$(echo ${extract} | awk -F"]" '{print $1}')
-#let num_proc=${LSB_MAX_NUM_PROCESSORS}-1
-#export NPCOL_NPROW="${num_node} ${num_ptile}"
-#let nprocs=${num_node}*${num_ptile}
-#export nprocs=${num_proc}
-
 if [ "${FCST}" == "YES" ]; then
 
 ## Note soil_file has a time-stamp that needs to match with IC time.  No alternative soil file can be used except for 06Z run
@@ -382,43 +348,43 @@ DISP=delete
 OMIfile=OMI_1979_to_2017.dat
 
 ## Directory defined in JAQM_FORECAST_AK
-echo "DIAG : meterology files ingested from ${METpath}"
-echo "DIAG : emission   files ingested from ${EMISpath}"
-echo "DIAG : Lateral BC files ingested from ${BCpath}"
+echo "DIAG : meterology files ingested from ${COMINmet}"
+echo "DIAG : emission   files ingested from ${COMINemi}"
+echo "DIAG : Lateral BC files ingested from ${COMINbc}"
 
 ## Check CMAQ PREP completion with the production of CMAQ MET files
-if [ ! -s ${METpath}/aqm.${cycle}.metcro3d.ncf ]; then
+if [ ! -s ${COMINmet}/aqm.${cycle}.metcro3d.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${METpath}/aqm.${cycle}.metcro3d.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINmet}/aqm.${cycle}.metcro3d.ncf"
 fi
 
 export EMISSCTRL_NML=${PARMaqm}/EmissCtrl_${MECH}.nml
 
-export GRID_CRO_2D=${METpath}/aqm.${cycle}.grdcro2d.ncf
-export GRID_DOT_2D=${METpath}/aqm.${cycle}.grddot2d.ncf
-export MET_CRO_2D=${METpath}/aqm.${cycle}.metcro2d.ncf
-export MET_CRO_3D=${METpath}/aqm.${cycle}.metcro3d.ncf
-export MET_DOT_3D=${METpath}/aqm.${cycle}.metdot3d.ncf
-export MET_BDY_3D=${METpath}/aqm.${cycle}.metbdy3d.ncf
-export SOI_CRO=${METpath}/aqm.${cycle}.soicro.ncf
-export LUFRAC_CRO=${METpath}/aqm.${cycle}.lufraccro.ncf
+export GRID_CRO_2D=${COMINmet}/aqm.${cycle}.grdcro2d.ncf
+export GRID_DOT_2D=${COMINmet}/aqm.${cycle}.grddot2d.ncf
+export MET_CRO_2D=${COMINmet}/aqm.${cycle}.metcro2d.ncf
+export MET_CRO_3D=${COMINmet}/aqm.${cycle}.metcro3d.ncf
+export MET_DOT_3D=${COMINmet}/aqm.${cycle}.metdot3d.ncf
+export MET_BDY_3D=${COMINmet}/aqm.${cycle}.metbdy3d.ncf
+export SOI_CRO=${COMINmet}/aqm.${cycle}.soicro.ncf
+export LUFRAC_CRO=${COMINmet}/aqm.${cycle}.lufraccro.ncf
 
 # synchronize the nodes
-${FSYNC} ${METpath}/aqm.${cycle}.grdcro2d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.grddot2d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.metcro2d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.metcro3d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.metdot3d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.metbdy3d.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.soicro.ncf
-${FSYNC} ${METpath}/aqm.${cycle}.lufraccro.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.grdcro2d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.grddot2d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.metcro2d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.metcro3d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.metdot3d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.metbdy3d.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.soicro.ncf
+${FSYNC} ${COMINmet}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
 export N_EMIS_GR=2
-export GR_EMIS_001=${EMISpath}/${RUN}-emis-noRWC-cb6-${YM}.ncf #surface emission file
+export GR_EMIS_001=${COMINemi}/${RUN}-emis-noRWC-cb6-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
 export GR_EM_SYM_DATE_001=F
-export GR_EMIS_002=${EMISpath}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
+export GR_EMIS_002=${COMINemi}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
@@ -432,14 +398,14 @@ fi
 
 ## CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
-if [ ! -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
 fi
 
-if [ ! -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
 fi
 done
 
@@ -447,12 +413,12 @@ done
 ## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
-   if [ -s ${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ] && \
-      [ -s ${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
+   if [ -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ] && \
+      [ -s ${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${EMISpath}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf
-      export STK_EMIS_${ic}=${EMISpath}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf
+      export STK_GRPS_${ic}=${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf
+      export STK_EMIS_${ic}=${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=${TYPE_POINT_EMIS_OUT}
       export STK_EM_SYM_DATE_${ic}=F
@@ -564,7 +530,7 @@ export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_199X163.ncf
 if [ ${CTM_ABFLUX} == 'Y' ]; then
    # need to modify for FEST-C v1.4.
    export E2C_SOIL=${FIXaqm}/test_soil_5x_new.nc
-   export E2C_CHEM=${EMISpath}/FERT_12km_5x_time${YM}.ncf
+   export E2C_CHEM=${COMINemi}/FERT_12km_5x_time${YM}.ncf
    export E2C_LU=${FIXaqm}/beld4_AQF_5x_output.ncf
 fi
 #------------------------------------------------------
@@ -596,7 +562,7 @@ if [ "$test" != "" ] ; then
  fi 
 fi 
 
-## BCpath is defined in JAQM_FORECAST_AK for LBC location [same as CMAQ MET location]
+## COMINbc is defined in JAQM_FORECAST_AK for LBC location [same as CMAQ MET location]
 export BNDY_GASC_1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${MM}.35L.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
    if [ -s ${COMINm1}/aqm_${RUN}_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
@@ -719,10 +685,13 @@ postmsg   "${msg}"
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-num_col=16
-num_row=16
+num_col=32
+num_row=8
+
 export NPCOL_NPROW="${num_col} ${num_row}"
-mpiexec -n ${NCPUS} ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
+let ntasks=${num_col}*${num_row}
+
+mpiexec -n $ntasks -ppn 128 --cpu-bind core ${EXECaqm}/${EXEC} >> ${pgmout} 2>errfile
 export err=$?
 
 #------------------------------------------------------

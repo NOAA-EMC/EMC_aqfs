@@ -11,8 +11,9 @@ export pid=$$
 
 # PATH for working directory
 
-export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+#export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
+#export DATA=${DATA:-${DATAROOT}/${jobid}}
+:export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
 mkdir -p $DATA
 cd $DATA
 
