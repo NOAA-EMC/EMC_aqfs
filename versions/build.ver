@@ -20,6 +20,6 @@ export jasper_ver=2.0.25
 export libjpeg_ver=9c
 export g2_ver=3.4.1
 export python_ver=3.6.3
-export prod_util_ver=2.0.5
+export prod_util_ver=2.0.9
 export grib_util_ver=1.2.3
 export wgrib2_ver=2.0.8

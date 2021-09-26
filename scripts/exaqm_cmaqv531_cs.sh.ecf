@@ -703,8 +703,8 @@ fi
 startmsg
 echo "EXECUTE X.u2c"
 export MEMORY_AFFINITY=MCM
-num_col=22
-num_row=22
+num_col=32
+num_row=16
 
 export NPCOL_NPROW="${num_col} ${num_row}"
 let ntasks=${num_col}*${num_row}
