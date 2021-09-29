@@ -8,6 +8,8 @@ module purge
 
 source ../versions/build.ver
 
+module use ${PACKAGEROOT}/${model}.${model_ver}/modulefiles
+
 module load CMAQ/6.1.0
 
 module list
@@ -33,7 +35,6 @@ make -f Makefile install
 make -f Makefile clobber
 done
 
-#export NETCDF_LDFLAGS="-L$NETCDF/lib -lnetcdff -lnetcdf -L$HDF5/lib -lhdf5_hl -lhdf5 -lz"
 ###################################################
 for src in interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
 do
