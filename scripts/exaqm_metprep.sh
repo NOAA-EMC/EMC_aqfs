@@ -187,8 +187,6 @@ if [ "${grib2_gvf}" != "" ] && [ -s ${grib2_gvf} ]; then         ## sanitary che
    nacc_gvf_prefix="nacc_gvf"
    NACC_GVF_IN=${nacc_gvf_prefix}.nc
     
-   echo "hjp115:wgrib2", ${WGRIB2}
-
    ${USHaqm}/viirsgrib2nc4.py -v -f DCOM_GVF_FILE -o ${nacc_gvf_prefix} -x ${WGRIB2}
 
    if [ -s ${NACC_GVF_IN} ]; then

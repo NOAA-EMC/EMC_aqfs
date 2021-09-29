@@ -210,9 +210,7 @@ if [ -s ${BND2} ]; then /bin/rm ${BND2}; fi
 if [ -s ${CHECK2D} ]; then /bin/rm ${CHECK2D}; fi
 
 startmsg
-#mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
-mpiexec -n 41 ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
-#mpirun -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
 export err=$?;err_chk
 ##
 ## Keep record of the LBC used in differretn cycle

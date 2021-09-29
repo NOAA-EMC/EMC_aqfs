@@ -23,6 +23,7 @@ export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
 export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
 export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
+export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
 
 export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
@@ -67,7 +68,7 @@ if [ ! -s ${COMINm1}/aqm.t${cyc}z.fire_emi_HI_r.ncf ] && [ $cyc == '06' ] && [ $
    echo "No GBBEPx fire emissions for 24-hr reanalysis run at 06z cycle"
 else
    startmsg
-   ${HOMEaqm}/scripts/exaqm_cmaqv531_hi.sh.ecf
+   ${HOMEaqm}/scripts/exaqm_cmaqv531_hi.sh
    export err=$?; err_chk
 fi
 ##################################################

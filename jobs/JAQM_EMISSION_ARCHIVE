@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-. /usrx/local/Modules/default/init/ksh
+#. /usrx/local/Modules/default/init/ksh
 
 set -xa
 export PS4='$SECONDS + '
@@ -73,7 +73,7 @@ echo " the current day= $current_day"
 # execute the script
 if (( ${current_day} == ${RUN_DAY} ))
 then
-    ${HOMErhist}/scripts/exaqm_emission_archive.sh.ecf 
+    ${HOMErhist}/scripts/exaqm_emission_archive.sh
 fi
 #############################################################
 if [ "$KEEPDATA" != "YES" ] ; then

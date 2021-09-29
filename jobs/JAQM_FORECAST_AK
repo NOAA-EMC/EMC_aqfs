@@ -24,6 +24,7 @@ export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
 export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
 export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
+export NET=${NET:-aqm}
 export RUN=${RUN:-AK}
 
 export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
@@ -68,7 +69,7 @@ if [ ! -s ${COMINm1}/aqm.t${cyc}z.fire_emi_AK_r.ncf ] && [ $cyc == '06' ] && [ $
    err=999; err_chk
 else
    startmsg
-   ${HOMEaqm}/scripts/exaqm_cmaqv531_ak.sh.ecf
+   ${HOMEaqm}/scripts/exaqm_cmaqv531_ak.sh
    export err=$?; err_chk
 fi
 ##################################################

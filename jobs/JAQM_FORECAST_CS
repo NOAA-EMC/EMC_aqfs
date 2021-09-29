@@ -24,6 +24,7 @@ export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
 export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
 export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
 
+export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
 export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
@@ -89,7 +90,7 @@ if [ "${FCST}" == "NO" ]; then
 fi
 if [ "${FLAG_RUN_FCST}" == "YES" ]; then
    startmsg
-   ${HOMEaqm}/scripts/exaqm_cmaqv531_cs.sh.ecf
+   ${HOMEaqm}/scripts/exaqm_cmaqv531_cs.sh
    export err=$?; err_chk
 fi
 ##################################################

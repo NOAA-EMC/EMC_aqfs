@@ -1,6 +1,6 @@
 #!/bin/ksh
 #
-. $MODULESHOME/init/ksh
+#. $MODULESHOME/init/ksh
 
 set -xa
 export PS4='$SECONDS + '
@@ -74,7 +74,7 @@ echo " the current day= $current_day"
 #############################################################
 if (( ${current_day} == ${RUN_DAY} ))
 then
-   $HOMEaqm/scripts/exaqm_emission_ingest.sh.ecf
+   $HOMEaqm/scripts/exaqm_emission_ingest.sh
 fi
 
 #cat $pgmout

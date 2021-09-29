@@ -31,6 +31,9 @@ SMM=`echo ${PDY} |cut -c5-6`
 SDD=`echo ${PDY} |cut -c7-8`
 export DAYOFYEAR=`date -d ${SYYYY}/${SMM}/${SDD} +%j`
 
+export NET=${NET:-aqm}
+export RUN=${RUN:-aqm}
+
 export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
 export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm1})}
 
@@ -68,7 +71,7 @@ if [ "${FCST}" == "YES" ]; then
    export YM=`echo ${PDY} | cut -c1-6`
    export COMINemi=${COMINemi:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions input directory
 
-  ${HOMEaqm}/scripts/exaqm_metprep.sh.ecf
+  ${HOMEaqm}/scripts/exaqm_metprep.sh
    export  err=$?; err_chk
 
    startmsg

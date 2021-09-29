@@ -17,6 +17,7 @@ export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 export SENDDBN_NTC=${SENDDBN_NTC:-NO}
 
+export NET=${NET:-aqm}
 export RUN=${RUN:-aqm}
 
 export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
@@ -80,7 +81,7 @@ env
 
 export post_proc_hour=${post_proc_hour:-72}
 
-$HOMEaqm/scripts/exaqm_post_o3_bicor_cs.sh.ecf
+$HOMEaqm/scripts/exaqm_post_o3_bicor_cs.sh
 export err=$?; err_chk
 
 cat $pgmout

@@ -8,7 +8,7 @@ module purge
 
 source ../versions/build.ver
 
-source ../modulefiles/CMAQ/${model_ver}
+module load CMAQ/6.1.0
 
 module list
 

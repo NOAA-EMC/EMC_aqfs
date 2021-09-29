@@ -29,9 +29,8 @@ Lib    =   ../../lib/sorc/lib.f90
 # Command argument sequences.
 LIB_NETCDF = -I$(NETCDF)/include ${NETCDF_LDFLAGS}
 
-PNG_LIB = /apps/spack/libpng/1.6.37/intel/19.1.3.304/4ohkronuhlyherusoszzrmur5ewvlwzh/lib
+#PNG_LIB = /apps/spack/libpng/1.6.37/intel/19.1.3.304/4ohkronuhlyherusoszzrmur5ewvlwzh/lib
 
-#F90_CMD   = ftn 
 F90_CMD   = ifort 
 
 F90_FLAGS4 = -O3
@@ -64,7 +63,7 @@ W3_LIB      = ${W3NCO_LIB4} ${W3EMC_LIB4}
 Lib4   =  $(NETCDF_LIB) \
 	${G2_LIB4} \
 	$(W3_LIB) \
-	-L$(PNG_LIB) -lpng \
+	${PNG_LIB} \
 	${BACIO_LIB4} \
 	${JASPER_LIB} \
 	${Z_LIB}

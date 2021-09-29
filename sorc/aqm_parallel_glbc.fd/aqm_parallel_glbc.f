@@ -254,9 +254,9 @@
        write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
 
 !       if(mtime.gt.1) call nemsio_close(gfile)
-       print*,"hjp111"
+!       print*,"hjp111"
        print*, aline
-       print*, "hjp112","iret=",iret
+!       print*, "hjp112","iret=",iret
        call nemsio_open(gfile,trim(aline),'READ',iret=iret,gdatatype="bin4")
        if(iret.ne.0) then
          print*,'failed to open ',trim(aline)
@@ -287,7 +287,7 @@
         enddo
 !	jfhour=jfhour+dtstep      
 
-        print*,"hjp113"
+!        print*,"hjp113"
          igocart=im+2*nframe
 	 jgocart=jm+2*nframe
 	 kgocart=lm
@@ -306,9 +306,9 @@
          allocate(airgocart(igocart,jgocart,kgocart),STAT=ierr)
 	 allocate(vgocart(igocart,jgocart,kgocart),STAT=ierr)
            
-        print*,"hjp114"
+!        print*,"hjp114"
        call nemsio_getfilehead(gfile,iret=iret,lat=work,lon=work2)
-        print*,"hjp115"
+!        print*,"hjp115"
 
 
        do i=1,igocart

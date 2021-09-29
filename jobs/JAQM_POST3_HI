@@ -23,6 +23,7 @@ export PARMaqm=$HOMEaqm/parm
 export FIXaqm=$HOMEaqm/fix
 export UTILaqm=$HOMEaqm/util
 
+export NET=${NET:-aqm}
 export RUN=${RUN:-HI}
 
 export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
@@ -41,7 +42,7 @@ export KEEPDATA=${KEEPDATA:-YES}
 
 env
 
-$HOMEaqm/scripts/exaqm_post3_cb6r3_hi.sh.ecf
+$HOMEaqm/scripts/exaqm_post3_cb6r3_hi.sh
 export err=$?; err_chk
 
 cat $pgmout

@@ -91,8 +91,6 @@
 
  IOAPI  = -L$(LIB) -laqm_ioapi
  LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpich
-# LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpifort
-# LIBRARIES = $(IOAPI) $(NETCDF_LDFLAGS) -qopenmp -L${MPICH_DIR}/lib -lmpif90
 
  BASE_INC = .
 

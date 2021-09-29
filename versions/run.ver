@@ -27,7 +27,7 @@ export libpng_ver=1.6.37
 export jasper_ver=2.0.25
 export libjpeg_ver=9c
 export g2_ver=3.4.1
-export python_ver=3.6.3
+export python_ver=3.8.6
 export zlib_ver=1.2.11
 
 export prod_util_ver=2.0.9
@@ -35,7 +35,6 @@ export grib_util_ver=1.2.3
 export wgrib2_ver=2.0.8
 
 export envir=canned
-export NET=aqm
 
 export PACKAGEROOT=/lfs/h2/emc/physics/noscrub/$USER/$envir/packages
 export HOMEaqm=$PACKAGEROOT/$model.$version

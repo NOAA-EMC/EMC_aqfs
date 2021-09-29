@@ -60,25 +60,6 @@ else   ## For day1, day2, and day3 forecast runs using PDYm1 fire emission OR cr
       echo "WARNING NO ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc"
       flag_with_gbbepx=no
    fi 
-
-##
-## In operational yesterday's GBBEPX fire emission (PDYm1) won't be available till 08Z.
-## Thus it is not available for the 00z cycle run. 00z run has to use the two-day old fire emission info, 
-## i.e., ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc
-   if [ "${RUN_ENVIR}" != "nco" ] && [ "${cyc}" == "00" ]; then
-      if [ "${COMIN9}" == "${COMINfire}" ] && [ "${emisfile}" == "${fire_emission_hdr}_${PDYm1}.nc" ]; then
-         echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
-         echo "This may happen in the retro or re-run of ${PDY} 00z cycle"
-         echo "In operational, ${PDY} 00z should not use ${COMIN9}/${emisfile}"
-         echo "that is only available ~ ${PDY} 08Z"
-         echo "It should use ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc"
-         echo "reset COMIN9=${COMINfirem1} and emisfile=${fire_emission_hdr}_${PDYm2}.nc"
-         echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
-         FIREDATE=${PDYm2}
-         emisfile=${fire_emission_hdr}_${PDYm2}.nc
-         COMIN9=${COMINfirem1}
-      fi
-   fi
 fi
 
 

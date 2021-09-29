@@ -5,6 +5,14 @@
 ##_____________________________________________________
 
 #module purge
+proc ModulesHelp { } {
+puts stderr "Set environment veriables for CMAQ"
+puts stderr "This module initializes the enviro nment "
+puts stderr "for the Intel Compiler Suite $version\n"
+}
+module-whatis "CMAQ whatis description"
+
+setenv("CMAQ",os.getenv("CMAQ") or pathJoin("/lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/cmaq.v6.1.0/modulefiles"))
 
 module load envvar/${envvar_ver}
 module load PrgEnv-intel/${PrgEnv_intel_ver}
