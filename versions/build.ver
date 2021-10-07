@@ -19,6 +19,6 @@ export g2_ver=3.4.1
 
 export envir=canned
 export model=cmaq
-export model_ver=v6.1.0
+export aqm_ver=v6.1.0
 export PACKAGEROOT=/lfs/h2/emc/physics/noscrub/$USER/$envir/packages
 

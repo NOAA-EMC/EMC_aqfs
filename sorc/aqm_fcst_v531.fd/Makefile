@@ -33,7 +33,6 @@
 #debug=TRUE
  WARN = 
  FSTD = -O3 -fno-alias -mp1 -fp-model source -ftz -simd -align all -vec-guard-write -unroll-aggressive
-# DBG  = -O0 -g -check bounds -check uninit -fpe0 -fno-alias -ftrapuv -traceback
  DBG  = 
 
  ifneq (,$(filter $(debug), TRUE true True T ))

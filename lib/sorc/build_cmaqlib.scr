@@ -6,7 +6,8 @@ module purge
 
 source ../../versions/build.ver 
 
-module use ${PACKAGEROOT}/${model}.${model_ver}/modulefiles 
+#module use ${PACKAGEROOT}/${model}.${aqm_ver}/modulefiles 
+module use $(realpath ../../modulefiles)
 
 module load CMAQ/6.1.0
 
