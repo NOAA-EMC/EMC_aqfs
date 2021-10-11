@@ -180,15 +180,15 @@ if [ ! -s ${TOPO} ]; then
    echo "ERROR WARNING :: Can not find ${TOPO} to produce LBC file, MANUAL INSPECTION required"
 fi
 #
-if [ $RUN = 'aqm' ]; then
-   export BND1=${FIXaqm}/aqm_conus_12km_geos_2006${cmonth}_static_FV3_35L.ncf
-   export BND2=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
-   export BND2_cyc=${COMOUT}/aqm_conus_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
-elif [ $RUN = 'HI' ]; then
+if [ $RUN = 'cs' ]; then
+   export BND1=${FIXaqm}/aqm_cs_12km_geos_2006${cmonth}_static_FV3_35L.ncf
+   export BND2=${COMOUT}/aqm_cs_geos_fv3chem_aero_${PDY}_35L.ncf                # output CONUS BND files
+   export BND2_cyc=${COMOUT}/aqm_cs_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf   # output CONUS BND files with cycle information
+elif [ $RUN = 'hi' ]; then
    export BND1=${FIXaqm}/${RUN}_80X52_mean_2002${cmonth}_GEOSCHEM-35L-tracer.nmmb.ncf
    export BND2=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf                   # output HI    BND files
    export BND2_cyc=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output HI    BND files with cycle information
-elif [ $RUN = 'AK' ]; then
+elif [ $RUN = 'ak' ]; then
    export BND1=${FIXaqm}/aqm_${RUN}_cb05_ae4_mean_${cmonth}.35L.ncf
    export BND2=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_35L.ncf                   # output AK    BND files
    export BND2_cyc=${COMOUT}/aqm_${RUN}_geos_fv3chem_aero_${PDY}_${cycle}_35L.ncf      # output AK    BND files with cycle information

@@ -93,9 +93,9 @@ fi
  
 mkdir -p -m 775 $out_dir
 # JY - will comment out the following two lines ??
-cp $in_dir/*AK* $out_dir/.
-cp $in_dir/*HI* $out_dir/.
-cp $in_dir/*5x* $in_dir/emis*ncf $out_dir/.
+cp $in_dir/*ak* $out_dir/.
+cp $in_dir/*hi* $out_dir/.
+cp $in_dir/*cs* $in_dir/emis*ncf $out_dir/.
 cp $in_dir/gfs.geo*nc $out_dir/.
 # check the file number monthly directory
 
@@ -157,8 +157,8 @@ if [ $small_filesize_in_HI -lt 10000000000 ]; then
     err_exit "FATAL ERROR- the monthly emission HI domain file size is not large enough"
 fi
  
-total_filesize_in_CONUS=`du -Dbc $out_dir/*5x* $out_dir/emis* | tail -1 | cut -f1`
-small_filesize_in_CONUS=`ls -l $out_dir/*5x* $out_dir/emis* | cut -d' ' -f5 | sort -u | tail -1`
+total_filesize_in_CONUS=`du -Dbc $out_dir/*cs* $out_dir/emis* | tail -1 | cut -f1`
+small_filesize_in_CONUS=`ls -l $out_dir/*cs* $out_dir/emis* | cut -d' ' -f5 | sort -u | tail -1`
 
 if [ $total_filesize_in_CONUS -lt 220000000000 ]; then
    if [ $sendmail = 'Y' ]; then 

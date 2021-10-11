@@ -11,14 +11,14 @@ source ../versions/build.ver
 #module use ${PACKAGEROOT}/${model}.${aqm_ver}/modulefiles
 module use $(realpath ../modulefiles)
 
-module load CMAQ/6.1.0
+module load aqm/6.1.1
 
 module list
 
 export IOAPI_OFFSET_64=YES
 export NETCDF_LDFLAGS="-L$NETCDF_LIBRARIES -lnetcdff -lnetcdf"
 
-for src in nacc fcst_v531 parallel_glbc gbbepx2pts cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
+for src in nacc cmaq_v531 parallel_glbc gbbepx2pts cmaq_combine cmaq2grib2_v2 cmaq2grib2_v3 post_maxi_CHA_grib2_v2 rdgrbwt_aot_CHA_g2 ; do
  cd $BASEDIR/aqm_$src.fd
  make -f Makefile clobber
  make -f Makefile

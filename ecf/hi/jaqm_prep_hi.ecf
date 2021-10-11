@@ -1,0 +1,66 @@
+#PBS -N aqm_prep_hi_%CYC%
+#PBS -A %PROJ%-%PROJENVIR%
+#PBS -S /bin/bash
+#PBS -q %QUEUE%
+#PBS -l walltime=00:30:00
+#PBS -l select=1:ncpus=7:mpiprocs=1:mem=256GB:prepost=true
+#PBS -j oe
+
+model=cmaq
+%include <head.h>
+%include <envir-p1.h>
+
+#
+# ecflow file dependency
+# start when following GFS file is completed
+#
+# case $CYC% in
+#    00) gfs_hour=006;;
+#    06) gfs_hour=072;;
+#    12) gfs_hour=072;;
+#    18) gfs_hour=006;;
+# esac
+#
+# /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour}.nc
+#
+# Or if [ -s /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour+1}.nc]; 
+#    
+
+module load intel/${intel_ver:?}
+module load craype/${craype_ver:?}
+module load cray-mpich/${cray_mpich_ver:?}
+module load cray-pals/${cray_pals_ver:?}
+module load netcdf/${netcdf_ver:?}
+module load hdf5/${hdf5_ver:?}
+module load nemsio/${nemsio_ver:?}
+module load bacio/${bacio_ver:?}
+module load w3emc/${w3emc_ver:?}
+module load w3nco/${w3nco_ver:?}
+module load jasper/${jasper_ver:?}
+module load libpng/${libpng_ver:?}
+module load libjpeg/${libjpeg_ver:?}
+module load grib_util/${grib_util_ver:?}
+module load python/${python_ver:?}
+module load wgrib2/${wgrib2_ver:?}
+module list
+
+export cyc=%CYC%
+export RUN=HI
+export FCST=YES
+
+${HOMEcmaq}/jobs/JAQM_PREP
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
+#
+######################################################################
+%end

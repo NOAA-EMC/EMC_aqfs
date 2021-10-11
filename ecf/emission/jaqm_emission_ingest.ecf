@@ -1,0 +1,43 @@
+#PBS -N aqm_emission_ingest
+#PBS -j oe
+#PBS -S /bin/bash
+#PBS -q %QUEUE%
+#PBS -l walltime=02:30:00
+#PBS -A %PROJ%-%PROJENVIR%
+#PBS -l place=shared,select=1:ncpus=1:mem=5GB
+
+model=cmaq
+%include <head.h>
+%include <envir-p1.h>
+
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#########################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#########################################
+
+export cyc=%CYC%
+
+${HOMEcmaq}/jobs/JAQM_EMISSION_INGEST
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that copy the AQM emission 
+#  files from /dcom to /com and validate the file size
+#
+######################################################################
+%end

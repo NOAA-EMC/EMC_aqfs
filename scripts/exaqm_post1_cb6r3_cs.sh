@@ -130,8 +130,8 @@ export fhr=01
 
 case ${cyc} in
    00) endfhr=06;;
-   06) endfhr=${post_proc_hour};;
-   12) endfhr=${post_proc_hour};;
+   06) endfhr=72;;
+   12) endfhr=72;;
    18) endfhr=06;;
 esac
 
@@ -178,8 +178,8 @@ done
 echo ' &NLCOPYGB IDS(180)=1, /' > ozcon_scale
  
 export grid227="30 6 0 0 0 0 0 0 1473 1025 12190000 226541000 8 25000000 265000000 5079000 5079000 0 64 25000000 25000000"
-${COPYGB2} -g "${grid227}" -x -i"1 1" tmpfile      aqm.t${cyc}z.grib2_5xozconnmmb.227
-${COPYGB2} -g "${grid227}" -x -i"1 1" tmpfile_pm25 aqm.t${cyc}z.grib2_5xpm25nmmb.227
+${COPYGB2} -g "${grid227}" -x -i"1 1" tmpfile      aqm.t${cyc}z.grib2_csozconnmmb.227
+${COPYGB2} -g "${grid227}" -x -i"1 1" tmpfile_pm25 aqm.t${cyc}z.grib2_cspm25nmmb.227
 ${COPYGB2} -g "${grid227}" -x -i"1 1" tmpfile.1hr  aqm.t${cyc}z.ave_1hr_o3.227.grib2  
 flag_8hr_o3=no
 if [ -s tmpfile.8hr ]; then
@@ -191,7 +191,7 @@ cp aqm.t${cyc}z.ave_1hr_o3.227.grib2 ${COMOUT}/
 if [ "${flag_8hr_o3}" == "yes" ]; then
    cp aqm.t${cyc}z.ave_8hr_o3.227.grib2 ${COMOUT}/
 fi
-cp aqm.t${cyc}z.grib2_5xpm25nmmb.227 ${COMOUT}/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
+cp aqm.t${cyc}z.grib2_cspm25nmmb.227 ${COMOUT}/aqm.t${cyc}z.ave_1hr_pm25.227.grib2
 
 if [ "${SENDDBN}" == "YES" ]; then
    ${DBNROOT}/bin/dbn_alert MODEL AQM_CONC ${job} ${COMOUT}/aqm.t${cyc}z.ave_1hr_o3.227.grib2
@@ -217,17 +217,17 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
        export FORT11=aqm.t${cyc}z.ave_${hr}hr_o3.227.grib2
        export FORT12="filesize"
        export FORT31=
-       export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       export FORT51=grib2.t${cyc}z.awpcsozconnmmb_aqm_${hr}.temp
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 #
-       echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
+       echo `ls -l grib2.t${cyc}z.awpcsozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export FORT11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}.temp
+       export FORT11=grib2.t${cyc}z.awpcsozconnmmb_aqm_${hr}.temp
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.227.grib2
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3-awpozcon.${cycle}.227
        export err=$?;err_chk
 
        ##############################
@@ -252,32 +252,32 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "$SENDCOM" = "YES" ] ; then
 #########################################
 #  Create AWIPS GRIB2 data for PM2.5
 #########################################
-   ## file aqm.t${cyc}z.grib2_5xpm25nmmb.227 is aqm.t${cyc}z.ave_1hr_pm25.227.grib2
-   cp ${DATA}/aqm.t${cyc}z.grib2_5xpm25nmmb.227  ${COMOUT}/
+   ## file aqm.t${cyc}z.grib2_cspm25nmmb.227 is aqm.t${cyc}z.ave_1hr_pm25.227.grib2
+   cp ${DATA}/aqm.t${cyc}z.grib2_cspm25nmmb.227  ${COMOUT}/
 
    echo 0 > filesize
    export XLFRTEOPTS="unit_vars=yes"
-   export FORT11=aqm.t${cyc}z.grib2_5xpm25nmmb.227
+   export FORT11=aqm.t${cyc}z.grib2_cspm25nmmb.227
    export FORT12="filesize"
    export FORT31=
-   export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_5xpm25nmmb.${cycle}.227
+   export FORT51=grib2.t${cyc}z.awpcspm25nmmb.temp
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_cspm25nmmb.${cycle}.227
    export err=$?;err_chk
 #
-   echo `ls -l grib2.t${cyc}z.awp5xpm25nmmb.temp  | awk '{print $5} '` > filesize
+   echo `ls -l grib2.t${cyc}z.awpcspm25nmmb.temp  | awk '{print $5} '` > filesize
    export XLFRTEOPTS="unit_vars=yes"
-   export FORT11=grib2.t${cyc}z.awp5xpm25nmmb.temp
+   export FORT11=grib2.t${cyc}z.awpcspm25nmmb.temp
    export FORT12="filesize"
    export FORT31=
-   export FORT51=grib2.t${cyc}z.awp5xpm25nmmb.227
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_5xpm25nmmb.${cycle}.227
+   export FORT51=grib2.t${cyc}z.awpcspm25nmmb.227
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_cspm25nmmb.${cycle}.227
    export err=$?;err_chk
 
 ##############################
 # Post PM2.5 Files to PCOM
 ##############################
    if [ "${SENDCOM}" == "YES" ]; then
-      cp grib2.t${cyc}z.awp5xpm25nmmb.227  ${PCOM}/awpaqm.t${cyc}z.1hpm25.227.grib2
+      cp grib2.t${cyc}z.awpcspm25nmmb.227  ${PCOM}/awpaqm.t${cyc}z.1hpm25.227.grib2
       echo "no files copy"
 
       ##############################

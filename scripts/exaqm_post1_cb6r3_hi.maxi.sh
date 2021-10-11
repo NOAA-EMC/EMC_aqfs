@@ -126,7 +126,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=aqm-${hr}hro3-maxi.196.grib2.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq-${hr}hro3-maxi.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm-${hr}hro3-maxi.${cycle}.196
    
    echo `ls -l  aqm-${hr}hro3-maxi.196.grib2.temp | awk '{print $5} '` > filesize
    export XLFRTEOPTS="unit_vars=yes"
@@ -134,7 +134,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=awpaqm.${cycle}.${hr}ho3-max.196.grib2
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq-${hr}hro3-maxi.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm-${hr}hro3-maxi.${cycle}.196
    
    done 
    ########################################################
@@ -149,7 +149,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=aqm.${cycle}.max_1hr_pm25.196.grib2.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_max_1hr_pm25.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_max_1hr_pm25.${cycle}.196
    
    echo `ls -l  aqm.${cycle}.max_1hr_pm25.196.grib2.temp | awk '{print $5} '` > filesize
    export XLFRTEOPTS="unit_vars=yes"
@@ -157,7 +157,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=awpaqm.${cycle}.daily-1hr-pm25-max.196.grib2
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_max_1hr_pm25.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_max_1hr_pm25.${cycle}.196
    
    
    rm filesize
@@ -169,7 +169,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=aqm.${cycle}.24hrpm25-ave.196.grib2.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_ave_24hrpm25_awp.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.196
    
    echo `ls -l  aqm.${cycle}.24hrpm25-ave.196.grib2.temp | awk '{print $5} '` > filesize
    export XLFRTEOPTS="unit_vars=yes"
@@ -177,7 +177,7 @@ EOF5
    export FORT12="filesize"
    export FORT31=
    export FORT51=awpaqm.${cycle}.24hr-pm25-ave.196.grib2
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_ave_24hrpm25_awp.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_24hrpm25_awp.${cycle}.196
    
    
           ##############################

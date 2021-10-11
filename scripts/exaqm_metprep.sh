@@ -15,27 +15,27 @@ msg="JOB $job HAS BEGUN"
 postmsg "$msg"
 
 export pgm=aqm_metprep
-if [ ${RUN} == "HI" ]; then
+if [ ${RUN} == "hi" ]; then
    NCOLS=80
    NROWS=52
    PROJPARM=2.,19.,21.,-157.5,-157.5,20.53
    DOMAINS=-480000.,-312000.,12000.,12000.,80,52
    grd_suffix=${RUN}
-   GRDNAM='AQF_HI'
-elif [ ${RUN} == "AK" ]; then
+   GRDNAM='AQF_hi'
+elif [ ${RUN} == "ak" ]; then
    NCOLS=199
    NROWS=163
    PROJPARM=2.,57.,63.,-148.6,-148.6,63.21
    DOMAINS=-1194000.,-978000.,12000.,12000.,199,163
    grd_suffix=${RUN}
-   GRDNAM='AQF_AK'
-elif [ ${RUN} == "aqm" ]; then
+   GRDNAM='AQF_ak'
+elif [ ${RUN} == "cs" ]; then
    NCOLS=442
    NROWS=265
    PROJPARM=2.,33.,45.,-97.,-97.,40
    DOMAINS=-2508000.,-1716000.,12000.,12000.,442,265
    grd_suffix='05'
-   GRDNAM='AQF_CONUS_5x'
+   GRDNAM='AQF_cs'
 else
    echo "unknown domain ${RUN}"
    exit 1

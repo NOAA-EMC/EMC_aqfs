@@ -98,7 +98,7 @@ export err=$?; err_chk
 # STEP 5: calculating 24-hr ave PM2.5
 if [ ${cyc} -eq 06 -o  ${cyc} -eq 12 ] ; then
 startmsg
-${USHaqm}/aqm_bicor_post_maxi_cs.sh   >> $pgmout 2>errfile
+${USHaqm}/aqm_bicor_pm25_post_maxi_cs.sh   >> $pgmout 2>errfile
 export err=$?; err_chk
 
 # interpolate to grid 227
@@ -138,8 +138,8 @@ typeset -Z2 fhr
 
 case ${cyc} in
  00) endfhr=06;;
- 06) endfhr=${post_proc_hour};;
- 12) endfhr=${post_proc_hour};;
+ 06) endfhr=72;;
+ 12) endfhr=72;;
  18) endfhr=06;;
 esac
 
@@ -174,7 +174,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
   export FORT12="filesize"
   export FORT31=
   export FORT51=aqm.t${cyc}z.grib2_pm25_bc.227.temp
-  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_pm25_bc.${cycle}.227
+  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_pm25_bc.${cycle}.227
   export err=$?;err_chk
 #
   echo `ls -l aqm.t${cyc}z.grib2_pm25_bc.227.temp  | awk '{print $5} '` > filesize
@@ -183,7 +183,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
   export FORT12="filesize"
   export FORT31=
   export FORT51=awpaqm.t${cyc}z.1hpm25-bc.227.grib2
-  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_pm25_bc.${cycle}.227
+  ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_pm25_bc.${cycle}.227
   export err=$?;err_chk
 
 ####################################################
@@ -194,7 +194,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
  export FORT12="filesize"
  export FORT31=
  export FORT51=aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp
- ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
+ ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
 
  echo `ls -l  aqm.${cycle}.max_1hr_pm25_bc.227.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
@@ -202,7 +202,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
  export FORT12="filesize"
  export FORT31=
  export FORT51=awpaqm.${cycle}.daily-1hr-pm25-max-bc.227.grib2
- ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
+ ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_max_1hr_pm25_bc.${cycle}.227
 
  rm filesize
 #  daily_24hr_ave_PM2.5
@@ -212,7 +212,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
  export FORT12="filesize"
  export FORT31=
  export FORT51=aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp
- ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
+ ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
 
  echo `ls -l  aqm.${cycle}.ave_24hr_pm25_bc.227.grib2.temp | awk '{print $5} '` > filesize
  export XLFRTEOPTS="unit_vars=yes"
@@ -220,7 +220,7 @@ if [ ${cyc} -eq 06 -o ${cyc} -eq 12 ] && [ "${SENDCOM}" = "YES" ] ; then
  export FORT12="filesize"
  export FORT31=
  export FORT51=awpaqm.${cycle}.24hr-pm25-ave-bc.227.grib2
- ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
+ ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_24hrpm25_bc_awp.${cycle}.227
 
 ##############################
 # Post Files to PCOM

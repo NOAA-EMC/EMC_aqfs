@@ -46,7 +46,7 @@ export pgm=aqm_fcst_cs
 cd ${DATA}
 
 APPL=v531
-EXEC=aqm_fcst_${APPL}
+EXEC=aqm_cmaq_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
 
@@ -220,7 +220,7 @@ if [ -s "${restart_file}" ]; then
 else
    export START=COLD
    export NEW_START=Y
-   export ICFILE=${FIXaqm}/aqm_conus_12km_cgrid_v531_init.35L.ncf
+   export ICFILE=${FIXaqm}/aqm_cs_12km_cgrid_v531_init.35L.ncf
 fi
 echo $START
 
@@ -234,7 +234,7 @@ STTIME=${cyc}"0000"
 TSTEP=010000
 
 export GRIDDESC=${PARMaqm}/aqm_griddesc05
-export GRID_NAME=AQF_CONUS_5x
+export GRID_NAME=AQF_cs
 
 export LOGFILE=${DATA}/${APPL}.log
 
@@ -399,14 +399,14 @@ fi
 
 #>CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-if [ ! -s ${COMINemi}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/inln_mole_${sectors}_${YM}_12cs_cmaq_cb6_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/inln_mole_${sectors}_${YM}_12cs_cmaq_cb6_2016fh_16j.ncf"
 fi
 
-if [ ! -s ${COMINemi}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/stack_groups_${sectors}_12cs_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/stack_groups_${sectors}_12cs_2016fh_16j.ncf"
 fi
 done
 
@@ -414,12 +414,12 @@ done
 ## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2_12 cmv_c3_12 othpt ; do
-   if [ -s ${COMINemi}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf ] && \
-      [ -s ${COMINemi}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf ]; then
+   if [ -s ${COMINemi}/inln_mole_${sectors}_${YM}_12cs_cmaq_cb6_2016fh_16j.ncf ] && \
+      [ -s ${COMINemi}/stack_groups_${sectors}_12cs_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${COMINemi}/stack_groups_${sectors}_12US_5x_2016fh_16j.ncf
-      export STK_EMIS_${ic}=${COMINemi}/inln_mole_${sectors}_${YM}_12US_5x_cmaq_cb6_2016fh_16j.ncf
+      export STK_GRPS_${ic}=${COMINemi}/stack_groups_${sectors}_12cs_2016fh_16j.ncf
+      export STK_EMIS_${ic}=${COMINemi}/inln_mole_${sectors}_${YM}_12cs_cmaq_cb6_2016fh_16j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=${TYPE_POINT_EMIS_OUT}
       export STK_EM_SYM_DATE_${ic}=F
@@ -483,7 +483,7 @@ fi
 
 if [ "${CTM_BIOGEMIS}" == "Y" ]; then
    export GSPRO=${FIXaqm}/gspro_biogenics.txt
-   export B3GRD=${FIXaqm}/b3grd_CONUS_19Dec20.aggwndj.ncf
+   export B3GRD=${FIXaqm}/b3grd_cs_19Dec20.aggwndj.ncf
    export BIOG_SPRO=B10C6AE7 #< speciation profile to use > e.g. B10C5
    export BIOSW_YN=Y      #< use frost date switch? > defaults to Y
    export SUMMER_YN=N     #< Use summer normalized emissions? > defaults to Y 
@@ -525,14 +525,14 @@ fi
 # OCEAN FILE FOR THE Aerosol run
 #-----------------------------------------------------------------
 
-export OCEAN_1=${FIXaqm}/SSMASK_US12_442X265_igbp2010.ncf
+export OCEAN_1=${FIXaqm}/SSMASK_cs12_442X265_igbp2010.ncf
 
 #> Bidirectional ammonia configuration
 if [ ${CTM_ABFLUX} == 'Y' ]; then
    # need to modify for FEST-C v1.4.
-   export E2C_SOIL=${FIXaqm}/test_soil_5x_new.nc
-   export E2C_CHEM=${COMINemi}/FERT_12km_5x_time${YM}.ncf
-   export E2C_LU=$FIXaqm/beld5_CONUS_19Dec20.aggwndj.ncf
+   export E2C_SOIL=${FIXaqm}/test_soil_cs_new.nc
+   export E2C_CHEM=${COMINemi}/FERT_12km_cs_time${YM}.ncf
+   export E2C_LU=$FIXaqm/beld5_cs_19Dec20.aggwndj.ncf
 fi
 #------------------------------------------------------
 # output files
@@ -564,31 +564,31 @@ if [ "$test" != "" ] ; then
 fi 
 
 ## COMINbc is defined in JAQM_FORECAST_CS for LBC location [same as CMAQ MET location]
-export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
+export BNDY_GASC_1=${FIXaqm}/aqm_cs_12km_geos_2006${MM}_static_FV3_35L.ncf
 if [ ${cycle} = "t00z" ] || [ "${FCST}" == "NO" ]; then    ## if FCST=NO then use previous day LBC for 24-rerun
-   if [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
-   elif [ -s ${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm3}/aqm_conus_geos_fv3chem_aero_${PDYm3}_35L.ncf
+   if [ -s ${COMINm1}/aqm_cs_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_cs_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_cs_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_cs_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   elif [ -s ${COMINm3}/aqm_cs_geos_fv3chem_aero_${PDYm3}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm3}/aqm_cs_geos_fv3chem_aero_${PDYm3}_35L.ncf
    fi
 else
-   if [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
-      if [ "${cycle}" == "t06z" ] && [ -s ${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_t06z_35L.ncf ]; then
-         export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_t06z_35L.ncf
+   if [ -s ${COMIN}/aqm_cs_geos_fv3chem_aero_${PDY}_35L.ncf ]; then
+      if [ "${cycle}" == "t06z" ] && [ -s ${COMIN}/aqm_cs_geos_fv3chem_aero_${PDY}_t06z_35L.ncf ]; then
+         export BNDY_GASC_1=${COMIN}/aqm_cs_geos_fv3chem_aero_${PDY}_t06z_35L.ncf
       else
-         export BNDY_GASC_1=${COMIN}/aqm_conus_geos_fv3chem_aero_${PDY}_35L.ncf
+         export BNDY_GASC_1=${COMIN}/aqm_cs_geos_fv3chem_aero_${PDY}_35L.ncf
       fi
-   elif [ -s ${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm1}/aqm_conus_geos_fv3chem_aero_${PDYm1}_35L.ncf
-   elif [ -s ${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
-      export BNDY_GASC_1=${COMINm2}/aqm_conus_geos_fv3chem_aero_${PDYm2}_35L.ncf
+   elif [ -s ${COMINm1}/aqm_cs_geos_fv3chem_aero_${PDYm1}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm1}/aqm_cs_geos_fv3chem_aero_${PDYm1}_35L.ncf
+   elif [ -s ${COMINm2}/aqm_cs_geos_fv3chem_aero_${PDYm2}_35L.ncf ]; then
+      export BNDY_GASC_1=${COMINm2}/aqm_cs_geos_fv3chem_aero_${PDYm2}_35L.ncf
    fi
 fi
 
 if [ ! -f ${BNDY_GASC_1}  ]; then
-  export BNDY_GASC_1=${FIXaqm}/aqm_conus_12km_geos_2006${MM}_static_FV3_35L.ncf
+  export BNDY_GASC_1=${FIXaqm}/aqm_cs_12km_geos_2006${MM}_static_FV3_35L.ncf
 fi
 
 export BNDY_AERO_1=${BNDY_GASC_1}

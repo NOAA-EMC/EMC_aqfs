@@ -118,8 +118,8 @@ export fhr=01
 
 case $cyc in
  00) endfhr=06;;
- 06) endfhr=${post_proc_hour};;
- 12) endfhr=${post_proc_hour};;
+ 06) endfhr=72;;
+ 12) endfhr=72;;
  18) endfhr=06;;
 esac
 
@@ -213,17 +213,17 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
        export FORT11=aqm.t${cyc}z.ave_${hr}hr_o3_bc.227.grib2
        export FORT12="filesize"
        export FORT31=
-       export FORT51=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
+       export FORT51=grib2.t${cyc}z.awpcsozcon_aqm_${hr}-bc.temp
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
-       echo `ls -l grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp  | awk '{print $5} '` > filesize
+       echo `ls -l grib2.t${cyc}z.awpcsozcon_aqm_${hr}-bc.temp  | awk '{print $5} '` > filesize
        export XLFRTEOPTS="unit_vars=yes"
-       export FORT11=grib2.t${cyc}z.awp5xozconnmmb_aqm_${hr}-bc.temp
+       export FORT11=grib2.t${cyc}z.awpcsozcon_aqm_${hr}-bc.temp
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3-bc.227.grib2
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3_bc-awpozcon.${cycle}.227
        export err=$?;err_chk
 
 ##########################################################
@@ -235,7 +235,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp
-	${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm-${hr}hro3_bc-maxi.${cycle}.227
 
 	echo `ls -l  aqm.t${cyc}z.max_${hr}hr_o3-bc.227.grib2.temp | awk '{print $5} '` > filesize
 	export XLFRTEOPTS="unit_vars=yes"
@@ -243,7 +243,7 @@ if [ $cyc -eq 06 -o $cyc -eq 12 ] && [ "${SENDCOM}" = 'YES' ] ; then
 	export FORT12="filesize"
 	export FORT31=
 	export FORT51=awpaqm.${cycle}.${hr}ho3-max-bc.227.grib2
-	${TOCGRIB2SUPER} < ${PARMaqm}/wmo${post_proc_hour}/grib2_cmaq-${hr}hro3_bc-maxi.${cycle}.227
+	${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm-${hr}hro3_bc-maxi.${cycle}.227
 
 ##############################
 # Post Files to PCOM

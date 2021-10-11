@@ -1,0 +1,54 @@
+suite para
+  family primary
+  family 12
+  family aqm
+    edit PROJ 'AQM'
+    edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/cmaq.%cmaq_ver%
+  family v6.1
+  defstatus complete
+  edit PDY 20210824
+    family hi
+      task jaqm_prep_hi
+        time 12:00
+      task jaqm_forecast_hi
+        trigger jaqm_prep_hi == complete
+      task jaqm_post1_hi
+        trigger jaqm_forecast_hi == complete
+      task jaqm_post3_hi
+        trigger jaqm_post1_hi == complete
+    endfamily
+    family ak
+      task jaqm_prep_ak
+        time 12:00
+      task jaqm_forecast_ak
+        trigger jaqm_prep_ak == complete
+      task jaqm_post1_ak
+        trigger jaqm_forecast_ak == complete
+      task jaqm_post3_ak
+        trigger jaqm_post1_ak == complete
+    endfamily
+    family conus
+      task jaqm_prep_conus
+        time 12:00
+      task jaqm_forecast_conus
+        trigger jaqm_prep_conus == complete
+      task jaqm_post1_conus
+        trigger jaqm_forecast_conus == complete
+        event 1 release_bicor
+      task jaqm_post3_conus
+        trigger jaqm_forecast_conus == complete
+      task jaqm_post_o3_bicor_conus
+        trigger jaqm_post1_conus:release_bicor
+        event 1 release_pm25_bicor
+      task jaqm_post_pm25_bicor_conus
+        trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
+    endfamily
+    family emission
+      task jaqm_emission_ingest
+        time 14:00
+    endfamily
+  endfamily
+  endfamily
+  endfamily
+  endfamily
+endsuite

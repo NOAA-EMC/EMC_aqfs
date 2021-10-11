@@ -40,12 +40,12 @@ set -xa
 msg="JOB ${job} HAS BEGUN"
 postmsg   "${msg}"
 
-export pgm=aqm_fcst_cs
+export pgm=aqm_cmaq_ak
 
 cd ${DATA}
 
 APPL=v531
-EXEC=aqm_fcst_${APPL}
+EXEC=aqm_cmaq_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
 
@@ -527,9 +527,9 @@ export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_199X163.ncf
 #> Bidirectional ammonia configuration
 if [ ${CTM_ABFLUX} == 'Y' ]; then
    # need to modify for FEST-C v1.4.
-   export E2C_SOIL=${FIXaqm}/test_soil_5x_new.nc
-   export E2C_CHEM=${COMINemi}/FERT_12km_5x_time${YM}.ncf
-   export E2C_LU=${FIXaqm}/beld4_AQF_5x_output.ncf
+   export E2C_SOIL=${FIXaqm}/test_soil_cs_new.nc
+   export E2C_CHEM=${COMINemi}/FERT_12km_cs_time${YM}.ncf
+   export E2C_LU=${FIXaqm}/beld4_AQF_cs_output.ncf
 fi
 #------------------------------------------------------
 # output files

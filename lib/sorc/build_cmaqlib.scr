@@ -9,7 +9,7 @@ source ../../versions/build.ver
 #module use ${PACKAGEROOT}/${model}.${aqm_ver}/modulefiles 
 module use $(realpath ../../modulefiles)
 
-module load CMAQ/6.1.0
+module load aqm/6.1.1
 
 module list
 

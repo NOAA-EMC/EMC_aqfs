@@ -32,13 +32,13 @@ SDD=`echo ${PDY} |cut -c7-8`
 export DAYOFYEAR=`date -d ${SYYYY}/${SMM}/${SDD} +%j`
 
 export NET=${NET:-aqm}
-export RUN=${RUN:-aqm}
+export RUN=${RUN:-cs}
 
-export COMIN=${COMIN:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
-export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm1})}
+export COMIN=${COMIN:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
+export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
 
-export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDY})}
-export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${cmaq_ver}/${RUN}.${PDYm1})}
+export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
+export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
 
 export COMINgfs=${COMINgfs:-$(compath.py gfs/${gfs_ver}/gfs.${PDY}/${cyc}/atmos)}
 export COMINgfsm1=${COMINgfsm1:-$(compath.py gfs/${gfs_ver}/gfs.${PDYm1}/${cyc}/atmos)}

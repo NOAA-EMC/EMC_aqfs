@@ -210,7 +210,7 @@ fi
        export FORT12="filesize"
        export FORT31=
        export FORT51=grib2.t${cyc}z.awp${RUN}ozconnmmb_aqm_${hr}.temp
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.196
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3-awpozcon.${cycle}.196
        export err=$?;err_chk
 #
        echo `ls -l grib2.t${cyc}z.awp${RUN}ozconnmmb_aqm_${hr}.temp  | awk '{print $5} '` > filesize
@@ -219,7 +219,7 @@ fi
        export FORT12="filesize"
        export FORT31=
        export FORT51=awpaqm.t${cyc}z.${hr}ho3.196.grib2
-       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_cmaq_ave_${hr}hr_o3-awpozcon.${cycle}.196
+       ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_ave_${hr}hr_o3-awpozcon.${cycle}.196
        export err=$?;err_chk
 
        ##############################
@@ -254,7 +254,7 @@ fi
    export FORT12="filesize"
    export FORT31=
    export FORT51=grib2.t${cyc}z.awp${RUN}pm25nmmb.temp
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_${RUN}pm25nmmb.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_${RUN}pm25nmmb.${cycle}.196
    export err=$?;err_chk
 #
    echo `ls -l grib2.t${cyc}z.awp${RUN}pm25nmmb.temp  | awk '{print $5} '` > filesize
@@ -263,7 +263,7 @@ fi
    export FORT12="filesize"
    export FORT31=
    export FORT51=grib2.t${cyc}z.awp${RUN}pm25nmmb.196
-   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo72/grib2_aqm_${RUN}pm25nmmb.${cycle}.196
+   ${TOCGRIB2SUPER} < ${PARMaqm}/wmo/grib2_aqm_${RUN}pm25nmmb.${cycle}.196
    export err=$?;err_chk
 
 ##############################

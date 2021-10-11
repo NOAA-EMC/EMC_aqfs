@@ -121,20 +121,20 @@ Species Converting Factor
 !
 
    export IOAPI_ISPH=20 # make consistent with met-preprocessor R_earth=6370000m
-   if [ ${RUN} = 'aqm' ]; then
+   if [ ${RUN} = 'cs' ]; then
       export GRIDDESC=${PARMaqm}/aqm_griddesc05
-      export GRID_NAME=AQF_CONUS_5x
-      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.5x.ncf
+      export GRID_NAME=AQF_cs
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.cs.ncf
       regid='cs'
-   elif [ ${RUN} = 'HI' ]; then
-      export GRIDDESC=${PARMaqm}/aqm_griddescHI
-      export GRID_NAME=AQF_HI
-      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.HI.ncf
+   elif [ ${RUN} = 'hi' ]; then
+      export GRIDDESC=${PARMaqm}/aqm_griddeschi
+      export GRID_NAME=AQF_hi
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.hi.ncf
       regid=${RUN}
-   elif [ ${RUN} = 'AK' ]; then
-      export GRIDDESC=${PARMaqm}/aqm_griddescAK
-      export GRID_NAME=AQF_AK
-      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.AK.ncf
+   elif [ ${RUN} = 'ak' ]; then
+      export GRIDDESC=${PARMaqm}/aqm_griddescak
+      export GRID_NAME=AQF_ak
+      export TOPO=${FIXaqm}/aqm_gridcro2d.landfac.ak.ncf
       regid=${RUN}
    else
       echo " unknown domain ${RUN} "
