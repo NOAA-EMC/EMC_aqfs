@@ -10,7 +10,7 @@ cd ${DATA}
 
 export cycle=${cycle:-t${cyc}z}
 setpdy.sh
-. PDY
+. ./PDY
 
 export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
