@@ -2,7 +2,7 @@ setenv ("envir","canned")
 setenv ("aqm_model","aqm") 
 
 setenv ("sys","uname sysname")
-setenv ("aqm","/lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/aqm.v6.1.1/modulefiles/aqm")
+setenv ("aqm","/lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/aqm.v6.1.2/modulefiles/aqm")
 setenv ("lname","aqm")
 
 
@@ -53,9 +53,6 @@ load ("libjpeg",libjpeg_ver)
 
 local netcdf_ver=os.getenv("netcdf_ver")
 load ("netcdf",netcdf_ver)
-
-local hdf5_ver=os.getenv("hdf5_ver")
-load ("hdf5",hdf5_ver)
 
 local g2_ver=os.getenv("g2_ver")
 load ("g2",g2_ver)
