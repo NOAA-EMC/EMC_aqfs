@@ -48,6 +48,7 @@ export COMINgefsm1=${COMINgefsm1:-$(compath.py gefs/${gefs_ver}/gefs.${PDYm1})}
 
 export LBC_INI=${LBC_INI:-0}     
 export LBC_END=${LBC_END:-120}  
+#export LBC_END=${LBC_END:-24}  
 export LBC_FREQ=${LBC_FREQ:-3} 
 
 export COMINfire=${COMINfire:-${DCOMROOT}/${PDY}/firewx}

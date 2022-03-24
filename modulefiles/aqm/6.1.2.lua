@@ -1,4 +1,4 @@
-setenv ("envir","canned") 
+setenv ("envir","prod") 
 setenv ("aqm_model","aqm") 
 
 setenv ("sys","uname sysname")
@@ -26,6 +26,9 @@ load ("cray-pals",cray_pals_ver)
 
 local nemsio_ver=os.getenv("nemsio_ver")
 load ("nemsio",nemsio_ver)
+
+local nemsiogfs_ver=os.getenv("nemsiogfs_ver")
+load ("nemsiogfs",nemsiogfs_ver)
 
 local w3emc_ver=os.getenv("w3emc_ver")
 load ("w3emc",w3emc_ver)

@@ -18,6 +18,7 @@ export netcdf_ver=4.7.4
 export hdf5_ver=1.10.6
 
 export nemsio_ver=2.5.2
+export nemsiogfs_ver=2.5.3
 export bacio_ver=2.4.1
 export w3emc_ver=2.9.2
 export w3nco_ver=2.4.1
@@ -33,7 +34,8 @@ export prod_util_ver=2.0.13
 export grib_util_ver=1.2.3
 export wgrib2_ver=2.0.8
 
-export envir=canned
+#export envir=canned
+export envir=prod
 
 export PACKAGEROOT=/lfs/h2/emc/physics/noscrub/$USER/$envir/packages
 export HOMEaqm=$PACKAGEROOT/$model.$version
