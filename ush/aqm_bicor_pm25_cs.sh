@@ -29,14 +29,15 @@ fi
 
 rm -rf data
 
-mkdir -p data sites data/coords
+mkdir -p ${DATA}/data  ${DATA}/sites  ${DATA}/data/coords
 
-ln -s $PARMaqm/aqm.*grdcro2d.ncf  data/coords/
-ln -s $COMINm1/aqm_sites.valid.pm25.$PDYm1.12z.list sites/sites.valid.pm25.12z.list
+cp -rp  $PARMaqm/aqm.*grdcro2d.ncf   ${DATA}/data/coords/
 
-ln -s ${COMINbicordat}/bcdata* data/
+ln -s $COMINm1/aqm_sites.valid.pm25.$PDYm1.12z.list ${DATA}/sites/sites.valid.pm25.12z.list
 
-ln -s $PARMaqm/aqm_bias_thresholds.pm2.5.2015.1030.32-sites.txt ./bias_thresholds.pm2.5.2015.1030.32-sites.txt 
+ln -s ${COMINbicordat}/bcdata* ${DATA}/data/
+
+ln -s $PARMaqm/aqm_bias_thresholds.pm2.5.2015.1030.32-sites.txt ${DATA}/bias_thresholds.pm2.5.2015.1030.32-sites.txt 
 
 startmsg  
 #aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
