@@ -1,0 +1,66 @@
+suite para
+  family primary
+  family 06
+  family aqm
+    edit PROJ AQM
+    edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/aqm.%aqm_ver%
+    defstatus complete
+    family v6.1
+    edit PDY 20210824
+    family hi
+      task jaqm_prep_hi
+        time 10:00
+        edit NODES 1
+  	edit NCPUS 73
+        edit PTILE 73
+	edit MEM   360
+      task jaqm_forecast_hi
+        trigger jaqm_prep_hi == complete
+      task jaqm_post1_hi
+        trigger jaqm_forecast_hi == complete
+      task jaqm_post3_hi
+        trigger jaqm_post1_hi == complete
+    endfamily
+    family ak
+      task jaqm_prep_ak
+        time 10:00
+        edit NODES 1
+  	edit NCPUS 73
+        edit PTILE 73
+	edit MEM   360
+      task jaqm_forecast_ak
+        trigger jaqm_prep_ak == complete
+      task jaqm_post1_ak
+        trigger jaqm_forecast_ak == complete
+      task jaqm_post3_ak
+        trigger jaqm_post1_ak == complete
+    endfamily
+    family conus
+      task jaqm_prep_conus
+        time 10:00
+        edit NODES 2
+  	edit NCPUS 73
+        edit PTILE 37
+	edit MEM   450
+      task jaqm_prep_ana_cs
+        time 08:35
+      task jaqm_fcst_ana_cs
+        trigger jaqm_prep_ana_cs == complete
+      task jaqm_forecast_conus
+        trigger jaqm_prep_conus == complete and jaqm_fcst_ana_cs == complete
+      task jaqm_post1_conus
+        trigger jaqm_forecast_conus == complete
+        event 1 release_bicor
+      task jaqm_post3_conus
+        trigger jaqm_forecast_conus == complete
+      task jaqm_post_o3_bicor_conus
+        trigger jaqm_post1_conus:release_bicor
+        event 1 release_pm25_bicor
+      task jaqm_post_pm25_bicor_conus
+        trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
+    endfamily
+  endfamily # version
+  endfamily # aqm
+  endfamily # 06
+  endfamily # primary
+endsuite

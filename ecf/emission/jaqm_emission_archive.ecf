@@ -1,0 +1,61 @@
+#BSUB -J %E%aqm_emission_archive
+#BSUB -o %COM%/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -e %COM%/output/%ENVIR%/today/aqm_emission_archive.o%J
+#BSUB -L /bin/sh
+#BSUB -q %QUEUE%
+#BSUB -M 3000
+#BSUB -cwd /tmp
+#BSUB -W 01:30
+#BSUB -P %PROJ%-%PROJENVIR%
+
+module purge
+%include <head.h>
+%include <envir-p2.h>
+
+model=cmaq
+%include <model_ver.h>
+
+set -x
+
+##############################################
+# To SOS- please set it complete if it failed
+# DO NOT RERUN.  SPA will take care of failure
+#############################################
+
+#############################################
+#RUN_DAY=16 as the default
+#If rerun is needed, please
+#export RUN_DAY=dd, 
+#where dd is the day of month to be rerun
+#Note that the HPSS archive dir needs to clean
+#up before the rerun.
+###############################################
+
+export cyc=%CYC%
+export NODES=1
+
+${HOMEcmaq}/jobs/JAQM_EMISSION_ARCHIVE
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that archive the AQM emission and jtable 
+#  files from /%COM%/aqm/prod/emission to HPSS
+#
+######################################################################
+
+######################################################################
+# Job specific troubleshooting instructions:
+#  see generic troubleshoot manual page
+#
+######################################################################
+
+# include manual page below
+%end

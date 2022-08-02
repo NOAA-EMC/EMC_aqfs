@@ -1,0 +1,70 @@
+#PBS -N aqm_prep_conus_%CYC%
+#PBS -j oe
+#PBS -S /bin/bash
+#PBS -q %QUEUE%
+#PBS -l walltime=00:30:00
+#PBS -A %PROJ%-%PROJENVIR%
+##PBS -l place=shared,select=2:ncpus=73:mpiprocs=37:mem=450GB
+##PBS -l place=shared,select=%NODES:1%:ncpus=%NCPUS:73%:mpiprocs=%PTILE:73%:mem=%MEM:450%GB
+##PBS -l place=vscatter:exclhost,select=%NODES:1%:ncpus=%NCPUS:73%:mpiprocs=%PTILE:73%
+#PBS -l place=shared,select=%NODES:1%:prepost=true:ncpus=%NCPUS:73%:mpiprocs=%PTILE:73%:mem=%MEM:450%GB
+#PBS -l debug=true
+
+model=aqm
+%include <head.h>
+%include <envir-p1.h>
+
+module load intel/${intel_ver:?}
+module load craype/${craype_ver:?}
+module load cray-mpich/${cray_mpich_ver:?}
+module load cray-pals/${cray_pals_ver:?}
+module load netcdf/${netcdf_ver:?}
+module load hdf5/${hdf5_ver:?}
+module load nemsio/${nemsio_ver:?}
+module load bacio/${bacio_ver:?}
+module load w3emc/${w3emc_ver:?}
+module load w3nco/${w3nco_ver:?}
+module load jasper/${jasper_ver:?}
+module load libpng/${libpng_ver:?}
+module load libjpeg/${libjpeg_ver:?}
+module load grib_util/${grib_util_ver:?}
+module load python/${python_ver:?}
+module load wgrib2/${wgrib2_ver:?}
+module list
+
+export OMP_NUM_THREADS=1
+export cyc=%CYC%
+export RUN=cs
+export FCST=YES
+
+${HOMEaqm}/jobs/JAQM_PREP
+
+if [ $? -ne 0 ]; then
+   ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
+   ecflow_client --abort
+   exit
+fi
+
+%include <tail.h>
+%manual
+######################################################################
+#
+#  PURPOSE:  To execute the job that runs the PREMAQ CONUS of the AQM.
+#
+######################################################################
+#
+# ecflow file dependency
+# start when following GFS file is completed
+#
+# case $CYC% in
+#    00) gfs_hour=006;;
+#    06) gfs_hour=072;;
+#    12) gfs_hour=072;;
+#    18) gfs_hour=006;;
+# esac
+#
+# /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour}.nc
+#
+# Or if [ -s /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour+1}.nc]; 
+#    
+%end

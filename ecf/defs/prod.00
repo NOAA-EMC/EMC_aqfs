@@ -1,0 +1,75 @@
+suite prod
+  family primary
+  family 00
+  
+  family gfs
+    family v16.2
+    family gfs
+    family atmos
+    family post
+      task jgfs_atmos_post_manager
+        event release_post006
+    endfamily
+    endfamily
+    endfamily
+    endfamily
+  endfamily
+
+  family aqm
+    edit PROJ AQM
+    edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/aqm.%aqm_ver%
+    family v6.1
+    defstatus complete
+    family hi
+      task jaqm_prep_hi
+        edit NODES 1
+        edit NCPUS 7
+        edit PTILE 7
+        edit MEM   256
+	trigger /prod/primary/00/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post006
+      task jaqm_forecast_hi
+        trigger jaqm_prep_hi == complete
+      task jaqm_post1_hi
+        trigger jaqm_forecast_hi == complete
+      task jaqm_post3_hi
+        trigger jaqm_post1_hi == complete
+    endfamily
+    family ak
+      task jaqm_prep_ak
+        edit NODES 1
+        edit NCPUS 7
+        edit PTILE 7
+        edit MEM   256
+	trigger /prod/primary/00/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post006
+      task jaqm_forecast_ak
+        trigger jaqm_prep_ak == complete
+      task jaqm_post1_ak
+        trigger jaqm_forecast_ak == complete
+      task jaqm_post3_ak
+        trigger jaqm_post1_ak == complete
+    endfamily
+    family conus
+      task jaqm_prep_conus
+        edit NODES 1
+        edit NCPUS 7
+        edit PTILE 7
+        edit MEM   256
+	trigger /prod/primary/00/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post006
+      task jaqm_forecast_conus
+        trigger jaqm_prep_conus == complete
+      task jaqm_post1_conus
+        trigger jaqm_forecast_conus == complete
+        event 1 release_bicor
+      task jaqm_post3_conus
+        trigger jaqm_forecast_conus == complete
+      task jaqm_post_o3_bicor_conus
+        trigger jaqm_post1_conus:release_bicor
+        event 1 release_pm25_bicor
+      task jaqm_post_pm25_bicor_conus
+        trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
+    endfamily
+  endfamily # version
+  endfamily # aqm
+  endfamily # 00
+  endfamily # primary
+endsuite
