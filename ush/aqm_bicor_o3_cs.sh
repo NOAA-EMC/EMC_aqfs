@@ -28,11 +28,11 @@ fi
 
 rm -rf data
 
-mkdir -p data sites data/coords
+mkdir -p ${DATA}/data ${DATA}/sites ${DATA}/data/coords
 
-ln -s $PARMaqm/aqm.*grdcro2d.ncf  data/coords/
+cp -rp  $PARMaqm/aqm.*grdcro2d.ncf  ${DATA}/data/coords/
 
-ln -s ${COMINbicordat}/bcdata* data/
+ln -s ${COMINbicordat}/bcdata* ${DATA}/data/
 
 startmsg  
 $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.bias_corr  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
