@@ -60,8 +60,8 @@ fi
 ##
    ic=1
    while [ $ic -lt 120 ]; do
-      if [ -s ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
-         echo " ${COMOUTbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
+      if [ -s ${COMINbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf ]; then
+         echo " ${COMINbicor}/grid/${PDY}/aqm.${cycle}.O3_pm25.ncf  exists ! "
          break
       else
          ((ic++))
