@@ -57,15 +57,17 @@ export LBC_FREQ=${LBC_FREQ:-3}
 #
 # Alternative choice is to remove line 60 and define DCOMIN in the ECF script for dev/dcom and  para/dcom testing
 #
-export DCOMIN=/lfs/h1/ops/dev/dcom
-export DCOMIN=${DCOMIN:-${DCOMROOT}}
+export DCOMINfire=/lfs/h1/ops/dev/dcom
+export DCOMINfire=${DCOMINfire:-${DCOMROOT}}
 #
-export COMINfire=${COMINfire:-${DCOMIN}/${PDY}/firewx}
-export COMINfirem1=${COMINfirem1:-${DCOMIN}/${PDYm1}/firewx}
-export COMINfirem2=${COMINfirem2:-${DCOMIN}/${PDYm2}/firewx}
+export COMINfire=${COMINfire:-${DCOMINfire}/${PDY}/firewx}
+export COMINfirem1=${COMINfirem1:-${DCOMINfire}/${PDYm1}/firewx}
+export COMINfirem2=${COMINfirem2:-${DCOMINfire}/${PDYm2}/firewx}
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
+echo $COMINgvf
+echo $DCOMROOT
 export COMINgvf=${COMINgvf:-${DCOMROOT}/viirs}
 export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}      ## use j01 data first
 export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_v2r3_npp}  ## use npp as 2nd choice
