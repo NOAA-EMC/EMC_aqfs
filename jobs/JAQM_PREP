@@ -66,8 +66,6 @@ export COMINfirem2=${COMINfirem2:-${DCOMINfire}/${PDYm2}/firewx}
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
-echo $COMINgvf
-echo $DCOMROOT
 export COMINgvf=${COMINgvf:-${DCOMROOT}/viirs}
 export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}      ## use j01 data first
 export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_v2r3_npp}  ## use npp as 2nd choice
