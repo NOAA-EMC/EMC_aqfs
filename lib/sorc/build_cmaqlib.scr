@@ -1,0 +1,32 @@
+#!/bin/sh
+
+BASE=`pwd`
+
+module purge
+
+source ../../versions/build.ver 
+
+#module use ${PACKAGEROOT}/${model}.${aqm_ver}/modulefiles 
+module use $(realpath ../../modulefiles)
+
+module load aqm/6.1.2
+
+module list
+
+##########################
+for src in ioapi_v32
+do
+ export BASEDIR=${BASE}/aqm_${src}
+ export BIN=Linux2_x86_64ifort
+ export IOAPI_OFFSET_64=YES
+ cd ${BASE}/aqm_${src}
+ mkdir -p $BIN
+ make configure
+ cd ioapi
+ make -f Makefile all
+ make -f Makefile install
+ make -f Makefile clobber
+done
+
+##############################
+

@@ -1,0 +1,90 @@
+#!/bin/ksh
+#
+#. $MODULESHOME/init/ksh
+
+set -xa
+export PS4='$SECONDS + '
+date -u
+
+############################################
+# Set up environment for AIR QUALITY FCST
+############################################
+export NET=aqm
+export RUN=aqm
+############################################
+
+export SENDMAIL=${SENDMAIL:-Y}   ### use SENDMAIL to avoid confusion with /usr/sbin/sendmail
+
+#####################################
+export DATAROOT=${DATAROOT:-/lfs/f1/ops/prod/tmp}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
+mkdir -p $DATA
+cd $DATA
+
+####################################
+# File To Log Msgs
+####################################
+
+####################################
+# Determine Job Output Name on System
+####################################
+export pgmout="OUTPUT.$$"
+
+export cycle=${cycle:-t${cyc}z}
+
+export SENDCOM=${SENDCOM:-YES}
+
+####################################
+# Path to HOME Directory
+####################################
+export USHaqm=${USHaqm:-$HOMEaqm/ush}
+
+###################################
+# Set up the UTILITIES
+###################################
+#module load prod_util
+#module load grib_util
+
+# Run setup to initialize working directory and utility scripts
+msg="JOB $job HAS BEGUN"
+postmsg "$msg"
+
+# Run setpdy and initialize PDY variables
+export cycle=t12z
+setpdy.sh
+. ./PDY
+
+export RUN_DAY=${RUN_DAY:-16}
+
+export DCOMIN=${DCOMIN:-${DCOMROOT}/aqm_emission}
+export COMOUT=${COMOUT:-$(compath.py $NET/$aqm_ver)/emission}
+#export COMOUThps=${COMOUThps:-/lfs/h1/ops/$envir/com/${NET}/${aqm_ver}/emission}
+env
+
+#############################################################
+# get the current day
+##############################################################
+current_day=`date +%d`
+echo " the current day= $current_day"
+
+#############################################################
+# execute the script
+#############################################################
+if (( ${current_day} == ${RUN_DAY} ))
+then
+   $HOMEaqm/scripts/exaqm_emission_ingest.sh
+fi
+
+#cat $pgmout
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg "$msg"
+
+###################################
+# Remove temp directories
+###################################
+if [ "$KEEPDATA" != "YES" ] ; then
+  cd $DATAROOT
+  rm -rf $DATA
+fi
+
+date

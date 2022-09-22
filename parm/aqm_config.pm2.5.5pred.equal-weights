@@ -1,0 +1,205 @@
+*--------------------------------------------------------------------------
+*
+* Configuration file for bias_correct.f90.
+* Current target:  PSD or Theia.
+*
+* 2014-jun-13	Original PSD test version for PM2.5.  By Dave Allured.
+* 2014-jul-18	First release version for Zeus.
+*
+* 2016-jan-20	Add site exception file.
+* 2016-feb-09	Add filter method, number of analogs, common debug controls.
+* 2016-feb-26	Release version.  Partial production settings for NCEP.
+*
+* 2017-apr-19	Ozone test version.  Eight predictors.
+* 2017-may-11	Add support for predictor weights and weight generation.
+* 2017-jun-01	Add obs blackout start and end dates.
+*
+* 2017-jul-11	Release version for ozone.  Eight predictors, equal weights.
+* 2017-jul-11	Release version for PM2.5.  Five predictors, equal weights.
+*		Switch from previous CSDSF solar radiation, to
+*		  RGRND = surface solar radiation.
+*
+* Blank lines and asterisk in column 1 are comment lines.
+* Tables are free format, space delimited.
+* Most names are case sensitive.
+*
+* General rules for paths and path templates:
+*
+* Paths may begin with an environment variable, e.g. $DATA/...
+* Both relative and absolute paths are supported.
+* Template codes YYYY, MM, DD, and HH will be replaced with date
+*   and time strings within the usage context.
+* Multiple substitutions within each template are supported.
+*
+*--------------------------------------------------------------------------
+
+*-------------------------------------------------
+* Input and output file settings.
+*-------------------------------------------------
+
+* File templates.
+
+obs file template           = data/bcdata.YYYYMM/airnow/YYYY/YYYYMMDD/b008/xx031
+interp file template        = data/bcdata.YYYYMM/interpolated/pm25/YYYY/forecasts.interp.YYYYMMDD.HHz.nc
+gridded input file template = data/bcdata.YYYYMM/grid/YYYYMMDD/aqm.tHHz.O3_pm25.ncf
+output file template        = out/pm2.5.corrected.YYYYMMDD.HHz.nc
+new site list template      = sites/sites.valid.pm25.YYYYMMDD.HHz.list
+
+* Grid coordinate file.
+
+grid coordinate file        = data/coords/aqm.t12z.grdcro2d.ncf
+
+* Predictor weights file.
+* "equal weights" for no file, all equal weights, all sites.
+
+* The SUBSET keyword, if included, will be replaced with first
+* and last weight set index numbers (subset ID's) from weight
+* generation.
+*
+* The SUBSET keyword will be OMITTED from the weight file name
+* when subsetting is not selected in weight generation.  The
+* SUBSET keyword will also be omitted in normal bias correction
+* mode.
+*
+* This behavior allows the same weight file name template to be
+* shared between normal and weight generation modes.
+*
+* For correct operation, the SUBSET keyword must be preceeded
+* and followed by single period characters.
+
+predictor weights file      = equal weights
+
+* Site exception list for bias thresholds.
+* "none" to disable.
+
+site exception file         = bias_thresholds.pm2.5.2015.1030.32-sites.txt
+*site exception file         = none
+
+*-------------------------------------------------
+* Select analog variables.
+*-------------------------------------------------
+
+* Target variable for bias correction.
+* Different var names within obs and model input data sets.
+
+* Note, obs and model target vars must be the same quantity
+* for valid bias correction.  User is responsible.
+
+target obs variable         = COPOPM
+target model variable       = pm25
+
+* Analog variable table; each variable to be included in current analysis.
+
+* Table begins with a line of dashes that must not be commented.
+* Table ends with a blank line or end of file.
+* Var names are the model var names in interpolated files, NOT obs var names.
+* Optional C suffix means limits are in Centigrade; for temperature only.
+* Circular is Y or N to indicate 0-360 circular variables, e.g. wind direction.
+
+* Reference for these current model var names are CMAQ and MET
+* gridded model output archives provided by Pius Lee of NOAA/ARL.
+
+*Var name  Min valid  Max valid  Circular  Comment
+---------  ---------  ---------  --------  -----------------------------------
+pm25             0        250       N      PM2.5 concentration
+RGRND            0       1500       N      Solar radiation reaching surface
+TEMP2          -50C        50C      N      Temperature, 2 meters
+WDIR10           0        360       Y      Wind direction, 10 meters
+WSPD10           0        100       N      Wind speed, 10 meters
+
+*-------------------------------------------------
+* Input filter controls.
+*-------------------------------------------------
+
+* Obs data blackout interval, to suppress all obs within problematic
+* time interval, such as Fourth of July.
+*
+* Each date/time format is MM DD HHz.  Leading zeros not required.
+* Date and time are referenced to original labeling of the obs data.
+* Leave blank for no blackout interval.
+*
+* Interval is inclusive.  Both start and end dates/times are blacked out,
+* along with all intervening times.
+*
+* Blackout applies to the same dates in every calendar year within
+* the input obs data.
+
+obs blackout start date     = 7 4 12z
+obs blackout end date       = 7 6 11z
+
+*-------------------------------------------------
+* Analog filter controls.
+*-------------------------------------------------
+
+* Select filter method.  See main_analog.f90.
+* Note, AnEnMean MUST be selected for weight generation.
+
+*filter method               = AnEnMean
+filter method               = KFAN
+
+number of analogs           = 10
+
+*Use for PM 2.5 (01-19-2018)
+*bias formula = mean (forecast plus model predictions) plus bias
+*Use for Ozone (01-19-2018)
+bias formula = forecast plus bias
+*-------------------------------------------------
+* Post processing controls.
+*-------------------------------------------------
+
+* See spreading.f90.
+
+*output limit method         = hard zero
+output limit method         = revert to fraction of uncorrected
+*output limit method         = none
+
+*-------------------------------------------------
+* Weight generation controls.
+*-------------------------------------------------
+
+* See weight_control.f90.
+
+* Note, actual weight generation is enabled on bias_correct command line.
+
+* Weight generation controls are used only in weight generation mode.
+
+* Number of weight increments to distribute across all weight combinations.
+* E.g. 10 = increments of 0.1
+* Note, each complete weight combination will sum to 1.0 (normalized).
+
+number of weight increments              = 10
+
+* First day number to calculate test forecasts for weight generation.
+* Relative to day 1 = start of full training period.
+
+forecast start day for weight generation = 31
+
+* Last forecast hour to calculate test forecasts for weight generation.
+
+last forecast hour for weight generation = 48
+
+*-------------------------------------------------
+* Debug and diagnostic settings.
+*-------------------------------------------------
+
+* Note, "diag" verbosity control is on the main command line.
+
+* Template for test site output files.
+* SSS = site index number.
+* "none" to disable.
+
+*site file template          = pm2.5/sites/bias.HHz.site-SSSS.txt
+site file template          = none
+
+* Template for filter intermediate test output file.
+* DDDD = day serial number.
+* "none" to disable.
+
+*filter array file template  = pm2.5/bias.HHz.DDDD.txt
+filter array file template  = none
+
+* Stop after filter, before spreading.  For testing and evaluation only.
+
+stop after filter           = no
+
+* End of config file.

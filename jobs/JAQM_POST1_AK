@@ -1,0 +1,62 @@
+#!/bin/ksh
+
+date
+export PS4=' $SECONDS + '
+set -x
+
+export DATA=${DATA:-${DATAROOT}/${jobid}}
+mkdir -p ${DATA}
+cd ${DATA}
+
+export cycle=${cycle:-t${cyc}z}
+setpdy.sh
+. ./PDY
+
+export SENDDBN=${SENDDBN:-YES}
+export SENDECF=${SENDECF:-YES}
+export SENDCOM=${SENDCOM:-YES}
+export SENDDBN_NTC=${SENDDBN_NTC:-NO}
+
+export USHaqm=${USHaqm:-${HOMEaqm}/ush}
+export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
+export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
+export FIXaqm=${FIXaqm:-${HOMEaqm}/fix}
+export UTILaqm=${UTILaqm:-${HOMEaqm}/util}
+
+export NET=${NET:-aqm}
+export RUN=${RUN:-ak}
+
+export COMIN=${COMIN:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDY})}
+export COMINm1=${COMINm1:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
+export COMINm2=${COMINm2:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm2})}
+export COMINm3=${COMINm3:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm3})}
+
+export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
+export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
+
+export PCOM=${PCOM:-${COMOUT}/wmo}
+
+mkdir -p ${COMOUT} ${PCOM}
+
+export pgmout=OUTPUT.$$
+
+export KEEPDATA=${KEEPDATA:-YES}
+
+env
+
+${HOMEaqm}/scripts/exaqm_post1_cb6r3_ak.sh
+export err=$?; err_chk
+
+if [ "${cyc}" == "06" ] || [ "${cyc}" == "12" ]; then
+  ${HOMEaqm}/scripts/exaqm_post1_cb6r3_ak.maxi.sh
+  export err=$?; err_chk
+fi
+
+if [ -s ${pgmout} ]; then cat ${pgmout}; fi
+
+msg="JOB $job HAS COMPLETED NORMALLY."
+postmsg   "${msg}"
+
+if [ "${KEEPDATA}" != "YES" ] ; then rm -rf ${DATA}; fi
+
+date
