@@ -22,7 +22,7 @@ set -x
 if [ ${USER::4} != ops. ]; then
   export maillist=$(whoami)@noaa.gov
 elif [ $envir != prod ]; then
-  export maillist="nco.spa@noaa.gov"
+  export maillist=${maillist:-"nco.spa@noaa.gov"}
 else
   export maillist="nco.spa@noaa.gov,youhua.tang@noaa.gov,ho-chun.huang@noaa.gov"
 fi
@@ -88,7 +88,7 @@ if (( $no_files_in_dcom == 0 )); then
    if [ $SENDMAIL = 'Y' ]; then 
     subject="FATAL --- No ARL AQM monthly emission file in /dcom directory"
     echo " FATAL ERROR --- No ARL AQM monthly emission file in $in_dir" > email_body
-    cat email_body |maili.py -s "$subject" $maillist
+    cat email_body |mail.py -s "$subject" $maillist
    fi
     err_exit "FATAL ERROR- No ARL AQM monthly emission file in $in_dir"
 fi

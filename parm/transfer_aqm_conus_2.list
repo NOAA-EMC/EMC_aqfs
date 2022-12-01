@@ -37,6 +37,7 @@ _COMROOT_/aqm/_SHORTVER_/cs._PDY_/
 + /sites.*.list
 + /aqm.t??z.grib2_*pm25nmmb.227
 + /wmo
++ /wmo/*
 - *
 B 231000
 # This directory is a good candidate for compression
@@ -56,6 +57,7 @@ _COMROOT_/aqm/_SHORTVER_/cs._PDYm1_/
 + /sites.*.list
 + /aqm.t??z.grib2_*pm25nmmb.227
 + /wmo
++ /wmo/*
 - *
 B 231000
 # This directory is a good candidate for compression

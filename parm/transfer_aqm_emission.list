@@ -22,10 +22,9 @@
 # Rules higher in the list take precedence over lower ones.  By default, all files in a
 # directory are included, so if no exclude patterns match that file, it will be
 # transferred.
-
 # This directory is a good candidate for compression
 #Z
-_
+
 _COMROOT_/aqm/_SHORTVER_/emission/
 + /_MONPREV_/***
 + /_MONCUR_/***
@@ -41,6 +40,7 @@ _COMROOT_/aqm/_SHORTVER_/bcdata._MONPREV_/
 B 1000
 # This directory is a good candidate for compression
 #Z
+
 _COMROOT_/aqm/_SHORTVER_/bcdata._MONCUR_/
 B 1000
 # This directory is a good candidate for compression

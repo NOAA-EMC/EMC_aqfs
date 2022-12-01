@@ -49,17 +49,7 @@ export LBC_INI=${LBC_INI:-0}
 export LBC_END=${LBC_END:-120}  
 export LBC_FREQ=${LBC_FREQ:-3} 
 
-#
-# NOTE for NCO SPA  on v6.1.3 update
-# please remove line 60
-#           export DCOMIN=/lfs/h1/ops/dev/dcom
-# before implementation
-#
-# Alternative choice is to remove line 60 and define DCOMIN in the ECF script for dev/dcom and  para/dcom testing
-#
-export DCOMINfire=/lfs/h1/ops/dev/dcom
 export DCOMINfire=${DCOMINfire:-${DCOMROOT}}
-#
 export COMINfire=${COMINfire:-${DCOMINfire}/${PDY}/firewx}
 export COMINfirem1=${COMINfirem1:-${DCOMINfire}/${PDYm1}/firewx}
 export COMINfirem2=${COMINfirem2:-${DCOMINfire}/${PDYm2}/firewx}

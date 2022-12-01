@@ -1,5 +1,5 @@
-export gfs_ver=v16.2
-export gefs_ver=v12.2
+export gfs_ver=v16.3
+export gefs_ver=v12.3
 
 export envvar_ver=1.0
 export PrgEnv_intel_ver=8.1.0
@@ -30,30 +30,7 @@ export wgrib2_ver=2.0.8
 export hdf5_ver=1.10.6
 
 # temporary:
-export SENDCANNEDDBN=YES
-export DATAFS=h1
-export COMPATH=/lfs/h1/ops/canned/com/gfs:/lfs/h1/ops/canned/com/gefs
-CRUN=$(echo $ECF_NAME | grep -oP "/\K(conus|hi|ak)(?=/)" | sed 's|conus|cs|')
-if [[ $ECF_NAME =~ "_prep" ]]; then inenvir=canned; else inenvir=para; fi
-export COMIN=/lfs/h1/ops/$inenvir/com/aqm/v6.1/${CRUN}.20210824
-export COMINm1=/lfs/h1/ops/$inenvir/com/aqm/v6.1/${CRUN}.20210823
-export COMINm2=/lfs/h1/ops/$inenvir/com/aqm/v6.1/${CRUN}.20210822
-export COMINm3=/lfs/h1/ops/$inenvir/com/aqm/v6.1/${CRUN}.20210821
-export DCOMROOT=/lfs/h1/ops/canned/dcom
-export COMINfire=${COMINfire:-${DCOMROOT}/20210824/firewx}
-export COMINfirem1=${COMINfirem1:-${DCOMROOT}/20210823/firewx}
-export COMINgvf=${COMINgvf:-${DCOMROOT}/viirs}
-export COMINemi=/lfs/h1/ops/canned/com/aqm/v6.1/emission/202108
-export COMINmet=/lfs/h1/ops/canned/com/aqm/v6.1/aqm.20210824
-export COMINbc=/lfs/h1/ops/canned/com/aqm/v6.1/aqm.20210824
-
-export COMINbicordat=/lfs/h1/ops/canned/com/aqm/v6.1
-export COMINbicor=/lfs/h1/ops/canned/com/aqm/v6.1/bcdata.202108
-export COMINbicorm1=/lfs/h1/ops/canned/com/aqm/v6.1/bcdata.202107
-export COMINbicorm2=/lfs/h1/ops/canned/com/aqm/v6.1/bcdata.202106
-export COMINbicorm3=/lfs/h1/ops/canned/com/aqm/v6.1/bcdata.202105
-
-export RUN_DAY=$(date +%d)
-export yyyymm=202108
-
+#export SENDCANNEDDBN=YES
+#export RUN_DAY=$(date +%d)
 export DBNLOG=YES
+export KEEPDATA=NO
