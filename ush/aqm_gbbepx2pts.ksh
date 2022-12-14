@@ -41,6 +41,32 @@ else
     fi
 fi
 
+##
+## In operational yesterday's GBBEPX fire emission (PDYm1) won't be available till 08Z.
+## Thus it is not available for the 00z cycle run. 00z run has to use the two-day old fire emission info,
+## i.e., ${COMINfirem2}/${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590*.nc
+if [ "${RUN_ENVIR}" != "nco" ] && [ "${cyc}" == "00" ]; then
+    if [ "${FIREDATE}" == "${PDYm1}" ]; then
+        echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
+        echo "This may happen in the retro or re-run of ${PDY} 00z cycle"
+        echo "In operational, ${PDY} 00z should not use ${COMINfirem1}/${fire_emission_hdr}_s${PDYm1}0000000_e${PDYm1}2359590_c*.nc"
+        echo "that is only available ~ ${PDY} 08Z"
+        echo "It should use ${COMINfirem2}/${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590_c*.nc"
+        echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
+        search_id1=${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590
+        if [ -s tlist ]; then /bin/rm -f tlist; fi
+        ls ${COMINfirem2}/${search_id1}_c*.nc > tlist
+        if [ -s tlist ]; then
+            emisfile=`tail tlist`
+            FIREDATE=${PDYm2}
+            echo "SEARCH FIND ${emisfile}"
+        else
+            echo "WARNING NO ${COMINfirem2}/${search_id1}_c*.nc"
+            flag_with_gbbepx=no
+        fi
+    fi
+fi
+
 if [ "${flag_with_gbbepx}" == "yes" ]; then
    echo "=========================================================="
    ## echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
