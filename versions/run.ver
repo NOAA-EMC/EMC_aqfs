@@ -24,6 +24,7 @@ export python_ver=3.8.6
 export zlib_ver=1.2.11
 
 #export prod_util_ver=2.0.9
+export prod_util_ver=2.0.14
 export grib_util_ver=1.2.3
 export wgrib2_ver=2.0.8
 
