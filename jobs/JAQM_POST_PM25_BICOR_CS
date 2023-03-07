@@ -65,19 +65,9 @@ else
  mkdir -p $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008
 fi
 
-## cp ${DCOMROOT}/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
-## cp ${DCOMROOT}/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
-## cp ${DCOMROOT}/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
-
-if [ "${Yrmn1}" == "202009" ]; then
-    cp /lfs/h1/ops/prod/com/aqm/v6.1/bcdata.202209/airnow/2022/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
-fi
-if [ "${Yrmn2}" == "202009" ]; then
-    cp /lfs/h1/ops/prod/com/aqm/v6.1/bcdata.202209/airnow/2022/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
-fi
-if [ "${Yrmn3}" == "202009" ]; then
-    cp /lfs/h1/ops/prod/com/aqm/v6.1/bcdata.202209/airnow/2022/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
-fi
+cp ${DCOMROOT}/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
+cp ${DCOMROOT}/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
+cp ${DCOMROOT}/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
 
 export PCOM=${PCOM:-${COMOUT}/wmo}
 
