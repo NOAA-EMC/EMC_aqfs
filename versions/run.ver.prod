@@ -1,5 +1,5 @@
-export gfs_ver=v16.2
-export gefs_ver=v12.2
+export gfs_ver=v16.3
+export gefs_ver=v12.3
 
 export envvar_ver=1.0
 export PrgEnv_intel_ver=8.1.0
@@ -33,4 +33,4 @@ export hdf5_ver=1.10.6
 #export SENDCANNEDDBN=YES
 #export RUN_DAY=$(date +%d)
 export DBNLOG=YES
-export KEEPDATA=YES
+export KEEPDATA=NO
