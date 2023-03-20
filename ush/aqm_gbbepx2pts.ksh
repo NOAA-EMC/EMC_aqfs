@@ -12,7 +12,7 @@
 ## 09/28/2022   Ho-Chun Huang  perform update for new filename format of the GBBEPx fire emissions
 ## 
 export pgm=aqm_prep_cs_fire_emi
-fire_emission_hdr=GBBEPx-all01GRID_v4r0_blend
+fire_emission_hdr="GBBEPx-all01GRID_*_blend"
 
 flag_with_gbbepx=yes
 #
