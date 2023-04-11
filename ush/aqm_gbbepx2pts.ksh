@@ -42,6 +42,10 @@ else
 fi
 
 ##
+## In operational GBBEPX v4r0 fire emission (PDYm1) arrived ~ 01-02Z.  It is available for the 00Z cycle run
+## (~ 0330Z).  Thus the following if loop should be removed for user's parallel run.
+##
+##
 ## In operational yesterday's GBBEPX fire emission (PDYm1) won't be available till 08Z.
 ## Thus it is not available for the 00z cycle run. 00z run has to use the two-day old fire emission info,
 ## i.e., ${COMINfirem2}/${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590*.nc
