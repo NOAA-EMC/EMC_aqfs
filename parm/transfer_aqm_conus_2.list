@@ -23,7 +23,7 @@
 # directory are included, so if no exclude patterns match that file, it will be
 # transferred.
 
-com/aqm/_ENVIR_/aqm._PDY_/
+_COMROOT_/aqm/_SHORTVER_/cs._PDY_/
 + /aqm.t??z.*f0[246]*
 + /aqm.t??z.*.f?[02468].*.grib2
 + /aqm.t??z.metcro*.ncf
@@ -33,16 +33,17 @@ com/aqm/_ENVIR_/aqm._PDY_/
 + /aqm_griddesc05
 + /pm2.5.corrected.*.nc
 + /ozone.corrected*nc
-+ /aqm_conus_geos_fv3chem_aero*.ncf  
++ /aqm_*_geos_fv3chem_aero*.ncf  
 + /sites.*.list
-+ /aqm.t??z.grib2_5xpm25nmmb.227
++ /aqm.t??z.grib2_*pm25nmmb.227
 + /wmo
++ /wmo/*
 - *
 B 231000
 # This directory is a good candidate for compression
 #Z
 
-com/aqm/_ENVIR_/aqm._PDYm1_/
+_COMROOT_/aqm/_SHORTVER_/cs._PDYm1_/
 + /aqm.t??z.*f0[246]*
 + /aqm.t??z.*.f?[02468].*.grib2
 + /aqm.t??z.metcro*.ncf
@@ -52,10 +53,11 @@ com/aqm/_ENVIR_/aqm._PDYm1_/
 + /aqm_griddesc05
 + /pm2.5.corrected.*.nc
 + /ozone.corrected*nc
-+ /aqm_conus_geos_fv3chem_aero*.ncf  
++ /aqm_*_geos_fv3chem_aero*.ncf  
 + /sites.*.list
-+ /aqm.t??z.grib2_5xpm25nmmb.227
++ /aqm.t??z.grib2_*pm25nmmb.227
 + /wmo
++ /wmo/*
 - *
 B 231000
 # This directory is a good candidate for compression

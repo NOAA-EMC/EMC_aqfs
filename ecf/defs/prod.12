@@ -1,19 +1,32 @@
-suite para
+suite prod
   family primary
-  family 18
+  family 12
+
+  family gfs
+    family v16.2
+    family gfs
+    family atmos
+    family post
+      task jgfs_atmos_post_manager
+        event release_post072
+    endfamily
+    endfamily
+    endfamily
+    endfamily
+  endfamily
+
   family aqm
     edit PROJ 'AQM'
     edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/aqm.%aqm_ver%
-    defstatus complete
-    family v6.1
-    edit PDY 20210824
+  family v6.1
+  defstatus complete
     family hi
       task jaqm_prep_hi
-        time 22:00
         edit NODES 1
-  	edit NCPUS 7
-        edit PTILE 7
-	edit MEM   256
+        edit NCPUS 73
+        edit PTILE 73
+        edit MEM   360
+        trigger /prod/primary/12/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_forecast_hi
         trigger jaqm_prep_hi == complete
       task jaqm_post1_hi
@@ -23,11 +36,11 @@ suite para
     endfamily
     family ak
       task jaqm_prep_ak
-        time 22:00
         edit NODES 1
-  	edit NCPUS 7
-        edit PTILE 7
-	edit MEM   256
+        edit NCPUS 73
+        edit PTILE 73
+        edit MEM   360
+        trigger /prod/primary/12/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_forecast_ak
         trigger jaqm_prep_ak == complete
       task jaqm_post1_ak
@@ -36,14 +49,12 @@ suite para
         trigger jaqm_post1_ak == complete
     endfamily
     family conus
-      edit KEEPDATA 'YES'
-      edit COMPATH '/gpfs/hps/nco/ops/com/aqm/prod'
       task jaqm_prep_conus
-        time 22:00
-        edit NODES 1
-  	edit NCPUS 7
-        edit PTILE 7
-	edit MEM   256
+        edit NODES 2
+        edit NCPUS 74
+        edit PTILE 37
+        edit MEM   500
+        trigger /prod/primary/12/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_forecast_conus
         trigger jaqm_prep_conus == complete
       task jaqm_post1_conus
@@ -56,6 +67,11 @@ suite para
         event 1 release_pm25_bicor
       task jaqm_post_pm25_bicor_conus
         trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
+    endfamily
+    family emission
+      task jaqm_emission_ingest
+	trigger :TIME >= 1400 and :TIME < 1800
+#       time 14:00
     endfamily
   endfamily
   endfamily

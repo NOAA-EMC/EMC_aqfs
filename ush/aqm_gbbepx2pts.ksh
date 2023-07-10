@@ -3,69 +3,78 @@
 ## For operational/NRT and developmental retro-run, one should use day-1 fire emissions to mimic
 ##     operational environment. Using a day-2 fire emissions is a fail-over option during operational run.
 ## Add warning message to alert NCO for missing fire emission files in 
-##     /gpfs/dell1/nco/ops/dcom/prod/${PDY}/firewx
-## Today's GBBEPx FIRE EMISSION directory only has PDYm1 and PDYm2's fire emission
+##     /lfs/h1/ops/prod/dcom/${PDY}/firewx
+## PDY's GBBEPx FIRE EMISSION only in the dcom $PDY directory
 ##
+## 10/31/2021   Jianping Huang perform update for WCOSS2 transition 
+## 08/03/2022   Ho-Chun Huang  perform update for new dcom configuration that PDY fire emission
+##                             can only be found in /lfs/h1/ops/prod/dcom/${PDY}/firewx
+## 09/28/2022   Ho-Chun Huang  perform update for new filename format of the GBBEPx fire emissions
+## 
 export pgm=aqm_prep_cs_fire_emi
-fire_emission_hdr=GBBEPx_all01GRID.emissions_v003
-if [ ${FCST} = "NO" ] ; then  ## For 24-hour-back analysis run using PDYm1 fire emission
-   flag_with_gbbepx=yes
-   if [ -s ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc ]; then
-      FIREDATE=${PDYm1}
-      emisfile=${fire_emission_hdr}_${PDYm1}.nc
-      COMIN9=${COMINfire}
-   elif [ -s ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc ]; then
-      FIREDATE=${PDYm2}
-      emisfile=${fire_emission_hdr}_${PDYm2}.nc
-      COMIN9=${COMINfire}
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-   elif [ -s ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc ]; then
-      FIREDATE=${PDYm2}
-      emisfile=${fire_emission_hdr}_${PDYm2}.nc
-      COMIN9=${COMINfirem1}
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc"
+fire_emission_hdr="GBBEPx-all01GRID_*_blend"
+
+flag_with_gbbepx=yes
+#
+# Searching for dynamic GBBEPX filename ${fire_emission_hdr}_s${PDY}0000000_e${PDY}2359590_c*.nc
+#
+search_id1=${fire_emission_hdr}_s${PDYm1}0000000_e${PDYm1}2359590
+if [ -s tlist ]; then /bin/rm -f tlist; fi
+ls ${COMINfirem1}/${search_id1}_c*.nc > tlist
+if [ -s tlist ]; then
+    emisfile=`tail tlist`
+    FIREDATE=${PDYm1}
+    echo "SEARCH FIND ${emisfile}"
+else
+   search_id2=${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590
+   if [ -s tlist ]; then /bin/rm -f tlist; fi
+   ls ${COMINfirem2}/${search_id2}_c*.nc > tlist
+   if [ -s tlist ]; then
+       echo "WARNING NO ${COMINfirem1}/${search_id1}_c*.nc"
+       emisfile=`tail tlist`
+       FIREDATE=${PDYm2}
+       echo "SEARCH FIND ${emisfile}"
    else
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc"
-      echo "WARNING NO ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc"
-      flag_with_gbbepx=no
-   fi 
-else   ## For day1, day2, and day3 forecast runs using PDYm1 fire emission OR create control run
-   flag_with_gbbepx=yes
-   if [ -s ${COMINfire}/${fire_emission_hdr}_${PDY}.nc ] && [ "${FLAG_TODAY_FIRE}" == "YES" ]; then
-      FIREDATE=${PDY}
-      emisfile=${fire_emission_hdr}_${PDY}.nc
-      COMIN9=${COMINfire}
-      echo "WARNING using current day fire emission in forecast mode is only for estabilishing a refernce case"
-      echo "WARNING in operational environment, only day-1 fire emission is available for current day forecast"
-   elif [ -s ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc ]; then
-      FIREDATE=${PDYm1}
-      emisfile=${fire_emission_hdr}_${PDYm1}.nc
-      COMIN9=${COMINfire}
-   elif [ -s ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc ]; then
-      FIREDATE=${PDYm2}
-      emisfile=${fire_emission_hdr}_${PDYm2}.nc
-      COMIN9=${COMINfire}
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-   elif [ -s ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc ]; then
-      FIREDATE=${PDYm2}
-      emisfile=${fire_emission_hdr}_${PDYm2}.nc
-      COMIN9=${COMINfirem1}
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc"
-   else
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm1}.nc"
-      echo "WARNING NO ${COMINfire}/${fire_emission_hdr}_${PDYm2}.nc"
-      echo "WARNING NO ${COMINfirem1}/${fire_emission_hdr}_${PDYm2}.nc"
-      flag_with_gbbepx=no
-   fi 
+       echo "WARNING NO ${COMINfirem1}/${search_id1}_c*.nc"
+       echo "WARNING NO ${COMINfirem2}/${search_id2}_c*.nc"
+       flag_with_gbbepx=no
+    fi
 fi
 
+##
+## In operational GBBEPX v4r0 fire emission (PDYm1) arrived ~ 01-02Z.  It is available for the 00Z cycle run
+## (~ 0330Z).  Thus the following if loop should be removed for user's parallel run.
+##
+##
+## In operational yesterday's GBBEPX fire emission (PDYm1) won't be available till 08Z.
+## Thus it is not available for the 00z cycle run. 00z run has to use the two-day old fire emission info,
+## i.e., ${COMINfirem2}/${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590*.nc
+if [ "${RUN_ENVIR}" != "nco" ] && [ "${cyc}" == "00" ]; then
+    if [ "${FIREDATE}" == "${PDYm1}" ]; then
+        echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
+        echo "This may happen in the retro or re-run of ${PDY} 00z cycle"
+        echo "In operational, ${PDY} 00z should not use ${COMINfirem1}/${fire_emission_hdr}_s${PDYm1}0000000_e${PDYm1}2359590_c*.nc"
+        echo "that is only available ~ ${PDY} 08Z"
+        echo "It should use ${COMINfirem2}/${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590_c*.nc"
+        echo "++++++++++++++++++ WARNING +++++++++++++++++++++++++++++++"
+        search_id1=${fire_emission_hdr}_s${PDYm2}0000000_e${PDYm2}2359590
+        if [ -s tlist ]; then /bin/rm -f tlist; fi
+        ls ${COMINfirem2}/${search_id1}_c*.nc > tlist
+        if [ -s tlist ]; then
+            emisfile=`tail tlist`
+            FIREDATE=${PDYm2}
+            echo "SEARCH FIND ${emisfile}"
+        else
+            echo "WARNING NO ${COMINfirem2}/${search_id1}_c*.nc"
+            flag_with_gbbepx=no
+        fi
+    fi
+fi
 
 if [ "${flag_with_gbbepx}" == "yes" ]; then
    echo "=========================================================="
-   echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
+   ## echo "Current cycle uses fire emission from ${COMIN9}/${emisfile}"
+   echo "Current cycle uses fire emission from ${emisfile}"
    echo "=========================================================="
 ##
 ##  Present fire emission scheme includes gas-phase emission
@@ -80,12 +89,12 @@ if [ "${flag_with_gbbepx}" == "yes" ]; then
 ##  With NOx emission OFF use ( INCORRECT spelling for the one in GBBEPx file )
 ##  =====> 'NOX'    2   # 90% to NO (mw 30), 10% to NO2 (mw 46), mw 31.6 in average, kg->mole
 ##
-ln -s ${COMIN9}/${emisfile} ${emisfile}
+## ln -s ${COMIN9}/${emisfile} ${emisfile}
 
 FRPRATIO=${FRPRATIO:-1.0}
 cat>gbbepx2pts.ini<<!
 &control
-efilein='./${emisfile}'
+efilein='${emisfile}'
 markutc=18
 burnarea_ratio=0.1
 frpfactor=${FRPRATIO}
@@ -156,11 +165,11 @@ Species Converting Factor
    
    if [ -s ${PTFIRE} ] && [ -s ${STACK_GROUP} ]; then
       if [ "${FCST}" = "YES" ]; then
-         cp ${DATA}/${PTFIRE}      ${COMIN}
-         cp ${DATA}/${STACK_GROUP} ${COMIN}
+         cp ${DATA}/${PTFIRE}      ${COMOUT}
+         cp ${DATA}/${STACK_GROUP} ${COMOUT}
       else
-         cp ${DATA}/${PTFIRE}      ${COMINm1}
-         cp ${DATA}/${STACK_GROUP} ${COMINm1}
+         cp ${DATA}/${PTFIRE}      ${COMOUTm1}
+         cp ${DATA}/${STACK_GROUP} ${COMOUTm1}
       fi
    else
       echo "WARNING can not find both ${DATA}/${PTFIRE} and ${DATA}/${STACK_GROUP}.  Assuming no fire today FCST=${FCST}"

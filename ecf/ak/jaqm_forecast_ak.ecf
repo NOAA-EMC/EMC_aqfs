@@ -4,9 +4,10 @@
 #PBS -q %QUEUE%
 #PBS -l walltime=00:50:00
 #PBS -A %PROJ%-%PROJENVIR%
-#PBS -l place=vscatter,select=2:ncpus=128:mpiprocs=128
+#PBS -l place=vscatter:exclhost,select=2:ncpus=128:mpiprocs=128
+#PBS -l debug=true
 
-model=cmaq
+model=aqm
 %include <head.h>
 %include <envir-p1.h>
 
@@ -26,10 +27,11 @@ module load libjpeg/${libjpeg_ver:?}
 module load grib_util/${grib_util_ver:?}
 module list
 
+export OMP_NUM_THREADS=1
 export cyc=%CYC%
 export FCST=YES
 
-${HOMEcmaq}/jobs/JAQM_FORECAST_AK
+${HOMEaqm}/jobs/JAQM_FORECAST_AK
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

@@ -17,8 +17,3 @@ export jasper_ver=2.0.25
 export libjpeg_ver=9c
 export g2_ver=3.4.1
 
-export envir=canned
-export model=aqm
-export aqm_ver=v6.1.1
-export PACKAGEROOT=/lfs/h2/emc/physics/noscrub/$USER/$envir/packages
-

@@ -4,7 +4,7 @@ date
 export PS4=' $SECONDS + '
 set -x
 
-export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
 
@@ -16,7 +16,6 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=$HOMEaqm/ush
 export EXECaqm=$HOMEaqm/exec
 export PARMaqm=$HOMEaqm/parm
@@ -26,10 +25,10 @@ export UTILaqm=$HOMEaqm/util
 export NET=${NET:-aqm}
 export RUN=${RUN:-cs}
 
-export COMIN=${COMIN:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
-export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
-export COMINm2=${COMINm2:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm2})}
-export COMINm3=${COMINm3:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm3})}
+export COMIN=${COMIN:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDY})}
+export COMINm1=${COMINm1:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
+export COMINm2=${COMINm2:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm2})}
+export COMINm3=${COMINm3:-$(compath.py ${NET}/${aqm_ver}/${RUN}.${PDYm3})}
 
 export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
 export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}

@@ -1,23 +1,32 @@
-suite prod06
-  repeat day 1
-  edit ECF_TRIES '1'
-  edit CYC '06'
-  edit ENVIR 'prod'
-  edit PROJ 'OPS'
-  edit E 'j'
-  edit QUEUE 'prod'
-  edit PROJENVIR 'OPS'
-  edit MACHINE_SITE 'production'
+suite prod
+  family primary
+  family 06
+
+  family gfs
+    family v16.2
+    family gfs
+    family atmos
+    family post
+      task jgfs_atmos_post_manager
+        event release_post072
+    endfamily
+    endfamily
+    endfamily
+    endfamily
+  endfamily
+
   family aqm
-    edit COM 'gpfs/hps/nco/ops/com'
-    edit ECF_FILES '/ecf/ecfnets/scripts/aqm'
-    edit PROJ 'CMAQ'
-    edit QUEUESERV 'prod_transfer'
-    edit ALERT_FROM_P3 'YES'
+  edit PROJ AQM
+  edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/aqm.%aqm_ver%
+  family v6.1
+    defstatus complete
     family hi
       task jaqm_prep_hi
-        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
-        edit NUMNODE '10'
+        edit NODES 1
+        edit NCPUS 73
+        edit PTILE 73
+        edit MEM   360
+        trigger /prod/primary/06/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_forecast_hi
         trigger jaqm_prep_hi == complete
       task jaqm_post1_hi
@@ -27,8 +36,11 @@ suite prod06
     endfamily
     family ak
       task jaqm_prep_ak
-        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
-        edit NUMNODE '10'
+        edit NODES 1
+        edit NCPUS 73
+        edit PTILE 73
+        edit MEM   360
+        trigger /prod/primary/06/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_forecast_ak
         trigger jaqm_prep_ak == complete
       task jaqm_post1_ak
@@ -37,13 +49,14 @@ suite prod06
         trigger jaqm_post1_ak == complete
     endfamily
     family conus
-      edit KEEPDATA 'YES'
-      edit COMPATH '/gpfs/hps/nco/ops/com/aqm/prod'
       task jaqm_prep_conus
-        trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
-        edit NUMNODE '10'
+        edit NODES 2
+        edit NCPUS 74
+        edit PTILE 37
+        edit MEM   500
+        trigger /prod/primary/06/gfs/v16.2/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
       task jaqm_prep_ana_cs
-        trigger :TIME >= 0830 and :TIME < 1435
+	trigger :TIME >= 0830 and :TIME < 1435
 #       time 08:35
       task jaqm_fcst_ana_cs
         trigger jaqm_prep_ana_cs == complete
@@ -60,5 +73,8 @@ suite prod06
       task jaqm_post_pm25_bicor_conus
         trigger jaqm_post_o3_bicor_conus:release_pm25_bicor
     endfamily
-  endfamily
+  endfamily # version
+  endfamily # aqm
+  endfamily # 06
+  endfamily # primary
 endsuite

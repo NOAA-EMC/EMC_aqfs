@@ -20,6 +20,8 @@
 ################################################################################
 
 set -xa 
+##source /lfs/h1/ops/prod/packages/gefs.v12.2.0/sorc/global-workflow.fd/sorc/fv3gfs.fd/modulefiles/wcoss2/fv3
+##module load nemsiogfs
 
 export pgm=aqm_prep_cs_lbc
 cd ${DATA}
@@ -73,7 +75,7 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    flag_lbc2_exist=yes
    let ic=${LBC_INI}
    let endhour=${LBC_END}
-   echo "hjp888,endhour=",$endhour
+#   echo "hjp888,endhour=",$endhour
    let lbc_int=${LBC_FREQ}
    let num_file=${endhour}/${lbc_int}+1
    while [ ${ic} -le ${endhour} ]; do
@@ -89,18 +91,18 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    done
    if [ "${flag_lbc2_exist}" == "yes" ]; then
       lbc_day=${new_lbc_day}
-      if [ "${RUN_ENVIR}" == "nco" ]; then
-         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
-      else
-         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail ho-chun.huang@noaa.gov
-      fi
-      lbc_day=${new_lbc_day}
+#      if [ "${RUN_ENVIR}" == "nco" ]; then
+#         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
+#      else
+#         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail Jianping.Huang@noaa.gov
+#      fi
+#      lbc_day=${new_lbc_day}
    else
-      if [ "${RUN_ENVIR}" == "nco" ]; then
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
-      else
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail ho-chun.huang@noaa.gov
-      fi
+#      if [ "${RUN_ENVIR}" == "nco" ]; then
+#         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
+#      else
+#         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail jianping.huang@noaa.gov
+#      fi
       echo "WARNING ***  Can not find ${lbc_cyc} and ${lbccyc} GEFS output to produce ${BND2}, MANUAL INSPECTION required, model run continue"
       postmsg "ERROR IN ${pgm} for needed GEFS LBC files"
       exit
@@ -114,8 +116,8 @@ cyc=`echo ${lbc_cyc} | cut -c2-3`
 cyear=`echo ${lbc_day} | cut -c1-4`
 cmonth=`echo ${lbc_day} | cut -c5-6`
 cdate=`echo ${lbc_day} | cut -c7-8`
-ic=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
-cjulian=`printf %3.3d ${ic}`
+cjulian=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
+##cjulian=`printf %3.3d ${ic}`
 NUMTS=${NUMTS:-41}
 if [ "${NUMTS}" != "${num_file}" ]; then
    echo "WARNING :: number of processor expected ${NUMTS} is not the same as number of files processed ${num_file}"
@@ -210,7 +212,10 @@ if [ -s ${BND2} ]; then /bin/rm ${BND2}; fi
 if [ -s ${CHECK2D} ]; then /bin/rm ${CHECK2D}; fi
 
 startmsg
-mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+sleep 19 
+##mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc
+##mpiexec -n 1 ${EXECaqm}/aqm_parallel_glbc
 export err=$?;err_chk
 ##
 ## Keep record of the LBC used in differretn cycle
