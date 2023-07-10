@@ -20,6 +20,8 @@
 ################################################################################
 
 set -xa 
+##source /lfs/h1/ops/prod/packages/gefs.v12.2.0/sorc/global-workflow.fd/sorc/fv3gfs.fd/modulefiles/wcoss2/fv3
+##module load nemsiogfs
 
 export pgm=aqm_prep_cs_lbc
 cd ${DATA}
@@ -114,8 +116,8 @@ cyc=`echo ${lbc_cyc} | cut -c2-3`
 cyear=`echo ${lbc_day} | cut -c1-4`
 cmonth=`echo ${lbc_day} | cut -c5-6`
 cdate=`echo ${lbc_day} | cut -c7-8`
-ic=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
-cjulian=`printf %3.3d ${ic}`
+cjulian=`/bin/date --date=${cyear}'/'${cmonth}'/'${cdate} +%j`
+##cjulian=`printf %3.3d ${ic}`
 NUMTS=${NUMTS:-41}
 if [ "${NUMTS}" != "${num_file}" ]; then
    echo "WARNING :: number of processor expected ${NUMTS} is not the same as number of files processed ${num_file}"
@@ -210,7 +212,10 @@ if [ -s ${BND2} ]; then /bin/rm ${BND2}; fi
 if [ -s ${CHECK2D} ]; then /bin/rm ${CHECK2D}; fi
 
 startmsg
-mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+sleep 19 
+##mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc >> ${pgmout} 2>errfile 
+mpiexec -n ${NUMTS} ${EXECaqm}/aqm_parallel_glbc
+##mpiexec -n 1 ${EXECaqm}/aqm_parallel_glbc
 export err=$?;err_chk
 ##
 ## Keep record of the LBC used in differretn cycle

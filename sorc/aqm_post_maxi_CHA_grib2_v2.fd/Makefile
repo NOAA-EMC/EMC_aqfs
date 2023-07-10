@@ -28,6 +28,6 @@ $(CMD): $(SRCS)
 clean :
 	rm -rf *.mod 
 install:
-	-cp $(CMD) ../../exec/. 
+	cp $(CMD) ../../exec/. 
 clobber: clean
-	-rm -f $(CMD)
+	rm -f $(CMD)

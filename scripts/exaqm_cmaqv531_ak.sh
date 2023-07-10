@@ -48,6 +48,7 @@ APPL=v531
 EXEC=aqm_cmaq_${APPL}
 CFG=CCTM_${APPL}
 MECH=cb6r3_ae7_aq
+RUN9=AK
 
 if [ "${FCST}" == "YES" ]; then
 
@@ -379,10 +380,10 @@ ${FSYNC} ${COMINmet}/aqm.${cycle}.lufraccro.ncf
 
 #> Gridded Emissions files
 export N_EMIS_GR=2
-export GR_EMIS_001=${COMINemi}/${RUN}-emis-noRWC-cb6-${YM}.ncf #surface emission file
+export GR_EMIS_001=${COMINemi}/${RUN9}-emis-noRWC-cb6-${YM}.ncf #surface emission file
 export GR_EMIS_LAB_001=GRIDDED_EMIS
 export GR_EM_SYM_DATE_001=F
-export GR_EMIS_002=${COMINemi}/${RUN}-emis-RWC-cb6-${YM}.ncf #surface RWC file
+export GR_EMIS_002=${COMINemi}/${RUN9}-emis-RWC-cb6-${YM}.ncf #surface RWC file
 export GR_EMIS_LAB_002=GRIDDED_RWC
 export GR_EM_SYM_DATE_002=F
 if [ ! -s ${GR_EMIS_001} ]; then
@@ -396,14 +397,14 @@ fi
 
 ## CMAQv5.3 In-Line Point Emissions Files
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
-if [ ! -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN9}_cmaq_cb6_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN9}_cmaq_cb6_2016fh_16j.ncf"
 fi
 
-if [ ! -s ${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
+if [ ! -s ${COMINemi}/stack_groups_${sectors}_12${RUN9}_2016fh_16j.ncf ]; then
    echo "======================================================================"
-   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf"
+   err_exit "FATAL ERROR - COULD NOT LOCATE:${COMINemi}/stack_groups_${sectors}_12${RUN9}_2016fh_16j.ncf"
 fi
 done
 
@@ -411,12 +412,12 @@ done
 ## 2DSUM [default] or 3D
 ic=0
 for sectors in ptegu ptnonipm pt_oilgas cmv_c1c2 cmv_c3 othpt ; do
-   if [ -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf ] && \
-      [ -s ${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf ]; then
+   if [ -s ${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN9}_cmaq_cb6_2016fh_16j.ncf ] && \
+      [ -s ${COMINemi}/stack_groups_${sectors}_12${RUN9}_2016fh_16j.ncf ]; then
       let ic=${ic}+1
       typeset -Z3 ic
-      export STK_GRPS_${ic}=${COMINemi}/stack_groups_${sectors}_12${RUN}_2016fh_16j.ncf
-      export STK_EMIS_${ic}=${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN}_cmaq_cb6_2016fh_16j.ncf
+      export STK_GRPS_${ic}=${COMINemi}/stack_groups_${sectors}_12${RUN9}_2016fh_16j.ncf
+      export STK_EMIS_${ic}=${COMINemi}/inln_mole_${sectors}_${YM}_12${RUN9}_cmaq_cb6_2016fh_16j.ncf
       export STK_EMIS_LAB_${ic}=${sectors}
       export STK_EMIS_DIAG_${ic}=${TYPE_POINT_EMIS_OUT}
       export STK_EM_SYM_DATE_${ic}=F
@@ -528,7 +529,7 @@ export OCEAN_1=${FIXaqm}/SSMASK_${RUN}12_199X163.ncf
 if [ ${CTM_ABFLUX} == 'Y' ]; then
    # need to modify for FEST-C v1.4.
    export E2C_SOIL=${FIXaqm}/test_soil_cs_new.nc
-   export E2C_CHEM=${COMINemi}/FERT_12km_cs_time${YM}.ncf
+   export E2C_CHEM=${COMINemi}/FERT_12km_5x_time${YM}.ncf
    export E2C_LU=${FIXaqm}/beld4_AQF_cs_output.ncf
 fi
 #------------------------------------------------------

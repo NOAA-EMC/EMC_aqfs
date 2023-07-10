@@ -248,18 +248,20 @@
       
       print*,"inowtime=",inowtime,"jfiletime=",jfiletime 
 
+      mtime=0
        do while(inowtime.ne.jfiletime)
         call daymon(nowdate,mmonth,mday)
 	
        write(aline,'(a,i3.3,a)')trim(mofile(1)),jfhour,trim(mofile(2))
 
-!       if(mtime.gt.1) call nemsio_close(gfile)
-!       print*,"hjp111"
-       print*, aline
-!       print*, "hjp112","iret=",iret
+       if(mtime.ge.1) call nemsio_close(gfile)
+       print*,'rank', my_rank,inowtime,jfiletime,' try to open ', trim(aline)
+!      print*, "hjp111","iret=",iret
        call nemsio_open(gfile,trim(aline),'READ',iret=iret,gdatatype="bin4")
+       print*, "hjp112","iret=",iret
        if(iret.ne.0) then
-         print*,'failed to open ',trim(aline)
+         print*,'failed to open ',trim(aline),' my_rank=',my_rank,&
+         ' inowtime=',inowtime,' jfiletime=',jfiletime
 	 stop
        endif	 
       call nemsio_getfilehead(gfile,iret=iret,nrec=nrec,dimx=im,	  &
@@ -284,6 +286,7 @@
         modelname,'extrameta=',extrameta,'nframe=',nframe,'nmeta=',    &
         nmeta,'nsoil=',nsoil,'extrameta=',extrameta,'ntrac=',	       &
         ntrac,'tlmeta=',tlmeta,'filetime=',jfiletime
+        mtime=mtime+1
         enddo
 !	jfhour=jfhour+dtstep      
 
