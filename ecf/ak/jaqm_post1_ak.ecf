@@ -4,9 +4,10 @@
 #PBS -q %QUEUE%
 #PBS -A %PROJ%-%PROJENVIR%
 #PBS -l walltime=00:40:00
-#PBS -l select=1:ncpus=1:mpiprocs=1:mem=1GB
+#PBS -l place=shared,select=1:ncpus=1:mpiprocs=1:mem=3GB
+#PBS -l debug=true
 
-model=cmaq
+model=aqm
 %include <head.h>
 %include <envir-p1.h>
 
@@ -25,7 +26,7 @@ module list
 
 export cyc=%CYC%
 
-${HOMEcmaq}/jobs/JAQM_POST1_AK
+${HOMEaqm}/jobs/JAQM_POST1_AK
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

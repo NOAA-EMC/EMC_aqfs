@@ -1,8 +1,8 @@
-setenv ("envir","prod") 
+setenv ("envir","canned") 
 setenv ("aqm_model","aqm") 
 
 setenv ("sys","uname sysname")
-setenv ("aqm","/lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/aqm.v6.1.2/modulefiles/aqm")
+setenv ("aqm","/lfs/h2/emc/physics/noscrub/Jianping.Huang/canned/packages/aqm.v6.1.1/modulefiles/aqm")
 setenv ("lname","aqm")
 
 
@@ -26,9 +26,6 @@ load ("cray-pals",cray_pals_ver)
 
 local nemsio_ver=os.getenv("nemsio_ver")
 load ("nemsio",nemsio_ver)
-
-local nemsiogfs_ver=os.getenv("nemsiogfs_ver")
-load ("nemsiogfs",nemsiogfs_ver)
 
 local w3emc_ver=os.getenv("w3emc_ver")
 load ("w3emc",w3emc_ver)
@@ -56,6 +53,9 @@ load ("libjpeg",libjpeg_ver)
 
 local netcdf_ver=os.getenv("netcdf_ver")
 load ("netcdf",netcdf_ver)
+
+local hdf5_ver=os.getenv("hdf5_ver")
+load ("hdf5",hdf5_ver)
 
 local g2_ver=os.getenv("g2_ver")
 load ("g2",g2_ver)
