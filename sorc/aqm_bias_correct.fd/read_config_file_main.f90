@@ -32,6 +32,16 @@
 ! 2020-nov-10	Split off the var table reader into a separate subroutine.
 !		Add parameter "analog search window offsets".
 !
+! 2021-apr-25	Add parameters "site blocking list" and "number of days
+!                 for kalman filter".
+!
+! 2022-apr-11	Add reader code and number of forecast hours, for RRFS-CMAQ.
+!		Remove dependency on get_free_unit, use fortran 2008 newunit.
+! 2022-may-27	Add params for obs max valid input, and short training period.
+!
+! 2023-mar-27	Add parameters for number of analogs for short training period.
+! 2023-apr-08	Add "obs minimum valid input".
+!
 ! Notes:
 !
 ! The configuration file is a simple text file containing file
@@ -48,14 +58,15 @@ module read__config_file_main
 contains
 
 subroutine read_config_file_main (config_file, obs_file_template, &
-      interp_file_template, in_gridded_template, hourly_output_template, &
-      probability_output_template, &
+      interp_file_template, in_gridded_template, reader_code_gridded, &
+      hourly_output_template, probability_output_template, &
       new_site_list_template, grid_coord_file, pred_weights_file, &
-      site_exception_file, target_obs_var, target_model_var, analog_vars, &
-      filter_method, output_limit_method, site_array_file_template, &
-      site_result_file_template, &
-      day_array_file_template, stop_after_filter, obs_blackout_start, &
-      obs_blackout_end, apar, dpar, fpar, kpar, prob, wpar)
+      site_exception_file, site_blocking_list, nhours, target_obs_var, &
+      target_model_var, analog_vars, filter_method, output_limit_method, &
+      site_array_file_template, site_result_file_template, &
+      day_array_file_template, stop_after_filter, obs_min_input, &
+      obs_max_input, obs_blackout_start, obs_blackout_end, &
+      apar, dpar, fpar, kpar, prob, wpar)
 
    use analog__ensemble,   only : apar_type
    use compute__wind,      only : dpar_type
@@ -76,12 +87,15 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    character(*), intent(out)              :: obs_file_template
    character(*), intent(out)              :: interp_file_template
    character(*), intent(out)              :: in_gridded_template
+   character(*), intent(out)              :: reader_code_gridded
    character(*), intent(out)              :: hourly_output_template
    character(*), intent(out)              :: probability_output_template
    character(*), intent(out)              :: new_site_list_template
    character(*), intent(out)              :: grid_coord_file
    character(*), intent(out)              :: pred_weights_file
    character(*), intent(out)              :: site_exception_file
+   character(*), intent(out)              :: site_blocking_list
+   integer,      intent(out)              :: nhours
    character(*), intent(out)              :: target_obs_var
    character(*), intent(out)              :: target_model_var
 
@@ -92,6 +106,7 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    character(*), intent(out)              :: site_array_file_template
    character(*), intent(out)              :: site_result_file_template
    character(*), intent(out)              :: day_array_file_template
+   real(dp),     intent(out)              :: obs_min_input, obs_max_input
    integer,      intent(out)              :: obs_blackout_start(3)	! M-D-H
    integer,      intent(out)              :: obs_blackout_end(3)	! M-D-H
    logical,      intent(out)              :: stop_after_filter
@@ -102,8 +117,6 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    type (kpar_type), intent(out)          :: kpar
    type (prob_type), intent(out)          :: prob
    type (wpar_type), intent(inout)        :: wpar	! contains prior setting
-
-   integer get_free_unit			! function def.
 
 ! Local variables.
 
@@ -130,10 +143,8 @@ subroutine read_config_file_main (config_file, obs_file_template, &
    print '(a)', '  File = ' // trim (config_file)
    print *
 
-   cf = get_free_unit ()			! get unit # for control file
-
-   open (cf, file=config_file, status='old', action='read', iostat=ios, &
-      iomsg=errmsg)
+   open (newunit=cf, file=config_file, status='old', action='read', &
+      iostat=ios, iomsg=errmsg)
 
    lnum = 0					! init line counter
 
@@ -168,6 +179,10 @@ read_file: &
          cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
+      call get_param_string ('reader code for gridded', reader_code_gridded, &
+         cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
       print *
 
       call get_param_string ('hourly output template', hourly_output_template, &
@@ -184,17 +199,26 @@ read_file: &
 
       print *
 
-      call get_param_string ('grid coordinate file', grid_coord_file, &
-         cf, status, lnum, nonblank)
+      call get_param_string ('grid coordinate file', grid_coord_file, cf, &
+         status, lnum, nonblank)
       if (status /= normal) exit read_file
 
       call get_param_string ('predictor weights file', weight_file_template, &
          cf, status, lnum, nonblank)
       if (status /= normal) exit read_file
 
-      call get_param_string ('site exception file', site_exception_file, &
-         cf, status, lnum, nonblank)
+      call get_param_string ('site exception file', site_exception_file, cf, &
+         status, lnum, nonblank)
       if (status /= normal) exit read_file
+
+      call get_param_string ('site blocking list', site_blocking_list, cf, &
+         status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of forecast hours', nhours, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      print *
 
       call get_param_string ('target obs variable', target_obs_var, cf, &
          status, lnum, nonblank)
@@ -242,6 +266,14 @@ read_file: &
       print *
       print '(a)', '* Input filter controls:'
       print *
+
+      call get_param_real ('obs minimum valid input', obs_min_input, cf, &
+         status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_real ('obs maximum valid input', obs_max_input, cf, &
+         status, lnum)
+      if (status /= normal) exit read_file
 
       call get_param_mdhz ('obs blackout start date', obs_blackout_start, cf, &
          status, lnum)
@@ -298,12 +330,40 @@ read_file: &
       else
          apar%analog_mean = string	! names will be checked internally
       end if
-      
+
       print *
 
       call get_window_offsets ('analog search window offsets', fpar%window, &
          cf, status, lnum)
       if (status /= normal) exit read_file
+
+      call get_param_int ('number of days for kalman filter', &
+         kpar%ndays_kalman, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      print *
+
+      call get_param_real ('obs threshold to shorten training period', &
+         apar%short_train_thresh, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of days in short training period', &
+         apar%short_train_ndays, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of analogs for short training period', &
+         apar%num_analogs_short, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+      call get_param_int('minimum number of analogs for short training period',&
+         apar%min_num_analogs_short, cf, status, lnum)
+      if (status /= normal) exit read_file
+
+!-----------------------------------------------------------
+! Read post processing controls.
+!-----------------------------------------------------------
+
+      print *
 
       call get_param_string ('output limit method', output_limit_method, cf, &
          status, lnum, nonblank)

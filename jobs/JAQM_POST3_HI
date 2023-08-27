@@ -4,7 +4,7 @@ date
 export PS4=' $SECONDS + '
 set -x
 
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+export DATA=${DATA:-${DATAROOT}/${PBS_JOBID}}
 mkdir -p $DATA
 cd $DATA
 

@@ -25,9 +25,28 @@
 ! 2017-apr-04	Add ozone support.  Pass var name to QC routine.
 !		Add ozone units conversion, mole/mole to ppmv, to match CMAQ.
 !
+! 2021-apr-27	Add site blocking list to remove problem intervals in obs data.
+! 2021-nov-11	Improve off-grid site diagnostics.  Add distance to nearest
+!		  grid point, and amount of data present.
+!
+! 2022-may-27	Add config parameter for obs maximum valid input threshold.
+!
+! 2023-mar-28	Fix PM2.5 QC for higher input threshold values.
+! 2023-apr-06	Break out units converter into separate subroutine.
+!		New time alignment standard, hourly forward averaged
+!		  convention, for all obs input sources.
+!		BUFR input is now offset one hour backward, to conform.
+!		See time alignment notes in read_obs_series_bufr.f90.
+!		Add QC change diagnostics.
+! 2023-apr-08	Add lower limit for AirNow negative input values.
+!		Add low/high input limits for ozone as well as PM2.5.
+! 2023-apr-11	Minor improvements to diagnostics.
+!
+! * Remember to update the date in the module_id below.
+!
 ! Input:   infile_template = Path template for input data set.  May include
 !		leading environment var, and YYYY MM DD substitution strings.
-!          varname = BUFR field name for requested data variable, e.g. COPOPM.
+!          varname = Source name for requested obs var, e.g. PM25 or COPOPM.
 !	   start_date, end_date = First and last dates of requested time series.
 !          Also see secondary input parameters below.
 !
@@ -45,6 +64,7 @@
 ! Several subsystems are incorporated in this routine:
 !
 ! * Read raw obs time series (BUFR reader).
+! * Remove site data time intervals specified in blocking list.
 ! * Automatic units conversion.
 ! * Missing value conversion.
 ! * Obs quality control.
@@ -59,15 +79,22 @@
 ! and for the requested time interval.  Missing values are
 ! inserted for dates and times not available.
 !
+! Time alignment (2023 April 5):  Obs data are now returned as
+! FORWARD AVERAGED time series.
+!
+! Array index  1 = hour  0 = 0Z to 1Z average.
+! Array index  2 = hour  1 = 1Z to 2Z average.  Etc.
+! Array index 24 = hour 23 = 23Z to 0Z average.
+!
 ! Missing values in the input data set are converted to the
 ! caller's specified missing value.  As of the current version,
 ! 2014-jun-9, this missing value code must be a negative number,
 ! for correct operation of the qc_single_station subroutine.
 !
-! The input data unit for PM2.5 is automatically converted to
-! a standard unit which is expected by both the QC subroutine
-! and the remainder of the bias correction process.  A units
-! string for the converted unit is returned to the caller.
+! The obs input data unit is automatically converted to a
+! standard unit which is expected by both the QC subroutine and
+! the remainder of the bias correction process.  A units string
+! for the converted unit is returned to the caller.
 !
 ! Start and end date indexes:  Integer Gregorian dates, relative
 ! to 1 = January 1 of base_year.  See index_to_date library
@@ -98,15 +125,19 @@ module read__obs_qc
 contains
 
 subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
-      base_year, vmiss, grid_lats, grid_lons, diag, site_ids, site_lats, &
-      site_lons, out_data, units)
+      base_year, obs_min_input, obs_max_input, vmiss, grid_lats, grid_lons, &
+      site_block_list, diag, site_ids, site_lats, site_lons, out_data, units)
 
    use config, only : dp
+   use convert__obs_units
    use grid_location
    use qc__single_site
    use read__obs_series
+   use site__blocking
    use string_utils
    implicit none
+
+   character(*), parameter :: module_id = 'read_obs_qc.f90 version 2023-apr-11'
 
 ! Input arguments.
 
@@ -115,9 +146,12 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    integer,      intent(in) :: start_date	! starting date index
    integer,      intent(in) :: end_date		! ending date index
    integer,      intent(in) :: base_year	! base year for date indexes
+   real(dp),     intent(in) :: obs_min_input	! obs min valid input threshold
+   real(dp),     intent(in) :: obs_max_input	! obs max valid input threshold
    real(dp),     intent(in) :: vmiss		! caller specified missing value
    real(dp),     intent(in) :: grid_lats(:,:)	! 2-D grid coordinates (X,Y)
    real(dp),     intent(in) :: grid_lons(:,:)	!   for screening site locations
+   character(*), intent(in) :: site_block_list  ! blocking list file name
    integer,      intent(in) :: diag		! diag verbosity level, 0-N
 
 ! Output arguments.
@@ -130,16 +164,17 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
 
 ! Local variables.
 
-   character(80) orig_units, orig_units2, units_needed
-   character fmt_vmiss*40, fdate_str*24
+   character(80) orig_units, title1, title2
+   character(60) fmt1, fmt2, fmt3, fmt_vmiss
+   character fdate_str*24
 
    integer si, si2, nsites_in, ntimes
    integer nvalid, nmiss
    integer nx, ny, noff_grid
-   integer nsites_valid, nodata1, nsites_nodata
+   integer nsites_valid, nodata1, nodata2, nsites_nodata
+   integer percent_valid_int
 
    real(dp) vmiss_in, vmin, vmax, percent_miss
-   real(dp) multiplier
 
    logical off_grid
 
@@ -151,11 +186,17 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    character(len(site_ids)), allocatable :: in_ids(:)	! site ID strings (S)
    real(dp), allocatable :: in_lats(:)			! site coordinates (S)
    real(dp), allocatable :: in_lons(:)
-   real(dp), allocatable :: in_data(:,:)		! time series (T,S)
+   real(dp), allocatable :: in_data(:,:)	! time series (T,S)
+   real(dp), allocatable :: distance(:)		! distance to nearest grid point
 
 !-----------------------------------------------------------
 ! Read obs time series for all sites, all requested dates.
 !-----------------------------------------------------------
+
+   if (diag >= 2) print *
+   if (diag >= 2) print *, 'read_obs_qc: Start.'
+   if (diag >= 2) print *, '  Module ID = ' // module_id
+   if (diag >= 2) print *
 
    call fdate (fdate_str)
    print '(2a)', fdate_str, '  Call read_obs_series.'
@@ -185,14 +226,21 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
          if (all (in_data(:,si) == vmiss_in)) nodata1 = nodata1 + 1
       end do
 
-      print '(a,i0)',         ' read_obs_qc:  nsites_in      = ', nsites_in
-      print '(a,i0)',         '   No. of sites with no data  = ', nodata1
-      print '(a,i0)',         '   Number of time steps       = ', ntimes
-      print '(2(a,g0.4))',    '   Min, max raw input data    = ', vmin,', ',vmax
-      print '(a,i0,a,f0.1,a)','   Number of missing values   = ', nmiss, &
-         ' (', percent_miss, '%)'
-      print fmt_vmiss,        '   Missing value              =',  vmiss_in, &
-         ' (', vmiss_in, ' single precision)'
+      fmt1 = '(2(a,g0.4),1x,a)'
+      fmt2 = '(a,i0,a,f0.1,a)'
+
+      print '(2a)',    ' read_obs_qc:  Raw input summary:'
+      print '(2a)',    '   Input var name            = ', trim (varname)
+      print '(2a)',    '   Input data units          = ', trim (orig_units)
+      print '(a,i0)',  '   nsites_in                 = ', nsites_in
+      print '(a,i0)',  '   No. of sites with no data = ', nodata1
+      print '(a,i0)',  '   Number of time steps      = ', ntimes
+      print fmt1,      '   Min, max raw input data   = ', vmin, ', ', vmax, &
+                             trim (orig_units)
+      print fmt2,      '   Number of missing values  = ', nmiss, &
+                             ' (', percent_miss, '%)'
+      print fmt_vmiss, '   Missing value             =',  vmiss_in, &
+                             ' (', vmiss_in, ' single precision)'
       print *
    end if
 
@@ -201,87 +249,51 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
       '  Run QC procedures.'
 
 !-----------------------------------------------------------
-! Units conversion of input data.
+! Block specified time intervals in site input data.
 !-----------------------------------------------------------
 
-! Must perform any needed units conversion BEFORE calling QC routine.
+! Block on raw input data, before the rest of the QC process.
+! See site blocking routines for more details.
+! This routine prints a summary after removing data.
 
-   print *, 'read_obs_qc:  Check for units conversion.'
+   call site_blocking (site_block_list, in_ids, start_date, base_year, &
+      vmiss_in, diag, in_data)
 
-   orig_units2 = orig_units			! setup for case insensitive
-   call lowercase (orig_units2)
+! Input statistics after site blocking.
 
-! Adaptive method.  First determine the needed units, if any.
-! This is a cheap table lookup.  Could be made into formal table, if needed.
-
-   units_needed = 'any'
-   if (varname == 'COPO')   units_needed = 'ppmv'
-   if (varname == 'COPOPM') units_needed = 'microgram/m^3'
+   fmt_vmiss = '(a,g19.12,a,es9.2,a)'	! format for missing value diags
 
    if (diag >= 2) then
-      print *, '  Var name                   = ', trim (varname)
-      print *, '  Input data units           = ', trim (orig_units)
-      print *, '  Units needed               = ', trim (units_needed)
-      print *
-   end if
-
-! Then check for available unit conversions.
-! This is another cheap table.  Could also be made into a formal table.
-
-   multiplier = -777			! default to "no conversion" magic num.
-
-   if (units_needed == 'microgram/m^3') then
-      if (any (orig_units2 == (/ 'kg/(m**3)', 'kg m-3   ' /))) &
-         multiplier = 1.0e9_dp			! kilograms to micrograms
-
-   else if (units_needed == 'ppmv') then
-      if (orig_units2 == 'mole/mole') &
-         multiplier = 1.0e6_dp			! MOLE/MOLE to ppmv
-   end if
-
-! Diagnostics for no conversion.
-
-   if (multiplier == -777) then			! if no conversion...
-      units = orig_units			! keep origina units
-
-      if (units_needed == 'any') then
-         print *, '  No units conversion is needed.  Keep original units.'
-      else
-         print *, '*** read_obs_qc: Warning: Needed units conversion' &
-            // ' is not available.'
-         print *, '*** Keeping original units: ', trim (units)
-         print *, '*** Results may not be accurate.'
-         print *, '*** Check input data, or upgrade this program.'
-      end if
-
-! If valid, perform the units conversion now.
-
-! Ignore any possible missing value range conflict, for now.
-! Currently the numbers for PM2.5 seem favorable.  Maybe check later.
-
-   else
-      units = units_needed			! set the output units
-      print '(9a)', ' read_obs_qc:  Apply units conversion, ', &
-         trim (orig_units), ' to ', trim (units)
-      if (diag>=2) print '(a,es11.4)', '   Multiplier                 =', &
-         multiplier
-      where (in_data /= vmiss_in) in_data = in_data(:,:) * multiplier
-   end if
-
-! Show unit converted statistics.
-
-   if (diag >= 2 .and. multiplier /= -777) then
       vmin  = minval ( in_data, (in_data /= vmiss_in) )
       vmax  = maxval ( in_data, (in_data /= vmiss_in) )
 
       nmiss = count (in_data == vmiss_in)
       percent_miss = (nmiss * 100.0_dp) / size (in_data)
 
-      print '(2(a,g0.4))',    '   Min, max converted data    = ', vmin,', ',vmax
-      print '(a,i0,a,f0.1,a)','   Number of missing values   = ', nmiss, &
-         ' (', percent_miss, '%)'
+      nodata2 = 0
+      do si = 1, nsites_in
+         if (all (in_data(:,si) == vmiss_in)) nodata2 = nodata2 + 1
+      end do
+
+      fmt1 = '(2(a,g0.4),1x,a)'
+      fmt2 = '(a,i0,a,f0.1,a)'
+
       print *
+      print '(a,i0)', ' read_obs_qc:  Summary after site blocking:'
+      print '(a,i0)', '   No. of sites with no data = ', nodata2
+      print fmt1,     '   Min, max obs data         = ', vmin, ', ', vmax, &
+                            trim (orig_units)
+      print fmt2,     '   Number of missing values  = ', nmiss, &
+                            ' (', percent_miss, '%)'
    end if
+
+!-----------------------------------------------------------
+! Units conversion of obs input data.
+!-----------------------------------------------------------
+
+! Must perform any needed units conversion BEFORE calling QC routine.
+
+   call convert_obs_units (varname, orig_units, vmiss_in, diag, in_data, units)
 
 !-----------------------------------------------------------
 ! Convert to requested missing value.
@@ -291,13 +303,14 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
 ! This is required in this position because of dependencies within
 ! the current version of the QC subroutine.
 
+   print *
    print *, 'read_obs_qc:  Convert to requested missing value code.'
 
    if (diag >= 2) then
-      print fmt_vmiss, '   Input missing value        =', vmiss_in, &
-         ' (', vmiss_in, ' single precision)'
-      print fmt_vmiss, '   Requested missing value    =', vmiss, &
-         ' (', vmiss,    ' single precision)'
+      print fmt_vmiss, '   Input missing value       =', vmiss_in, &
+                             ' (', vmiss_in, ' single precision)'
+      print fmt_vmiss, '   Requested missing value   =', vmiss, &
+                             ' (', vmiss,    ' single precision)'
    end if
 
 ! Same missing values, skip conversion.
@@ -323,10 +336,10 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
          nmiss = count (in_data == vmiss)
          percent_miss = (nmiss * 100.0_dp) / size (in_data)
 
-         print '(2(a,g0.4))',     '   Min, max converted data    = ', vmin, &
-            ', ', vmax
-         print '(a,i0,a,f0.1,a)', '   Number of missing values   = ', nmiss, &
-            ' (', percent_miss, '%)'
+         print '(2(a,g0.4),1x,a)', '   Min, max converted data   = ', vmin, &
+                                         ', ', vmax, trim (units)
+         print '(a,i0,a,f0.1,a)',  '   Number of missing values  = ', nmiss, &
+                                         ' (', percent_miss, '%)'
          print *
       end if
    end if
@@ -335,13 +348,14 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
 ! Run the main quality control procedure.
 !-----------------------------------------------------------
 
+   print *
    print *, 'read_obs_qc:  Run obs quality control for each site.'
 
    allocate (valid(nsites_in))			! clear site valid flags
    valid(:) = .false.
 
    if (diag>=3) print *, '     After QC:'
-   if (diag>=3) print *, '  Site ID       Min data     Max data' &
+   if (diag>=3) print *, '  Site ID          Min data     Max data' &
       // '    No. valid   No. missing'
 
 ! Main QC loop over each site.
@@ -349,7 +363,8 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    nsites_valid = 0
 
    do si = 1, nsites_in
-      call qc_single_site (varname, in_data(:,si), vmiss, diag, in_ids(si))
+      call qc_single_site (varname, in_data(:,si), obs_min_input, &
+         obs_max_input, vmiss, diag, in_ids(si))
 
       nmiss  = count  (in_data(:,si) == vmiss)
       nvalid = ntimes - nmiss
@@ -381,10 +396,10 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
       nmiss = count (in_data == vmiss)
       percent_miss = (nmiss * 100.0_dp) / size (in_data)
 
-      print '(a,i0)',          '   Number of input sites      = ', nsites_in
-      print '(a,i0)',          '   No. valid sites after QC   = ', nsites_valid
-      print '(a,i0)',          '   No. of sites with no data  = ', nsites_nodata
-      print '(a,i0,a,f0.1,a)', '   Number of missing values   = ', nmiss, &
+      print '(a,i0)',          '   Number of input sites     = ', nsites_in
+      print '(a,i0)',          '   No. valid sites after QC  = ', nsites_valid
+      print '(a,i0)',          '   No. of sites with no data = ', nsites_nodata
+      print '(a,i0,a,f0.1,a)', '   Number of missing values  = ', nmiss, &
          ' (', percent_miss, '%)'
    end if
 
@@ -411,9 +426,10 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
 ! Off grid sites return -999 in i, j indices.
 
    allocate (i_corners(nsites_in), j_corners(nsites_in))
+   allocate (distance(nsites_in))
 
-   call gridlocation (in_lats, in_lons, grid_lats, grid_lons, diag, &
-      i_corners, j_corners)
+   call gridlocation (in_lats, in_lons, grid_lats, grid_lons, in_ids, diag, &
+      i_corners, j_corners, distance)
 
 ! Eliminate off-grid sites with data.
 ! Sites with no data were already eliminated.
@@ -431,15 +447,32 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
          valid(si) = .false.
          noff_grid = noff_grid + 1
 
-         in_data(:,si) = vmiss			! clear off-grid data to all
-         					! missing, to fix statistics
-
          if (diag >= 2 .and. noff_grid == 1) then
-            print *, 'Summary of off-grid sites, see details above:'
+            print *
+            print *, 'Summary of eliminated off-grid sites with data.'
+            print *, 'Set diag=3 or higher for details.'
+            title1 = '                                     Nearest'
+            title2 = 'Site ID        Latitude   Longitude  Grid point' &
+                     // '  Data present'
+            print '(15x,a)', trim (title1)
+            print '(15x,a)', trim (title2)
          end if
 
-         if (diag>=2) print '(3a,f11.5,f12.5)', ' *** Eliminate off-grid', &
-            ' site with data: ', in_ids(si), in_lats(si), in_lons(si)
+         if (diag >= 2) then
+            nvalid = count (in_data(:,si) /= vmiss)
+            percent_valid_int = nint ((nvalid * 100.0) / ntimes)
+
+            if (nvalid < ntimes) percent_valid_int = min (percent_valid_int, 99)
+            if (nvalid > ntimes) percent_valid_int = max (percent_valid_int, 1)
+            			! enforce truth for not exactly 0% and 100%
+
+            print '(2a,f11.5,f12.5,f9.1,a,i8,a)', &
+               ' *** Off-grid: ', in_ids(si), in_lats(si), in_lons(si), &
+               distance(si), ' km', percent_valid_int, '%'
+         end if
+
+         in_data(:,si) = vmiss		! after diags, clear off-grid data
+         				! to all missing, to fix statistics
       end if
    end do
 
@@ -499,13 +532,16 @@ subroutine read_obs_qc (infile_template, varname, start_date, end_date, &
    nmiss = count (out_data == vmiss)
    percent_miss = (nmiss * 100.0_dp) / size (out_data)
 
-   print '(2a)',            '   Var name                   = ', trim (varname)
-   print '(2a)',            '   Output data units          = ', trim (units)
-   print '(a,i0)',          '   No. valid sites after QC   = ', nsites_valid
-   print '(2(a,g0.4))',     "   Min, max QC'ed data        = ", vmin, ', ', vmax
-   print '(a,i0,a,f0.1,a)', '   Number of missing values   = ', nmiss, ' (', &
-      percent_miss, '%)'
-   print '(2a)',            '     after eliminating sites'
+   fmt1 = '(a,i0)'
+   fmt2 = '(2(a,g0.4),1x,a)'
+   fmt3 = '(a,i0,a,f0.1,a)'
+
+   print '(2a)','   Var name                  = ', trim (varname)
+   print '(2a)','   Output data units         = ', trim (units)
+   print fmt1,  '   No. valid sites after QC  = ', nsites_valid
+   print fmt2,  "   Min, max QC'ed data       = ", vmin,', ', vmax, trim (units)
+   print fmt3,  '   Number of missing values  = ', nmiss,' (', percent_miss,'%)'
+   print '(2a)','     after eliminating sites'
    print *
 
    if (diag>=3) print *, 'read_obs_qc:  QC complete.  Return to main program.'

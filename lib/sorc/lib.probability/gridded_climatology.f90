@@ -18,6 +18,8 @@
 !		Add daily averages for PM2.5, using new daily_averages.f90.
 ! 2019-aug-06	Move run parameters from hard coded, to config file.
 !
+! 2022-may-22	Interface change in support routine.
+!
 ! Functions in this climatology module:
 !
 ! * Read block of recent CMAQ forecast grids for the target variable.
@@ -127,6 +129,8 @@ subroutine gridded_climatology (in_gridded_template, grid_coord_file, &
 
 ! Dynamic arrays.
 
+   character(60), allocatable :: units(:)
+
    integer,  allocatable :: nhours_actual(:)	    ! actual hours for input var
 
    real(dp), allocatable :: grid_lats(:,:)	    ! dummy coordinate arrays
@@ -227,8 +231,8 @@ file_loop: &
 
       call read_gridded_vars ( (/ target_var /), (/ reader_code /), &
          (/ in_gridded_template /), grid_coord_file, year, month, day, &
-         cycle_time, nhours_expect, real (vmiss), diag, vdata, &
-         nhours_actual, nhours_actual_max, grid_lats, grid_lons, status)
+         cycle_time, nhours_expect, real (vmiss), diag, vdata, nhours_actual, &
+         nhours_actual_max, units, grid_lats, grid_lons, status)
       			! read single target var into 4-D (X, Y, [var], hours)
 
       if (status /= normal) cycle file_loop

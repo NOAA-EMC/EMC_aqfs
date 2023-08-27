@@ -4,7 +4,7 @@ date
 export PS4=' $SECONDS + '
 set -x
 
-export DATA=${DATA:-${DATAROOT}/${jobid}}
+export DATA=${DATA:-${DATAROOT}/${PBS_JOBID}}
 mkdir -p $DATA
 cd $DATA
 
@@ -59,15 +59,15 @@ export COMOUTbicorm3=${COMOUTbicorm1:-$(compath.py -o ${NET}/${aqm_ver}/bcdata.$
 
 export DCOMROOT=${DCOMROOT:-/lfs/h1/ops/prod/dcom}
 
-if [ -e  $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 ] ; then
- echo "$COMINbicorm1/airnow/$Yr1/${PDYm1}/b008 exists !"
+if [ -e  $COMINbicorm1/airnow/csv/$Yr1/${PDYm1} ] ; then
+ echo "$COMINbicorm1/airnow/csv/$Yr1/${PDYm1} exists !"
 else
- mkdir -p $COMINbicorm1/airnow/$Yr1/${PDYm1}/b008
+ mkdir -p $COMINbicorm1/airnow/csv/$Yr1/${PDYm1}
 fi
 
-cp ${DCOMROOT}/${PDYm1}/b008/xx031 $COMINbicorm1/airnow/${Yr1}/${PDYm1}/b008/
-cp ${DCOMROOT}/${PDYm2}/b008/xx031 $COMINbicorm2/airnow/${Yr2}/${PDYm2}/b008/
-cp ${DCOMROOT}/${PDYm3}/b008/xx031 $COMINbicorm3/airnow/${Yr3}/${PDYm3}/b008/
+cp ${DCOMROOT}/${PDYm1}/airnow/HourlyAQObs_${PDYm1}*.dat $COMINbicorm1/airnow/csv/${Yr1}/${PDYm1}/
+cp ${DCOMROOT}/${PDYm2}/airnow/HourlyAQObs_${PDYm2}*.dat $COMINbicorm2/airnow/csv/${Yr2}/${PDYm2}/
+cp ${DCOMROOT}/${PDYm3}/airnow/HourlyAQObs_${PDYm3}*.dat $COMINbicorm3/airnow/csv/${Yr3}/${PDYm3}/
 
 export PCOM=${PCOM:-${COMOUT}/wmo}
 

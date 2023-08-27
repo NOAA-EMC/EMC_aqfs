@@ -1,0 +1,21 @@
+Site blocking -- Demonstration list file
+
+This demo blocks only two sites to clear the northern California bullseye
+for the PARA6D scenario, pm2.5, target forecast = 2021 March 15.
+
+By Dave Allured, 2021 April 27.
+
+This list file is free format text, 10 columns as shown below.
+Lat and lon coordinates are for reference only.  They are ignored.
+Data will be blocked between the given start and end dates, inclusive.
+Blank lines and comment lines starting with asterisk "*" are ignored.
+
+Site ID     Latitude   Longitude  Command  Start blocking  End blocking
+-----------------------------------------------------------------------
+
+* Northern California bullseye -- March/April 2021 -- 2 sites
+
+060450006   39.15028  -123.20639    block    2020 08 01     2020 10 31
+060452002   39.41167  -123.35250    block    2020 08 01     2020 10 31
+
+* End of list.

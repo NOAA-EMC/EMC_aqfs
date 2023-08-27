@@ -10,7 +10,12 @@ SHELL=/bin/sh
 # 2017-jun-09   get_command_args.f90 moves into local directory.
 # 2017-aug-08   tranfer the code from Theia to Cray
 # 2021-Mar-07   upgrade the bias corrcction code
-
+# 2022-apr-16   Add read_gridded_hourly.f90, etc. for RRFS-CMAQ.
+# 2022-may-23   Add netcdf_sup.f90.
+# 2022-may-27   Main program name change to aqm_bias_interpolate.f90.
+#
+# 2023-apr-09   Rename read_station_file.f90 to read_site_list.f90.
+#               Omit get_free_unit.f90, no longer needed.
 #
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
@@ -28,8 +33,8 @@ Prg      =   aqm_interpolate_update
 
 # Library directories.
 
-Plib   =   ../../lib/sorc/lib.bias
-Lib    =   ../../lib/sorc/lib.f90
+Plib   =   ../../lib/sorc/lib.bias.csv
+Lib    =   ../../lib/sorc/lib.f90.csv
 
 
 # Command argument sequences.
@@ -44,43 +49,44 @@ F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc
 ## F90_FLAGS3 = -fstack-security-check -fpe-all=0 -check all -check noarg_temp_created
 F90_FLAGS2 = 
 F90_FLAGS3 = -fstack-security-check -fpe-all=0 -check noarg_temp_created
-F90_FLAGS4 = -O3
+F90_FLAGS4 = -check all -O0
 #F90_FLAGS5 = -qopenmp
-F90_FLAGS5 = 
+F90_FLAGS5 = -no-wrap-margin
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
              $(F90_FLAGS5)
 
+F90_CLEANUP='*.o *.mod *__genmod.f90'
+
 Libraries =	$(LIB_NETCDF)
 Link.f90  =	$(F90_CMD) $(F90_FLAGS)
-
-F90_CONFIG =  f90_config.gfortran.f90
 
 # Lib = General fortran support library.
 
 Lib1 =		$(Lib)/config.f90 \
-		$(Lib)/parse_varexp.f90		$(Lib)/stdlit.f90 \
+		$(Lib)/stdlit.f90 \
 		$(Lib)/string_utils.f90
 
-Lib2 =		$(Lib)/date_utils.f90		$(Lib)/get_free_unit.f90 \
+Lib2 =		$(Lib)/date_utils.f90		$(Lib)/distance_btw_coords.f90 \
+		$(Lib)/expand_filename.f90 \
 		$(Lib)/get_param_module.f90	$(Lib)/message_nolog.f90 \
-		$(Lib)/netwrite3.no-udunits.f90	$(Lib)/read_line.f90 \
-                $(Lib)/read_netcdf_var.f90
+		$(Lib)/netcdf_sup.f90		$(Lib)/netwrite3.no-udunits.f90 \
+		$(Lib)/read_line.f90		$(Lib)/read_netcdf_var.f90
 
 Subs.lib =	$(Lib1) $(Lib2)
 
 # Plib = Shared project support library.
 
-Subs.plib =     $(Plib)/expand_filename.f90     $(Plib)/gridlocation.f90 \
-                $(Plib)/read_grid_coords.f90    $(Plib)/read_gridded_aqm.f90 \
-                $(Plib)/read_gridded_vars.f90   $(Plib)/read_table_lines.f90
+Subs.plib =	$(Plib)/gridlocation.f90	$(Plib)/read_grid_coords.f90 \
+		$(Plib)/read_gridded_aqm.f90	$(Plib)/read_gridded_hourly.f90 \
+		$(Plib)/read_gridded_vars.f90	$(Plib)/read_table_lines.f90
 
 # Local support routines in main program directory.
 
 Subs.local =    derivatives.f90 \
                 get_command_args.interp.f90     interpolate.f90 \
-                read_config_file_interp.f90     read_station_file.f90 \
+                read_config_file_interp.f90     read_site_list.f90 \
                 write_interp_netcdf.f90
 
 # Main program.

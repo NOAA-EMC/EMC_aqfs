@@ -37,7 +37,7 @@ make -f Makefile clobber
 done
 
 ###################################################
-for src in interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
+for src in airnow_converter interpolate_update bias_correct  post_bias_cor post_maxi_bias_cor
 do
 cd ${BASEDIR}/aqm_${src}.fd
 make -f Makefile clobber

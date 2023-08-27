@@ -2,8 +2,8 @@
 !
 ! read_interp_forecasts.f90 -- Read interpolated model forecast time series.
 !
-! This routine reads interpolated 48-hour forecasts from a Netcdf
-! data set, over a selected date range and selected variables.
+! This routine reads interpolated 48- or 72-hour forecasts from a
+! Netcdf data set, over a selected date range and selected variables.
 !
 ! This is a support routine for the NOAA NCO/ARL/PSD bias
 ! correction system for CMAQ forecast outputs.
@@ -13,6 +13,14 @@
 ! 2019-may-30	Add option to compute interpolated wind speed and direction
 !	`	  on the fly, from U and V wind.
 !		Add support for varying number of forecast hours per variable.
+!
+! 2022-apr-10	Add support for hourly gridded input files for RRFS-CMAQ.
+!		The number of forecast hours is now pre-determined in the
+!		  config file, rather than adapting to the input data set.
+! 2022-may-31	Add automatic units conversion for the target forecast
+!		  variable, ppb to ppm.
+!
+! 2023-apr-09	Minor update for 12-character site ID's.
 !
 ! Primary inputs:
 !
@@ -26,15 +34,15 @@
 !
 ! Primary outputs:
 !
-! * Master 4-D array containing interpolated 48-hour data over the
-!   requested variables, range of dates, and all available site
-!   locations.
+! * Master 4-D array containing interpolated 48- or 72-hour
+!   data over the requested variables, range of dates, and all
+!   available site locations.
 ! * Site ID's and lat/lon coordinates for interpolation sites.
 !
 ! Notes:
 !
 ! The interpolated input data set is specified with a path
-! template.  The template contains YYYY MM DD HH substitution
+! template.  The template contains YYYY MM DD CC substitution
 ! strings that will resolve to day file names for the requested
 ! forecast cycles.  The template may include full or relative
 ! paths, and it may begin with an $ENV environnment variable.
@@ -42,20 +50,16 @@
 ! Output arrays are auto-allocated for all available sites, and
 ! for the requested range of dates.
 !
-! The number of forecast hours may vary between dates, and also
-! between variables.  The actual number of forecast hours to be
-! processed and output in bias correction will be determined by
-! the first analog variable in the first date in the training
-! period.
-!
 ! The assumed missing value "vmiss" is used as needed to fill
 ! gaps in the input data set.
 !
-! No units conversion is performed.  Data are returned in the
-! original units as stored in the data set.
+! Units conversion is provided only for the target forecast
+! variable.  Input units of ppb are automatically converted to
+! ppm, to conform with existing analog filter code. Otherwise,
+! no units conversion is performed on any other input variable.
 !
-! Currently, no units strings are returned because the
-! interpolated data set currently lacks them.
+! Units strings are not currently used by the analog code, so
+! none are returned to the caller.
 !
 ! Start and end date indexes:  Integer Gregorian dates, relative
 ! to 1 = January 1 of base_year.  See index_to_date library
@@ -81,16 +85,19 @@ module read__interp_forecasts
 contains
 
 subroutine read_interp_forecasts (infile_template, varnames, start_date, &
-      end_date, base_year, cycle_time, dpar, vmiss, diag, site_ids, &
-      site_lats, site_lons, out_data)
+      end_date, base_year, cycle_time, nhours, dpar, fvar, vmiss, diag, &
+      site_ids, site_lats, site_lons, out_data)
 
    use compute__wind
-   use config,             only : dp, i64
+   use config,                only : dp, i64
    use expand__filename
    use index_to_date_mod
-   use netcdf,             only : nf90_get_att, nf90_noerr
+   use netcdf,                only : nf90_get_att, nf90_noerr
+   use netcdf_sup
+   use print__interp_summary
    use read__netcdf_var
-   use stdlit,             only : normal
+   use stdlit,                only : normal
+   use string_utils
    implicit none
 
 ! Input arguments.
@@ -101,7 +108,9 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
    integer,        intent(in) :: end_date	 ! ending date index
    integer,        intent(in) :: base_year	 ! base year for date indexes
    integer,        intent(in) :: cycle_time	 ! start hour of forecast cycle
+   integer,        intent(in) :: nhours		 ! number of forecast hours
    type(dpar_type),intent(in) :: dpar		 ! controls for derived vars
+   integer,        intent(in) :: fvar		 ! index of target forecast var
    real(dp),       intent(in) :: vmiss		 ! caller's missing value code
    integer,        intent(in) :: diag		 ! diag verbosity level, 0-N
 
@@ -118,24 +127,28 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
 
 ! Local variables.
 
-   character(len(varnames)) varname, derived_vars(2)
+   character(len(varnames)) varname, fvarname, derived_vars(2)
+   character(60) units(size(varnames)), in_units
+   character(60) units_orig, units_orig2, units_needed
+
    character(200) infile, save_infile
-   character fmt1*50, mbstr*50
+   character fmt1*50, mbstr*50, yes_no*3
 
    integer year, month, day
    integer vi, idate, date_index, i
-   integer nhours, nhours_alloc, nhours_copy
+   integer nhours_valid, nhours_copy
    integer status, status1, status2, att_status
    integer ncid, varid
    integer ndays_valid, ndays_missing, ndays_error
-   integer with_data, nvalid, nmiss
+   integer with_data
 
    integer(i64) ndays, nvars, nsites		! long integers
    integer(i64) nbytes, total_size		! for total size calculations
 
-   real(dp) mbytes, percent_miss, vmin, vmax
+   real(dp) mbytes, multiplier
 
-   logical ex, udata_valid, vdata_valid
+   logical ex, udata_valid, vdata_valid, need_conversion
+   logical need_units(size(varnames))
 
 ! Dynamic arrays.
 
@@ -143,9 +156,6 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
    real(dp), allocatable :: save_lats(:), save_lons(:)	  ! (sites)
    real(dp), allocatable :: file_data(:,:)		  ! (sites, hours)
    real(dp), allocatable :: udata(:,:), vdata(:,:)	  ! (sites, hours)
-
-   logical, allocatable :: mask_valid(:,:,:)	     ! data mask for single var
-   						     ! (days, hours, sites)
 
 !-----------------------------------------------------------
 ! Initialize.
@@ -163,6 +173,9 @@ subroutine read_interp_forecasts (infile_template, varnames, start_date, &
    ndays_error   = 0
 
    derived_vars = (/ dpar%derived_wind_dir_var, dpar%derived_wind_speed_var /)
+
+   units(:) = ' '			! default units strings to blank
+   need_units = .true.
 
 !-----------------------------------------------------------
 ! Main loop over each input file.  One file per day.
@@ -245,8 +258,8 @@ date_loop: &
 
       if (diag >= 5 .or. (diag >= 3 .and. .not. allocated (save_ids)) ) then
          print *
-         print '(4x,a)', ' Site ID        Lat          Lon'
-         print '(4x,a)', '---------    ---------    ---------'
+         print '(4x,a)', ' Site ID           Lat          Lon'
+         print '(4x,a)', '---------       ---------    ---------'
          fmt1 = '(4x,a,2f13.5)'
          print fmt1, (site_ids(i), site_lats(i), site_lons(i), i=1,nsites)
          print *
@@ -300,6 +313,51 @@ date_loop: &
 
 ! Maybe should check lat/lon coordinates as well.  Add later.
 ! Maybe should check embedded date.  Add later.
+
+!---------------------------------------------------------------
+! Allocate the main output array, on first valid input file.
+!---------------------------------------------------------------
+
+alloc_once: &
+      if (.not. allocated (out_data)) then
+
+         if (diag >= 2) then
+
+! For diagnostic, determine total allocation size.
+! STORAGE_SIZE is a fortran 2008 intrinsic for bit size of one element.
+
+            nbytes     = storage_size (out_data) / 8	! element bit size / 8
+            total_size = ndays * nhours * nvars * nsites
+            mbytes     = total_size * nbytes / 1.0e6
+
+! Formatted diagnostic for main allocation.
+
+            write (mbstr, '(i6)') nint (mbytes) ! cleaner version of G format
+            if (mbytes < 10) write (mbstr, '(f8.1)') mbytes
+            if (mbytes < 1)  write (mbstr, '(f8.2)') mbytes
+            if (mbstr(1:1) == '*' .or. mbytes < 0.01) &
+               write (mbstr, '(es10.1)') mbytes
+            mbstr = adjustl (mbstr)
+            if (mbstr(1:1) == '.') mbstr = '0' // mbstr
+
+            print *
+            print '(2a)', 'read_interp_forecasts:  Allocate main array', &
+               ' for interpolated forecast data.'
+            print '(a,4(2x,i0))', '     ndays, nhours, nvars, nsites =', &
+               ndays, nhours, nvars, nsites
+            print '(a,i0,3a)','     Total array size             = ', &
+               total_size, ' elements (', trim (mbstr), ' megabytes)'
+            print *
+         end if
+
+         allocate (out_data(ndays, nhours, nvars, nsites))
+
+! Clear to all missing, in case of possible gaps.
+
+         if (diag >= 3) print *, '  Clear main array to all missing.'
+
+         out_data(:,:,:,:) = vmiss
+      end if alloc_once
 
 !-----------------------------------------------------------
 ! Read optional input variables for computing derivatives,
@@ -364,10 +422,14 @@ var_loop: &
 
 ! Compute derived analog variable on the fly.
 
-var_type: if (any (varname == derived_vars(:)) ) then
+var_type: &
+         if (any (varname == derived_vars(:)) ) then
 
             call compute_wind (varname, dpar, udata, vdata, udata_valid, &
-               vdata_valid, vmiss, diag, file_data, nhours, status)
+               vdata_valid, vmiss, diag, file_data, nhours_valid, status)
+
+            need_units(vi) = .false.	! for now, can not propagate the wind
+            				! units attributes; so leave blank
 
 ! Read normal analog variable directly from file.
 
@@ -382,10 +444,11 @@ var_type: if (any (varname == derived_vars(:)) ) then
 ! Try to read actual hours attribute for this variable.
 
             if (status == normal) then
-               att_status = nf90_get_att (ncid, varid, 'nhours_valid', nhours)
+               att_status = nf90_get_att (ncid, varid, 'nhours_valid', &
+                  nhours_valid)
 
                if (att_status /= nf90_noerr) then	! if no attribute...
-                  nhours = size (file_data, 2)		! use return array size
+                  nhours_valid = size (file_data, 2)	! use return array size
                end if
             end if
          end if var_type
@@ -405,58 +468,9 @@ var_type: if (any (varname == derived_vars(:)) ) then
             cycle var_loop
          end if
 
-! Read successful.  Allocate the main output array, first time only.
+! Read successful.  Insert current file, current var data into main array.
 
-         if (.not. allocated (out_data)) then
-
-            if (diag >= 2) then
-
-! For diagnostic, determine total allocation size.
-! STORAGE_SIZE is a fortran 2008 intrinsic for bit size of one element.
-
-               nbytes = storage_size (out_data) / 8		! bit size / 8
-
-! Try this common but non-standard function, if STORAGE_SIZE not available.
-
-!!               nbytes = sizeof (real (1, kind (out_data)))
-
-               total_size = ndays * nhours * nvars * nsites
-               mbytes = total_size * nbytes / 1.0e6
-
-! Formatted diagnostic for main allocation.
-
-               write (mbstr, '(i6)') nint (mbytes) ! cleaner version of G format
-               if (mbytes < 10) write (mbstr, '(f8.1)') mbytes
-               if (mbytes < 1)  write (mbstr, '(f8.2)') mbytes
-               if (mbstr(1:1) == '*' .or. mbytes < 0.01) &
-                  write (mbstr, '(es10.1)') mbytes
-               mbstr = adjustl (mbstr)
-               if (mbstr(1:1) == '.') mbstr = '0' // mbstr
-
-               print *
-               print '(2a)', 'read_interp_forecasts:  Allocate main array', &
-                  ' for interpolated forecast data.'
-               print '(a,4(2x,i0))', '     ndays, nhours, nvars, nsites =', &
-                  ndays, nhours, nvars, nsites
-               print '(a,i0,3a)','     Total array size             = ', &
-                  total_size, ' elements (', trim (mbstr), ' megabytes)'
-               print *
-            end if
-
-            allocate (out_data(ndays, nhours, nvars, nsites))
-
-            nhours_alloc = nhours	! nhours may vary; remember array size
-
-! Clear to all missing, in case of possible gaps.
-
-            if (diag >= 3) print *, '  Clear main array to all missing.'
-
-            out_data(:,:,:,:) = vmiss
-         end if
-
-! Insert current file, current var data into main array.
-
-         nhours_copy = min (nhours, nhours_alloc)
+         nhours_copy = min (nhours, nhours_valid)
 
          if (diag >= 3) print '(3a,i0)', &
             '   Insert input data into main array: ', trim (varname), &
@@ -472,6 +486,20 @@ var_type: if (any (varname == derived_vars(:)) ) then
             with_data = with_data + 1
          else
             if (diag >= 1) print *, '   *** All missing data: ', trim (varname)
+         end if
+
+! Read units attribute, one time only for each requested variable.
+! Assume that units for each variable are the same across all dates
+! and all forecast hours in the entire input file set.
+
+         if (need_units(vi)) then
+            att_status = nf90_get_att_trim (ncid, varid, 'units', in_units)
+            if (att_status == nf90_noerr) then
+               if (in_units /= ' ') then	! units valid only when found
+                  units(vi)  = in_units		! units attribute, and it is
+                  need_units(vi) = .false.	! not blank
+               end if
+            end if
          end if
 
       end do var_loop
@@ -495,7 +523,7 @@ var_type: if (any (varname == derived_vars(:)) ) then
    if (diag >= 2) print *, ' End of requested time range.'
 
 !-----------------------------------------------------------
-! All files read.  Final diagnostics.
+! All files read.  Intermediate diagnostics.
 !-----------------------------------------------------------
 
 ! Print input summary, part 1.
@@ -521,29 +549,62 @@ var_type: if (any (varname == derived_vars(:)) ) then
 
 ! Part 2.  Print summary statistics for each input variable.
 
-   allocate (mask_valid(ndays, nhours_alloc, nsites))	! mask for single var
+   call print_interp_summary (varnames, units, out_data, vmiss)
+
+!-----------------------------------------------------------
+! Automatic units conversion for target var, ppb to ppm.
+!-----------------------------------------------------------
+
+! In this preliminary version, units of ppb are converted blindly,
+! without checking the species type.  Should be fine for both
+! ozone and PM2.5.
 
    print *
-   print *, 'Variable       Min data     Max data' &
-      // '    No. valid          No. missing'
+   print *, 'read_interp_forecasts:  Check for units conversion.'
 
-   do vi = 1, nvars
-      mask_valid = (out_data(:,:,vi,:) /= vmiss)	! DHS <-- DHVS
-      nvalid = count (mask_valid)
-      nmiss = size (mask_valid) - nvalid
-      percent_miss = (nmiss * 100.0_dp) / size (mask_valid)
+   fvarname    = varnames(fvar)
+   units_orig  = units(fvar)
+   units_orig2 = units_orig
+   call lowercase (units_orig2)
 
-      vmin  = minval (out_data(:,:,vi,:), mask_valid)
-      vmax  = maxval (out_data(:,:,vi,:), mask_valid)
+   units_needed    = 'ppm'
+   need_conversion = (any (units_orig2 == (/ 'ppb ', 'ppbv' /) ))
+   yes_no          = merge ('YES', 'NO ', need_conversion)
 
-      if (nvalid == 0) vmin = vmiss		! fix min and max display
-      if (nvalid == 0) vmax = vmiss		! if all missing
+   if (diag >= 2) then
+      print *, '  Interpolated var name      = ', trim (fvarname)
+      print *, '  Input data units           = ', trim (units_orig)
+      print *, '  Units needed               = ', trim (units_needed)
+      print *, '  Units conversion needed    = ', trim (yes_no)
+      print *
+   end if
 
-      fmt1 = "(1x, a10, 2f13.2, 2i13, ' (', f0.1, '%)')"
-      print fmt1, varnames(vi), vmin, vmax, nvalid, nmiss, percent_miss
-   end do
+convert_ppb: &
+   if (need_conversion) then
+      multiplier = 0.001_dp			! ppb to ppm
 
-   print *
+      print '(99a)', ' read_interp_forecasts:  Apply units conversion, ', &
+         trim (units_orig), ' to ', trim (units_needed), '.'
+
+      if (diag >= 2) print '(a,es11.4)', '   Multiplier                 =', &
+         multiplier
+
+      where (out_data(:,:,fvar,:) /= vmiss)
+         out_data(:,:,fvar,:) = out_data(:,:,fvar,:) * multiplier
+      end where
+
+      units(fvar) = units_needed
+
+! Part 3, conditional.  Final diagnostics after units conversion.
+
+      print *
+      print *, 'Input summary after interpolated ' // trim (fvarname) &
+         // ' units conversion to ' // trim (units_needed) // ':'
+
+      call print_interp_summary (varnames, units, out_data, vmiss)
+      print *
+
+   end if convert_ppb
 
    if (diag >= 3) print *, 'read_interp_forecasts: Return.'
    if (diag >= 3) print *

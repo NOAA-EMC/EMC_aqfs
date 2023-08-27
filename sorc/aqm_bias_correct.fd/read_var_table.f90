@@ -7,6 +7,7 @@
 !
 ! 2020-nov-10	read_var_table.f90:
 !		Split off from read_config_file_main.f90.
+! 2022-apr-20	Minor.  Interface change for subroutine read_table_lines.
 !
 ! See general documentation within read_config_file_main.f90.
 ! See a typical bias_correct configuration file for more details.
@@ -57,6 +58,8 @@ subroutine read_var_table (analog_vars, var_lower_limits, var_upper_limits, &
 
 ! Fixed program parameters.
 
+   character(*), parameter :: caller_name = 'read_var_table'
+
    real(dp), parameter :: celsius_to_kelvin = 273.15	! unit conversion
 
 !-----------------------------------------------------------
@@ -70,7 +73,8 @@ subroutine read_var_table (analog_vars, var_lower_limits, var_upper_limits, &
    print *
 
    header_expected = '--------'			! start of line
-   call read_table_lines (cf, header_expected, lines, nvars, lnum)
+   call read_table_lines (cf, header_expected, 'no empty', caller_name, &
+      lines, nvars, lnum)
 
 ! Now have count of analog vars.  Allocate var parameter arrays.
 

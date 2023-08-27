@@ -7,6 +7,7 @@
 #
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #
+# K. Wang      Jul 19 2023   Updated to PSL's 2023/04 version of BC code
 ######################################################################
 set -xa
 
@@ -35,7 +36,7 @@ cp -rp  $PARMaqm/aqm.*grdcro2d.ncf  ${DATA}/data/coords/
 ln -s ${COMINbicordat}/bcdata* ${DATA}/data/
 
 startmsg  
-$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.bias_corr  ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.ozone.bias_corr.${cyc}z  ${cyc}z  $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 

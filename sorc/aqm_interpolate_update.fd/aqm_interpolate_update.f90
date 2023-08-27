@@ -1,19 +1,20 @@
 !------------------------------------------------------------------------------
 !
-! interpolate_update.f90
+! aqm_bias_interpolate.f90
 !
-! Interpolate gridded raw 48-hour forecasts to station locations.
+! Interpolate gridded raw hourly forecasts to site locations.
 ! Update day files in a local archive, as needed.
 !
 ! This is the "interpolation module", one of the four major
-! components of the NOAA NCO/ARL/PSD bias correction system
+! components of the NOAA NCO/ARL/PSL bias correction system
 ! for CMAQ forecast outputs.
 !
 ! This same program is used both to generate the original
 ! interpolated local archive, and to add current day files
 ! on the fly in production mode.
 !
-! 2014-may-10	Original version of main program and process control.
+! 2014-may-10	interpolate_update.f90:
+!		Original version of main program and process control.
 !		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 !		Core interpolation routines by Irina Djalalova, NOAA/ESRL/PSD3.
 ! 2014-may-12	Optimize sparse progress display for diag level 2.
@@ -41,18 +42,33 @@
 !
 ! 2020-feb-12	Bug fix in derivatives.f90.  Fix sign reversal in V wind.
 !
+! 2022-apr-20	Add support for hourly gridded input files for RRFS-CMAQ.
+!		Specify number of forecast hours in config file, rather
+!		  than on command line.
+!		Change from hard coded derivatives, to formula expressions.
+!		Add support for summed derived fields, such as NOX = NO + NO2.
+! 2022-apr-24	Include forecast hour zero, because it is actually the
+!		  first legitimate forecast hour in RRFS-CMAQ.
+! 2022-may-23	Propagate units attributes to output files.
+!
+! 2022-jun-03	aqm_bias_interpolate.f90:
+!		Main program name change to conform with NCEP/NCO.
+! 2022-dec-03	RRFS: Ignore *.f000 files, start with *.f001 = forecast hour 1.
+!
+! 2023-apr-11	Increase site ID's from 9 to 12 characters maximum, for AirNow.
+!
 ! * Remember to update the program_id below.
 !
 ! Input:
 !
 ! Configuration file, with paths and list of vars to include.
-! Station file with list of station ID's and coordinates.
+! Site file with list of site ID's and coordinates.
 ! Gridded raw forecast files for MET and CMAQ models.
 ! A few hard coded parameters, see below.
 !
 ! Output:
 !
-! Forecast data interpolated to station coordinates.
+! Forecast data interpolated to site coordinates.
 ! One file per day, all variables in each file.
 !
 ! Notes:
@@ -65,15 +81,15 @@
 ! needed, then first delete the old files.  Then run this program
 ! to make replacements.
 !
-! If the station file changes, the entire archive should be
-! regenerated from scratch, so that station ordering and site
+! If the site file changes, the entire archive should be
+! regenerated from scratch, so that site ordering and site
 ! coordinates will remain consistent between interpolated files.
 !
 !------------------------------------------------------------------------------
 !
-! Usage, run command with five or six arguments:
+! Usage, run command with four or five arguments:
 !
-! ./interpolate_update config-file cycle-time nhours date1 date2 diag=N
+! ./aqm_bias_interpolate config-file cycle-time date1 date2 diag=N
 !
 ! config-file	Interpolator config file for current platform and
 !		data set configuration.  Includes explicit file
@@ -83,8 +99,6 @@
 ! cycle-time	HH, model cycle time, currently 06 or 12.
 !		Set to $Cyc for WCOSS real-time operation.
 !
-! nhours	Number of forecast hours in current cycle, typically 48 or 72.
-!
 ! date1, date2	YYYYMMDD, start and end forecast dates to process.
 !
 ! diag=N	Set verbosity level N.  Optional argument.
@@ -92,11 +106,11 @@
 !
 ! Example:
 !
-! ./interpolate_update config.interp.0424 12z 72 20140101 20140510
+! ./aqm_bias_interpolate config.interp.ozone.7-vars 12z 20230101 20230331
 !
 !------------------------------------------------------------------------------
 
-program interpolate_update
+program aqm_bias_interpolate
 
    use config, only : dp
    use derivatives_mod
@@ -106,17 +120,20 @@ program interpolate_update
    use interpolate_mod
    use read__config_file_interp
    use read__gridded_vars
-   use read__station_file
+   use read__site_list
    use stdlit
    use write__interp_netcdf
    implicit none
 
    character(*), parameter :: &
-      program_id = 'interpolate_update.f90 version 2020-feb-12'
+      program_id = 'aqm_bias_interpolate.f90 version 2023-apr-11'
 
 ! Local variables.
 
-   character(200) config_file, station_file, grid_coord_file
+   integer, parameter :: id_len = 12		! site ID length for AirNow
+   						!  site ID's up to 12 characters
+
+   character(200) config_file, site_file, grid_coord_file
    character(200) interp_file, interp_file_template
    character fmt1*20, fdate_str*24
 
@@ -126,41 +143,43 @@ program interpolate_update
    integer diag, status
    integer ndays_total, nskip_exist, ndays_error, nwrite
    integer nvars, nsave, vi
-   integer vi_wind_direction, vi_wind_speed
 
    real vmiss
    logical ex
 
 ! Dynamic arrays.
 
-   character(80),  allocatable :: varnames(:)		   ! var config data (V)
-   character(30),  allocatable :: reader_codes(:)	   ! (V)
-   character(200), allocatable :: grid_file_templates(:)   ! (V)
+   character(80),  allocatable :: varnames(:)		 ! var config data (V)
+   character(30),  allocatable :: reader_codes(:)	 ! (V)
+   character(200), allocatable :: grid_file_templates(:) ! (V)
+   character(200), allocatable :: formulas(:)		 ! for derivatives (D)
+   character(60),  allocatable :: units(:)		 ! units attributes (V)
 
-   logical,        allocatable :: var_save(:)		   ! (V)
-   integer,        allocatable :: ind_save(:)		   ! (V subset)
+   logical,        allocatable :: var_save(:)		! (V)
+   integer,        allocatable :: ind_save(:)		! (V subset)
 
-   integer,        allocatable :: nhours_actual(:)	 ! actual hours read (V)
+   integer,        allocatable :: nhours_actual(:)	! actual hrs read (V)
 
-   character(9), allocatable :: site_ids(:)		    ! site ID's (S)
-   real(dp),     allocatable :: site_lats(:), site_lons(:)  ! site coords (S)
+   character(id_len), allocatable :: site_ids(:)	! site ID's (S)
+   real(dp),       allocatable :: site_lats(:)		! site coordinates (S)
+   real(dp),       allocatable :: site_lons(:)
 
-   real(dp), allocatable :: grid_lats(:,:)		! grid coordinates (X,Y)
-   real(dp), allocatable :: grid_lons(:,:)
+   real(dp),       allocatable :: grid_lats(:,:)	! grid coordinates (X,Y)
+   real(dp),       allocatable :: grid_lons(:,:)
 
-   real, allocatable :: grid_data(:,:,:,:)		! gridded forecast data
+   real,           allocatable :: grid_data(:,:,:,:)	! gridded forecast data
   							!  (X, Y, vars, hours)
-   real, allocatable :: interp_data(:,:,:)		! interpolated data
+   real,           allocatable :: interp_data(:,:,:)	! interpolated data
   							!  (sites, vars, hours)
 ! Program parameters.
 
-   character(*), parameter :: prog_name = 'interpolate_update'
+   character(*), parameter :: prog_name = 'aqm_bias_interpolate'
    character(*), parameter :: calendar  = 'gregorian'
 
 ! Run parameters.
 
    call fdate (fdate_str)
-   print '(2a)', fdate_str, '  interpolate_update.f90: Start.'
+   print '(2a)', fdate_str, '  aqm_bias_interpolate.f90: Start.'
    print '(2a)', 'Program ID = ', program_id
 
    diag = 2		! set default verbosity: 0 = errors only,
@@ -178,17 +197,17 @@ program interpolate_update
 ! Get command line parameters.
 
    call get_command_args (prog_name, calendar, config_file, cycle_time, &
-      nhours_spec, first_date, last_date, base_year, diag)
+      first_date, last_date, base_year, diag)
 
 ! Read and process the configuration file.
 
-   call read_config_file_interp (config_file, station_file, grid_coord_file, &
-      interp_file_template, vi_wind_direction, vi_wind_speed, varnames, &
-      reader_codes, grid_file_templates, var_save)
+   call read_config_file_interp (config_file, site_file, grid_coord_file, &
+      interp_file_template, nhours_spec, varnames, reader_codes, &
+      grid_file_templates, formulas, var_save)
 
 ! Read site coordinates for interpolation.
 
-   call read_station_file (station_file, site_ids, site_lats, site_lons, nsites)
+   call read_site_list (site_file, site_ids, site_lats, site_lons, nsites)
 
    if (diag >= 2)  print *
 
@@ -227,7 +246,7 @@ date_loop: &
 
       call read_gridded_vars (varnames, reader_codes, grid_file_templates, &
          grid_coord_file, year, month, day, cycle_time, nhours_spec, vmiss, &
-         diag, grid_data, nhours_actual, nhours_actual_max, grid_lats, &
+         diag, grid_data, nhours_actual, nhours_actual_max, units, grid_lats, &
          grid_lons, status)
 
 ! Skip this date if there is a serious problem with the input data.
@@ -244,10 +263,11 @@ date_loop: &
 ! Derivatives will be filled into the reserved slots in the main array.
 ! Special keywords in "reader_codes" identify the derived vars to calculate.
 
-      call derivatives (varnames, reader_codes, grid_data, nhours_actual, &
-         vmiss,  vi_wind_direction, vi_wind_speed, diag)
+      call derivatives (varnames, reader_codes, formulas, grid_data, &
+         nhours_actual, units, vmiss, diag)
 
-! Now exclude any variables marked "nosave".  Not needed after derivatives.
+! Now exclude any variables marked "nosave".
+! They are no longer needed after derivatives are calculated.
 ! Generate indices for only vars to save, using masked constructor.
 
       nvars    = size  (var_save)
@@ -271,7 +291,8 @@ date_loop: &
 ! in support of varying length forecasts.
 
       call interpolate (grid_data(:,:,ind_save,1:nhours_actual_max), vmiss, &
-         grid_lats, grid_lons, site_lats, site_lons, diag, interp_data)
+         grid_lats, grid_lons, site_lats, site_lons, site_ids, diag, &
+         interp_data)
 
 ! Write the output file for this date.  "Interp_data" is now properly
 ! subset for only the variables and forecast hours to save.
@@ -280,8 +301,8 @@ date_loop: &
 ! varying-length output variables.
 
       call write_interp_netcdf (interp_file, site_ids, site_lats, site_lons, &
-         varnames(ind_save), nhours_actual(ind_save), interp_data, vmiss, &
-         program_id, diag)
+         varnames(ind_save), units(ind_save), nhours_actual(ind_save), &
+         interp_data, vmiss, program_id, diag)
 
       nwrite = nwrite + 1			! count files actually written
 
@@ -303,6 +324,6 @@ date_loop: &
    print fmt1, 'Number of new day files written          = ', nwrite
 
    print *
-   print '(2a)', fdate_str, '  interpolate_update.f90: Done.'
+   print '(2a)', fdate_str, '  aqm_bias_interpolate.f90: Done.'
 
-end program interpolate_update
+end program aqm_bias_interpolate
