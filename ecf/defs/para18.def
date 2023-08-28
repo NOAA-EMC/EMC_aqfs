@@ -3,13 +3,17 @@ suite para
   family 18
   family aqm
     edit PROJ 'AQM'
-    edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/cmaq.%cmaq_ver%
-  family v6.1
+    edit PACKAGEHOME /lfs/h1/ops/%ENVIR%/packages/aqm.%aqm_ver%
     defstatus complete
+    family v6.1
     edit PDY 20210824
     family hi
       task jaqm_prep_hi
-        time 18:00
+        time 22:00
+        edit NODES 1
+  	edit NCPUS 7
+        edit PTILE 7
+	edit MEM   256
       task jaqm_forecast_hi
         trigger jaqm_prep_hi == complete
       task jaqm_post1_hi
@@ -19,7 +23,11 @@ suite para
     endfamily
     family ak
       task jaqm_prep_ak
-        time 18:00
+        time 22:00
+        edit NODES 1
+  	edit NCPUS 7
+        edit PTILE 7
+	edit MEM   256
       task jaqm_forecast_ak
         trigger jaqm_prep_ak == complete
       task jaqm_post1_ak
@@ -31,7 +39,11 @@ suite para
       edit KEEPDATA 'YES'
       edit COMPATH '/gpfs/hps/nco/ops/com/aqm/prod'
       task jaqm_prep_conus
-        time 18:00
+        time 22:00
+        edit NODES 1
+  	edit NCPUS 7
+        edit PTILE 7
+	edit MEM   256
       task jaqm_forecast_conus
         trigger jaqm_prep_conus == complete
       task jaqm_post1_conus

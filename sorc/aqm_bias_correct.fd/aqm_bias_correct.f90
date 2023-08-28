@@ -1,15 +1,16 @@
 !------------------------------------------------------------------------------
 !
-! bias_correct.f90
+! aqm_bias_correct.f90
 !
 ! Main program to perform bias correction on a gridded forecast
-! time series for one variable, and one 48-hour forecast cycle.
+! time series for one variable, and one forecast cycle.
 !
 ! This is the combined QC, analog filter, and spreading components
-! of the NOAA NCO/ARL/PSD bias correction system for CMAQ forecast
+! of the NOAA NCO/ARL/PSL bias correction system for CMAQ forecast
 ! outputs.
 !
-! 2014-jul-16	Original version of main program and process control.
+! 2014-jul-16	bias_correct.f90:
+!		Original version of main program and process control.
 !		By Dave Allured, NOAA/ESRL/PSD/CIRES.
 ! 2014-jul-23	Fix program name in error message.
 !
@@ -33,6 +34,9 @@
 ! 2017-jun-05	Add support for obs blackout dates.
 ! 2017-jun-06	Add support for predictor weight generation by subsets.
 !
+! 2018-jan-19	Patch release.  Add new bias formula for present forecast only.
+!		Add config parameter "bias_formula".
+!
 ! 2019-may-31	Add support for varying number of forecast hours per variable.
 !		Add option to compute vector fields after interpolation;
 !		  wind speed and direction in this case.
@@ -52,6 +56,40 @@
 !		Add support for asymmetric search window bounds.
 !
 ! 2021-mar-24	Fix support for mixed forecast lengths in spreading.f90.
+! 2021-apr-20	Add site bias arrays to main output file, for diagnostics.
+! 2021-apr-25	Add option for reduced number of days for Kalman filtering.
+! 2021-apr-27	Add site blocking list to remove problem intervals in obs data.
+! 2021-nov-11	Improve off-grid site diagnostics.
+!
+! 2022-apr-20	Add support for hourly gridded input files for RRFS-CMAQ.
+!		The number of forecast hours is now pre-determined in the
+!		  config file, rather than adapting to the input data set.
+! 2022-apr-24	Include forecast hour zero, because it is actually the
+!		  first legitimate forecast hour in RRFS-CMAQ.
+! 2022-may-25	Add automatic units conversion, as needed, to make analog
+!		  arrays in ppm/ppmV conform to new forecast grids in ppb.
+!		Add units attributes to output files.
+! 2022-may-27	Add option for short training period when high obs detected.
+!		Add maximum value limit for input PM2.5.
+!
+! 2022-jun-03	aqm_bias_correct.f90:
+!		Main program name change to conform with NCEP/NCO.
+!		Add output routine to conform with new forecast file layout.
+! 2022-dec-03	RRFS: Ignore *.f000 files, start with *.f001 = forecast hour 1.
+!
+! 2023-mar-28	Modify number of analogs when short training period is selected.
+!		Add OpenMP diagnostics.
+!		Fix PM2.5 QC for higher input threshold values.
+! 2023-apr-06	Add support for AirNow Netcdf files, derived from AirNow
+!		  HourlyAQ files in text/CSV format.
+!		Increase site ID strings from 9 to 12 characters maximum.
+! 2023-apr-06	New time alignment standard, hourly forward averaged
+!		  convention, for all obs input sources.
+!		Internal change only.  Affects only the obs_in array.
+!		Compensated in align_obs_to_forecasts.f90.
+!		See time alignment notes in read_obs_series_bufr.f90.
+! 2023-apr-11	Add lower limit for AirNow negative input values.
+!		Add low/high input limits for ozone as well as PM2.5.
 !
 ! * Remember to update the program_id below.
 !
@@ -99,7 +137,8 @@
 !
 ! Usage, run command with four or more arguments:
 !
-! ./bias_correct config-file forecast-cycle start-date forecast-date [options]
+! ./aqm_bias_correct config-file forecast-cycle start-date forecast-date \
+!                                [options]
 !
 ! Required arguments in fixed order:
 !
@@ -108,7 +147,7 @@
 !		  input and output files, and variable lists for
 !		  analog variables and bias correction target.
 !
-! forecast-cycle  HH, initial hour for the target forecast cycle.
+! forecast-cycle  CC, initial hour for the target forecast cycle.
 !		  Currently 06 or 12.  Set to $Cyc for WCOSS real-time
 !		  operation.
 !
@@ -132,18 +171,18 @@
 !
 ! Examples:
 !
-! ./bias_correct config.pm2.5.5pred 12z 20140515 20140529
-! ./bias_correct config.pm2.5.5pred 06z 20140515 20140612 diag=4
-! ./bias_correct config.pm2.5.5pred 06z 20140515 20140612 gen_weights diag=3
+! ./aqm_bias_correct config.pm2.5.5pred 12z 20140515 20140529
+! ./aqm_bias_correct config.pm2.5.5pred 06z 20140515 20140612 diag=4
+! ./aqm_bias_correct config.pm2.5.5pred 06z 20140515 20140612 gen_weights diag=3
 !
-! ./bias_correct config.ozone.gen 06z 20160701 20170331 \
+! ./aqm_bias_correct config.ozone.gen 06z 20160701 20170331 \
 !                                     gen_weights weight1=101 weight2=150
 !
-! ./bias_correct config.ozone.probability 06z 20181115 20190807
+! ./aqm_bias_correct config.ozone.probability 06z 20181115 20190807
 !
 !------------------------------------------------------------------------------
 
-program bias_correct
+program aqm_bias_correct
 
    use align__obs_to_forecasts
    use analog__control
@@ -157,6 +196,7 @@ program bias_correct
    use kf__luca,               only : kpar_type
    use index_to_date_mod
    use print__library_info
+   use print__omp_info
    use probability_mod
    use probability_type,       only : prob_type
    use read__config_file_main
@@ -176,17 +216,17 @@ program bias_correct
    implicit none
 
    character(*), parameter :: &
-      program_id = 'bias_correct.f90 version 2021-mar-24'
+      program_id = 'aqm_bias_correct.f90 version 2023-apr-11'
 
 ! Local variables.
 
-   integer, parameter :: id_len = 9		! station ID string length
-   						! for 9-digit AIRNow site ID's
+   integer, parameter :: id_len = 12		! station ID string length
+   						! for 12-digit AirNow site ID's
    character(200) config_file, site_list_title
    character(60)  title_varname
    character(24)  fdate_str
 
-   integer ndays, nhours, diag, cycle_time, forecast_day_num
+   integer ndays, diag, cycle_time, forecast_day_num
    integer start_date, training_end_date, forecast_date, base_year
    integer di, hi, vi, ndays_show
 
@@ -197,16 +237,19 @@ program bias_correct
 ! Config file parameters.
 
    character(200) obs_file_template, interp_file_template
-   character(200) in_gridded_template
+   character(200) in_gridded_template, reader_code_gridded
    character(200) hourly_output_template, probability_output_template
    character(200) new_site_list_template, grid_coord_file
-   character(200) pred_weight_file, site_exception_file
+   character(200) pred_weight_file
+   character(200) site_exception_file, site_blocking_list
    character(60)  target_obs_var, target_model_var
    character(200) filter_method, output_limit_method
    character(200) day_array_file_template
    character(200) site_array_file_template, site_result_file_template
 
-   integer obs_blackout_start(3), obs_blackout_end(3)
+   integer nhours, obs_blackout_start(3), obs_blackout_end(3)
+
+   real(dp) obs_min_input, obs_max_input
 
    logical stop_after_filter
 
@@ -219,14 +262,14 @@ program bias_correct
 
 ! Analog var table (config file).
 
-   character(60),  allocatable :: analog_vars(:)	! var config data (V)
+   character(60), allocatable :: analog_vars(:)		! var config data (V)
 
 ! Obs input data.
 
    character(id_len), allocatable :: obs_ids(:)		! obs site ID's (S)
    real(dp), allocatable :: obs_lats(:), obs_lons(:)	! obs site coordinates
    real(dp), allocatable :: obs_in(:,:)		 	! obs input time series
-  							!  (sites, hours)
+  							!  (hours, sites)
    character*80 obs_units				! obs var units
 
    real(dp), allocatable :: obs_reshaped(:,:,:,:)  ! obs reshaped to model data
@@ -279,7 +322,7 @@ program bias_correct
 
 ! Program parameters.
 
-   character(*), parameter :: prog_name = 'bias_correct'
+   character(*), parameter :: prog_name = 'aqm_bias_correct'
    character(*), parameter :: calendar  = 'gregorian'
 
 !-----------------------------------------------------------------
@@ -290,7 +333,7 @@ program bias_correct
    print *
    print *, &
       '======================================================================='
-   print '(2a)', fdate_str, '  bias_correct.f90: Start.'
+   print '(2a)', fdate_str, '  aqm_bias_correct.f90: Start.'
    print '(2a)', 'Program ID = ', program_id
 
 ! Set dynamic run parameters.
@@ -318,7 +361,7 @@ program bias_correct
 
    if (forecast_date <= start_date) then
       print *
-      print *, '*** bias_correct: Abort, date error on command line.'
+      print *, '*** aqm_bias_correct: Abort, date error on command line.'
       print *, '*** Forecast date must be at least one day later than' &
          // ' start date.'
       print *, '*** The training period must be at least one day long.'
@@ -326,9 +369,10 @@ program bias_correct
       call exit (1)
    end if
 
-! Print library version information.
+! Print environment information, including library versions.
 
    if (diag >= 2) call print_library_info
+   if (diag >= 2) call print_omp_info
 
 !-----------------------------------------------------------------
 ! Read and process the configuration file.
@@ -339,14 +383,15 @@ program bias_correct
    print '(2a)', fdate_str, '  Call read_config_file_main.'
 
    call read_config_file_main (config_file, obs_file_template, &
-      interp_file_template, in_gridded_template, hourly_output_template, &
-      probability_output_template, &
+      interp_file_template, in_gridded_template, reader_code_gridded, &
+      hourly_output_template, probability_output_template, &
       new_site_list_template, grid_coord_file, pred_weight_file, &
-      site_exception_file, target_obs_var, target_model_var, analog_vars, &
+      site_exception_file, site_blocking_list, nhours, &
+      target_obs_var, target_model_var, analog_vars, &
       filter_method, output_limit_method, site_array_file_template, &
-      site_result_file_template, &
-      day_array_file_template, stop_after_filter, obs_blackout_start, &
-      obs_blackout_end, apar, dpar, fpar, kpar, prob, wpar)
+      site_result_file_template, day_array_file_template, stop_after_filter, &
+      obs_min_input, obs_max_input, obs_blackout_start, obs_blackout_end, &
+      apar, dpar, fpar, kpar, prob, wpar)
 
 !-----------------------------------------------------------------
 ! Consistency checks for weight generation.
@@ -400,6 +445,7 @@ program bias_correct
 !---------------------------------------------------------------------
 !
 ! * Read original obs time series for training period.
+! * Remove site obs data specified in site blocking list.
 ! * Convert data units to units needed by this program.
 ! * Convert file missing values to program missing values.
 ! * Run quality control procedures on straight obs time series.
@@ -419,8 +465,9 @@ program bias_correct
    						! NOT current forecast date
 
    call read_obs_qc (obs_file_template, target_obs_var, start_date, &
-      training_end_date, base_year, standard_vmiss, grid_lats, grid_lons, &
-      diag, obs_ids, obs_lats, obs_lons, obs_in, obs_units)
+      training_end_date, base_year, obs_min_input, obs_max_input, &
+      standard_vmiss, grid_lats, grid_lons, site_blocking_list, diag, &
+      obs_ids, obs_lats, obs_lons, obs_in, obs_units)
 
 !---------------------------------------------------------------------
 ! Write updated coordinate list for QC validated sites.
@@ -471,12 +518,10 @@ program bias_correct
    print '(2a)', fdate_str, '  Call read_interp_forecasts.'
 
    call read_interp_forecasts (interp_file_template, analog_vars, start_date, &
-      forecast_date, base_year, cycle_time, dpar, standard_vmiss, diag, &
-      interp_ids, interp_lats, interp_lons, model_in)
+      forecast_date, base_year, cycle_time, nhours, dpar, apar%fvar, &
+      standard_vmiss, diag, interp_ids, interp_lats, interp_lons, model_in)
 
    ndays  = size (model_in, 1)		! (days, hours, vars, sites)
-   nhours = size (model_in, 2)
-
    forecast_day_num = ndays		! forecast day = last day in model input
 
 !---------------------------------------------------------------------
@@ -484,7 +529,7 @@ program bias_correct
 !---------------------------------------------------------------------
 !
 ! * Align obs data with interpolated forecast arrays, by site ID's.
-! * Reshape and duplicate into conforming 48-hour overlapping subsets.
+! * Reshape and duplicate into conforming 48- or 72-hour overlapping subsets.
 ! * Phase shift obs hours for correct alignment with forecast hours.
 !
 !---------------------------------------------------------------------
@@ -548,7 +593,7 @@ program bias_correct
 
       call fdate (fdate_str)
       print '(2a)', fdate_str, &
-         '  bias_correct.f90: Stop after new weight generation.'
+         '  aqm_bias_correct.f90: Stop after new weight generation.'
       call exit
    end if
 
@@ -575,7 +620,7 @@ program bias_correct
    if (stop_after_filter) then
       print *, '*** "Stop after filter" is selected (config file).'
       call fdate (fdate_str)
-      print '(2a)', fdate_str, '  bias_correct.f90: Stop.'
+      print '(2a)', fdate_str, '  aqm_bias_correct.f90: Stop.'
       call exit
    end if
 
@@ -603,10 +648,11 @@ program bias_correct
 ! Spread bias corrections to hourly forecast grids.
 ! Write output file, if selected by the output template.
 
-      call spreading (in_gridded_template, grid_coord_file, &
-         hourly_output_template, target_model_var, output_limit_method, &
-         forecast_date, cycle_time, base_year, calendar, uncorr_sites, &
-         corr_sites, interp_lats, interp_lons, vmiss, diag, corr_grids)
+      call spreading (in_gridded_template, reader_code_gridded, &
+         grid_coord_file, hourly_output_template, target_model_var, &
+         output_limit_method, forecast_date, cycle_time, base_year, calendar, &
+         uncorr_sites, corr_sites, interp_ids, interp_lats, interp_lons, &
+         vmiss, diag, corr_grids)
    end if
 
 !---------------------------------------------------------------------
@@ -633,6 +679,6 @@ program bias_correct
 
    print *
    call fdate (fdate_str)
-   print '(2a)', fdate_str, '  bias_correct.f90: Done.'
+   print '(2a)', fdate_str, '  aqm_bias_correct.f90: Done.'
 
-end program bias_correct
+end program aqm_bias_correct

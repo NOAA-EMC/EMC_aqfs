@@ -12,8 +12,7 @@ export pid=$$
 # PATH for working directory
 
 #export DATAROOT=${DATAROOT:-/tmpnwprd_p2}
-#export DATA=${DATA:-${DATAROOT}/${jobid}}
-:export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
 
@@ -53,13 +52,13 @@ export SCP_CONFIG='-oNoneEnabled=yes -oNoneSwitch=yes -F /home/nwprod/.ossh/ssh_
 ####################################
 export pgmout="OUTPUT.$$"
 
-export HOMErhist=${HOMErhist:-${PACKAGEROOT}/${model}.${version}}
+export HOMErhist=${HOMErhist:-${HOMEcmaq}}
 export USHrhist=${USHrhist:-$HOMErhist/ush}
 export PARMrhist=${PARMrhist:-$HOMErhist/parm}
 
 export RUN_DAY=${RUN_DAY:-16}
 
-export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${ver}/emission}
+export INPEMIDIR=${INPEMIDIR:-${COMROOT}/${NET}/${aqm_ver}/emission}
 
 env
 

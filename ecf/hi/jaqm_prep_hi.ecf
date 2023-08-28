@@ -3,28 +3,14 @@
 #PBS -S /bin/bash
 #PBS -q %QUEUE%
 #PBS -l walltime=00:30:00
-#PBS -l select=1:ncpus=7:mpiprocs=1:mem=256GB:prepost=true
+##PBS -l place=shared,select=1:ncpus=7:mpiprocs=1:mem=256GB:prepost=true
+#PBS -l place=shared,select=%NODES:1%:ncpus=%NCPUS:73%:mpiprocs=%PTILE:73%:mem=%MEM:360%GB
 #PBS -j oe
+#PBS -l debug=true
 
-model=cmaq
+model=aqm
 %include <head.h>
 %include <envir-p1.h>
-
-#
-# ecflow file dependency
-# start when following GFS file is completed
-#
-# case $CYC% in
-#    00) gfs_hour=006;;
-#    06) gfs_hour=072;;
-#    12) gfs_hour=072;;
-#    18) gfs_hour=006;;
-# esac
-#
-# /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour}.nc
-#
-# Or if [ -s /gpfs/dell1/nco/ops/com/gfs/prod/gfs.%PDY%/%CYC%/atmos/gfs.t%CYC%z.atmf${gfs_hour+1}.nc]; 
-#    
 
 module load intel/${intel_ver:?}
 module load craype/${craype_ver:?}
@@ -44,11 +30,12 @@ module load python/${python_ver:?}
 module load wgrib2/${wgrib2_ver:?}
 module list
 
+export OMP_NUM_THREADS=1
 export cyc=%CYC%
-export RUN=HI
+export RUN=hi
 export FCST=YES
 
-${HOMEcmaq}/jobs/JAQM_PREP
+${HOMEaqm}/jobs/JAQM_PREP
 
 if [ $? -ne 0 ]; then
    ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"

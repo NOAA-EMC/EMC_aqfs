@@ -36,6 +36,9 @@
 !		  positive and negative, such as U and V.  Keep zero
 !		  lower limit for variables that must remain non-negative.
 !
+! 2022-apr-11	Improve off-grid site diagnostics.  Add site ID's.
+!		Reduce default verbosity for off-grid.
+!
 ! INPUTS:
 ! 4-D array with gridded raw forecast data.
 ! 2-D grid coordinate arrays.
@@ -80,22 +83,23 @@ contains
 ! Main interpolation routine for 4-D gridded time series.
 !-----------------------------------------------------------
 
-subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
-      stn_lons, diag, interp_data)
+subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, site_lats, &
+      site_lons, site_ids, diag, interp_data)
 
    use grid_location
    implicit none
 
 ! Input arguments.
 
-   real,     intent (in) :: grid_data(:,:,:,:)	! gridded forecast data
-  						! (X, Y, vars, hours)
-   real,     intent (in) :: vmiss		! missing value for in/out data
-   real(dp), intent (in) :: grid_lats(:,:)	! grid coordinates (X, Y)
-   real(dp), intent (in) :: grid_lons(:,:)
-   real(dp), intent (in) :: stn_lats(:)		! site coordinates (S)
-   real(dp), intent (in) :: stn_lons(:)
-   integer,  intent (in) :: diag		! verbosity level, 0-N
+   real,        intent(in) :: grid_data(:,:,:,:) ! gridded forecast data
+  						 ! (X, Y, vars, hours)
+   real,         intent(in) :: vmiss		 ! missing value for in/out data
+   real(dp),     intent(in) :: grid_lats(:,:)	 ! grid coordinates (X, Y)
+   real(dp),     intent(in) :: grid_lons(:,:)
+   real(dp),     intent(in) :: site_lats(:)	 ! site coordinates (S)
+   real(dp),     intent(in) :: site_lons(:)
+   character(*), intent(in) :: site_ids(:)	 ! site ID's for diagnostics (S)
+   integer,      intent(in) :: diag		 ! verbosity level, 0-N
 
 ! Output arguments.
 
@@ -114,12 +118,14 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 
 ! Automatic arrays.
 
-   integer  i_corners(size(stn_lats)), j_corners(size(stn_lats))
+   integer i_corners(size(site_lats)), j_corners(size(site_lats))
+   real(dp) distance(size(site_lats))
+
    real(dp) lower_limit(size(grid_data,3))	! lower bound for each var
 
 ! Get array dimensions.
 
-   nsites = size (stn_lats)		! stn_lats(S)
+   nsites = size (site_lats)		! site_lats(S)
 
    nx     = size (grid_data, 1)		! grid_data(X,Y,V,H)
    ny     = size (grid_data, 2)
@@ -133,16 +139,16 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 ! TEST ONLY: Print EPA site locations
 
    if (diag >= 3) then
-     PRINT '(a,99f23.15)','siteLAT=',stn_lats(16),stn_lats(76),stn_lats(116), &
-       stn_lats(176),stn_lats(226)
-     PRINT '(a,99f23.15)','siteLON=',stn_lons(16),stn_lons(76),stn_lons(116), &
-       stn_lons(176),stn_lons(226)
+     PRINT '(a,99f23.15)', 'siteLAT=', site_lats(16), site_lats(76), &
+       site_lats(116), site_lats(176), site_lats(226)
+     PRINT '(a,99f23.15)', 'siteLON=', site_lons(16), site_lons(76), &
+       site_lons(116), site_lons(176), site_lons(226)
    end if
 
 ! Compute grid indices of cell corners for the site locations.
 
-   call gridlocation (stn_lats, stn_lons, grid_lats, grid_lons, diag, &
-     i_corners, j_corners)
+   call gridlocation (site_lats, site_lons, grid_lats, grid_lons, site_ids, &
+     diag, i_corners, j_corners, distance)
 
 ! Diagnostics.
 
@@ -150,7 +156,7 @@ subroutine interpolate (grid_data, vmiss, grid_lats, grid_lons, stn_lats, &
 
      DO isite=1,nsites,50
        PRINT '(3i10,99f23.15)', isite, i_corners(isite), j_corners(isite), &
-         stn_lats(isite), stn_lons(isite)
+         site_lats(isite), site_lons(isite)
      END DO
 
      DO isite=1,nsites,50
@@ -232,8 +238,8 @@ site_loop: &
 
 ! Compute fractional X and Y offsets within the 1 x 1 center cell.
 
-     x=(stn_lons(isite)-grid_lons(I0,J0))/(grid_lons(I0+1,J0)-grid_lons(I0,J0))
-     y=(stn_lats(isite)-grid_lats(I0,J0))/(grid_lats(I0,J0+1)-grid_lats(I0,J0))
+     x=(site_lons(isite)-grid_lons(I0,J0))/(grid_lons(I0+1,J0)-grid_lons(I0,J0))
+     y=(site_lats(isite)-grid_lats(I0,J0))/(grid_lats(I0,J0+1)-grid_lats(I0,J0))
 
 ! Loop over the extra var and hour dimensions.
 

@@ -13,12 +13,11 @@ export NET=aqm
 export RUN=aqm
 ############################################
 
-export sendmail=${sendmail:-Y}
+export SENDMAIL=${SENDMAIL:-Y}   ### use SENDMAIL to avoid confusion with /usr/sbin/sendmail
 
 #####################################
 export DATAROOT=${DATAROOT:-/lfs/f1/ops/prod/tmp}
-#export DATA=${DATA:-${DATAROOT}/${jobid}}
-export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
 mkdir -p $DATA
 cd $DATA
 
@@ -38,7 +37,6 @@ export SENDCOM=${SENDCOM:-YES}
 ####################################
 # Path to HOME Directory
 ####################################
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=${USHaqm:-$HOMEaqm/ush}
 
 ###################################
@@ -54,13 +52,13 @@ postmsg "$msg"
 # Run setpdy and initialize PDY variables
 export cycle=t12z
 setpdy.sh
-. PDY
+. ./PDY
 
 export RUN_DAY=${RUN_DAY:-16}
 
 export DCOMIN=${DCOMIN:-${DCOMROOT}/aqm_emission}
-export COMOUT=${COMOUT:-${COMROOT}/${NET}/${ver}/emission}
-export COMOUThps=${COMOUThps:-/lfs/h1/ops/$envir/com/${NET}/${ver}/emission}
+export COMOUT=${COMOUT:-$(compath.py $NET/$aqm_ver)/emission}
+#export COMOUThps=${COMOUThps:-/lfs/h1/ops/$envir/com/${NET}/${aqm_ver}/emission}
 env
 
 #############################################################

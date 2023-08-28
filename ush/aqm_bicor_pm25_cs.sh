@@ -8,6 +8,7 @@
 # Author:  Jianping Huang  Org: NP22  Date: 2015-06-30
 #
 # H.-C. Huang  Nov 22 2019   Use new site list sites.valid.pm25.20190815.06z.list
+# K. Wang      Jul 19 2023   Updated to PSL's 2023/04 version of BC code
 ######################################################################
 set -xa
 
@@ -38,10 +39,11 @@ ln -s $COMINm1/aqm_sites.valid.pm25.$PDYm1.12z.list ${DATA}/sites/sites.valid.pm
 ln -s ${COMINbicordat}/bcdata* ${DATA}/data/
 
 ln -s $PARMaqm/aqm_bias_thresholds.pm2.5.2015.1030.32-sites.txt ${DATA}/bias_thresholds.pm2.5.2015.1030.32-sites.txt 
+ln -s $PARMaqm/aqm_bias_site_blocking.pm2.5.2021.0427.2-sites.txt ${DATA}/site_blocking.pm2.5.2021.0427.2-sites.txt
 
 startmsg  
 #aprun -n 1 -d 24 -cc none $EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
-$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr ${cyc}Z  $BC_STDAY $PDY >> $pgmout 2>errfile
+$EXECaqm/aqm_bias_correct ${PARMaqm}/aqm_config.pm2.5.bias_corr.${cyc}z ${cyc}z $BC_STDAY $PDY >> $pgmout 2>errfile
 export err=$?;err_chk
 
 if [ ${envir} = 'para6z' ] ;

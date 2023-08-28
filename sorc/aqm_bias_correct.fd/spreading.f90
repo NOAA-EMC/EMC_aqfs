@@ -21,6 +21,17 @@
 !
 ! 2021-mar-24	Add support for mixed forecast lengths, rather than failing.
 !		Match output lengths to the uncorrected forecast input file.
+! 2021-apr-20	Add site bias arrays to main output file, for diagnostics.
+!
+! 2022-apr-10	Add support for hourly gridded input files for RRFS-CMAQ.
+!		The number of forecast hours is now normally pre-determined
+!		  in the config file.  However, continue to adapt to the
+!		  gridded input data set, and support best effort in case
+!		  of various possible mismatches.
+! 2022-may-25	Convert units of site arrays from ppm to ppb, as needed to
+!		  match forecast files.
+!		Add units attributes to output files.
+! 2022-jun-02	Add alternate netcdf output subroutine for new RRFS format.
 !
 ! * Remember to update the date in the module_id below.
 !
@@ -65,10 +76,10 @@
 module spreading_mod
 contains
 
-subroutine spreading (in_gridded_template, grid_coord_file, &
-      output_file_template, target_var, output_limit_method, forecast_date, &
-      cycle_time, base_year, calendar, uncorr_sites, corr_sites, site_lats, &
-      site_lons, vmiss, diag, corr_grids)
+subroutine spreading (in_gridded_template, reader_code_gridded, &
+      grid_coord_file, output_file_template, target_var, output_limit_method, &
+      forecast_date, cycle_time, base_year, calendar, uncorr_sites, &
+      corr_sites, site_ids, site_lats, site_lons, vmiss, diag, corr_grids)
 
    use config, only : dp
    use expand__filename
@@ -76,14 +87,17 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    use read__gridded_vars
    use spread__bias
    use stdlit, only : normal
-   use write__corrected_netcdf
+   use string_utils
+   use write__corrected_netcdf_v1
+   use write__corrected_netcdf_rrfs
    implicit none
 
-   character(*), parameter :: module_id = 'spreading.f90 version 2021-mar-24'
+   character(*), parameter :: module_id = 'spreading.f90 version 2022-jun-02'
 
 ! Input arguments.
 
    character(*), intent(in) :: in_gridded_template  ! gridded input template
+   character(*), intent(in) :: reader_code_gridded  ! reader for gridded input
    character(*), intent(in) :: grid_coord_file	    ! aux. grid coordinate file
    character(*), intent(in) :: output_file_template ! output filename template
    character(*), intent(in) :: target_var	    ! target variable name
@@ -97,7 +111,8 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 						    !   at sites (hours, sites)
    real(dp),     intent(in) :: corr_sites(:,:)	    ! bias corrected forecasts
 						    !   at sites (hours, sites)
-   real(dp),     intent(in) :: site_lats(:)	    ! site coordinates
+   character(*), intent(in) :: site_ids(:)	    ! site ID's (sites)
+   real(dp),     intent(in) :: site_lats(:)	    ! site coordinates (sites)
    real(dp),     intent(in) :: site_lons(:)
    real(dp),     intent(in) :: vmiss		    ! common missing value code
    integer,      intent(in) :: diag		    ! diag verbosity level, 0-N
@@ -107,25 +122,22 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    real(dp), allocatable, intent(out) :: corr_grids (:,:,:)  ! (X, Y, hours)
 						    ! bias corrected grids
 
-! Local program parameter.
-
-! Local assumption that all raw forecasts to be processed will be
-! in aqm Netcdf format.
-! This is a temporary fix to read the raw gridded forecast file.
-! See the embedded reader selection in read_gridded_forecasts.f90.
-
-   character(*), parameter :: reader_code = 'reader.aqm'
-
 ! Local variables.
 
    character fdate_str*24, fmt1*60, fmt2*60, outfile*200
+   character(60) filter_units, target_units, units2
+   character yes_no*3, format_code*15
 
    integer year, month, day
    integer nhours_sites, nsites, nhours_out, nhours_common
-   integer nhours_expect, nhours_actual_max
-   integer ivar, status
+   integer nhours_config, nhours_actual_max
+   integer ivar, status, multiplier
+
+   logical need_conversion
 
 ! Dynamic arrays.
+
+   character(60), allocatable :: units(:)	    ! target units attribute
 
    integer,  allocatable :: nhours_actual(:)	    ! actual hours for input var
 
@@ -161,9 +173,9 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 
 ! Expect same number of hours when reading the uncorrected forecast grids.
 ! Actual forecast hours for target var in file are usually the same,
-! but may differ with mixed length training data.
+! but may differ with mixed or mismatched length training data.
 
-   nhours_expect = nhours_sites
+   nhours_config = nhours_sites
 
 ! Utilize the same gridded reader used by the interpolation program.
 ! To include all possible file configurations, this routine also
@@ -172,15 +184,21 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 ! This routine reads forecast grids in the original single precision.
 ! Later they will be converted on the fly to doubles.
 
+! Allow for possible over-dimensioning of the number of forecast hours.
+! Be sure to use nhours_actual(1), not size of the returned uncorr_grids.
+! In effect this means that nhours_out will actually be adaptive.
+
    if (diag >= 4) then
       print '(3a)', '   in_gridded_template = [', trim (in_gridded_template),']'
    end if
 
-   call read_gridded_vars ( (/ target_var /), (/ reader_code /), &
+   call read_gridded_vars ( (/ target_var /), (/ reader_code_gridded /), &
       (/ in_gridded_template /), grid_coord_file, year, month, day, &
-      cycle_time, nhours_expect, real (vmiss), diag, uncorr_grids, &
-      nhours_actual, nhours_actual_max, grid_lats, grid_lons, status)
+      cycle_time, nhours_config, real (vmiss), diag, uncorr_grids, &
+      nhours_actual, nhours_actual_max, units, grid_lats, grid_lons, status)
       			! read single target var into 4-D (X, Y, [var], hours)
+
+   target_units = units(1)
 
 ! Abort if raw forecast grids for target variable are not available.
 ! Reader may have also printed some diagnostic details.
@@ -198,13 +216,13 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 
 ! Warn if forecast lengths are mismatched, but continue processing.
 
-   if (  nhours_actual(1)  /= nhours_expect &
-    .or. nhours_actual_max /= nhours_expect) then
+   if (  nhours_actual(1)  /= nhours_config &
+    .or. nhours_actual_max /= nhours_config) then
       fmt1 = '(a,i0.4,3(1x,i0.2),"Z")'
       fmt2 = '(a,i0)'
       print *
       print fmt1, '*** spreading: Warning, inconsistent forecast lengths.'
-      print fmt2, '*** nhours_expect     = ', nhours_expect
+      print fmt2, '*** nhours_config     = ', nhours_config
       print fmt2, '*** nhours_actual(1)  = ', nhours_actual(1)
       print fmt2, '*** nhours_actual_max = ', nhours_actual_max
       print fmt1, '*** Input data sets are mixed lengths, or data set mismatch.'
@@ -212,12 +230,10 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    end if
 
 !-----------------------------------------------------------
-! Expand or contract site arrays to match forecast file.
+! Expand or contract site arrays to match forecast files.
 !-----------------------------------------------------------
 
 ! Support mixed forecast lengths between training data and target forecast.
-! Pad with missing values as needed, to neutralize bias correction.
-! This method is valid to both expand and contract.
 
    nhours_out    = nhours_actual(1)
    nhours_common = min (nhours_sites, nhours_out)
@@ -225,7 +241,8 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    if (diag >= 2) then
       fmt1 = '(3x,a,i0)'
       print *
-      print fmt1, 'Expand or contract site arrays to match forecast file.'
+      print *,    'spreading:  Expand or contract site arrays to match' &
+                       // ' forecast file.'
       print fmt1, '  Site hours input          = ', nhours_sites
       print fmt1, '  Site hours after matching = ', nhours_out
       print *
@@ -234,11 +251,63 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
    allocate (uncorr_sites2(nhours_out, nsites))
    allocate (corr_sites2  (nhours_out, nsites))
 
+! Pad with missing values as needed, to neutralize bias correction.
+! This method is valid to both expand and contract.
+
    uncorr_sites2(:,:) = vmiss
    corr_sites2  (:,:) = vmiss
 
    uncorr_sites2(1:nhours_common,:) = uncorr_sites(1:nhours_common,:)
    corr_sites2  (1:nhours_common,:) = corr_sites  (1:nhours_common,:)
+
+!-----------------------------------------------------------
+! Convert units of site arrays to match forecast files.
+!-----------------------------------------------------------
+
+! 2022 May 25:  Adjust for one known variation, which is ppb instead
+! of the traditional ppm/ppmV.  Incoming site arrays from analog
+! filter are always in ppm/ppmV, or equivalent.  If forecast files
+! are in ppb, then convert site arrays to ppb, before spreading and
+! output.
+
+   if (diag >= 2) print *, 'spreading:  Check for units conversion.'
+
+   filter_units    = 'ppm'
+   units2          = target_units
+   call lowercase (units2)
+   need_conversion = (any (units2 == (/ 'ppb ', 'ppbv' /) ))
+   yes_no          = merge ('YES', 'NO ', need_conversion)
+
+   if (diag >= 2) then
+      print *, '  Var name 1               = uncorr_sites2'
+      print *, '  Var name 2               = corr_sites2'
+      print *, '  Units needed             = ', trim (target_units)
+      print *, '  Units conversion needed  = ', trim (yes_no)
+      print *
+   end if
+
+convert_to_ppb: &
+   if (need_conversion) then
+      multiplier = 1000			! ppm to ppb
+
+      if (diag >= 2) then
+         print *, 'spreading:  Apply units conversion to site arrays,', &
+                             ' before spreading.'
+         print *, '  Units from analog filter = ', trim (filter_units)
+         print *, '  Units needed             = ', trim (target_units)
+         print '(1x,a,i0)', &
+                  '  Multiplier               = ', multiplier
+         print *
+      end if
+
+      where (uncorr_sites2(:,:) /= vmiss)
+         uncorr_sites2(:,:) = uncorr_sites2(:,:) * multiplier
+      end where
+
+      where (corr_sites2(:,:) /= vmiss)
+         corr_sites2(:,:) = corr_sites2(:,:) * multiplier
+      end where
+   end if convert_to_ppb
 
 !-------------------------------------------------------
 ! Spread bias corrections to forecast grids.
@@ -260,6 +329,7 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
 ! Write bias corrected output file.
 !-------------------------------------------------------
 
+write_select: &
    if (output_file_template == 'none') then
       print *, &
          '*** spreading: Hourly output file is suppressed.  No file written.'
@@ -273,12 +343,31 @@ subroutine spreading (in_gridded_template, grid_coord_file, &
       call expand_filename (output_file_template, year, month, day, &
          cycle_time, outfile)
 
-! Write output file.  Data and coordinate vars will be converted from
-! double to single precision, when writing to file.
+! Identify the output file format to match the input forecast file.
 
-      call write_corrected_netcdf (outfile, target_var, grid_lats, grid_lons, &
-         corr_grids, bias_grids, vmiss, diag)
-   end if
+      if (reader_code_gridded == 'reader.hourly') then
+         format_code = 'rrfs'
+      else
+         format_code = 'original'
+      end if
+
+! Write output file.  Include both grids and site bias data, for diagnostics.
+! Select the writer subroutine to match the input file layout.
+
+! Data and coordinates will be converted from double to single precision,
+! when writing to file.
+
+      if (format_code == 'original') then
+         call write_corrected_netcdf_v1 (outfile, target_var, target_units, &
+            grid_lats, grid_lons, corr_grids, bias_grids, uncorr_sites2, &
+            corr_sites2, site_ids, site_lats, site_lons, vmiss, diag)
+      else
+         call write_corrected_netcdf_rrfs (outfile, target_var, target_units, &
+            grid_lats, grid_lons, corr_grids, bias_grids, uncorr_sites2, &
+            corr_sites2, site_ids, site_lats, site_lons, vmiss, diag)
+      end if
+
+   end if write_select
 
    if (diag >= 3) print *, 'spreading: Return.'
 

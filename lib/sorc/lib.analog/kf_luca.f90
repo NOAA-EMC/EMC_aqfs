@@ -29,7 +29,10 @@
 !		Better, switch to scalar limits for forecast variable only.
 !		This omits all limits for unrelated vars, for this subroutine.
 !
-! --- KF input parameters
+! 2021-apr-25	Add option for reduced number of days for Kalman filtering.
+!		Remove array duplication, improve efficiency.
+!
+! --- KF input parameters (Matlab)
 ! --- Inputs
 !     obs       = array of observations
 !     pred      = array of predictions
@@ -82,6 +85,7 @@ module kf__luca			! standard visibility
     integer  update		! time between update (24 hours)
     				! *** or: number of time steps per forecast
     integer  start(2)		! start time of time series [obs pred]
+    integer  ndays_kalman	! number of days for Kalman filtering
     integer  timezone		! timeZone of measurements, for output graphics
     integer  enforce_positive	! 1 = enforce correction for values > 0
 
@@ -93,7 +97,7 @@ contains
 ! Kalman filter routine.
 !-----------------------------------------------------------
 
-subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
+subroutine kf_luca (obs, pred, vmiss, kpar, diag, newKF)
   implicit none
 
   real(dp),         intent(in ) :: obs(:)	! input observations
@@ -102,12 +106,14 @@ subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
   type (kpar_type), intent(in ) :: kpar		! Kalman filter parameters
   integer,          intent(in ) :: diag		! verbosity, 0 = errors only
 
-  real(dp), allocatable, intent(out) :: output(:)  ! Kalman filtered predictions
-  						   ! same size as input pred.
+  real(dp), allocatable, intent(out) :: newKF(:)  ! Kalman filtered predictions,
+  						  ! same size as input pred.
 ! Local variables.
 
   integer t, t1, t2, t3, tprev, tstep, ntimes
   integer originalT, minT, maxT, hour, hour2
+  integer n_fdays, startday, startday_min
+  integer startday_requested, startday_offset
 
   logical doanalog, obs_valid, pred_valid
 
@@ -117,7 +123,6 @@ subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
 ! Automatic arrays.
 
   real(dp) kf(size(obs)), x(size(obs)), y(size(obs))
-  real(dp) originalPred(size(obs)), newKF(size(obs))
 
 !---------------------------------------
 ! Initialize.
@@ -133,8 +138,6 @@ subroutine kf_luca (obs, pred, vmiss, kpar, diag, output)
   					! Mar 25, fixed setting for KF/AN filter
   ntimes    = size (obs)
   originalT = ntimes
-
-  originalPred = pred			! save a copy of original pred values
 
 ! Adjust starting time of different time series.
 
@@ -179,17 +182,37 @@ hour_loop: &
     p_x = 1				! expected mean-square-error when KF
 					! is applied to estimate bias, i.e., x
 
-    p_sigv = 1000			! expected mean-square-error when KF is applied
-					! to estimate sigma-v
+    p_sigv = 1000			! expected mean-square-error when KF
+					! is applied to estimate sigma-v
     sigv = 1
     Last_Error = 0			! previous error
     kalman_gain = 1
 
-    t1    = kpar%update+hour
-    t2    = ntimes
-    tstep = kpar%update
+! Determine start and end forecast days to apply Kalman filter.
 
-time_loop: &
+    tstep   = kpar%update		! step over stacked forecast time series
+    					! (step by 48 or 72 hours, etc.)
+
+    n_fdays = ntimes / tstep		! number of stacked forecasts in input
+
+    startday_min       = 2		! start no earlier than day 2, algorithm
+    					! needs at least 1 preceding day
+
+    startday_requested = n_fdays - (kpar%ndays_kalman - 1)
+    					! start day for requested number
+					! of days at end of training period
+
+    startday        = max (startday_min, startday_requested)
+    startday_offset = tstep * (startday - 1)	! e.g. day 1 = 0,  day 2 = 48,
+    						!      day 3 = 96, etc.
+
+!!  t1    = kpar%update     + hour	! original version
+    t1    = startday_offset + hour	! original plus limited number of days
+    t2    = ntimes
+
+    if (diag >= 7) print '(4x,a,3i8)', 'startday, t1, t2 =', startday, t1, t2
+
+forecast_day_loop: &
     do t = t1, t2, tstep
 
       obs_valid  = (      obs(t)  >= kpar%lower_limit &
@@ -229,7 +252,7 @@ check_valid: &
          x(t) = x(t-kpar%update)
       end if check_valid
 
-    end do time_loop
+    end do forecast_day_loop
 
   end do hour_loop
 
@@ -263,15 +286,14 @@ check_valid: &
   t1 = 1 - kpar%start(2) + maxT
   t2 = originalT - kpar%start(2) + minT
 
-  newKF = originalPred(:)
+  newKF        = pred(:)	! auto-allocate the output array
   newKF(t1:t2) = kf(:)		! these better be conforming arrays
-  output = newKF(:)
 
   if (diag >= 6) print '(a,i6,2f12.3)', 't1, pred, corrected = ', t1, &
-    originalPred(t1), output(t1)
+    pred(t1), newKF(t1)
 
   if (diag >= 6) print '(a,i6,2f12.3)', 't2, pred, corrected = ', t2, &
-    originalPred(t2), output(t2)
+    pred(t2), newKF(t2)
 
   if (diag >= 6) print *, '*** kf_luca: Return.'
 

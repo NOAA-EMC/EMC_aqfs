@@ -17,6 +17,10 @@
 !		* Add missing_value attribute for each variable.
 !		  Used mainly for padding at end of valid forecast hours.
 !
+! 2022-apr-14	Minor.  Set actual_range to vmiss, when data are all missing.
+! 2019-may-23	File format change, minor:
+!		Add units attributes to interpolated files.
+!
 ! This routine writes a single Netcdf file for MET and CMAQ
 ! hourly forecast data, interpolated to discrete site locations.
 ! The output file contains one forecast cycle, and multiple
@@ -46,7 +50,7 @@ module write__interp_netcdf
 contains
 
 subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
-      varnames, nhours_valid, out_data, vmiss, program_id, diag)
+      varnames, units, nhours_valid, out_data, vmiss, program_id, diag)
 
    use netwrite3
    implicit none
@@ -58,6 +62,7 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
    real(dp),     intent (in) :: site_lats(:)	! site coordinates (S)
    real(dp),     intent (in) :: site_lons(:)
    character(*), intent (in) :: varnames(:)	! output var names (V)
+   character(*), intent (in) :: units(:)	! output units attributes (V)
    integer,      intent (in) :: nhours_valid(:) ! # valid hours for each var (V)
    real,         intent (in) :: out_data(:,:,:)	! interpolated forecast data
   						!   (sites, vars, hours)
@@ -133,15 +138,19 @@ subroutine write_interp_netcdf (outfile, site_ids, site_lats, site_lons, &
          // trim (varnames(vi))
 
       varexp = trim (varnames(vi)) // '(site, tstep)'	! define subscripts
-      call writevar (varexp, no_long, no_units, out_data(:,vi,:), vmiss)
+      call writevar (varexp, no_long, units(vi), out_data(:,vi,:), vmiss)
 
 ! Compute range attribute for current variable.
-! Assume at least one non-missing value in each sub-array.
 
       vmask = (out_data(:,vi,:) /= vmiss)	! mask for non-missing data only
 
-      vmin = minval (out_data(:,vi,:), vmask)	! compute actual_range values
-      vmax = maxval (out_data(:,vi,:), vmask)	! for current variable
+      if (any (vmask)) then
+         vmin = minval (out_data(:,vi,:), vmask)   ! compute actual_range values
+         vmax = maxval (out_data(:,vi,:), vmask)   ! for current variable
+      else
+         vmin = vmiss				! set to vmiss only when all
+         vmax = vmiss				! values are missing (rare)
+      end if
 
       if (diag >= 4) print '(2(a,f0.5))', '     Actual range = ',vmin,', ',vmax
 

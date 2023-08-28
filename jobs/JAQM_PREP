@@ -6,7 +6,7 @@ export PS4=' $SECONDS + '
 
 set -ax
 
-export DATA=${DATA:-${DATAROOT}/${PBS_JOBNAME}.${PBS_JOBID}}
+export DATA=${DATA:-${DATAROOT}/${PBS_JOBID}}
 
 mkdir -p ${DATA}
 cd ${DATA}
@@ -19,7 +19,6 @@ export SENDDBN=${SENDDBN:-YES}
 export SENDECF=${SENDECF:-YES}
 export SENDCOM=${SENDCOM:-YES}
 
-export HOMEaqm=${HOMEaqm:-${PACKAGEROOT}/${model}.${version}}
 export USHaqm=${USHaqm:-${HOMEaqm}/ush}
 export EXECaqm=${EXECaqm:-${HOMEaqm}/exec}
 export PARMaqm=${PARMaqm:-${HOMEaqm}/parm}
@@ -34,43 +33,45 @@ export DAYOFYEAR=`date -d ${SYYYY}/${SMM}/${SDD} +%j`
 export NET=${NET:-aqm}
 export RUN=${RUN:-cs}
 
-export COMIN=${COMIN:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
-export COMINm1=${COMINm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
+export COMIN=${COMIN:-$(compath.py ${NET}/${aqm_ver})/${RUN}.${PDY}}
+export COMINm1=${COMINm1:-$(compath.py ${NET}/${aqm_ver})/${RUN}.${PDYm1}}
 
-export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDY})}
-export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${aqm_ver}/${RUN}.${PDYm1})}
+export COMOUT=${COMOUT:-$(compath.py -o ${NET}/${aqm_ver})/${RUN}.${PDY}}
+export COMOUTm1=${COMOUTm1:-$(compath.py -o ${NET}/${aqm_ver})/${RUN}.${PDYm1}}
 
 export COMINgfs=${COMINgfs:-$(compath.py gfs/${gfs_ver}/gfs.${PDY}/${cyc}/atmos)}
 export COMINgfsm1=${COMINgfsm1:-$(compath.py gfs/${gfs_ver}/gfs.${PDYm1}/${cyc}/atmos)}
 
-export COMINgefs=${COMINgefs:-$(compath.py gefs/${gefs_ver}/gefs.${PDY})}
-export COMINgefsm1=${COMINgefsm1:-$(compath.py gefs/${gefs_ver}/gefs.${PDYm1})}
+export COMINgefs=${COMINgefs:-$(compath.py gefs/${gefs_ver})/gefs.${PDY}}
+export COMINgefsm1=${COMINgefsm1:-$(compath.py gefs/${gefs_ver})/gefs.${PDYm1}}
 
 export LBC_INI=${LBC_INI:-0}     
 export LBC_END=${LBC_END:-120}  
-#export LBC_END=${LBC_END:-24}  
 export LBC_FREQ=${LBC_FREQ:-3} 
 
-export COMINfire=${COMINfire:-${DCOMROOT}/${PDY}/firewx}
-export COMINfirem1=${COMINfirem1:-${DCOMROOT}/${PDYm1}/firewx}
+export DCOMINfire=${DCOMINfire:-${DCOMROOT}}
+export COMINfire=${COMINfire:-${DCOMINfire}/${PDY}/firewx}
+export COMINfirem1=${COMINfirem1:-${DCOMINfire}/${PDYm1}/firewx}
+export COMINfirem2=${COMINfirem2:-${DCOMINfire}/${PDYm2}/firewx}
 
 export FLAG_TODAY_FIRE=${FLAG_TODAY_FIRE:-NO}
 
 export COMINgvf=${COMINgvf:-${DCOMROOT}/viirs}
-export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_v2r3_j01}      ## use j01 data first
-export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_v2r3_npp}  ## use npp as 2nd choice
+export GVF_FHR=${GVF_FHR:-GVF-WKL-GLB_*_j01}      ## use j01 data first
+export GVF_FHR_2=${GVF_FHR_2:-GVF-WKL-GLB_*_npp}  ## use npp as 2nd choice
 
 export KEEPDATA=${KEEPDATA:-YES}
 
 mkdir -p ${COMOUT}
 
 export pgmout=OUTPUT.$$
- 
+
 env
 
 if [ "${FCST}" == "YES" ]; then
    export YM=`echo ${PDY} | cut -c1-6`
-   export COMINemi=${COMINemi:-$COMROOT/$NET/${ver}/emission/${YM}}  #> emissions input directory
+   export COMINemi=${COMINemi:-$(compath.py -o $NET/${aqm_ver}/emission/${YM})}  #> emissions input directory
+#  export COMINemi=${COMINemi:-$COMROOT/$NET/${aqm_ver}/emission/${YM}}  #> emissions input directory
 
   ${HOMEaqm}/scripts/exaqm_metprep.sh
    export  err=$?; err_chk

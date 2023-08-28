@@ -1,0 +1,452 @@
+*-----------------------------------------------------------------------------
+*
+* Configuration file for bias_correct.f90.
+* Current targets:  PSL or Hera.
+*
+* 2014-jun-13	Original PSD test version for PM2.5.  By Dave Allured.
+* 2014-jul-18	First release version for Zeus.
+*
+* 2016-jan-20	Add site exception file.
+* 2016-feb-09	Add filter method, number of analogs, common debug controls.
+* 2016-feb-26	Release version.  Partial production settings for NCEP.
+*
+* 2017-apr-19	Ozone test version.  Eight predictors.
+* 2017-may-11	Add support for predictor weights and weight generation.
+* 2017-jun-01	Add obs blackout start and end dates.
+*
+* 2017-jul-11	Release version for ozone.  Eight predictors, equal weights.
+* 2017-jul-11	Release version for PM2.5.  Five predictors, equal weights.
+*		Switch from previous CSDSF solar radiation, to
+*		  RGRND = surface solar radiation.
+*
+* 2018-jan-19	Add new option for bias formula.
+*
+* 2019-apr-25	PSD test versions for 72-hour forecasts.
+*		Adapt to CMAQ v5.1.0 intermediate files.
+* 2019-may-21	Add derived variable controls for 10-m wind speed & direction.
+* 2019-aug-05	Add parameters for OI-based probability forecasts.
+* 2019-nov-18	Release versions for Hera and PSD.  Comment fixes only.
+*
+* 2020-may-05	Parameter change from "forecast start day for weight
+*		  generation" to "number of days in test period".
+* 2020-may-23	Add more analog parameters.
+* 2020-may-26	Change parameter name from "bias formula" to "analog mean",
+*		  with new setting "mean obs".
+* 2020-jun-11	Add site_result_file_template.  Change related parameter names.
+*		Test versions for site weight generation.
+*
+* 2020-aug-04	Add params. for linear regression probability method for PM2.5.
+*		Use KFAN for PM probability.  AnEnMean not valid for lin. regr.
+*		Require full 24 hours for PM probability daily averages.
+*		This reduces to only 2 avail. forecast days for PM probability.
+* 2020-nov-10	Add parameter "analog search window limits".
+* 2020-nov-16	Test versions for analog search window.
+*
+* 2021-apr-27   Add parameters "site blocking list" and "number of days
+*                 for kalman filter".
+*
+* 2022-apr-24   Support one-per-hour forecast files in gridded input template.
+*               Change substring code for forecast cycle from HH to CC, to
+*                 be distinct from new code FF for specific forecast hour.
+*               Add parameters for reader code, and number of forecast hours.
+* 2022-may-27   Add obs maximum valid input threshold.
+*               Add parameters for shortened training period.
+* 2022-jun-01   Switch to original grid coordinate file.
+*
+* 2023-mar-17   Minor.  Path updates for AirNow and C55 on Hera.
+* 2023-mar-27   Add parameters for number of analogs for short training period.
+*
+* 2023-apr-10   Switch to AirNow Netcdf data set, new obs var names.
+*               Add obs minimum value limit, for AirNow negative value support.
+*
+* Blank lines and asterisk in column 1 are comment lines.
+* Tables are free format, space delimited.
+* Most names are case sensitive.
+*
+* General rules for paths and path templates:
+*
+* Paths may begin with an environment variable, e.g. $DATA/...
+* Both relative and absolute paths are supported.
+* Template codes YYYY, MM, DD, CC, and FF will be replaced with date
+*   and time strings within the usage context.  HH is obsolete.
+* Multiple substitutions within each template are supported.
+*
+* Code CC  is replaced by the current forecast cycle, such as 06 or 12.
+* Code FF  is replaced by 2-digit forecast hours.
+* Code FFF is replaced by 3-digit forecast hours.
+*
+*-----------------------------------------------------------------------------
+
+*-------------------------------------------------------
+* Input and output file settings.
+*-------------------------------------------------------
+
+* File templates.
+
+obs file template           = data/bcdata.YYYYMM/airnow/netcdf/YYYY/YYYYMMDD/HourlyAQObs.YYYYMMDD.nc
+interp file template        = data/bcdata.YYYYMM/interpolated/ozone/YYYY/forecasts.interp.YYYYMMDD.CCz.nc
+
+* Special for CMAQ v5.1.0 intermediate files.
+
+*gridded input file template = data/bcdata.YYYYMM/grid/YYYYMMDD/aqm.tCCz.O3_pm25.ncf
+*gridded input file template =  data/grid/YYYY/fv3-cmaq.YYYYMMDD/aqm.YYYYMMDD.t12z.aconc-pm25.ncf
+gridded input file template = data/bcdata.YYYYMM/grid/YYYYMMDD/aqm.tCCz.O3_pm25.ncf
+
+reader code for gridded     = reader.aqm
+
+hourly output template      = out/ozone.corrected.YYYYMMDD.CCz.nc
+*hourly output template     = none
+
+*probability output template = out/ozone.probability.YYYYMMDD.CCz.nc
+probability output template  = none
+
+*new site list template      = data/sites/sites.valid.ozone.YYYYMMDD.CCz.list
+new site list template       = sites/sites.valid.ozone.YYYYMMDD.CCz.list
+
+* Grid coordinate file.
+
+grid coordinate file        = data/coords/aqm.t12z.grdcro2d.ncf
+
+* Predictor weights file.
+* "equal weights" for no file, all equal weights, all sites.
+
+* The SUBSET keyword, if included, will be replaced with first
+* and last weight set index numbers (subset ID's) from weight
+* generation.
+*
+* The SUBSET keyword will be OMITTED from the weight file name
+* when subsetting is not selected in weight generation.  The
+* SUBSET keyword will also be omitted in normal bias correction
+* mode.
+*
+* This behavior allows the same weight file name template to be
+* shared between normal and weight generation modes.
+*
+* For correct operation, the SUBSET keyword must be preceeded
+* and followed by single period characters.
+
+*predictor weights file      = data/weights/weights.ozone.test.nc
+predictor weights file      = equal weights
+
+* Site exception list for bias thresholds.
+* "none" to disable.
+
+*site exception file         = bias_thresholds.ozone.yyyy.mmdd.txt
+site exception file         = none
+
+*site blocking list          = site_blocking.ozone.yyyy.mmdd.nn-sites.txt
+site blocking list          = none
+
+* Expected number of forecast hours.
+
+number of forecast hours    = 06
+
+*-------------------------------------------------------
+* Select analog variables.
+*-------------------------------------------------------
+
+* Target variable for bias correction.
+* Different var names within obs and model input data sets.
+
+* Note, obs and model target vars must be the same quantity
+* for valid bias correction.  User is responsible.
+
+target obs variable         = OZONE
+target model variable       = O3
+
+* Analog variable table; each variable to be included in current analysis.
+
+* Include derived variables in the table, if derivation is needed.
+* Do not include inputs for derivatives, unless you actually want
+* to use those same inputs as analog variables.
+
+* Table begins with a line of dashes that must not be commented.
+* Table ends with a blank line or end of file.
+* Var names are the model var names in interpolated files, NOT obs var names.
+* Optional C suffix means limits are in Centigrade; for temperature only.
+* Circular is Y or N to indicate 0-360 circular variables, e.g. wind direction.
+
+* Reference for these current model var names are CMAQ and MET
+* gridded model output archives provided by Pius Lee of NOAA/ARL.
+
+*Var name  Min valid  Max valid  Circular  Comment
+---------  ---------  ---------  --------  -----------------------------------
+O3               0          5       N      Ozone concentration
+NOX              0          5       N      NOx concentration
+NOY              0          5       N      NOy concentration
+PBL              0       4500       N      PBL height, ACM2 based Richardson #
+RGRND            0       1500       N      Solar radiation reaching surface
+TEMP2          -50C        50C      N      Temperature, 2 meters
+WDIR10           0        360       Y      Wind direction, 10 meters, derived
+WSPD10           0        100       N      Wind speed, 10 meters, derived
+
+* Controls for derived variables.  Set to "none" if not used.
+* These two should be in the var table, but not in the input file.
+
+derived wind direction variable = WDIR10
+derived wind speed variable     = WSPD10
+
+* These two are required input vars to compute either of the wind derivatives.
+* Set to "none" if not used.
+
+derivative input U wind         = U10
+derivative input V wind         = V10
+
+*-------------------------------------------------------
+* Input filter controls.
+*-------------------------------------------------------
+
+* Limits for valid obs input data, after internal units conversion.
+* Specify in ppmv for ozone, or microgram/m^3 for PM2.5.
+* Negative lower limit accepts instrument drift in AirNow data sets.
+
+obs minimum valid input = -0.005
+obs maximum valid input =  5.0
+
+* Obs data blackout interval, to suppress all obs within problematic
+* time interval, such as Fourth of July.
+*
+* Each date/time format is MM DD CCz.  Leading zeros not required.
+* Date and time are referenced to original labeling of the obs data.
+* Leave blank for no blackout interval.
+*
+* Interval is inclusive.  Both start and end dates/times are blacked out,
+* along with all intervening times.
+*
+* Blackout applies to the same dates in every calendar year within
+* the input obs data.
+
+obs blackout start date = 7 4 12z
+obs blackout end date   = 7 6 11z
+
+*-------------------------------------------------------
+* Analog filter controls.
+*-------------------------------------------------------
+
+* Select filter method.  See main_analog.f90.
+* Note, AnEnMean MUST be selected for weight generation.
+* When making only probability forecasts with optimal interpolation
+* method, select AnEnMean for faster runs.
+
+*filter method             = AnEnMean
+filter method             = KFAN
+
+number of analogs         = 10
+minimum number of analogs = 3
+
+* Analog weights method: equal weights, inverse metric, or linear.
+
+analog weights            = inverse metric
+
+* Formula for AnEnMean.  See analog_ensemble.f90.
+
+*analog mean               = mean (forecast plus model predictions) plus bias
+analog mean               = forecast plus bias
+*analog mean               = mean obs
+
+* Analog search window within forecast hours.
+
+* Enter backward and forward offsets from zero, which represents
+* the current forecast hour.
+* The minus and plus signs are required, such as -0, +0 or -2, +3.
+
+analog search window offsets = -0, +0
+
+* Number of days at end of training periond to apply Kalman filter,
+* following analog search method.  Only active when filter method = KFAN.
+
+* Enter a large number such as 999 to always use the whole training period.
+
+number of days for kalman filter = 999
+
+* Parameters for shortened training period.
+* Set all to zero, if not used.
+
+obs threshold to shorten training period            = 0
+number of days in short training period             = 0
+
+number of analogs for short training period         = 0
+minimum number of analogs for short training period = 0
+
+*-------------------------------------------------------
+* Post processing controls.
+*-------------------------------------------------------
+
+* See spreading.f90.
+
+*output limit method = hard zero
+output limit method = revert to fraction of uncorrected
+*output limit method = none
+
+*-------------------------------------------------------
+* Weight generation controls.
+*-------------------------------------------------------
+
+* See weight_control.f90.
+
+* Note, actual weight generation is enabled on bias_correct command line.
+
+* Weight generation controls are used only in weight generation mode.
+
+* Number of weight increments to distribute across all weight combinations.
+* E.g. 10 = increments of 0.1
+* Note, each complete weight combination will sum to 1.0 (normalized).
+
+number of weight increments              = 10
+
+* Number of days in weight generation test period.
+* The test period extends backward from the last day of the full
+* training period.
+
+number of days in test period            = 30
+
+* Last forecast hour to calculate test forecasts for weight generation.
+
+last forecast hour for weight generation = 06
+
+*-------------------------------------------------------
+* Probability forecast controls.
+*-------------------------------------------------------
+
+* Select optimal interpolation for ozone, linear regression for PM2.5.
+
+probability method           = optimal interpolation
+*probability method           = linear regression
+
+* Select daily 8-hourly maximums for ozone, daily averages for PM2.5.
+
+type of daily statistic      = daily 8-hourly maximums
+*type of daily statistic      = daily averages
+
+* List one or more requested threshold levels.
+* An output grid will be computed for each level.
+
+probability threshold levels = 0.055, 0.071, 0.086, 0.106
+probability threshold units  = ppmV
+
+* Parameters for optimal interpolation method.
+
+horizontal length scale (rho), kilometers = 750
+vertical length scale (vdconst), meters   = 1500
+
+* Parameters for linear regression method.
+
+number of days in linear best fit period  = 90
+
+*-------------------------------------------------------
+* Controls for climatology inputs for probability.
+*-------------------------------------------------------
+
+* Compute climatologies for optimal interpolation and probability.
+* Select minimum necessary valid daily values, as percentages
+* of the relevant climatology intervals.
+
+* Note that the analog climatology is computed over the best analogs
+* found, rather than over a physical time interval.  This is a
+* virtual climatology interval, therefore there are no associated
+* date-related controls.  In this case, "climatology interval"
+* refers only to the selected number of best analogs.
+
+percent valid daily values for valid analog climatology = 0.20
+percent valid daily values for valid model climatology  = 0.20
+
+number of days in model climatology period = 30
+
+* Alignment of model climatology period to present forecast.
+* Select zero to include present forecast in the model climatology.
+* Select 1 to exclude, end on yesterday's forecast.  Etc.
+
+end of model climatology period, number of days before current forecast = 0
+
+* Select variance lower limits for climatologies.
+* Smaller variances will be set to these limit values.
+* Units are ppmV^2.
+
+* For ozone, 0.00001 = 1e-5 ppmV^2 is the same as 10 ppbV^2.
+
+minumum variance for analog climatology    = 0.00001
+minumum variance for model climatology     = 0.00001
+
+*-------------------------------------------------------
+* Controls for daily averages for probability.
+*-------------------------------------------------------
+
+* Real time alignment for daily averages.
+* For example, for 4Z-4Z average, select UTC start = 4, no. hours = 24.
+* Program will automatically account for backward averaged hourly data.
+
+UTC start time for daily averages               = 4
+
+nominal number of hours in each daily average   = 24
+
+minimum number of hours for valid daily average = 12
+
+minimum number of non-missing values for valid daily average = 1
+
+*-------------------------------------------------------
+* Controls for daily 8-hour maximums for probability.
+*-------------------------------------------------------
+
+* Daily 8-hour maximum is a two-stage calculation.  First,
+* sliding 8-hour averages are computed over all available
+* forecast hours.  Short averages are not currently allowed,
+* therefore for example, for a 48-hour forecast, there are only
+* 48-7 = 41 complete 8-hour averages available.
+
+* Second, a daily interval is searched for the daily maximum.
+* The search interval is currently constrained to include
+* ONLY averages strictly derived from an original 24 hour
+* forecast interval.  This interval is defined by some of the
+* following settings.
+
+* Begin parameters.  Real time alignment for daily 8-hour maximums.
+* For example, for 4Z-4Z maximum, select UTC start time = 4.
+* Program will automatically account for backward averaged hourly data.
+
+UTC start time for daily maximums = 4
+
+number of sliding averages to search for daily maximum         = 17
+
+number of hours in sliding averages for daily maximum          = 8
+
+minimum number of non-missing values for valid sliding average = 1
+
+minimum number of sliding averages for valid daily maximum     = 4
+
+*-------------------------------------------------------
+* Debug and diagnostic settings.
+*-------------------------------------------------------
+
+* Note, "diag" verbosity control is on the main command line.
+
+* Template for test site output files, whole array.
+* SSSS = site index number.
+* "none" to disable.
+
+*site array file template  = ozone/sites/bias.CCz.site-SSSS.txt
+site array file template  = none
+
+* Template for test site output files, forecast results only.
+* SITE_ID = site ID number (not index number).
+* "none" to disable.
+
+*site result file template = ozone/data_SITE_ID.YYYYMMDD.CCz.txt
+site result file template = none
+
+* Template for site result array files by day.
+* DDDD = day serial number.
+* "none" to disable.
+
+*day array file template   = ozone/bias.CCz.DDDD.txt
+day array file template   = none
+
+* Stop after filter, before spreading.  For testing and evaluation only.
+
+stop after filter         = no
+
+* Include supplemental variables in probability output file.
+* Will significantly increase the file size.
+
+write supplemental probability variables = yes
+
+* End of config file.

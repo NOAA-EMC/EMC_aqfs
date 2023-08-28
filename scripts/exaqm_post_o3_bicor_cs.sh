@@ -17,7 +17,7 @@
 #                            Allow aqm.${cycle}.O3_pm25.ncf and sfc_met_n_PBL.${cycle}.ncf
 #                            to be overwritten later by the one derived
 #                            from 72 hours forecast output
-#
+# K. Wang      Jul 17 2023   Added the airnow csv to netcdf converter step
 ######################################################################
 set -xa
 
@@ -77,34 +77,61 @@ fi
 # exaqm_post_pm25_bicor_cs.sh.ecf will check the existence of $f1 before starting the BC_PM
 # Thus, copy $f1 later to make sure $f3 is already available
 #
-    cp ${DATA}/$f3 $COMOUTbicor/grid/$PDY
-    cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
+   cp ${DATA}/$f3 $COMOUTbicor/grid/$PDY
+   cp ${DATA}/$f1 $COMOUTbicor/grid/$PDY
 
-    if [ "${RUN_ENVIR}" == "nco" ]; then
+#-----------------------------------------------------------------------------
+# STEP 2:  Convert AIRNOW csv files into netcdf files
+
+   if [ -e  $COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1} ] ; then
+      echo "$COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1} exists !"
+   else
+      mkdir -p $COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1}
+   fi
+
+   startmsg
+   ${USHaqm}/aqm_bicor_airnow_converter.sh  >> $pgmout 2>errfile
+   export err=$?; err_chk
+
+#   fncf1=HourlyAQObs.${PDYm1}.nc
+#   fncf2=HourlyAQObs.${PDYm2}.nc
+#   fncf3=HourlyAQObs.${PDYm3}.nc
+
+#   if [ -e  $COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1} ] ; then
+#      echo "$COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1} exists !"
+#   else
+#      mkdir -p $COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1}
+#   fi
+
+#   cp ${DATA}/$fncf1 $COMINbicorm1/airnow/netcdf/$Yr1/${PDYm1}
+#   cp ${DATA}/$fncf2 $COMINbicorm2/airnow/netcdf/$Yr2/${PDYm2}
+#   cp ${DATA}/$fncf3 $COMINbicorm3/airnow/netcdf/$Yr3/${PDYm3}
+
+   if [ "${RUN_ENVIR}" == "nco" ]; then
       ecflow_client --event release_pm25_bicor
-    fi
+   fi
 #-----------------------------------------------------------------------
-# STEP 2 :  Intepolating CMAQ PM2.5 into AIRNow sites
+# STEP 3 :  Intepolating CMAQ O3 into AIRNow sites
 
 startmsg
 ${USHaqm}/aqm_bicor_o3_interp_cs.sh  >> $pgmout 2>errfile 
 export err=$?; err_chk
 
 #-----------------------------------------------------------------------
-# STEP 3:  Performing Bias Correction for PM2.5 
+# STEP 4:  Performing Bias Correction for O3
 startmsg
 ${USHaqm}/aqm_bicor_o3_cs.sh 
 export err=$?; err_chk
 
 #------------------------------------------------------------------------
-# STEP 4:  converting netcdf to grib format
+# STEP 5:  converting netcdf to grib format
 startmsg
 ${USHaqm}/aqm_bicor_o3_post_cs.sh   >> $pgmout 2>errfile
 export err=$?; err_chk
 
 #
 #--------------------------------------------------------------
-# STEP 5: calculating 24-hr ave PM2.5
+# STEP 6: calculating max 1-hr and 8-hr O3
 if [ $cyc -eq 06 -o  $cyc -eq 12 ] ; then
 startmsg
 ${USHaqm}/aqm_bicor_o3_post_maxi_cs.sh   

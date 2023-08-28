@@ -75,7 +75,7 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    flag_lbc2_exist=yes
    let ic=${LBC_INI}
    let endhour=${LBC_END}
-   echo "hjp888,endhour=",$endhour
+#   echo "hjp888,endhour=",$endhour
    let lbc_int=${LBC_FREQ}
    let num_file=${endhour}/${lbc_int}+1
    while [ ${ic} -le ${endhour} ]; do
@@ -91,18 +91,18 @@ if [ "${flag_lbc_exist}" == "no" ]; then     ## check one cycle back GEFS-Aeroso
    done
    if [ "${flag_lbc2_exist}" == "yes" ]; then
       lbc_day=${new_lbc_day}
-      if [ "${RUN_ENVIR}" == "nco" ]; then
-         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
-      else
-         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail ho-chun.huang@noaa.gov
-      fi
-      lbc_day=${new_lbc_day}
+#      if [ "${RUN_ENVIR}" == "nco" ]; then
+#         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
+#      else
+#         echo "~s ${lbc_cyc} GEFS output for ${cycle} CMAQ run are missing ${lbccyc} output are used CMAQ RUN SOFT FAILED" | mail Jianping.Huang@noaa.gov
+#      fi
+#      lbc_day=${new_lbc_day}
    else
-      if [ "${RUN_ENVIR}" == "nco" ]; then
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
-      else
-         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail ho-chun.huang@noaa.gov
-      fi
+#      if [ "${RUN_ENVIR}" == "nco" ]; then
+#         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail SABSupervisor@noaa.gov
+#      else
+#         echo "~s Both ${lbc_cyc} and ${lbccyc} GEFS output for ${cycle} CMAQ run are missing. CMAQ RUN SOFT FAILED" | mail jianping.huang@noaa.gov
+#      fi
       echo "WARNING ***  Can not find ${lbc_cyc} and ${lbccyc} GEFS output to produce ${BND2}, MANUAL INSPECTION required, model run continue"
       postmsg "ERROR IN ${pgm} for needed GEFS LBC files"
       exit

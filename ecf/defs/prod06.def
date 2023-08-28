@@ -43,7 +43,8 @@ suite prod06
         trigger /prod06/gfs/atmos/post/jgfs_atmos_post_manager:release_post072
         edit NUMNODE '10'
       task jaqm_prep_ana_cs
-        time 08:35
+        trigger :TIME >= 0830 and :TIME < 1435
+#       time 08:35
       task jaqm_fcst_ana_cs
         trigger jaqm_prep_ana_cs == complete
       task jaqm_forecast_conus

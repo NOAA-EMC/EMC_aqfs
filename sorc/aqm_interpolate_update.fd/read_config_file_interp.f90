@@ -15,6 +15,12 @@
 !		Add optional derived variables to var table, using keywords.
 !		Add save/nosave column to var table.
 !
+! 2022-apr-13	Add parameter for number of forecast hours.
+!		Remove dependency on get_free_unit, use fortran 2008 newunit.
+! 2022-apr-19	Change from hard coded derivatives, to formula expressions.
+!
+! 2023-apr-09	Rename parameter "station file" to "site list" for consistency.
+!
 ! Notes:
 !
 ! The configuration file is a simple text file containing file
@@ -25,14 +31,17 @@
 ! documenting.  See a typical interpolator configuration file
 ! for more details.
 !
+! The "formulas" output array will be allocated zero length if
+! there are no defined formulas.
+!
 !------------------------------------------------------------------------------
 
 module read__config_file_interp
 contains
 
-subroutine read_config_file_interp (config_file, station_file, &
-      grid_coord_file, interp_file_template, vi_wind_direction, &
-      vi_wind_speed, varnames, reader_codes, infile_templates, var_save)
+subroutine read_config_file_interp (config_file, site_list_file, &
+      grid_coord_file, interp_file_template, nhours, varnames, reader_codes, &
+      infile_templates, formulas, var_save)
 
    use get_param_module
    use read__table_lines
@@ -42,23 +51,20 @@ subroutine read_config_file_interp (config_file, station_file, &
 
    character(*), intent(in ) :: config_file	! name of config file to read
 
-   character(*), intent(out) :: station_file
+   character(*), intent(out) :: site_list_file
    character(*), intent(out) :: grid_coord_file
    character(*), intent(out) :: interp_file_template
-
-   integer,      intent(out) :: vi_wind_direction
-   integer,      intent(out) :: vi_wind_speed
+   integer,      intent(out) :: nhours
 
    character(*), intent(out), allocatable :: varnames(:)
    character(*), intent(out), allocatable :: reader_codes(:)
    character(*), intent(out), allocatable :: infile_templates(:)
+   character(*), intent(out), allocatable :: formulas(:)
    logical,      intent(out), allocatable :: var_save(:)
-
-   integer get_free_unit		! function def.
 
 ! Local variables.
 
-   integer, parameter :: max_table_size = 100	! max number of lines in any
+   integer, parameter :: max_table_size = 20	! max number of lines in any
    						! single table in config file;
 						! at least one more than needed
 
@@ -67,8 +73,7 @@ subroutine read_config_file_interp (config_file, station_file, &
    character(200) line, err_mes
    character(200) header_expected
 
-   character(len(varnames))     in_varname
-   character(len(reader_codes)) prefix
+   character(len(reader_codes)) keyword
 
    character(50), allocatable :: file_type_names(:)
    character(50), allocatable :: var_file_types(:)
@@ -77,6 +82,8 @@ subroutine read_config_file_interp (config_file, station_file, &
    character(len(reader_codes)),     allocatable :: type_reader_codes(:)
    character(len(infile_templates)), allocatable :: type_templates(:)
 
+   character(*), parameter :: caller_name = 'read_config_file_interp'
+
    integer i, j, k, vi, ios, status
 
    integer cf				! unit number for control file
@@ -84,8 +91,7 @@ subroutine read_config_file_interp (config_file, station_file, &
 
    integer n_file_types			! size of file type table
    integer nvars			! size of var table
-
-   logical found
+   integer nformulas			! number of derivative formulas
 
 ! Open config file for input.
 
@@ -93,10 +99,8 @@ subroutine read_config_file_interp (config_file, station_file, &
    print *, 'Read configuration file.'
    print *, '  File = ' // trim (config_file)
 
-   cf = get_free_unit ()			! get unit # for control file
-
-   open (cf, file=config_file, status='old', action='read', iostat=ios, &
-      iomsg=err_mes)
+   open (newunit=cf, file=config_file, status='old', action='read', &
+      iostat=ios, iomsg=err_mes)
 
    lnum = 0					! init line counter
 
@@ -116,7 +120,7 @@ subroutine read_config_file_interp (config_file, station_file, &
 read_file: &
    do					! block for escape handling only
 
-      call get_param_string ('station file', station_file, cf, status, lnum, &
+      call get_param_string ('site list', site_list_file, cf, status, lnum, &
          nonblank)
       if (status /= normal) exit read_file
 
@@ -126,6 +130,9 @@ read_file: &
 
       call get_param_string ('interp file template', interp_file_template, &
          cf, status, lnum, nonblank)
+      if (status /= normal) exit read_file
+
+      call get_param_int ('number of forecast hours', nhours, cf, status, lnum)
       if (status /= normal) exit read_file
 
 !-----------------------------------------------------------
@@ -138,9 +145,11 @@ read_file: &
 
 ! First read table as raw lines of text.  Get line count.
 
+      print *
       print *, '  Read file table:'
       header_expected = 'file table:'
-      call read_table_lines (cf, header_expected, lines, n_file_types, lnum)
+      call read_table_lines (cf, header_expected, 'no empty', caller_name, &
+         lines, n_file_types, lnum)
 
 ! Parse table lines.  Free format, space delimited.
 ! Only read the first three columns.  Anything else is comments.
@@ -182,16 +191,18 @@ read_file: &
 
 ! Column 1  = Actual var name within input file.  Case sensitive.
 ! Column 2  = File type name, must match file type above, col. 1 of file table.
-!             Or else one of the special "derived" keywords.
+!             Or else "derived" for derived variables.
 ! Column 3  = "save" to write to interpolated output file; normal analog vars.
 !             "nosave" to not write; vars only for derived var calculations.
 ! Column 4+ = Comments.
 
 ! First read table as raw lines of text.  Get line count.
 
+      print *
       print *, '  Read var table:'
       header_expected = 'var table:'
-      call read_table_lines (cf, header_expected, lines, nvars, lnum)
+      call read_table_lines (cf, header_expected, 'no empty', caller_name, &
+         lines, nvars, lnum)
 
 ! Parse table lines.  Free format, space delimited.
 ! Only read the first three columns.  Anything else is comments.
@@ -243,13 +254,13 @@ var_loop: &
             end if
          end do
 
-! Check for special keyword in place of normal file type.  Check prefix only.
+! Check for "derived" keyword in place of normal file type.
 
-         prefix = var_file_types(vi)(1:7)
-         call lowercase (prefix)	! case insensitive for derived keywords
+         keyword = var_file_types(vi)
+         call lowercase (keyword)		! case insensitive for "derived"
 
-         if (prefix == 'derived') then
-            reader_codes(vi)     = var_file_types(vi)	! return full keyword
+         if (keyword == 'derived') then
+            reader_codes(vi)     = keyword	! return "derived" lowercase
             infile_templates(vi) = "none"
             cycle var_loop
          end if
@@ -257,7 +268,7 @@ var_loop: &
 ! File type for this var is not recognized.  Abort.
 
          print *, '*** File type "' // trim (var_file_types(vi)) &
-            // '" is not listed in the file table, or derived keyword.'
+            // '" is not listed in the file table, or "derived" keyword.'
          print *, '*** Cross referenced from "' // trim (varnames(vi)) &
             // '" in the var table.'
          status = fatal
@@ -287,60 +298,34 @@ var_loop: &
       end do
 
 !-----------------------------------------------------------
-! Read supplemental config lines, in the order listed.
+! Read formulas to calculate derivatives.
 !-----------------------------------------------------------
 
-! Get "input wind direction" var name, and find in var table.
+! Formulas are in the form of familiar assignment statements, such as:
+!
+!   x = u_vector (speed, direction)
+!   x = a + b + c
+!
+! Blank line ends the list of formulas.
+! Formulas are parsed, interpreted, and associated in derivatives.f90.
+! See that routine for currently supported formula types.
 
-      call get_param_string ('input wind direction', in_varname, cf, status, &
-         lnum, nonblank)
-      if (status /= normal) exit read_file
+! Just read formulas as raw lines of text.  Get line count.
 
-      if (in_varname == "none") then		! check for keyword
-         vi_wind_direction = 0			! 0 = input var not specified
-         found = .true.
-      else
-         do vi = 1, nvars			! look up in var table
-            vi_wind_direction = vi
-            found = (varnames(vi) == in_varname)
-            if (found) exit
-         end do
-      end if
+      print *
+      print *, '  Read formulas for derivatives:'
+      header_expected = 'Calculation of derived variables:'
+      call read_table_lines (cf, header_expected, 'allow empty', caller_name, &
+         lines, nformulas, lnum)
 
-      if (.not. found) then
-         print *, '*** Variable "' // trim (in_varname) &
-            // '" is not found in the var table above.'
-         print *, '*** This parameter must be listed in the var table,' &
-            // ' or else the keyword "none".'
-         status = fatal
-         exit read_file
-      end if
+! Resize and copy formulas to output array.
 
-! Get "input wind speed" var name, and find in var table.
+      allocate (formulas(nformulas))	      ! zero size if no formulas listed
 
-      call get_param_string ('input wind speed', in_varname, cf, status, &
-         lnum, nonblank)
-      if (status /= normal) exit read_file
-
-      if (in_varname == "none") then		! check for keyword
-         vi_wind_speed = 0			! 0 = input var not specified
-         found = .true.
-      else
-         do vi = 1, nvars			! look up in var table
-            vi_wind_speed = vi
-            found = (varnames(vi) == in_varname)
-            if (found) exit
-         end do
-      end if
-
-      if (.not. found) then
-         print *, '*** Variable "' // trim (in_varname) &
-            // '" is not found in the var table above.'
-         print *, '*** This parameter must be listed in the var table,' &
-            // ' or else the keyword "none".'
-         status = fatal
-         exit read_file
-      end if
+      do i = 1, nformulas			! might be zero
+         print '(5x,a)', trim (lines(i))	! progress display
+         formulas(i) = lines(i)
+      end do
 
 !-----------------------------------------------------------
 ! End read_file block, and handle block aborts.

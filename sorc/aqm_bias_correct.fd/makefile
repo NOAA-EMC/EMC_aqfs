@@ -29,7 +29,17 @@
 # 2017-jun-08   Move analog computational code into lib.analog.
 # 2017-aug-08   transfer the code from Theia to Cray for O3 bias correction
 # 2021-mar-07   update the bias correction code 
-
+# 2021-apr-27   Add site blocking routines.
+# 
+# 2022-apr-17   Add read_gridded_hourly.f90, etc. for RRFS-CMAQ.
+# 2022-may-21   Add netcdf_sup.f90 to read units attributes.
+# 2022-may-25   Add short_training_period.f90.
+# 2022-may-31   Main program name change to aqm_bias_correct.f90.
+# 2022-jun-02   Split write_corrected_netcdf into two versions.
+#
+# 2023-mar-27   Add print_omp_info.f90 with conditional $F90_OMP_STUBS.
+# 2023-apr-04   Add read_obs_series_netcdf.f90, etc. for AirNow Netcdf support.
+#
 # This make file uses a single large compile command, rather
 # than incremental compiles.  Environment variables are used to
 # keep the make file generic for different compilers.
@@ -47,24 +57,24 @@ Prg =		aqm_bias_correct
 # Library directories.
 
 Alib     =   ../../lib/sorc/lib.analog
-Blib     =   ../../lib/sorc/lib.bias
-Lib      =   ../../lib/sorc/lib.f90
+Blib     =   ../../lib/sorc/lib.bias.csv
+Lib      =   ../../lib/sorc/lib.f90.csv
 Plib     =   ../../lib/sorc/lib.probability
 #
 
 LIB_NETCDF = -I$(NETCDF)/include ${NETCDF_LDFLAGS} 
+#LIB_NETCDF = -I${NETCDF}/include ${NETCDF_LIBRARIES} 
 
-F90_CMD = ifort 
+F90_CMD = mpiifort 
 
 LIB_BUFR = ${BUFR_LIB4}
 
 F90_FLAGS1 = -g -heap-arrays -assume byterecl -assume noold_maxminloc 
-F90_FLAGS2 = -warn nointerfaces -traceback  
+F90_FLAGS2 = -traceback -warn all,noexternal -warn errors 
 F90_FLAGS3 = -fstack-security-check -fpe-all=0
 F90_FLAGS4 = -O3
 F90_FLAGS5 = -qopenmp
-F90_FLAGS5 = 
-F90_FLAGS6 = -check noarg_temp_created
+F90_FLAGS6 = -check noarg_temp_created -no-wrap-margin
 
 F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
              $(F90_FLAGS3) $(F90_FLAGS4)  \
@@ -72,7 +82,6 @@ F90_FLAGS  = $(F90_FLAGS1) $(F90_FLAGS2)  \
 
 #F03_ALLOCATE = -assume realloc_lhs
 F90_CLEANUP = *.o *.mod *__genmod.f90
-F90_CONFIG = f90_config.gfortran.f90
 F90_IEEE_SUP = 
 
 #
@@ -83,29 +92,30 @@ Link.f90 =	$(F90_CMD) $(F90_FLAGS) $(F03_ALLOCATE)
 
 # Lib = General fortran support library.
 
-Lib1 =          $(Lib)/config.f90               $(Lib)/parse_varexp.f90 \
+Lib1 =          $(Lib)/config.f90 \
                 $(Lib)/stdlit.f90               $(Lib)/string_utils.f90
 
 
 Lib2 =          $(Lib)/binomial_coefficient.f90 $(Lib)/date_utils.f90 \
-                $(Lib)/distance_btw_coords.f90  $(Lib)/find_runs.f90 \
-                $(Lib)/get_free_unit.f90        $(Lib)/get_param_module.f90 \
-                $(Lib)/message_nolog.f90        $(Lib)/multisets.f90 \
-                $(Lib)/netwrite3.no-udunits.f90 $(Lib)/read_line.f90 \
-                $(Lib)/read_netcdf_var.f90      $(Lib)/shell-sort.f90 \
-                $(Lib)/std_dev_grid.f90
+		$(Lib)/distance_btw_coords.f90  $(Lib)/expand_filename.f90 \
+		$(Lib)/find_runs.f90            $(Lib)/get_free_unit.f90 \
+		$(Lib)/get_param_module.f90     $(Lib)/message_nolog.f90 \
+		$(Lib)/multisets.f90            $(Lib)/netcdf_sup.f90 \
+		$(Lib)/netwrite3.no-udunits.f90 $(OMP_STUBS) \
+		$(Lib)/print_omp_info.f90       $(Lib)/read_line.f90 \
+		$(Lib)/read_netcdf_var.f90      $(Lib)/shell-sort.f90 \
+		$(Lib)/std_dev.f90              $(Lib)/std_dev_grid.f90
 
 Subs.lib =	$(Lib1) $(Lib2)
 
 # Plib = Shared project support library.
 
-Subs.blib =     $(Blib)/bufrlib_interface.f90   $(Blib)/expand_filename.f90 \
-                $(Blib)/gridlocation.f90        $(Blib)/print_library_info.f90 \
-                $(Blib)/read_bufr_var.f90       $(Blib)/read_grid_coords.f90 \
-                $(Blib)/read_gridded_aqm.f90    $(Blib)/read_gridded_vars.f90 \
-                $(Blib)/read_table_lines.f90 \
-                $(Blib)/shell-sort.descending.f90 \
-                $(Blib)/std_dev.f90
+Subs.blib =     $(Blib)/bufrlib_interface.f90   $(Blib)/gridlocation.f90 \
+		$(Blib)/print_library_info.f90  $(Blib)/read_bufr_var.f90 \
+		$(Blib)/read_grid_coords.f90    $(Blib)/read_gridded_aqm.f90 \
+		$(Blib)/read_gridded_hourly.f90 \
+		$(Blib)/read_gridded_vars.f90   $(Blib)/read_table_lines.f90 \
+		$(Blib)/shell-sort.descending.f90
 
 # Analog = Analog computational library.
 
@@ -113,7 +123,8 @@ Analog1 =       $(Alib)/compute_weight_sets.f90 $(Alib)/rmse.f90 \
                 $(Alib)/stdevTNcirc.f90         $(Alib)/wind_dir_error.f90
 
 Analog2 =       $(Alib)/find_analog.f90      $(Alib)/kf_luca.f90 \
-                $(Alib)/analog_ensemble.f90     $(Alib)/anenmean_method.f90 \
+		$(Alib)/short_training_period.f90 \
+		$(Alib)/analog_ensemble.f90     $(Alib)/anenmean_method.f90 \
                 $(Alib)/kfan_method.f90         $(Alib)/filter_dispatch.f90 \
                 $(Alib)/weight_control.f90      $(Alib)/analog_control.f90
 
@@ -142,23 +153,25 @@ Subs.plib =     $(Opt_Interp) $(Probability1) $(Probability2)
 # Local support routines in main program directory.
 
 Local1 =        align_obs_to_forecasts.f90      blackout_obs_data.f90 \
-                compute_wind.f90                get_command_args.main.f90 \
-                get_window_offsets.f90 \
-                grid_distances.f90 \
-                qc_single_site.f90 \
-                read_var_table.f90 \
-                read_config_file_main.f90 \
-                read_interp_forecasts.f90 \
-                read_obs_series.f90 \
-                read_obs_qc.f90                 read_predictor_weights.f90 \
-                read_exception_list.f90         spread_bias.f90 \
-                write_corrected_netcdf.f90      write_predictor_weights.f90 \
-                write_site_list.f90             write_site_result_files.f90 \
-                write_test_day_files.f90        write_test_site_files.f90
+		compute_wind.f90                convert_obs_units.f90 \
+		get_command_args.main.f90       get_window_offsets.f90 \
+		grid_distances.f90              qc_single_site.f90 \
+		read_blocking_list.f90          site_blocking.f90
 
-Local2 =	spreading.f90
+Local2 =        print_interp_summary.f90        read_var_table.f90 \
+		read_config_file_main.f90       read_interp_forecasts.f90 \
+		read_obs_series_bufr.f90        read_obs_file_netcdf.f90 \
+		read_obs_series_netcdf.f90      read_obs_series.f90 \
+		read_obs_qc.f90                 read_predictor_weights.f90 \
+		read_exception_list.f90         spread_bias.f90 \
+		write_corrected_netcdf_rrfs.f90 write_corrected_netcdf_v1.f90 \
+		write_predictor_weights.f90     write_site_list.f90 \
+		write_site_result_files.f90     write_test_day_files.f90 \
+		write_test_site_files.f90
 
-Subs.local =    $(Local1) $(Local2)
+Local3 =	spreading.f90
+
+Subs.local =    $(Local1) $(Local2) $(Local3)
 
 # Main program.
 

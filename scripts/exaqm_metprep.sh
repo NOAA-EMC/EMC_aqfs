@@ -92,7 +92,7 @@ while [ ${icnt} -le ${tend} ]; do
    ##
    ## To assure the gfs.t${cyc}z.sfcf${endfhr}.nc and gfs.t${cyc}z.atmf${endfhr}.nc are ready to be used, but not merely existed
    ##
-   if [ 1 == 2 ] ; then
+## if [ 1 == 2 ] ; then
    targte_file=${COMINgfs}/gfs.${cycle}.logf${fhr}.txt
    icnt_gfs=0
    while [ ${icnt_gfs} -lt 300 ]; do
@@ -109,7 +109,7 @@ while [ ${icnt} -le ${tend} ]; do
       err_exit "*****FATAL ERROR***** - COULD NOT LOCATE:${COMINgfs}/gfs.${cycle}.logf${fhr}.txt"
    fi
    
-   fi
+## fi
 
    icnt_gfs=0
    while [ ${icnt_gfs} -lt 300 ]; do
@@ -278,7 +278,7 @@ export SOI_CRO=aqm.${cycle}.soicro.ncf
 export MOSAIC_CRO=aqm.${cycle}.mosaiccro.ncf
 
 startmsg
-mpiexec -n${NTIMES} --cpu-bind core ${EXECaqm}/aqm_nacc
+mpiexec -n ${NTIMES} --cpu-bind core ${EXECaqm}/aqm_nacc
 export err=$?
 if [ $err -ne 0 ]; then
    err_chk
