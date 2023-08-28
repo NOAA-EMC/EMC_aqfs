@@ -6,7 +6,7 @@ export PS4=' $SECONDS + '
 
 set -ax
 
-export DATA=${DATA:-${DATAROOT}/${PBS_JOBID}}
+export DATA=${DATA:-${DATAROOT}/${jobid}}
 
 mkdir -p ${DATA}
 cd ${DATA}
